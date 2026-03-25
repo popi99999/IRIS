@@ -1,0 +1,22 @@
+{
+  "name": "IRIS — Luxury Fashion Marketplace",
+  "short_name": "IRIS",
+  "description": "Il marketplace italiano per la moda di lusso. Compra e vendi pezzi firmati autenticati.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#060310",
+  "theme_color": "#7C3AED",
+  "orientation": "portrait-primary",
+  "lang": "it",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23060310' width='100' height='100' rx='20'/><text x='50' y='62' text-anchor='middle' font-size='36' font-family='serif' font-style='italic' fill='%23A78BFA'>IRIS</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "fashion", "lifestyle"],
+  "screenshots": [],
+  "prefer_related_applications": false
+}

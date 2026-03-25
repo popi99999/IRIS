@@ -4,7 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="IRIS — Il marketplace italiano per la moda di lusso. Compra e vendi pezzi firmati autenticati.">
+<meta name="keywords" content="moda lusso, luxury fashion, marketplace italia, borse firmate, abbigliamento designer, second hand luxury">
+<meta name="author" content="IRIS">
+<meta name="theme-color" content="#7C3AED">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta property="og:type" content="website">
+<meta property="og:title" content="IRIS — Luxury Fashion Marketplace">
+<meta property="og:description" content="Il marketplace italiano per la moda di lusso. Compra e vendi pezzi firmati autenticati.">
+<meta property="og:url" content="https://popi99999.github.io/IRIS/">
+<meta property="og:site_name" content="IRIS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="IRIS — Luxury Fashion Marketplace">
+<meta name="twitter:description" content="Il marketplace italiano per la moda di lusso.">
+<link rel="canonical" href="https://popi99999.github.io/IRIS/">
+<link rel="manifest" href="manifest.json">
 <title>IRIS — Luxury Fashion Marketplace</title>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Il marketplace italiano per la moda di lusso.","potentialAction":{"@type":"SearchAction","target":"https://popi99999.github.io/IRIS/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Luxury Fashion Marketplace italiano"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=Outfit:wght@200;300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
@@ -363,6 +380,271 @@ button{font-family:inherit}
 .offer-input{width:100%;padding:.8rem;background:rgba(167,139,250,.05);border:1px solid rgba(167,139,250,.15);font-family:inherit;font-size:1.1rem;color:var(--white);text-align:center;outline:none;margin-bottom:1rem;border-radius:2px}
 .offer-send{width:100%;padding:.9rem;background:var(--purple);color:#fff;border:none;font-family:inherit;font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;border-radius:2px}
 .offer-cancel{background:none;border:none;color:rgba(255,255,255,.3);font-family:inherit;font-size:.7rem;cursor:pointer;margin-top:.8rem}
+
+/* ═══════ DARK/LIGHT MODE ═══════ */
+body{transition:background .4s,color .4s}
+body.light-mode{background:#FAFAFA;color:#333}
+body.light-mode .topnav{background:rgba(255,255,255,.97);border-color:rgba(124,58,237,.08)}
+body.light-mode .tn-logo{color:#1A0A35}
+body.light-mode .tn-search input{background:rgba(124,58,237,.05);border-color:rgba(124,58,237,.1);color:#1A0A35}
+body.light-mode .tn-search input::placeholder{color:rgba(26,10,53,.25)}
+body.light-mode .tn-btn{color:rgba(26,10,53,.45)}
+body.light-mode .tn-btn:hover{color:var(--purple)}
+body.light-mode .tn-sell{background:rgba(124,58,237,.1)!important;border-color:rgba(124,58,237,.2)!important;color:var(--purple)!important}
+body.light-mode .filters{background:rgba(250,250,250,.95);border-color:rgba(124,58,237,.06)}
+body.light-mode .f-title{color:var(--purple)}
+body.light-mode .f-opt{color:rgba(26,10,53,.5)}body.light-mode .f-opt:hover{color:rgba(26,10,53,.8)}
+body.light-mode .f-opt.on{color:var(--purple)}
+body.light-mode .f-search{background:rgba(124,58,237,.04);border-color:rgba(124,58,237,.1);color:#1A0A35}
+body.light-mode .f-label{color:rgba(26,10,53,.4)}
+body.light-mode .f-fit-btn{border-color:rgba(124,58,237,.12);color:rgba(26,10,53,.4)}
+body.light-mode .f-fit-btn.on,body.light-mode .f-fit-btn:hover{color:var(--purple)}
+body.light-mode .f-range input{background:#fff;border-color:rgba(124,58,237,.12);color:#1A0A35}
+body.light-mode .f-clear{color:rgba(26,10,53,.3)}
+body.light-mode .shop-count{color:rgba(26,10,53,.4)}
+body.light-mode .sort-btn{border-color:rgba(124,58,237,.1);color:rgba(26,10,53,.35)}
+body.light-mode .sort-btn.on,body.light-mode .sort-btn:hover{color:var(--purple);border-color:var(--purple)}
+body.light-mode .pc{background:#fff;border-color:rgba(124,58,237,.06)}
+body.light-mode .pc:hover{box-shadow:0 12px 40px rgba(124,58,237,.1);border-color:rgba(124,58,237,.15)}
+body.light-mode .pi{background:linear-gradient(135deg,#F5F0FF,#EDE8F5)}
+body.light-mode .p-brand{color:var(--purple)}
+body.light-mode .p-name{color:#1A0A35}
+body.light-mode .p-meta{color:rgba(26,10,53,.3)}
+body.light-mode .p-price{color:#1A0A35}
+body.light-mode .p-orig{color:rgba(26,10,53,.25)}
+body.light-mode .af-chip{background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.15);color:var(--purple)}
+body.light-mode .pc-heart{background:rgba(255,255,255,.7)}
+body.light-mode #detail-view{background:#FAFAFA}
+body.light-mode .det-imgs{background:linear-gradient(135deg,#F5F0FF,#EDE8F5)}
+body.light-mode .det-body{background:#FAFAFA}
+body.light-mode .det-back{color:var(--purple);opacity:.6}
+body.light-mode .det-brand{color:var(--purple)}
+body.light-mode .det-name{color:#1A0A35}
+body.light-mode .det-price{color:#1A0A35}
+body.light-mode .det-orig{color:rgba(26,10,53,.3)}
+body.light-mode .det-div{background:rgba(124,58,237,.08)}
+body.light-mode .det-section-title{color:rgba(26,10,53,.35)}
+body.light-mode .det-chip{border-color:rgba(124,58,237,.12);color:rgba(26,10,53,.5)}
+body.light-mode .det-desc{color:rgba(26,10,53,.5)}
+body.light-mode .det-fit-item{background:rgba(124,58,237,.04);border-color:rgba(124,58,237,.08)}
+body.light-mode .det-fit-label{color:rgba(26,10,53,.3)}
+body.light-mode .det-fit-value{color:#1A0A35}
+body.light-mode .seller-card{background:rgba(124,58,237,.03);border-color:rgba(124,58,237,.1)}
+body.light-mode .seller-name{color:#1A0A35}
+body.light-mode .seller-meta{color:rgba(26,10,53,.35)}
+body.light-mode .det-fav{color:rgba(26,10,53,.4);border-color:rgba(26,10,53,.1)}
+body.light-mode .det-auth{background:rgba(124,58,237,.03);border-color:rgba(124,58,237,.08)}
+body.light-mode .det-auth li{color:rgba(26,10,53,.4)}
+body.light-mode .det-auth-t{color:var(--purple)}
+body.light-mode .chat-list{background:#fff;border-color:rgba(124,58,237,.06)}
+body.light-mode .cl-head{border-color:rgba(124,58,237,.06)}
+body.light-mode .cl-item{border-color:rgba(124,58,237,.03)}
+body.light-mode .cl-item:hover,body.light-mode .cl-item.on{background:rgba(124,58,237,.04)}
+body.light-mode .cl-av{background:rgba(124,58,237,.08)}
+body.light-mode .cl-name{color:#1A0A35}
+body.light-mode .cl-last{color:rgba(26,10,53,.35)}
+body.light-mode .cl-time{color:rgba(26,10,53,.2)}
+body.light-mode .chat-main{background:#FAFAFA}
+body.light-mode .cm-head{border-color:rgba(124,58,237,.06)}
+body.light-mode .cm-name{color:#1A0A35}
+body.light-mode .cm-prod{color:rgba(26,10,53,.3)}
+body.light-mode .msg.them{background:rgba(124,58,237,.06);color:rgba(26,10,53,.6);border-color:rgba(124,58,237,.08)}
+body.light-mode .msg.me{background:rgba(124,58,237,.12);color:rgba(26,10,53,.7);border-color:rgba(124,58,237,.15)}
+body.light-mode .msg-time{color:rgba(26,10,53,.2)}
+body.light-mode .cm-input{border-color:rgba(124,58,237,.06)}
+body.light-mode .cm-input input{background:#fff;border-color:rgba(124,58,237,.12);color:#1A0A35}
+body.light-mode .fav-title{color:#1A0A35}
+body.light-mode .fav-count{color:rgba(26,10,53,.35)}
+body.light-mode .fav-empty{color:rgba(26,10,53,.3)}
+body.light-mode .prof-name{color:#1A0A35}
+body.light-mode .prof-bio{color:rgba(26,10,53,.35)}
+body.light-mode .prof-stat-n{color:#1A0A35}
+body.light-mode .prof-stat-l{color:rgba(26,10,53,.25)}
+body.light-mode .prof-header{border-color:rgba(124,58,237,.08)}
+body.light-mode .prof-av{background:rgba(124,58,237,.08)}
+body.light-mode .prof-tab{border-color:rgba(124,58,237,.1);color:rgba(26,10,53,.35)}
+body.light-mode .prof-tab.on{color:var(--purple);border-color:var(--purple)}
+body.light-mode .offer-modal{background:rgba(255,255,255,.9)}
+body.light-mode .offer-box{background:#fff;border-color:rgba(124,58,237,.12)}
+body.light-mode .offer-title{color:#1A0A35}
+body.light-mode .offer-input{background:rgba(124,58,237,.04);border-color:rgba(124,58,237,.15);color:#1A0A35}
+body.light-mode .offer-cancel{color:rgba(26,10,53,.4)}
+
+/* ═══════ PAGE TRANSITIONS ═══════ */
+.view-enter{animation:fadeSlideIn .35s ease}
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════ SKELETON LOADING ═══════ */
+.skeleton-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem}
+@media(max-width:1100px){.skeleton-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.skeleton-grid{grid-template-columns:repeat(2,1fr);gap:.8rem}}
+.skel-card{overflow:hidden}
+.skel-img{aspect-ratio:3/4;background:linear-gradient(110deg,rgba(124,58,237,.06) 8%,rgba(124,58,237,.12) 18%,rgba(124,58,237,.06) 33%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:2px}
+.skel-line{height:10px;margin:8px 12px;border-radius:4px;background:linear-gradient(110deg,rgba(124,58,237,.06) 8%,rgba(124,58,237,.12) 18%,rgba(124,58,237,.06) 33%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+.skel-line.short{width:60%}.skel-line.med{width:80%}
+.skel-line.price{width:40%;height:14px;margin-top:12px}
+body.light-mode .skel-img,body.light-mode .skel-line{background:linear-gradient(110deg,rgba(124,58,237,.05) 8%,rgba(124,58,237,.1) 18%,rgba(124,58,237,.05) 33%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-chat{display:flex;gap:1rem;padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.02)}
+.skel-chat-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(110deg,rgba(124,58,237,.06) 8%,rgba(124,58,237,.12) 18%,rgba(124,58,237,.06) 33%);background-size:200% 100%;animation:shimmer 1.5s infinite;flex-shrink:0}
+.skel-chat-lines{flex:1;display:flex;flex-direction:column;gap:6px;justify-content:center}
+
+/* ═══════ NOTIFICATIONS ═══════ */
+.notif-wrap{position:relative}
+.notif-bell{background:none;border:none;color:rgba(255,255,255,.35);font-size:1rem;cursor:pointer;padding:.5rem .6rem;transition:color .3s;position:relative}
+.notif-bell:hover{color:var(--lavender)}
+body.light-mode .notif-bell{color:rgba(26,10,53,.4)}
+body.light-mode .notif-bell:hover{color:var(--purple)}
+.notif-badge{position:absolute;top:2px;right:2px;width:16px;height:16px;background:#e74c6f;border-radius:50%;font-size:.5rem;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Outfit',sans-serif;letter-spacing:0;pointer-events:none}
+.notif-panel{position:absolute;top:100%;right:0;width:340px;max-height:420px;overflow-y:auto;background:rgba(14,7,32,.98);backdrop-filter:blur(24px);border:1px solid rgba(167,139,250,.1);display:none;z-index:600;border-radius:2px;box-shadow:0 12px 48px rgba(0,0,0,.5)}
+.notif-panel.open{display:block}
+body.light-mode .notif-panel{background:rgba(255,255,255,.98);border-color:rgba(124,58,237,.1);box-shadow:0 12px 48px rgba(0,0,0,.1)}
+.notif-head{padding:.8rem 1rem;border-bottom:1px solid rgba(167,139,250,.08);display:flex;justify-content:space-between;align-items:center}
+.notif-title{font-size:.5rem;letter-spacing:.3em;text-transform:uppercase;color:var(--lavender);opacity:.5}
+body.light-mode .notif-title{color:var(--purple)}
+.notif-clear{background:none;border:none;color:rgba(255,255,255,.2);font-size:.6rem;cursor:pointer;font-family:inherit}
+body.light-mode .notif-clear{color:rgba(26,10,53,.3)}
+.notif-item{display:flex;gap:.8rem;padding:.8rem 1rem;border-bottom:1px solid rgba(255,255,255,.02);cursor:pointer;transition:background .2s}
+.notif-item:hover{background:rgba(124,58,237,.06)}
+.notif-item.unread{background:rgba(124,58,237,.04)}
+body.light-mode .notif-item{border-color:rgba(124,58,237,.03)}
+body.light-mode .notif-item.unread{background:rgba(124,58,237,.04)}
+body.light-mode .notif-item:hover{background:rgba(124,58,237,.06)}
+.notif-icon{width:32px;height:32px;border-radius:50%;background:rgba(124,58,237,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.85rem}
+.notif-content{flex:1;min-width:0}
+.notif-text{font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.5}
+body.light-mode .notif-text{color:rgba(26,10,53,.55)}
+.notif-item.unread .notif-text{color:rgba(255,255,255,.7)}
+body.light-mode .notif-item.unread .notif-text{color:rgba(26,10,53,.75)}
+.notif-time{font-size:.55rem;color:rgba(255,255,255,.15);margin-top:.2rem}
+body.light-mode .notif-time{color:rgba(26,10,53,.2)}
+.notif-dot{width:6px;height:6px;border-radius:50%;background:var(--purple);flex-shrink:0;margin-top:.4rem}
+.notif-empty{padding:2rem;text-align:center;font-size:.8rem;color:rgba(255,255,255,.2)}
+
+/* ═══════ FOOTER ═══════ */
+.site-footer{background:rgba(6,3,16,.95);border-top:1px solid var(--border);padding:4rem 0 0;margin-top:4rem}
+body.light-mode .site-footer{background:#1A0A35;border-color:rgba(124,58,237,.1)}
+.footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:2.5rem;max-width:1200px;margin:0 auto;padding:0 2rem}
+@media(max-width:800px){.footer-grid{grid-template-columns:1fr 1fr;gap:2rem}}
+@media(max-width:500px){.footer-grid{grid-template-columns:1fr}}
+.footer-brand{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-style:italic;color:rgba(255,255,255,.7);letter-spacing:.15em;margin-bottom:.8rem}
+.footer-desc{font-size:.78rem;color:rgba(255,255,255,.25);line-height:2;margin-bottom:1rem}
+.footer-social{display:flex;gap:.8rem}
+.footer-social a{font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.25);transition:color .3s;border:1px solid rgba(255,255,255,.08);padding:.35rem .7rem;border-radius:2px}
+.footer-social a:hover{color:var(--lavender);border-color:rgba(167,139,250,.3)}
+.footer-col-title{font-size:.48rem;letter-spacing:.35em;text-transform:uppercase;color:var(--lavender);opacity:.4;margin-bottom:1.2rem}
+.footer-links{list-style:none;display:flex;flex-direction:column;gap:.6rem}
+.footer-links a{font-size:.78rem;color:rgba(255,255,255,.25);transition:color .3s}
+.footer-links a:hover{color:var(--lavender)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.04);margin-top:3rem;padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin-left:auto;margin-right:auto;flex-wrap:wrap;gap:.8rem}
+.footer-copy{font-size:.68rem;color:rgba(255,255,255,.15)}
+.footer-legal{display:flex;gap:1.5rem}
+.footer-legal a{font-size:.6rem;letter-spacing:.1em;color:rgba(255,255,255,.15);transition:color .3s}
+.footer-legal a:hover{color:var(--lavender)}
+
+/* ═══════ SELLER PROFILE VIEW ═══════ */
+#seller-view{padding-top:70px;display:none}
+#seller-view.active{display:block}
+.sv-header{padding:3rem 0;display:flex;align-items:center;gap:2rem;border-bottom:1px solid var(--border)}
+body.light-mode .sv-header{border-color:rgba(124,58,237,.08)}
+.sv-av{width:80px;height:80px;background:rgba(124,58,237,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;flex-shrink:0}
+body.light-mode .sv-av{background:rgba(124,58,237,.08)}
+.sv-info{flex:1}
+.sv-name{font-family:'Playfair Display',serif;font-size:1.4rem;color:rgba(255,255,255,.8);font-weight:300}
+body.light-mode .sv-name{color:#1A0A35}
+.sv-meta{font-size:.82rem;color:rgba(255,255,255,.25);margin-top:.3rem}
+body.light-mode .sv-meta{color:rgba(26,10,53,.35)}
+.sv-rating{color:var(--gold);margin-right:.3rem}
+.sv-stats{display:flex;gap:2rem;margin-top:.8rem}
+.sv-stat{text-align:center}
+.sv-stat-n{font-size:1rem;color:rgba(255,255,255,.6)}
+body.light-mode .sv-stat-n{color:#1A0A35}
+.sv-stat-l{font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.18)}
+body.light-mode .sv-stat-l{color:rgba(26,10,53,.25)}
+.sv-tabs{display:flex;gap:.3rem;margin:2rem 0 1.5rem}
+.sv-tab{padding:.4rem 1.2rem;border:1px solid rgba(167,139,250,.1);background:transparent;color:rgba(255,255,255,.3);font-family:inherit;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .25s;border-radius:2px}
+.sv-tab.on{border-color:var(--purple);color:var(--lavender);background:rgba(124,58,237,.08)}
+body.light-mode .sv-tab{border-color:rgba(124,58,237,.1);color:rgba(26,10,53,.35)}
+body.light-mode .sv-tab.on{color:var(--purple);border-color:var(--purple)}
+
+/* ═══════ REVIEWS ═══════ */
+.reviews-list{display:flex;flex-direction:column;gap:1.2rem;padding:1.5rem 0}
+.review-card{padding:1.2rem;background:rgba(167,139,250,.03);border:1px solid rgba(167,139,250,.06);border-radius:2px}
+body.light-mode .review-card{background:rgba(124,58,237,.02);border-color:rgba(124,58,237,.08)}
+.review-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}
+.review-buyer{font-size:.82rem;color:rgba(255,255,255,.6)}
+body.light-mode .review-buyer{color:#1A0A35}
+.review-date{font-size:.6rem;color:rgba(255,255,255,.15)}
+body.light-mode .review-date{color:rgba(26,10,53,.25)}
+.review-stars{color:var(--gold);font-size:.75rem;margin-bottom:.5rem;letter-spacing:.15em}
+.review-text{font-size:.8rem;color:rgba(255,255,255,.35);line-height:1.9}
+body.light-mode .review-text{color:rgba(26,10,53,.5)}
+.review-product{font-size:.6rem;color:rgba(255,255,255,.15);margin-top:.5rem;font-style:italic}
+body.light-mode .review-product{color:rgba(26,10,53,.2)}
+
+/* ═══════ AUTOCOMPLETE ═══════ */
+.ac-dropdown{position:absolute;top:100%;left:0;right:0;background:rgba(14,7,32,.98);backdrop-filter:blur(24px);border:1px solid rgba(167,139,250,.12);border-top:none;max-height:360px;overflow-y:auto;display:none;z-index:550;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.ac-dropdown.open{display:block}
+body.light-mode .ac-dropdown{background:rgba(255,255,255,.98);border-color:rgba(124,58,237,.1);box-shadow:0 12px 40px rgba(0,0,0,.08)}
+.ac-group-title{font-size:.42rem;letter-spacing:.3em;text-transform:uppercase;color:var(--lavender);opacity:.4;padding:.6rem 1rem .3rem}
+body.light-mode .ac-group-title{color:var(--purple)}
+.ac-item{padding:.5rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.7rem;transition:background .2s;font-size:.8rem;color:rgba(255,255,255,.5)}
+.ac-item:hover{background:rgba(124,58,237,.08)}
+body.light-mode .ac-item{color:rgba(26,10,53,.55)}
+body.light-mode .ac-item:hover{background:rgba(124,58,237,.06)}
+.ac-item-icon{font-size:.7rem;opacity:.5;width:20px;text-align:center}
+
+/* ═══════ STATIC PAGE MODALS ═══════ */
+.static-modal{position:fixed;inset:0;z-index:800;background:rgba(6,3,16,.95);backdrop-filter:blur(20px);display:none;overflow-y:auto;opacity:0;transition:opacity .35s}
+.static-modal.open{display:block;opacity:1}
+body.light-mode .static-modal{background:rgba(250,250,250,.97)}
+.sm-inner{max-width:720px;margin:0 auto;padding:4rem 2rem 6rem}
+.sm-close{position:fixed;top:1.5rem;right:2rem;background:none;border:1px solid rgba(167,139,250,.2);color:rgba(255,255,255,.4);width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:all .3s;z-index:801;border-radius:2px}
+.sm-close:hover{border-color:var(--lavender);color:var(--lavender)}
+body.light-mode .sm-close{border-color:rgba(124,58,237,.15);color:rgba(26,10,53,.4)}
+body.light-mode .sm-close:hover{color:var(--purple);border-color:var(--purple)}
+.sm-title{font-family:'Playfair Display',serif;font-size:2rem;font-weight:300;color:rgba(255,255,255,.85);margin-bottom:.5rem}
+body.light-mode .sm-title{color:#1A0A35}
+.sm-subtitle{font-size:.85rem;color:rgba(255,255,255,.25);margin-bottom:2.5rem;line-height:1.8}
+body.light-mode .sm-subtitle{color:rgba(26,10,53,.35)}
+.sm-section{margin-bottom:2rem}
+.sm-section h3{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:400;color:rgba(255,255,255,.65);margin-bottom:.8rem}
+body.light-mode .sm-section h3{color:#1A0A35}
+.sm-section p{font-size:.82rem;color:rgba(255,255,255,.3);line-height:2.1}
+body.light-mode .sm-section p{color:rgba(26,10,53,.45)}
+.faq-item{margin-bottom:.8rem;border:1px solid rgba(167,139,250,.06);border-radius:2px;overflow:hidden}
+body.light-mode .faq-item{border-color:rgba(124,58,237,.08)}
+.faq-q{padding:.9rem 1.2rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:rgba(255,255,255,.5);transition:background .2s}
+.faq-q:hover{background:rgba(124,58,237,.04)}
+body.light-mode .faq-q{color:rgba(26,10,53,.6)}
+.faq-q::after{content:'+';font-size:1rem;color:var(--lavender);transition:transform .3s}
+.faq-item.open .faq-q::after{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .35s;padding:0 1.2rem}
+.faq-item.open .faq-a{max-height:300px;padding:.5rem 1.2rem 1rem}
+.faq-a p{font-size:.78rem;color:rgba(255,255,255,.25);line-height:2}
+body.light-mode .faq-a p{color:rgba(26,10,53,.4)}
+
+/* ═══════ LOAD MORE BUTTON ═══════ */
+.load-more-wrap{text-align:center;padding:2.5rem 0}
+.load-more-btn{background:transparent;border:1px solid rgba(167,139,250,.2);color:var(--lavender);padding:.7rem 2.5rem;font-family:inherit;font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;transition:all .3s;border-radius:2px}
+.load-more-btn:hover{background:rgba(124,58,237,.08);border-color:rgba(167,139,250,.4)}
+body.light-mode .load-more-btn{border-color:rgba(124,58,237,.15);color:var(--purple)}
+body.light-mode .load-more-btn:hover{background:rgba(124,58,237,.06);border-color:rgba(124,58,237,.3)}
+
+/* ═══════ TOOLBAR TOGGLES ═══════ */
+.mode-toggle,.lang-toggle{background:none;border:1px solid rgba(167,139,250,.15);color:rgba(255,255,255,.35);padding:.3rem .55rem;font-family:inherit;font-size:.6rem;cursor:pointer;transition:all .3s;border-radius:2px;letter-spacing:.05em}
+.mode-toggle:hover,.lang-toggle:hover{border-color:rgba(167,139,250,.4);color:var(--lavender)}
+body.light-mode .mode-toggle,body.light-mode .lang-toggle{border-color:rgba(124,58,237,.15);color:rgba(26,10,53,.4)}
+body.light-mode .mode-toggle:hover,body.light-mode .lang-toggle:hover{color:var(--purple);border-color:rgba(124,58,237,.3)}
+
+/* ═══════ PWA INSTALL BANNER ═══════ */
+.pwa-banner{position:fixed;bottom:1.5rem;right:1.5rem;background:rgba(14,7,32,.95);backdrop-filter:blur(20px);border:1px solid rgba(167,139,250,.15);padding:1rem 1.5rem;display:none;align-items:center;gap:1rem;z-index:600;border-radius:2px;box-shadow:0 8px 32px rgba(0,0,0,.4);max-width:320px}
+body.light-mode .pwa-banner{background:rgba(255,255,255,.95);border-color:rgba(124,58,237,.12);box-shadow:0 8px 32px rgba(0,0,0,.08)}
+.pwa-banner-text{font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.6}
+body.light-mode .pwa-banner-text{color:rgba(26,10,53,.55)}
+.pwa-banner-btn{background:var(--purple);color:#fff;border:none;padding:.4rem .9rem;font-family:inherit;font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;white-space:nowrap}
+.pwa-banner-close{background:none;border:none;color:rgba(255,255,255,.2);cursor:pointer;font-size:.9rem}
+body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
 </style>
 </head>
 <body>
@@ -414,11 +696,19 @@ button{font-family:inherit}
       <div class="tn-search">
         <input type="text" placeholder="Cerca brand, articoli, stili..." id="searchInput" oninput="handleSearch(this.value)">
       </div>
+      <div class="ac-dropdown" id="acDropdown"></div>
+      </div>
       <div class="tn-links">
         <button class="tn-btn" onclick="showBuyView('shop')">Shop</button>
         <button class="tn-btn" onclick="showBuyView('fav')">♡<span class="badge" id="fav-badge" style="display:none">0</span></button>
+        <div class="notif-wrap">
+          <button class="notif-bell" onclick="toggleNotifs()">🔔<span class="notif-badge" id="notifBadge">3</span></button>
+          <div class="notif-panel" id="notifPanel"></div>
+        </div>
         <button class="tn-btn" onclick="showBuyView('chat')">💬<span class="badge" id="chat-badge">2</span></button>
         <button class="tn-btn" onclick="showBuyView('profile')">👤</button>
+        <button class="mode-toggle" id="modeToggle" onclick="toggleDarkLight()">☀️</button>
+        <button class="lang-toggle" id="langToggle" onclick="switchLang()">EN</button>
         <button class="tn-btn tn-sell" onclick="showPage('sell')">Vendi</button>
       </div>
     </div>
@@ -574,6 +864,11 @@ button{font-family:inherit}
     </div>
   </div>
 
+  <!-- SELLER VIEW -->
+  <div id="seller-view">
+    <div class="container" id="sellerContent"></div>
+  </div>
+
 </div><!-- /page-buy -->
 
 <!-- ═══════ SELL PAGE ═══════ -->
@@ -640,6 +935,75 @@ button{font-family:inherit}
       </div>
     </div>
   </section>
+</div>
+
+<!-- ═══════ STATIC PAGE MODALS ═══════ -->
+<div class="static-modal" id="modal-about">
+  <button class="sm-close" onclick="closeStatic('about')">✕</button>
+  <div class="sm-inner">
+    <div class="sm-title">Chi siamo</div>
+    <div class="sm-subtitle">IRIS nasce dalla passione per la moda di lusso e dalla volont&agrave; di creare il primo marketplace italiano dedicato.</div>
+    <div class="sm-section"><h3>La nostra missione</h3><p>Rendere il lusso accessibile, sicuro e sostenibile. Ogni pezzo su IRIS &egrave; verificato da esperti autenticatori, ogni transazione &egrave; protetta, ogni venditore &egrave; parte di una community che valorizza qualit&agrave; e stile.</p></div>
+    <div class="sm-section"><h3>Il team</h3><p>Siamo un team di appassionati di moda, tecnologia e design con sede in Italia. Crediamo che la moda di seconda mano non sia un compromesso, ma una scelta consapevole.</p></div>
+    <div class="sm-section"><h3>I numeri</h3><p>+1.000 articoli autenticati &middot; +500 venditori verificati &middot; 98% soddisfazione clienti &middot; Spedizioni in tutta Europa</p></div>
+  </div>
+</div>
+<div class="static-modal" id="modal-howto">
+  <button class="sm-close" onclick="closeStatic('howto')">✕</button>
+  <div class="sm-inner">
+    <div class="sm-title">Come funziona</div>
+    <div class="sm-subtitle">Comprare e vendere su IRIS &egrave; semplice, sicuro e veloce.</div>
+    <div class="sm-section"><h3>Per chi acquista</h3><p>1. Esplora migliaia di pezzi firmati con filtri avanzati<br>2. Contatta il venditore via chat o fai un'offerta<br>3. Acquista con pagamento protetto<br>4. Ricevi il pezzo autenticato a casa tua<br>5. Hai 14 giorni per il reso gratuito</p></div>
+    <div class="sm-section"><h3>Per chi vende</h3><p>1. Fotografa il tuo articolo da pi&ugrave; angolazioni<br>2. Crea l'annuncio: brand, condizione, prezzo. Gratis!<br>3. Il compratore acquista, tu ricevi l'etichetta prepagata<br>4. Spedisci, noi autentichiamo<br>5. Ricevi il pagamento entro 48h dalla conferma</p></div>
+  </div>
+</div>
+<div class="static-modal" id="modal-faq">
+  <button class="sm-close" onclick="closeStatic('faq')">✕</button>
+  <div class="sm-inner">
+    <div class="sm-title">Domande frequenti</div>
+    <div class="sm-subtitle">Tutto quello che devi sapere su IRIS.</div>
+    <div id="faqList">
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">Come funziona l'autenticazione?</div><div class="faq-a"><p>Ogni articolo sopra i €200 viene verificato da esperti certificati. Controlliamo materiali, cuciture, hardware e numeri seriali per garantire l'autenticit&agrave;.</p></div></div>
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">Quanto costa vendere su IRIS?</div><div class="faq-a"><p>Pubblicare &egrave; gratis. Paghiamo solo una commissione dal 10% al 15% sul venduto, a seconda della categoria e del prezzo.</p></div></div>
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">Posso restituire un articolo?</div><div class="faq-a"><p>S&igrave;, hai 14 giorni dalla ricezione per restituire gratuitamente l'articolo se non corrisponde alla descrizione.</p></div></div>
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">Come ricevo il pagamento?</div><div class="faq-a"><p>Tramite bonifico bancario entro 48 ore dalla conferma dell'autenticazione e ricezione da parte del compratore.</p></div></div>
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">Quali brand accettate?</div><div class="faq-a"><p>Accettiamo tutti i brand di lusso e contemporary: Herm&egrave;s, Chanel, Louis Vuitton, Gucci, Prada, Balenciaga, Off-White e molti altri.</p></div></div>
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">La spedizione &egrave; inclusa?</div><div class="faq-a"><p>S&igrave;, forniamo etichetta prepagata al venditore. Il compratore paga una quota fissa di spedizione visibile prima dell'acquisto.</p></div></div>
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">Quanto tempo serve per vendere?</div><div class="faq-a"><p>Dipende dal pezzo. I brand pi&ugrave; ricercati come Herm&egrave;s e Chanel si vendono in media in 3-7 giorni. Foto di qualit&agrave; e prezzo competitivo aiutano.</p></div></div>
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">IRIS &egrave; disponibile in tutta Europa?</div><div class="faq-a"><p>Attualmente spediamo in Italia e nei principali paesi europei. Stiamo espandendo la copertura.</p></div></div>
+    </div>
+  </div>
+</div>
+<div class="static-modal" id="modal-terms">
+  <button class="sm-close" onclick="closeStatic('terms')">✕</button>
+  <div class="sm-inner">
+    <div class="sm-title">Termini e Condizioni</div>
+    <div class="sm-subtitle">Ultimo aggiornamento: Marzo 2026</div>
+    <div class="sm-section"><h3>1. Accettazione</h3><p>Utilizzando IRIS accetti integralmente i presenti Termini e Condizioni. Se non li accetti, ti preghiamo di non utilizzare la piattaforma.</p></div>
+    <div class="sm-section"><h3>2. Servizio</h3><p>IRIS &egrave; un marketplace che mette in contatto venditori e acquirenti di articoli di moda di lusso. IRIS non &egrave; proprietaria degli articoli in vendita ma fornisce servizi di autenticazione, pagamento sicuro e supporto.</p></div>
+    <div class="sm-section"><h3>3. Commissioni</h3><p>Il venditore paga una commissione variabile dal 10% al 15% calcolata sul prezzo finale di vendita. La pubblicazione &egrave; gratuita.</p></div>
+    <div class="sm-section"><h3>4. Resi</h3><p>L'acquirente ha diritto al reso gratuito entro 14 giorni se l'articolo non &egrave; conforme alla descrizione.</p></div>
+    <div class="sm-section"><h3>5. Responsabilit&agrave;</h3><p>IRIS si impegna a verificare l'autenticit&agrave; degli articoli ma non pu&ograve; garantire al 100% l'assenza di errori. In caso di articolo non autentico, rimborso totale garantito.</p></div>
+  </div>
+</div>
+<div class="static-modal" id="modal-privacy">
+  <button class="sm-close" onclick="closeStatic('privacy')">✕</button>
+  <div class="sm-inner">
+    <div class="sm-title">Privacy Policy</div>
+    <div class="sm-subtitle">Ultimo aggiornamento: Marzo 2026 &middot; Conforme al GDPR (Reg. UE 2016/679)</div>
+    <div class="sm-section"><h3>Titolare del trattamento</h3><p>IRIS S.r.l. con sede in Milano, Italia. Email: privacy@iris-fashion.it</p></div>
+    <div class="sm-section"><h3>Dati raccolti</h3><p>Raccogliamo dati necessari al funzionamento del servizio: nome, email, indirizzo di spedizione, dati di pagamento (elaborati da Stripe), cronologia acquisti e preferenze.</p></div>
+    <div class="sm-section"><h3>Finalit&agrave;</h3><p>I dati sono utilizzati per: erogazione del servizio, autenticazione, comunicazioni transazionali, miglioramento dell'esperienza utente, obblighi di legge.</p></div>
+    <div class="sm-section"><h3>I tuoi diritti</h3><p>Hai diritto di accesso, rettifica, cancellazione, portabilit&agrave; e opposizione al trattamento dei tuoi dati personali. Puoi esercitare i tuoi diritti scrivendo a privacy@iris-fashion.it.</p></div>
+    <div class="sm-section"><h3>Cookie</h3><p>Utilizziamo cookie tecnici necessari e cookie analitici anonimi per migliorare il servizio. Nessun cookie di profilazione senza consenso esplicito.</p></div>
+  </div>
+</div>
+
+<!-- ═══════ PWA INSTALL BANNER ═══════ -->
+<div class="pwa-banner" id="pwaBanner">
+  <div class="pwa-banner-text" data-i18n="pwa_text">Installa IRIS sul tuo telefono per un'esperienza migliore!</div>
+  <button class="pwa-banner-btn" id="pwaInstallBtn" data-i18n="pwa_install">Installa</button>
+  <button class="pwa-banner-close" onclick="dismissPwa()">✕</button>
 </div>
 
 <!-- Offer modal -->
@@ -895,6 +1259,493 @@ function updateFee(){
   document.getElementById('fee-n').textContent=price?`€${net.toFixed(0)}`:'€ —';
 }
 function selCond(btn){document.querySelectorAll('.cond-btn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel')}
+
+/* ═══════ i18n MULTI-LANGUAGE ═══════ */
+const i18n={
+  it:{
+    shop:'Shop',buy_now:'Acquista ora',make_offer:"Fai un'offerta",add_fav:'Aggiungi ai preferiti',saved_fav:'Salvato nei preferiti',
+    search_placeholder:'Cerca brand, articoli, stili...',filters:'Filtri',reset:'Resetta',category:'Categoria',brand:'Brand',
+    condition:'Condizione',fit_label:'Vestibilità',size:'Taglia',price:'Prezzo',color:'Colore',
+    results:'risultati',recent:'Recenti',price_asc:'Prezzo ↑',price_desc:'Prezzo ↓',discount:'Sconto',
+    details:'Dettagli',fit_dims:'Fit & Dimensioni',description:'Descrizione',seller:'Venditore',
+    chat:'Chat',send:'Invia',messages:'Messaggi',write_msg:'Scrivi un messaggio...',
+    favorites:'I tuoi preferiti',items_saved:'articoli salvati',no_fav:'Nessun preferito ancora. Esplora lo shop per salvare i tuoi pezzi.',
+    back_shop:'← Torna allo shop',back:'← Indietro',
+    guarantee:'Garanzia IRIS',auth_1:'Autenticità verificata da esperti certificati',auth_2:'Pagamento protetto via Stripe',
+    auth_3:'Spedizione tracciata e assicurata',auth_4:'Reso gratuito entro 14 giorni',
+    similar:'Potrebbe piacerti anche',sell:'Vendi',
+    notif_title:'Notifiche',notif_clear:'Segna tutto letto',
+    on_sale:'In vendita',reviews:'Recensioni',sold:'Venduti',member_since:'Membro dal',sales:'vendite',
+    for_sale:'In vendita',load_more:'Carica altro',
+    pwa_text:"Installa IRIS sul tuo telefono per un'esperienza migliore!",pwa_install:'Installa',
+    your_profile:'Il tuo profilo',not_selling:'Non hai ancora articoli in vendita.',start_selling:'Inizia a vendere →',
+    enter:'Tocca per entrare',luxury_mkt:'Luxury Fashion Marketplace · Italia',
+    discover:'Scopri il meglio del lusso',buy:'Acquista',buy_desc:'Borse, abbigliamento e accessori firmati autenticati.',
+    your_wardrobe:'Il tuo guardaroba vale',sell_word:'Vendi',sell_desc:'Pubblica gratis, incassa il giusto. Commissione solo al venduto.',
+    // Footer
+    footer_desc:'Il marketplace italiano per la moda di lusso. Pezzi firmati autenticati, transazioni sicure.',
+    footer_buy:'Acquista',footer_sell:'Vendi',footer_support:'Supporto',
+    footer_all:'Tutti i prodotti',footer_bags:'Borse',footer_shoes:'Scarpe',footer_clothes:'Abbigliamento',footer_watches:'Orologi',
+    footer_start_sell:'Inizia a vendere',footer_how:'Come funziona',footer_fees:'Commissioni',footer_auth:'Autenticazione',
+    footer_about:'Chi siamo',footer_faq:'FAQ',footer_contact:'Contatti',footer_help:'Centro assistenza',
+    footer_terms:'Termini',footer_privacy:'Privacy',footer_cookie:'Cookie',
+    // Sell page
+    sell_hero_label:'Inizia a vendere su IRIS',sell_hero_title:'Vendi il tuo lusso.',sell_hero_sub:'Commissione dal 10% · Autenticazione inclusa · Pagamento garantito',
+    how_works:'Come funziona',four_steps:'Semplice come <em>quattro passi.</em>',
+    step1:'Fotografa',step1d:'Scatta foto chiare da più angolazioni.',
+    step2:'Pubblica',step2d:'Inserisci brand, condizione e prezzo. Gratis, 2 minuti.',
+    step3:'Spedisci',step3d:'Etichetta prepagata, noi gestiamo l\'autenticazione.',
+    step4:'Incassa',step4d:'Bonifico entro 48h dalla conferma. Zero sorprese.',
+    publish_title:'Pubblica il tuo articolo',publish_sub:'Compila i dettagli. Tutti i campi * sono obbligatori.',
+    add_photos:'Aggiungi fino a 8 foto',photo_info:'JPG o PNG · Max 10MB · La prima sarà la copertina',
+    your_earnings:'💜 Il tuo guadagno',commission:'Commissione',net_earning:'Guadagno netto',fee_note:'La commissione si paga solo al venduto.',
+    included:'✦ Incluso',free_auth:'Autenticazione gratuita',verified_experts:'Verificato da esperti.',
+    free_ship:'Spedizione inclusa',prepaid_label:'Etichetta prepagata.',
+    guaranteed_pay:'Pagamento garantito',pay_48h:'Bonifico in 48h.',
+    publish_btn:'Pubblica il tuo articolo',back_to:'← Torna',
+    // Search groups
+    sg_products:'Prodotti',sg_brands:'Brand',sg_sellers:'Venditori',
+    offer_title:"Fai un'offerta",send_offer:'Invia offerta',cancel:'Annulla',
+    filter_btn:'Filtri',search_brand:'Cerca brand...',
+  },
+  en:{
+    shop:'Shop',buy_now:'Buy now',make_offer:'Make an offer',add_fav:'Add to favorites',saved_fav:'Saved to favorites',
+    search_placeholder:'Search brands, items, styles...',filters:'Filters',reset:'Reset',category:'Category',brand:'Brand',
+    condition:'Condition',fit_label:'Fit',size:'Size',price:'Price',color:'Color',
+    results:'results',recent:'Recent',price_asc:'Price ↑',price_desc:'Price ↓',discount:'Discount',
+    details:'Details',fit_dims:'Fit & Dimensions',description:'Description',seller:'Seller',
+    chat:'Chat',send:'Send',messages:'Messages',write_msg:'Write a message...',
+    favorites:'Your favorites',items_saved:'items saved',no_fav:'No favorites yet. Explore the shop to save your pieces.',
+    back_shop:'← Back to shop',back:'← Back',
+    guarantee:'IRIS Guarantee',auth_1:'Authenticity verified by certified experts',auth_2:'Secure payment via Stripe',
+    auth_3:'Tracked and insured shipping',auth_4:'Free returns within 14 days',
+    similar:'You might also like',sell:'Sell',
+    notif_title:'Notifications',notif_clear:'Mark all read',
+    on_sale:'For sale',reviews:'Reviews',sold:'Sold',member_since:'Member since',sales:'sales',
+    for_sale:'For sale',load_more:'Load more',
+    pwa_text:'Install IRIS on your phone for a better experience!',pwa_install:'Install',
+    your_profile:'Your profile',not_selling:"You don't have any items for sale yet.",start_selling:'Start selling →',
+    enter:'Tap to enter',luxury_mkt:'Luxury Fashion Marketplace · Italy',
+    discover:'Discover the best of luxury',buy:'Buy',buy_desc:'Authenticated designer bags, clothing and accessories.',
+    your_wardrobe:'Your wardrobe has value',sell_word:'Sell',sell_desc:'List for free, earn what you deserve. Commission only on sale.',
+    footer_desc:'The Italian marketplace for luxury fashion. Authenticated designer pieces, secure transactions.',
+    footer_buy:'Buy',footer_sell:'Sell',footer_support:'Support',
+    footer_all:'All products',footer_bags:'Bags',footer_shoes:'Shoes',footer_clothes:'Clothing',footer_watches:'Watches',
+    footer_start_sell:'Start selling',footer_how:'How it works',footer_fees:'Fees',footer_auth:'Authentication',
+    footer_about:'About us',footer_faq:'FAQ',footer_contact:'Contact',footer_help:'Help center',
+    footer_terms:'Terms',footer_privacy:'Privacy',footer_cookie:'Cookies',
+    sell_hero_label:'Start selling on IRIS',sell_hero_title:'Sell your luxury.',sell_hero_sub:'Commission from 10% · Authentication included · Guaranteed payment',
+    how_works:'How it works',four_steps:'As simple as <em>four steps.</em>',
+    step1:'Photograph',step1d:'Take clear photos from multiple angles.',
+    step2:'Publish',step2d:'Enter brand, condition and price. Free, 2 minutes.',
+    step3:'Ship',step3d:'Prepaid label, we handle authentication.',
+    step4:'Get paid',step4d:'Bank transfer within 48h. No surprises.',
+    publish_title:'Publish your item',publish_sub:'Fill in the details. All * fields are required.',
+    add_photos:'Add up to 8 photos',photo_info:'JPG or PNG · Max 10MB · First photo is the cover',
+    your_earnings:'💜 Your earnings',commission:'Commission',net_earning:'Net earnings',fee_note:'Commission is only charged on sale.',
+    included:'✦ Included',free_auth:'Free authentication',verified_experts:'Verified by experts.',
+    free_ship:'Free shipping',prepaid_label:'Prepaid label.',
+    guaranteed_pay:'Guaranteed payment',pay_48h:'Wire in 48h.',
+    publish_btn:'Publish your item',back_to:'← Back',
+    sg_products:'Products',sg_brands:'Brands',sg_sellers:'Sellers',
+    offer_title:'Make an offer',send_offer:'Send offer',cancel:'Cancel',
+    filter_btn:'Filters',search_brand:'Search brands...',
+  }
+};
+let curLang=localStorage.getItem('iris-lang')||'it';
+function t(key){return i18n[curLang][key]||i18n.it[key]||key}
+function switchLang(){
+  curLang=curLang==='it'?'en':'it';
+  localStorage.setItem('iris-lang',curLang);
+  document.getElementById('langToggle').textContent=curLang==='it'?'EN':'IT';
+  document.documentElement.lang=curLang;
+  applyLang();
+}
+function applyLang(){
+  // Navbar
+  document.querySelector('.tn-btn[onclick*="shop"]').textContent=t('shop');
+  document.querySelector('.tn-btn.tn-sell').textContent=t('sell');
+  document.getElementById('searchInput').placeholder=t('search_placeholder');
+  // Filters
+  document.querySelector('.f-title').textContent=t('filters');
+  document.querySelector('.f-clear').textContent=t('reset');
+  document.querySelectorAll('.f-label').forEach((el,i)=>{
+    const keys=['category','brand','condition','fit_label','size','price','color'];
+    if(keys[i])el.childNodes[0].textContent=t(keys[i]);
+  });
+  document.querySelector('.mob-filter-btn').textContent=t('filter_btn');
+  // Sort buttons
+  const sortBtns=document.querySelectorAll('.sort-btn');
+  const sortKeys=['recent','price_asc','price_desc','discount'];
+  sortBtns.forEach((b,i)=>{if(sortKeys[i])b.textContent=t(sortKeys[i])});
+  // Fav view
+  document.querySelector('.fav-title').textContent=t('favorites');
+  document.querySelector('.fav-empty-text').textContent=t('no_fav');
+  // Chat
+  document.querySelector('.cl-title').textContent=t('messages');
+  document.getElementById('chatInput').placeholder=t('write_msg');
+  document.querySelector('.cm-send').textContent=t('send');
+  // Profile
+  document.querySelector('.prof-name').textContent=t('your_profile');
+  // Choice screen
+  const chTexts=document.querySelectorAll('.ch-lbl');
+  if(chTexts[0])chTexts[0].textContent=t('discover');
+  if(chTexts[1])chTexts[1].textContent=t('your_wardrobe');
+  const chWords=document.querySelectorAll('.ch-w');
+  if(chWords[0])chWords[0].textContent=t('buy');
+  if(chWords[1])chWords[1].textContent=t('sell_word');
+  const chDescs=document.querySelectorAll('.ch-d');
+  if(chDescs[0])chDescs[0].textContent=t('buy_desc');
+  if(chDescs[1])chDescs[1].textContent=t('sell_desc');
+  // Intro
+  document.querySelector('.i-s').textContent=t('luxury_mkt');
+  document.querySelector('.i-tap').textContent=t('enter');
+  // Sell page
+  document.querySelector('.sh-label').textContent=t('sell_hero_label');
+  document.querySelector('.sh-title').textContent=t('sell_hero_title');
+  document.querySelector('.sh-sub').textContent=t('sell_hero_sub');
+  document.querySelector('.sell-submit').textContent=t('publish_btn');
+  document.querySelector('.st-back').textContent=t('back_to');
+  // Offer modal
+  document.querySelector('.offer-title').textContent=t('offer_title');
+  document.querySelector('.offer-send').textContent=t('send_offer');
+  document.querySelector('.offer-cancel').textContent=t('cancel');
+  // PWA
+  document.querySelector('.pwa-banner-text').textContent=t('pwa_text');
+  document.querySelector('.pwa-banner-btn').textContent=t('pwa_install');
+  // Re-render
+  render();
+  renderNotifications();
+  renderFooters();
+}
+
+/* ═══════ DARK/LIGHT MODE ═══════ */
+let darkMode=localStorage.getItem('iris-mode')!=='light';
+function toggleDarkLight(){
+  darkMode=!darkMode;
+  document.body.classList.toggle('light-mode',!darkMode);
+  document.getElementById('modeToggle').textContent=darkMode?'☀️':'🌙';
+  localStorage.setItem('iris-mode',darkMode?'dark':'light');
+}
+// Init mode
+if(!darkMode)document.body.classList.add('light-mode');
+document.getElementById('modeToggle').textContent=darkMode?'☀️':'🌙';
+// Init lang
+document.getElementById('langToggle').textContent=curLang==='it'?'EN':'IT';
+
+/* ═══════ NOTIFICATIONS ═══════ */
+let notifications=[
+  {id:1,type:'message',icon:'💬',text:'Milano_Luxury ti ha inviato un messaggio',time:'2 min fa',unread:true},
+  {id:2,type:'offer',icon:'🏷️',text:'Nuova offerta di €5.800 per Birkin 30',time:'1 ora fa',unread:true},
+  {id:3,type:'sale',icon:'✦',text:'Il tuo articolo è stato venduto! Pagamento in arrivo.',time:'3 ore fa',unread:true},
+  {id:4,type:'price',icon:'📉',text:'Un articolo nella tua wishlist ha abbassato il prezzo',time:'Ieri',unread:false},
+];
+function renderNotifications(){
+  const panel=document.getElementById('notifPanel');
+  const badge=document.getElementById('notifBadge');
+  const unread=notifications.filter(n=>n.unread).length;
+  badge.textContent=unread;badge.style.display=unread?'flex':'none';
+  panel.innerHTML=`<div class="notif-head"><span class="notif-title">${t('notif_title')}</span><button class="notif-clear" onclick="markAllRead()">${t('notif_clear')}</button></div>`+
+    (notifications.length?notifications.map(n=>`<div class="notif-item${n.unread?' unread':''}" onclick="readNotif(${n.id})"><div class="notif-icon">${n.icon}</div><div class="notif-content"><div class="notif-text">${n.text}</div><div class="notif-time">${n.time}</div></div>${n.unread?'<div class="notif-dot"></div>':''}</div>`).join(''):`<div class="notif-empty">${curLang==='it'?'Nessuna notifica':'No notifications'}</div>`);
+}
+function toggleNotifs(){
+  const p=document.getElementById('notifPanel');
+  p.classList.toggle('open');
+  // Close on outside click
+  if(p.classList.contains('open')){
+    setTimeout(()=>document.addEventListener('click',closeNotifsOutside),0);
+  }
+}
+function closeNotifsOutside(e){
+  const w=document.querySelector('.notif-wrap');
+  if(!w.contains(e.target)){document.getElementById('notifPanel').classList.remove('open');document.removeEventListener('click',closeNotifsOutside)}
+}
+function readNotif(id){notifications.find(n=>n.id===id).unread=false;renderNotifications()}
+function markAllRead(){notifications.forEach(n=>n.unread=false);renderNotifications()}
+renderNotifications();
+
+/* ═══════ REVIEWS DATA ═══════ */
+const reviewsData={
+  s1:[
+    {buyer:'Giulia M.',rating:5,text:'Birkin perfetta, esattamente come descritta. Spedizione velocissima!',date:'Feb 2026',product:'Birkin 30 Togo Gold'},
+    {buyer:'Alessandro R.',rating:5,text:'Venditore serio e affidabile. Le sneakers erano in condizioni impeccabili.',date:'Gen 2026',product:'Triple S White/Grey'},
+    {buyer:'Sofia L.',rating:4,text:'Tutto perfetto, solo la spedizione un po\' lenta. Prodotto top.',date:'Dic 2025',product:'Ace Sneakers Bees'},
+  ],
+  s2:[
+    {buyer:'Marco V.',rating:5,text:'Speedy autentica e in ottime condizioni. Super!',date:'Mar 2026',product:'Speedy 25 Monogram'},
+    {buyer:'Elena C.',rating:4,text:'Buona comunicazione, prodotto come descritto.',date:'Feb 2026',product:'Saffiano Tote Large'},
+    {buyer:'Luca D.',rating:5,text:'Felpa Off-White autentica, fit perfetto. Grazie!',date:'Gen 2026',product:'Monogram Hoodie'},
+  ],
+  s3:[
+    {buyer:'Francesca B.',rating:5,text:'Chanel autentica, condizioni pari al nuovo. Esperienza perfetta!',date:'Mar 2026',product:'Classic Flap Medium Caviar'},
+    {buyer:'Andrea T.',rating:5,text:'Cappotto Valentino stupendo, materiali incredibili.',date:'Feb 2026',product:'Wool Overcoat'},
+    {buyer:'Chiara M.',rating:5,text:'Santos de Cartier arrivato con box e garanzia. Impeccabile.',date:'Gen 2026',product:'Santos de Cartier Watch'},
+  ],
+  s4:[
+    {buyer:'Roberto G.',rating:5,text:'Cintura Gucci originale, consegna rapida. Perfetto!',date:'Mar 2026',product:'GG Marmont Belt'},
+    {buyer:'Valentina S.',rating:4,text:'B Pouch bellissima, colore fedele alle foto.',date:'Feb 2026',product:'B Pouch Clutch'},
+    {buyer:'Matteo P.',rating:5,text:'Serpenti Bvlgari nuova come promesso. Venditore eccellente.',date:'Gen 2026',product:'Serpenti Forever Crossbody'},
+    {buyer:'Anna R.',rating:5,text:'Terzo acquisto da questo venditore. Sempre impeccabile!',date:'Dic 2025',product:'GG Marmont Belt'},
+  ],
+};
+
+/* ═══════ SELLER PROFILE ═══════ */
+function showSeller(sellerId){
+  const s=sellers.find(x=>x.id===sellerId);if(!s)return;
+  showBuyView('seller');
+  const sProds=prods.filter(p=>p.seller.id===sellerId);
+  const sRevs=reviewsData[sellerId]||[];
+  const avgRating=sRevs.length?(sRevs.reduce((a,r)=>a+r.rating,0)/sRevs.length).toFixed(1):'—';
+  const starsHtml=(r)=>'★'.repeat(Math.floor(r))+(r%1>=.5?'½':'')+'☆'.repeat(5-Math.ceil(r));
+  const el=document.getElementById('sellerContent');
+  el.innerHTML=`
+    <div class="sv-header view-enter">
+      <div class="sv-av">${s.avatar}</div>
+      <div class="sv-info">
+        <div class="sv-name">${s.name}</div>
+        <div class="sv-meta"><span class="sv-rating">★ ${avgRating}</span> ${s.city} · ${t('member_since')} ${s.since}</div>
+        <div class="sv-stats">
+          <div class="sv-stat"><div class="sv-stat-n">${sProds.length}</div><div class="sv-stat-l">${t('on_sale')}</div></div>
+          <div class="sv-stat"><div class="sv-stat-n">${s.sales}</div><div class="sv-stat-l">${t('sold')}</div></div>
+          <div class="sv-stat"><div class="sv-stat-n">${sRevs.length}</div><div class="sv-stat-l">${t('reviews')}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sv-tabs">
+      <button class="sv-tab on" onclick="showSellerTab('prods',this,'${sellerId}')">${t('for_sale')}</button>
+      <button class="sv-tab" onclick="showSellerTab('revs',this,'${sellerId}')">${t('reviews')} (${sRevs.length})</button>
+    </div>
+    <div id="sellerTabContent">
+      <div class="pgrid view-enter">${sProds.map(p=>`<div class="pc" onclick="showDetail(${p.id})"><div class="pi"><div class="pi-bg"><div class="pi-emoji">${p.emoji}</div></div></div><div class="pinfo"><div class="p-brand">${p.brand}</div><div class="p-name">${p.name}</div><div class="p-footer"><span class="p-price">€${p.price.toLocaleString()}</span></div></div></div>`).join('')}</div>
+    </div>`;
+  window.scrollTo(0,0);
+}
+function showSellerTab(tab,btn,sellerId){
+  document.querySelectorAll('.sv-tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  const tc=document.getElementById('sellerTabContent');
+  if(tab==='prods'){
+    const sProds=prods.filter(p=>p.seller.id===sellerId);
+    tc.innerHTML=`<div class="pgrid view-enter">${sProds.map(p=>`<div class="pc" onclick="showDetail(${p.id})"><div class="pi"><div class="pi-bg"><div class="pi-emoji">${p.emoji}</div></div></div><div class="pinfo"><div class="p-brand">${p.brand}</div><div class="p-name">${p.name}</div><div class="p-footer"><span class="p-price">€${p.price.toLocaleString()}</span></div></div></div>`).join('')}</div>`;
+  } else {
+    const sRevs=reviewsData[sellerId]||[];
+    tc.innerHTML=`<div class="reviews-list view-enter">${sRevs.map(r=>`<div class="review-card"><div class="review-top"><span class="review-buyer">${r.buyer}</span><span class="review-date">${r.date}</span></div><div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div><div class="review-text">${r.text}</div><div class="review-product">${curLang==='it'?'Acquistato':'Purchased'}: ${r.product}</div></div>`).join('')}</div>`;
+  }
+}
+
+/* ═══════ PAGINATION ═══════ */
+let prodPage=1;
+const PRODS_PER_PAGE=8;
+
+/* ═══════ FOOTER ═══════ */
+function footerHTML(){
+  return `<footer class="site-footer"><div class="footer-grid"><div><div class="footer-brand">IRIS</div><div class="footer-desc">${t('footer_desc')}</div><div class="footer-social"><a href="#">Instagram</a><a href="#">TikTok</a><a href="#">Pinterest</a></div></div><div><div class="footer-col-title">${t('footer_buy')}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();showBuyView('shop')">${t('footer_all')}</a></li><li><a href="#" onclick="event.preventDefault();filterByCat('Borse')">${t('footer_bags')}</a></li><li><a href="#" onclick="event.preventDefault();filterByCat('Scarpe')">${t('footer_shoes')}</a></li><li><a href="#" onclick="event.preventDefault();filterByCat('Abbigliamento')">${t('footer_clothes')}</a></li><li><a href="#" onclick="event.preventDefault();filterByCat('Orologi')">${t('footer_watches')}</a></li></ul></div><div><div class="footer-col-title">${t('footer_sell')}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();showPage('sell')">${t('footer_start_sell')}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('howto')">${t('footer_how')}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('faq')">${t('footer_fees')}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('about')">${t('footer_auth')}</a></li></ul></div><div><div class="footer-col-title">${t('footer_support')}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();openStatic('about')">${t('footer_about')}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('faq')">${t('footer_faq')}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('howto')">${t('footer_contact')}</a></li></ul></div></div><div class="footer-bottom"><div class="footer-copy">© 2026 IRIS S.r.l. — Tutti i diritti riservati</div><div class="footer-legal"><a href="#" onclick="event.preventDefault();openStatic('terms')">${t('footer_terms')}</a><a href="#" onclick="event.preventDefault();openStatic('privacy')">${t('footer_privacy')}</a><a href="#" onclick="event.preventDefault()">${t('footer_cookie')}</a></div></div></footer>`;
+}
+function renderFooters(){
+  document.querySelectorAll('.dyn-footer').forEach(f=>f.outerHTML='');
+  // Add footer after shop-main
+  const shopMain=document.querySelector('.shop-main');
+  if(shopMain){
+    const existingF=shopMain.querySelector('.site-footer');
+    if(existingF)existingF.remove();
+    shopMain.insertAdjacentHTML('beforeend',`<div class="dyn-footer">${footerHTML()}</div>`);
+  }
+  // Add footer to sell page
+  const sellPage=document.getElementById('page-sell');
+  if(sellPage){
+    const existingF=sellPage.querySelector('.site-footer');
+    if(existingF)existingF.remove();
+    sellPage.insertAdjacentHTML('beforeend',`<div class="dyn-footer">${footerHTML()}</div>`);
+  }
+}
+function filterByCat(cat){
+  showBuyView('shop');
+  clearFilters();
+  filters.cats=[cat];
+  initFilters();
+  render();
+}
+
+/* ═══════ STATIC PAGES ═══════ */
+function openStatic(id){
+  const m=document.getElementById('modal-'+id);
+  if(m){m.classList.add('open');m.style.display='block';requestAnimationFrame(()=>m.style.opacity='1');document.body.style.overflow='hidden'}
+}
+function closeStatic(id){
+  const m=document.getElementById('modal-'+id);
+  if(m){m.style.opacity='0';setTimeout(()=>{m.classList.remove('open');m.style.display='none';document.body.style.overflow=''},350)}
+}
+
+/* ═══════ AUTOCOMPLETE SEARCH ═══════ */
+const searchInput=document.getElementById('searchInput');
+const acDrop=document.getElementById('acDropdown');
+searchInput.addEventListener('input',function(){
+  const q=this.value.trim().toLowerCase();
+  if(q.length<2){acDrop.classList.remove('open');return}
+  let html='';
+  // Products
+  const matchProds=prods.filter(p=>p.name.toLowerCase().includes(q)||p.brand.toLowerCase().includes(q)).slice(0,4);
+  if(matchProds.length){
+    html+=`<div class="ac-group-title">${t('sg_products')}</div>`;
+    matchProds.forEach(p=>{html+=`<div class="ac-item" onclick="acDrop.classList.remove('open');showDetail(${p.id})"><span class="ac-item-icon">${p.emoji}</span>${p.brand} — ${p.name}<span style="margin-left:auto;font-size:.7rem;opacity:.4">€${p.price.toLocaleString()}</span></div>`});
+  }
+  // Brands
+  const matchBrands=allBrands.filter(b=>b.toLowerCase().includes(q)).slice(0,3);
+  if(matchBrands.length){
+    html+=`<div class="ac-group-title">${t('sg_brands')}</div>`;
+    matchBrands.forEach(b=>{html+=`<div class="ac-item" onclick="acDrop.classList.remove('open');filters.brands=['${b}'];initFilters();render()"><span class="ac-item-icon">🏷️</span>${b}</div>`});
+  }
+  // Sellers
+  const matchSellers=sellers.filter(s=>s.name.toLowerCase().includes(q)).slice(0,3);
+  if(matchSellers.length){
+    html+=`<div class="ac-group-title">${t('sg_sellers')}</div>`;
+    matchSellers.forEach(s=>{html+=`<div class="ac-item" onclick="acDrop.classList.remove('open');showSeller('${s.id}')"><span class="ac-item-icon">${s.avatar}</span>${s.name}<span style="margin-left:auto;font-size:.65rem;opacity:.3">${s.city}</span></div>`});
+  }
+  if(html){acDrop.innerHTML=html;acDrop.classList.add('open')}else{acDrop.classList.remove('open')}
+});
+searchInput.addEventListener('blur',()=>setTimeout(()=>acDrop.classList.remove('open'),200));
+
+/* ═══════ SKELETON LOADING ═══════ */
+function showSkeleton(target,type){
+  const el=document.getElementById(target);if(!el)return;
+  if(type==='grid'){
+    el.innerHTML=`<div class="skeleton-grid">${Array(8).fill('<div class="skel-card"><div class="skel-img"></div><div class="skel-line med"></div><div class="skel-line short"></div><div class="skel-line price"></div></div>').join('')}</div>`;
+  } else if(type==='chat'){
+    el.innerHTML=Array(4).fill('<div class="skel-chat"><div class="skel-chat-av"></div><div class="skel-chat-lines"><div class="skel-line med"></div><div class="skel-line short"></div></div></div>').join('');
+  }
+}
+
+/* ═══════ UPDATE NAVIGATION WITH NEW FEATURES ═══════ */
+const origShowBuyView=showBuyView;
+showBuyView=function(v){
+  ['shop-view','detail-view','fav-view','chat-view','profile-view','seller-view'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.classList.remove('active');if(id!=='detail-view')el.style.display='';}
+  });
+  document.getElementById('detail-view').style.display='none';
+  if(v==='shop'){
+    const sv=document.getElementById('shop-view');
+    showSkeleton('grid','grid');
+    sv.classList.add('active');
+    setTimeout(()=>{render();renderFooters()},350);
+    window.scrollTo(0,0);
+  } else if(v==='fav'){
+    document.getElementById('fav-view').classList.add('active');
+    document.getElementById('fav-view').classList.add('view-enter');
+    renderFavorites();window.scrollTo(0,0);
+  } else if(v==='chat'){
+    const cv=document.getElementById('chat-view');
+    cv.classList.add('active');
+    showSkeleton('chatList','chat');
+    setTimeout(()=>renderChats(),300);
+  } else if(v==='profile'){
+    document.getElementById('profile-view').classList.add('active');
+    document.getElementById('profile-view').classList.add('view-enter');
+    window.scrollTo(0,0);
+  } else if(v==='seller'){
+    document.getElementById('seller-view').classList.add('active');
+    document.getElementById('seller-view').classList.add('view-enter');
+  }
+};
+
+/* ═══════ UPDATE RENDER WITH PAGINATION ═══════ */
+const origRender=render;
+render=function(){
+  const items=getFiltered();
+  const g=document.getElementById('grid');
+  prodPage=1; // reset on filter change
+  const showing=items.slice(0,PRODS_PER_PAGE*prodPage);
+  document.getElementById('resultCount').textContent=items.length;
+  // active filters chips
+  const af=document.getElementById('activeFilters');
+  let chips=[];
+  filters.cats.forEach(c=>chips.push({label:c,type:'cats',val:c}));
+  filters.brands.forEach(b=>chips.push({label:b,type:'brands',val:b}));
+  filters.conds.forEach(c=>chips.push({label:c,type:'conds',val:c}));
+  filters.fits.forEach(f=>chips.push({label:f,type:'fits',val:f}));
+  filters.colors.forEach(c=>chips.push({label:c,type:'colors',val:c}));
+  af.innerHTML=chips.map(c=>`<div class="af-chip">${c.label}<button onclick="removeChip('${c.type}','${c.val}')">✕</button></div>`).join('');
+  g.innerHTML='';
+  showing.forEach(p=>{
+    const disc=Math.round((1-p.price/p.orig)*100);
+    const liked=favorites.has(p.id);
+    const d=document.createElement('div');d.className='pc view-enter';
+    d.innerHTML=`<button class="pc-heart${liked?' liked':''}" onclick="event.stopPropagation();toggleFav(${p.id},this)">${liked?'♥':'♡'}</button><div class="pi"><div class="pi-bg"><div class="pi-emoji">${p.emoji}</div></div><div class="pi-tags"><span class="pi-tag avail">${p.cond}</span>${p.fit!=='—'?`<span class="pi-tag fit">${p.fit}</span>`:''}</div></div><div class="pinfo"><div class="p-brand">${p.brand}</div><div class="p-name">${p.name}</div><div class="p-meta">${p.sz} · ${p.color} · ${p.seller.name}</div><div class="p-footer"><div><span class="p-price">€${p.price.toLocaleString()}</span><span class="p-orig">€${p.orig.toLocaleString()}</span></div><span class="p-disc">-${disc}%</span></div></div>`;
+    d.addEventListener('click',()=>showDetail(p.id));
+    g.appendChild(d);
+  });
+  // Load more button
+  const existingLM=document.querySelector('.load-more-wrap');
+  if(existingLM)existingLM.remove();
+  if(showing.length<items.length){
+    g.insertAdjacentHTML('afterend',`<div class="load-more-wrap"><button class="load-more-btn" onclick="loadMoreProducts()">${t('load_more')} (${items.length - showing.length} ${curLang==='it'?'restanti':'remaining'})</button></div>`);
+  }
+};
+function loadMoreProducts(){
+  prodPage++;
+  const items=getFiltered();
+  const showing=items.slice(0,PRODS_PER_PAGE*prodPage);
+  const g=document.getElementById('grid');
+  // only append new ones
+  const startIdx=PRODS_PER_PAGE*(prodPage-1);
+  const newItems=items.slice(startIdx,PRODS_PER_PAGE*prodPage);
+  newItems.forEach(p=>{
+    const disc=Math.round((1-p.price/p.orig)*100);
+    const liked=favorites.has(p.id);
+    const d=document.createElement('div');d.className='pc view-enter';
+    d.innerHTML=`<button class="pc-heart${liked?' liked':''}" onclick="event.stopPropagation();toggleFav(${p.id},this)">${liked?'♥':'♡'}</button><div class="pi"><div class="pi-bg"><div class="pi-emoji">${p.emoji}</div></div><div class="pi-tags"><span class="pi-tag avail">${p.cond}</span>${p.fit!=='—'?`<span class="pi-tag fit">${p.fit}</span>`:''}</div></div><div class="pinfo"><div class="p-brand">${p.brand}</div><div class="p-name">${p.name}</div><div class="p-meta">${p.sz} · ${p.color} · ${p.seller.name}</div><div class="p-footer"><div><span class="p-price">€${p.price.toLocaleString()}</span><span class="p-orig">€${p.orig.toLocaleString()}</span></div><span class="p-disc">-${disc}%</span></div></div>`;
+    d.addEventListener('click',()=>showDetail(p.id));
+    g.appendChild(d);
+  });
+  // Update load more button
+  const existingLM=document.querySelector('.load-more-wrap');
+  if(existingLM)existingLM.remove();
+  if(showing.length<items.length){
+    g.insertAdjacentHTML('afterend',`<div class="load-more-wrap"><button class="load-more-btn" onclick="loadMoreProducts()">${t('load_more')} (${items.length - showing.length} ${curLang==='it'?'restanti':'remaining'})</button></div>`);
+  }
+}
+
+/* ═══════ UPDATE DETAIL VIEW WITH SELLER LINK ═══════ */
+const origShowDetail=showDetail;
+showDetail=function(id){
+  const p=prods.find(x=>x.id===id);if(!p)return;
+  const disc=Math.round((1-p.price/p.orig)*100);
+  const liked=favorites.has(p.id);
+  const sim=prods.filter(x=>x.id!==p.id&&(x.brand===p.brand||x.cat===p.cat)).slice(0,4);
+  const dv=document.getElementById('detail-view');
+  dv.innerHTML=`<div class="det-layout view-enter"><div class="det-imgs"><div class="det-img-main">${p.emoji}</div></div><div class="det-body"><button class="det-back" onclick="closeDetail()">${t('back_shop')}</button><div class="det-brand">${p.brand}</div><div class="det-name">${p.name}</div><div class="det-prices"><span class="det-price">€${p.price.toLocaleString()}</span><span class="det-orig">€${p.orig.toLocaleString()}</span><span class="det-save">-${disc}%</span></div><div class="det-div"></div><div class="det-section"><div class="det-section-title">${t('details')}</div><div class="det-chips">${p.chips.map(c=>`<span class="det-chip">${c}</span>`).join('')}</div></div><div class="det-section"><div class="det-section-title">${t('fit_dims')}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t('size')}</div><div class="det-fit-value">${p.sz}</div></div><div class="det-fit-item"><div class="det-fit-label">${t('fit_label')}</div><div class="det-fit-value">${p.fit==='—'?'N/A':p.fit}</div></div><div class="det-fit-item"><div class="det-fit-label">${t('color')}</div><div class="det-fit-value">${p.color}</div></div><div class="det-fit-item"><div class="det-fit-label">${curLang==='it'?'Dimensioni':'Dimensions'}</div><div class="det-fit-value">${p.dims}</div></div><div class="det-fit-item"><div class="det-fit-label">${curLang==='it'?'Materiale':'Material'}</div><div class="det-fit-value">${p.material}</div></div><div class="det-fit-item"><div class="det-fit-label">${t('condition')}</div><div class="det-fit-value">${p.cond}</div></div></div></div><div class="det-section"><div class="det-section-title">${t('description')}</div><div class="det-desc">${p.desc}</div></div><div class="det-section"><div class="det-section-title">${t('seller')}</div><div class="seller-card" onclick="showSeller('${p.seller.id}')"><div class="seller-av">${p.seller.avatar}</div><div class="seller-info"><div class="seller-name">${p.seller.name}</div><div class="seller-meta"><span>★ ${p.seller.rating}</span> ${p.seller.sales} ${t('sales')} · ${p.seller.city}</div></div><button class="seller-chat" onclick="event.stopPropagation();openChat('${p.seller.id}',${p.id})">${t('chat')}</button></div></div><div class="det-actions"><button class="det-buy">${t('buy_now')} · €${p.price.toLocaleString()}</button><button class="det-offer" onclick="openOffer(${p.id})">${t('make_offer')}</button><button class="det-fav" onclick="toggleFav(${p.id},null)">${liked?'♥ '+t('saved_fav'):'♡ '+t('add_fav')}</button></div><div class="det-auth"><div class="det-auth-t">${t('guarantee')}</div><ul><li>${t('auth_1')}</li><li>${t('auth_2')}</li><li>${t('auth_3')}</li><li>${t('auth_4')}</li></ul></div>${sim.length?`<div class="det-similar"><div class="det-similar-title">${t('similar')}</div><div class="det-similar-grid">${sim.map(s=>`<div class="pc" onclick="showDetail(${s.id})" style="min-width:160px"><div class="pi" style="aspect-ratio:3/4"><div class="pi-bg"><div class="pi-emoji" style="font-size:3rem">${s.emoji}</div></div></div><div class="pinfo" style="padding:.8rem"><div class="p-brand">${s.brand}</div><div class="p-name" style="font-size:.78rem">${s.name}</div><div class="p-price" style="font-size:.78rem;margin-top:.3rem">€${s.price.toLocaleString()}</div></div></div>`).join('')}</div></div>`:''}</div></div>`;
+  document.getElementById('shop-view').style.display='none';
+  dv.style.display='block';dv.classList.add('active');
+  window.scrollTo(0,0);
+  // Update SEO
+  updateMeta('IRIS — '+p.brand+' '+p.name,p.desc.substring(0,160));
+};
+
+/* ═══════ SEO META UPDATE ═══════ */
+function updateMeta(title,desc){
+  document.title=title;
+  const metaDesc=document.querySelector('meta[name="description"]');if(metaDesc)metaDesc.content=desc;
+  const ogTitle=document.querySelector('meta[property="og:title"]');if(ogTitle)ogTitle.content=title;
+  const ogDesc=document.querySelector('meta[property="og:description"]');if(ogDesc)ogDesc.content=desc;
+}
+
+/* ═══════ PWA ═══════ */
+let deferredPrompt=null;
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();deferredPrompt=e;
+  if(!localStorage.getItem('iris-pwa-dismissed')){
+    document.getElementById('pwaBanner').style.display='flex';
+  }
+});
+document.getElementById('pwaInstallBtn').addEventListener('click',()=>{
+  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('pwaBanner').style.display='none'})}
+});
+function dismissPwa(){document.getElementById('pwaBanner').style.display='none';localStorage.setItem('iris-pwa-dismissed','1')}
+
+/* ═══════ INIT FOOTERS ═══════ */
+setTimeout(()=>renderFooters(),500);
 </script>
 </body>
 </html>

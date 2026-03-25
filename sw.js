@@ -1,9 +1,10 @@
-const CACHE_NAME = 'iris-v1';
-const ASSETS = [
-  '/index.html',
-  '/manifest.json',
-  'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=Outfit:wght@200;300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&display=swap'
-];
+const CACHE_NAME = 'iris-v4';
+const APP_SHELL_URL = new URL('./index.html', self.location.href).toString();
+const MANIFEST_URL = new URL('./manifest.json', self.location.href).toString();
+const PLUS_CSS_URL = new URL('./iris-plus.css', self.location.href).toString();
+const PLUS_JS_URL = new URL('./iris-plus.js', self.location.href).toString();
+const ASSETS = [APP_SHELL_URL, MANIFEST_URL, PLUS_CSS_URL, PLUS_JS_URL];
+const CORE_ASSET_URLS = new Set(ASSETS);
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
@@ -16,13 +17,42 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') {
+    return;
+  }
+
+  const isSameOrigin = e.request.url.startsWith(self.location.origin);
+  const isCoreAsset = CORE_ASSET_URLS.has(e.request.url);
+  const isNavigation = e.request.mode === 'navigate';
+
+  if (isNavigation || isCoreAsset) {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          if (res.ok && isSameOrigin) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request).then(r => r || caches.match(APP_SHELL_URL)))
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(r => r || fetch(e.request).then(res => {
-      if (res.status === 200 && e.request.method === 'GET') {
+      if (res.ok && isSameOrigin) {
         const clone = res.clone();
         caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
       }
       return res;
-    }).catch(() => caches.match('/index.html')))
+    }).catch(err => {
+      if (isNavigation) {
+        return caches.match(APP_SHELL_URL);
+      }
+
+      throw err;
+    }))
   );
 });

@@ -512,17 +512,26 @@
   }
 
   function initializeSimplifiedShell() {
-    document.body.style.overflow = "";
     document.body.classList.add("irisx-simple-state");
 
     const intro = qs("#intro");
     const choice = qs("#choice");
-    if (intro) {
-      intro.style.display = "none";
+
+    // Keep intro visible — it's the cinematic entry point
+    if (intro && intro.style.display === "none") {
+      intro.style.display = "";
     }
+    // Hide old choice screen — we go straight to buy after intro
     if (choice) {
       choice.style.display = "none";
       choice.classList.remove("show");
+    }
+
+    // If intro exists and is visible, keep body locked until user clicks
+    if (intro && intro.style.display !== "none") {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
     }
 
     skipIntro = function () {
@@ -562,7 +571,11 @@
       showBuyView("home");
     };
 
-    showPage("buy");
+    // Only auto-show buy page if intro is already hidden
+    const introEl = qs("#intro");
+    if (!introEl || introEl.style.display === "none") {
+      showPage("buy");
+    }
   }
 
   function bindStaticEnhancements() {

@@ -535,7 +535,17 @@
     }
 
     skipIntro = function () {
-      showPage("buy");
+      if (typeof introDone !== "undefined" && introDone) return;
+      if (typeof introDone !== "undefined") introDone = true;
+      const iEl = document.getElementById("itext");
+      const introDiv = document.getElementById("intro");
+      if (iEl) iEl.classList.add("out");
+      if (introDiv) introDiv.classList.add("out");
+      setTimeout(function () {
+        if (introDiv) introDiv.style.display = "none";
+        document.body.style.overflow = "";
+        showPage("buy");
+      }, 1100);
     };
 
     showChoiceScreen = function () {

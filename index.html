@@ -329,6 +329,35 @@ button{font-family:inherit}
 .step-t{font-family:'Playfair Display',serif;font-size:.95rem;color:#1A0A35;margin-bottom:.5rem}
 .step-d{font-size:.78rem;color:var(--muted);line-height:1.9}
 
+/* ═══ SELL PATHS (Two-tier model) ═══ */
+.sell-paths-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3rem;align-items:start}
+@media(max-width:700px){.sell-paths-grid{grid-template-columns:1fr}}
+.sell-path{border:1px solid rgba(124,58,237,.15);border-radius:4px;padding:2.5rem 2rem;background:#fff;position:relative;transition:box-shadow .3s}
+.sell-path:hover{box-shadow:0 8px 40px rgba(124,58,237,.1)}
+.sell-path--featured{border-color:var(--purple);background:linear-gradient(135deg,#1A0A35 0%,#2D1060 100%);color:#fff;box-shadow:0 12px 48px rgba(124,58,237,.25)}
+.sp-badge{display:inline-block;font-size:.42rem;letter-spacing:.3em;text-transform:uppercase;padding:.25rem .8rem;margin-bottom:1.5rem;border-radius:2px}
+.sp-badge--diy{background:rgba(124,58,237,.08);color:var(--purple);border:1px solid rgba(124,58,237,.2)}
+.sp-badge--concierge{background:rgba(196,160,106,.15);color:var(--gold);border:1px solid rgba(196,160,106,.3)}
+.sp-commission{font-family:'Cormorant Garamond',serif;font-size:4rem;font-weight:300;color:var(--ink);line-height:1}
+.sp-commission span{font-size:2rem}
+.sp-commission--gold{color:var(--gold)}
+.sell-path--featured .sp-commission{color:rgba(255,255,255,.9)}
+.sp-commission-label{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:1.5rem;margin-top:.2rem}
+.sell-path--featured .sp-commission-label{color:rgba(255,255,255,.35)}
+.sp-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:300;color:var(--ink);margin-bottom:.8rem}
+.sell-path--featured .sp-title{color:#fff}
+.sp-desc{font-size:.82rem;color:var(--muted);line-height:1.9;margin-bottom:1.5rem}
+.sell-path--featured .sp-desc{color:rgba(255,255,255,.45)}
+.sp-list{list-style:none;display:flex;flex-direction:column;gap:.5rem;margin-bottom:2rem}
+.sp-list li{font-size:.78rem;color:rgba(26,10,53,.5);display:flex;gap:.5rem}
+.sell-path--featured .sp-list li{color:rgba(255,255,255,.45)}
+.sp-list li::before{content:none}
+.sp-cta{display:block;text-align:center;padding:.85rem 1rem;font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;border-radius:2px;transition:all .3s;cursor:pointer}
+.sp-cta--diy{border:1px solid rgba(124,58,237,.25);color:var(--purple);background:transparent}
+.sp-cta--diy:hover{background:rgba(124,58,237,.06);border-color:var(--purple)}
+.sp-cta--concierge{background:var(--gold);color:#1A0A35;border:none;font-weight:500}
+.sp-cta--concierge:hover{background:#D4AE7A;box-shadow:0 4px 20px rgba(196,160,106,.35)}
+
 /* Form section */
 .sell-form{background:#F7F5FC;padding:4rem 0 6rem}
 .form-grid{display:grid;grid-template-columns:1fr 340px;gap:2.5rem;align-items:start}
@@ -666,18 +695,18 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
 <div id="choice">
   <div class="ch ch-b" onclick="showPage('buy')">
     <div class="ch-c">
-      <div class="ch-lbl">Scopri il meglio del lusso</div>
+      <div class="ch-lbl">Pezzi autenticati · Prezzi reali</div>
       <div class="ch-w">Acquista</div>
-      <div class="ch-d">Borse, abbigliamento e accessori firmati autenticati.</div>
+      <div class="ch-d">Borse, abbigliamento e orologi firmati. Ogni pezzo verificato da esperti.</div>
       <div class="ch-arr">→</div>
     </div>
   </div>
   <div class="ch-div"></div>
   <div class="ch ch-s" onclick="showPage('sell')">
     <div class="ch-c">
-      <div class="ch-lbl">Il tuo guardaroba vale</div>
+      <div class="ch-lbl">Da solo al 9% · Con noi al 22%</div>
       <div class="ch-w">Vendi</div>
-      <div class="ch-d">Pubblica gratis, incassa il giusto. Commissione solo al venduto.</div>
+      <div class="ch-d">Gestisci tu, oppure spediscici il pezzo e pensiamo noi a tutto.</div>
       <div class="ch-arr">→</div>
     </div>
   </div>
@@ -878,20 +907,64 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
   </div>
   <div class="sh">
     <div style="position:relative;z-index:2">
-      <div class="sh-label">Inizia a vendere su IRIS</div>
-      <div class="sh-title">Vendi il tuo lusso.</div>
-      <div class="sh-sub">Commissione dal 10% · Autenticazione inclusa · Pagamento garantito</div>
+      <div class="sh-label">Il modo italiano di vendere lusso</div>
+      <div class="sh-title">Vendi come preferisci.</div>
+      <div class="sh-sub">Da solo al 9% · Oppure affidaci tutto al 22% · Pagamento garantito</div>
     </div>
   </div>
   <section class="sell-steps">
     <div class="container">
-      <div class="sl-l">Come funziona</div>
-      <div class="st-l">Semplice come <em>quattro passi.</em></div>
-      <div class="steps-grid">
-        <div class="step-card"><div class="step-n">1</div><div class="step-t">Fotografa</div><div class="step-d">Scatta foto chiare da più angolazioni.</div></div>
-        <div class="step-card"><div class="step-n">2</div><div class="step-t">Pubblica</div><div class="step-d">Inserisci brand, condizione e prezzo. Gratis, 2 minuti.</div></div>
-        <div class="step-card"><div class="step-n">3</div><div class="step-t">Spedisci</div><div class="step-d">Etichetta prepagata, noi gestiamo l'autenticazione.</div></div>
-        <div class="step-card"><div class="step-n">4</div><div class="step-t">Incassa</div><div class="step-d">Bonifico entro 48h dalla conferma. Zero sorprese.</div></div>
+      <div class="sl-l">Scegli il tuo percorso</div>
+      <div class="st-l">Due modi di vendere. <em>Zero compromessi.</em></div>
+      <div class="sell-paths-grid">
+
+        <!-- PATH A: Autonomo -->
+        <div class="sell-path">
+          <div class="sp-badge sp-badge--diy">Autonomo</div>
+          <div class="sp-commission">9<span>%</span></div>
+          <div class="sp-commission-label">commissione sul venduto</div>
+          <div class="sp-title">Vendi da solo</div>
+          <div class="sp-desc">Pubblichi tu, gestisci le trattative, spedisci tu. IRIS ti fornisce la vetrina, la visibilità e il pagamento protetto.</div>
+          <ul class="sp-list">
+            <li>✦ Pubblichi gratis in 2 minuti</li>
+            <li>✦ Prezzi e trattative decidi tu</li>
+            <li>✦ Pagamento protetto via IRIS</li>
+            <li>✦ Etichetta spedizione prepagata</li>
+            <li>✦ Solo 9% alla vendita</li>
+          </ul>
+          <a href="#sell-form-sec" class="sp-cta sp-cta--diy">Inizia a vendere →</a>
+        </div>
+
+        <!-- PATH B: Concierge -->
+        <div class="sell-path sell-path--featured">
+          <div class="sp-badge sp-badge--concierge">★ Consigliato</div>
+          <div class="sp-commission sp-commission--gold">22<span>%</span></div>
+          <div class="sp-commission-label">commissione sul venduto</div>
+          <div class="sp-title">IRIS Concierge</div>
+          <div class="sp-desc">Ci spedisci il pezzo. Noi facciamo tutto il resto: foto professionali, autenticazione, annuncio curato, spedizione al compratore.</div>
+          <ul class="sp-list">
+            <li>✦ Foto editoriali professionali</li>
+            <li>✦ Autenticazione certificata IRIS</li>
+            <li>✦ Annuncio scritto da esperti</li>
+            <li>✦ Gestione offerte e trattative</li>
+            <li>✦ Spedizione gestita da noi</li>
+            <li>✦ Tu non fai nulla. Zero stress.</li>
+          </ul>
+          <a href="#concierge-form" class="sp-cta sp-cta--concierge">Affida il tuo pezzo →</a>
+        </div>
+
+      </div>
+
+      <!-- Concierge steps -->
+      <div id="concierge-form" style="margin-top:4rem">
+        <div class="sl-l">Come funziona il Concierge</div>
+        <div class="st-l">Semplice come <em>quattro passi.</em></div>
+        <div class="steps-grid" style="margin-top:2rem">
+          <div class="step-card"><div class="step-n">1</div><div class="step-t">Richiedi</div><div class="step-d">Compila il form. Ti rispondiamo entro 24h con la valutazione gratuita.</div></div>
+          <div class="step-card"><div class="step-n">2</div><div class="step-t">Spedisci</div><div class="step-d">Ti inviamo l'etichetta prepagata. Imballa e spedisci comodamente.</div></div>
+          <div class="step-card"><div class="step-n">3</div><div class="step-t">Noi lavoriamo</div><div class="step-d">Foto professionali, autenticazione, annuncio curato. In 48h online.</div></div>
+          <div class="step-card"><div class="step-n">4</div><div class="step-t">Incassi</div><div class="step-d">Venduto? Bonifico entro 48h. Il 78% del prezzo finale, garantito.</div></div>
+        </div>
       </div>
     </div>
   </section>
@@ -899,8 +972,23 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
     <div class="container">
       <div class="form-grid">
         <div>
-          <div class="form-title">Pubblica il tuo articolo</div>
-          <div class="form-sub">Compila i dettagli. Tutti i campi * sono obbligatori.</div>
+          <!-- Mode selector -->
+          <div style="display:flex;gap:.8rem;margin-bottom:2rem">
+            <label style="flex:1;border:1px solid rgba(124,58,237,.2);padding:1rem;cursor:pointer;border-radius:3px;transition:all .25s" id="lbl-diy">
+              <input type="radio" name="sell-mode" id="sell-mode-diy" value="diy" checked onchange="updateFee();toggleSellMode()" style="display:none">
+              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--purple);margin-bottom:.3rem">Autonomo · 9%</div>
+              <div style="font-size:.85rem;color:#1A0A35;font-family:'Playfair Display',serif">Vendo da solo</div>
+              <div style="font-size:.7rem;color:var(--muted);margin-top:.25rem">Gestisci tu le foto e la spedizione</div>
+            </label>
+            <label style="flex:1;border:1px solid rgba(196,160,106,.3);padding:1rem;cursor:pointer;border-radius:3px;background:rgba(196,160,106,.04);transition:all .25s" id="lbl-concierge">
+              <input type="radio" name="sell-mode" id="sell-mode-concierge" value="concierge" onchange="updateFee();toggleSellMode()" style="display:none">
+              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem">★ Concierge · 22%</div>
+              <div style="font-size:.85rem;color:#1A0A35;font-family:'Playfair Display',serif">Affido tutto a IRIS</div>
+              <div style="font-size:.7rem;color:var(--muted);margin-top:.25rem">Spediscici il pezzo, pensiamo noi</div>
+            </label>
+          </div>
+          <div class="form-title" id="form-main-title">Pubblica il tuo articolo</div>
+          <div class="form-sub" id="form-main-sub">Compila i dettagli. Tutti i campi * sono obbligatori.</div>
           <div class="photo-upload" onclick="document.getElementById('fileIn').click()">
             <div class="pu-icon">📷</div>
             <div class="pu-t">Aggiungi fino a 8 foto</div>
@@ -1249,17 +1337,38 @@ function sendOffer(){
 /* ═══════ SELL FORM ═══════ */
 function updateFee(){
   const price=parseFloat(document.getElementById('sf-price').value)||0;
-  const cat=(document.getElementById('sf-cat').value||'').toLowerCase();
-  let rate=0.12;
-  if(cat.includes('orol')||cat.includes('gioie'))rate=0.10;
-  if(cat.includes('bors')&&price>1000)rate=0.10;
-  if(price<100&&!cat.includes('orol')&&!cat.includes('gioie'))rate=0.15;
+  // Two-tier: 9% self-listing, 22% concierge
+  const isConcierge=document.getElementById('sell-mode-concierge')&&document.getElementById('sell-mode-concierge').checked;
+  const rate=isConcierge?0.22:0.09;
+  const label=isConcierge?'Concierge (22%)':'Autonomo (9%)';
   const comm=price*rate;const net=price-comm;
   document.getElementById('fee-p').textContent=price?`€${price.toFixed(0)}`:'€ —';
-  document.getElementById('fee-c').textContent=price?`-€${comm.toFixed(0)} (${(rate*100).toFixed(0)}%)`:'— %';
+  document.getElementById('fee-c').textContent=price?`-€${comm.toFixed(0)} (${label})`:`— ${label}`;
   document.getElementById('fee-n').textContent=price?`€${net.toFixed(0)}`:'€ —';
 }
 function selCond(btn){document.querySelectorAll('.cond-btn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel')}
+
+function toggleSellMode(){
+  const isConcierge=document.getElementById('sell-mode-concierge').checked;
+  const lblDiy=document.getElementById('lbl-diy');
+  const lblConc=document.getElementById('lbl-concierge');
+  const title=document.getElementById('form-main-title');
+  const sub=document.getElementById('form-main-sub');
+  const photoBox=document.querySelector('.photo-upload');
+  if(isConcierge){
+    lblConc.style.borderColor='var(--gold)';lblConc.style.background='rgba(196,160,106,.08)';
+    lblDiy.style.borderColor='rgba(124,58,237,.12)';lblDiy.style.background='transparent';
+    title.textContent='Richiedi IRIS Concierge';
+    sub.innerHTML='Descrivi il pezzo. Ti risponderemo entro 24h con una valutazione gratuita. <strong style="color:var(--purple)">Tu spedisci, noi facciamo tutto il resto.</strong>';
+    if(photoBox){photoBox.querySelector('.pu-t').textContent='Aggiungi foto (opzionale)';photoBox.querySelector('.pu-s').textContent='Puoi mandarle dopo — le rifacciamo noi in ogni caso';}
+  } else {
+    lblDiy.style.borderColor='rgba(124,58,237,.35)';lblDiy.style.background='rgba(124,58,237,.04)';
+    lblConc.style.borderColor='rgba(196,160,106,.3)';lblConc.style.background='rgba(196,160,106,.04)';
+    title.textContent='Pubblica il tuo articolo';
+    sub.textContent='Compila i dettagli. Tutti i campi * sono obbligatori.';
+    if(photoBox){photoBox.querySelector('.pu-t').textContent='Aggiungi fino a 8 foto';photoBox.querySelector('.pu-s').textContent='JPG o PNG · Max 10MB · La prima sarà la copertina';}
+  }
+}
 
 /* ═══════ i18n MULTI-LANGUAGE ═══════ */
 const i18n={

@@ -118,6 +118,75 @@
   font-size: 0.95rem;
 }
 
+/* ═══ GOOGLE SIGN-IN BUTTON ═══ */
+.irisx-google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.88);
+  font-family: "Outfit", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.irisx-google-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.irisx-google-btn svg {
+  flex-shrink: 0;
+}
+
+body.light-mode .irisx-google-btn {
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+body.light-mode .irisx-google-btn:hover {
+  background: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.irisx-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 1rem 0;
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.irisx-divider::before,
+.irisx-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+body.light-mode .irisx-divider {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+body.light-mode .irisx-divider::before,
+body.light-mode .irisx-divider::after {
+  background: rgba(0, 0, 0, 0.08);
+}
+
 .irisx-segment {
   display: inline-flex;
   gap: 0.35rem;

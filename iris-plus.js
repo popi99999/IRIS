@@ -1207,14 +1207,19 @@
     }
 
     const isLogin = state.authMode === "login";
+    const googleSvg = '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 019.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 000 24c0 3.77.87 7.34 2.44 10.52l8.09-5.93z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+    const googleBtnText = curLang === "it" ? "Continua con Google" : "Continue with Google";
+    const orText = curLang === "it" ? "oppure" : "or";
+
     modal.innerHTML =
-      "<div class=\"irisx-modal-backdrop\"></div><div class=\"irisx-modal-card\"><div class=\"irisx-card-head\"><div><div class=\"irisx-kicker\">" +
-      t("prototype_mode") +
-      "</div><div class=\"irisx-title\">" +
+      "<div class=\"irisx-modal-backdrop\"></div><div class=\"irisx-modal-card\"><div class=\"irisx-card-head\"><div><div class=\"irisx-title\">" +
       t(isLogin ? "auth_title_login" : "auth_title_register") +
       "</div><div class=\"irisx-subtitle\">" +
       t(isLogin ? "auth_sub_login" : "auth_sub_register") +
-      "</div></div><button class=\"irisx-close\" onclick=\"closeAuthModal()\">✕</button></div><div class=\"irisx-card-body\"><div class=\"irisx-segment\"><button class=\"" +
+      "</div></div><button class=\"irisx-close\" onclick=\"closeAuthModal()\">✕</button></div><div class=\"irisx-card-body\">" +
+      "<button class=\"irisx-google-btn\" onclick=\"signInWithGoogle()\">" + googleSvg + " " + googleBtnText + "</button>" +
+      "<div class=\"irisx-divider\"><span>" + orText + "</span></div>" +
+      "<div class=\"irisx-segment\"><button class=\"" +
       (isLogin ? "on" : "") +
       "\" onclick=\"switchAuthMode('login')\">" +
       t("login") +
@@ -1234,8 +1239,6 @@
       (isLogin ? "current-password" : "new-password") +
       "\"></div></div><div class=\"irisx-actions\"><button class=\"irisx-primary\" onclick=\"submitAuth()\">" +
       t(isLogin ? "auth_cta_login" : "auth_cta_register") +
-      "</button><button class=\"irisx-secondary\" onclick=\"closeAuthModal()\">" +
-      t("cancel") +
       "</button></div><div class=\"irisx-auth-switch\">" +
       t(isLogin ? "auth_switch_register" : "auth_switch_login") +
       " <button onclick=\"switchAuthMode('" +
@@ -1244,6 +1247,67 @@
       t(isLogin ? "register" : "login") +
       "</button></div><div class=\"irisx-status irisx-hidden\" id=\"irisxAuthStatus\"></div></div></div>";
   }
+
+  function signInWithGoogle() {
+    // Check if Firebase is configured
+    if (typeof firebase !== "undefined" && firebase.apps && firebase.apps.length > 0) {
+      var provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider).then(function(result) {
+        var u = result.user;
+        state.currentUser = {
+          id: u.uid,
+          name: u.displayName || "Utente Google",
+          email: u.email,
+          city: "",
+          country: "Italia",
+          bio: "",
+          memberSince: new Date().toISOString().slice(0, 10),
+          avatar: u.photoURL || ""
+        };
+        saveJson(STORAGE_KEYS.session, state.currentUser);
+        syncCurrentUserSeller();
+        syncSessionUi();
+        renderProfilePanel();
+        closeAuthModal();
+        showToast(t("login_success"));
+        showPage("buy");
+        showBuyView("home");
+      }).catch(function(error) {
+        var status = qs("#irisxAuthStatus");
+        if (status) setInlineStatus(status, error.message, true);
+      });
+      return;
+    }
+
+    // Fallback: simulated Google sign-in for prototype
+    var mockName = "Utente IRIS";
+    var mockEmail = "utente@iris-marketplace.it";
+    state.currentUser = {
+      id: "google_" + Date.now(),
+      name: mockName,
+      email: mockEmail,
+      city: "Milano",
+      country: "Italia",
+      bio: "",
+      memberSince: new Date().toISOString().slice(0, 10),
+      avatar: ""
+    };
+    // Save new user
+    var existing = state.users.find(function(u) { return u.email === mockEmail; });
+    if (!existing) {
+      state.users.push(Object.assign({}, state.currentUser, { password: "" }));
+      saveJson(STORAGE_KEYS.users, state.users);
+    }
+    saveJson(STORAGE_KEYS.session, state.currentUser);
+    syncCurrentUserSeller();
+    syncSessionUi();
+    renderProfilePanel();
+    closeAuthModal();
+    showToast(curLang === "it" ? "Accesso con Google effettuato." : "Signed in with Google.");
+    showPage("buy");
+    showBuyView("home");
+  }
+  window.signInWithGoogle = signInWithGoogle;
 
   function submitAuth() {
     const isLogin = state.authMode === "login";

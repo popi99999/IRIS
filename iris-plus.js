@@ -346,7 +346,7 @@
       const cartButton = document.createElement("button");
       cartButton.className = "tn-btn";
       cartButton.id = "cartBtn";
-      cartButton.innerHTML = "🛒<span class=\"badge\" id=\"cart-badge\" style=\"display:none\">0</span>";
+      cartButton.innerHTML = "<svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M1 1h2l1.5 8h8L15 3.5H4\"/><circle cx=\"6\" cy=\"12.5\" r=\"1\"/><circle cx=\"11\" cy=\"12.5\" r=\"1\"/></svg><span class=\"badge\" id=\"cart-badge\" style=\"display:none\">0</span>";
       cartButton.setAttribute("aria-label", t("cart_open"));
       cartButton.addEventListener("click", openCart);
       navLinks.insertBefore(cartButton, qs(".notif-wrap"));
@@ -441,7 +441,10 @@
     const featured = prods.slice(0, 4);
 
     container.innerHTML =
-      "<div class=\"irisx-home-shell\"><section class=\"irisx-home-hero\"><div class=\"irisx-home-copy\"><div class=\"irisx-home-kicker\">" +
+      "<div class=\"irisx-home-shell\"><section class=\"irisx-home-hero\">" +
+      "<div class=\"irisx-hero-lux\"><div class=\"irisx-hero-shine\"></div></div>" +
+      "<div class=\"irisx-hero-grain\"></div>" +
+      "<div class=\"irisx-home-copy\"><div class=\"irisx-home-kicker\">" +
       escapeHtml(copy.kicker) +
       "</div><h1 class=\"irisx-home-title\">" +
       escapeHtml(copy.title) +

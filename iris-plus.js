@@ -277,55 +277,55 @@
   function getHomeCopy() {
     if (curLang === "it") {
       return {
-        kicker: "IRIS marketplace",
-        title: "Una home semplice, prodotti forti, percorsi chiari.",
-        text: "Ho semplificato la struttura per darti una base piu' solida: una home pulita, prodotti in evidenza, accesso rapido a compra e vendi, meno overlay e meno elementi che si sovrappongono.",
-        primaryCta: "Scopri i prodotti",
-        secondaryCta: "Vendi su IRIS",
-        featuredTitle: "Prodotti di punta",
-        featuredNote: "Una selezione pulita dei pezzi piu' interessanti.",
-        buyTitle: "Compra con meno confusione",
-        buyText: "Vai subito allo shop, filtra in modo classico e apri il dettaglio prodotto senza finestre che si accavallano.",
-        buyPoints: ["Shop classico", "Dettaglio lineare", "Wishlist, chat e carrello in un flusso unico"],
-        sellTitle: "Vendi in modo diretto",
-        sellText: "Form, foto, prezzo e pubblicazione nello stesso percorso. Senza intro e schermate intermedie che distraggono.",
-        sellPoints: ["Upload foto", "Preview immediata", "Profilo con annunci e ordini"],
+        kicker: "IRIS — Moda d'Autore",
+        title: "Il lusso autentico.\nFinalmente accessibile.",
+        text: "Ogni articolo certificato dalla nostra équipe di esperti. Hermès, Chanel, Louis Vuitton — autenticati pezzo per pezzo, consegnati a casa tua.",
+        primaryCta: "Scopri la collezione",
+        secondaryCta: "Vendi con IRIS",
+        featuredTitle: "Pezzi da Collezione",
+        featuredNote: "Una selezione esclusiva dei pezzi più ricercati.",
+        buyTitle: "Acquista con fiducia",
+        buyText: "Una selezione rigorosa di pezzi autenticati dalle Maison più ambite. Ogni articolo ispezionato dalla nostra équipe prima della vendita.",
+        buyPoints: ["100% Autenticato", "Spedizione assicurata", "Reso in 14 giorni"],
+        sellTitle: "Vendi con eleganza",
+        sellText: "Carica le foto, imposta il prezzo. Il resto lo facciamo noi — autenticazione, comunicazione, spedizione sicura.",
+        sellPoints: ["Autenticazione inclusa", "Massima visibilità", "Pagamento garantito"],
         sideCards: [
-          { title: "Home pulita", text: "Una sola entrata chiara, senza doppie schermate iniziali.", tag: "UX reset" },
-          { title: "Compra e vendi", text: "Due percorsi principali leggibili e facili da testare.", tag: "Flusso semplificato" },
-          { title: "Base per il vero backend", text: "La struttura ora e' piu' pronta per auth, database e Stripe.", tag: "Step successivo" }
+          { title: "Autenticazione IRIS", text: "Ogni articolo esaminato da esperti certificati. Nessun compromesso sulla qualità.", tag: "GARANZIA" },
+          { title: "Maison d'Eccellenza", text: "Hermès, Chanel, Balenciaga — solo pezzi selezionati con rigore editoriale.", tag: "SELEZIONE" },
+          { title: "Consegna Premium", text: "Imballaggio di lusso, spedizione assicurata, reso garantito in 14 giorni.", tag: "AFFIDABILE" }
         ],
         strip: [
-          { value: "1", label: "home principale" },
-          { value: "2", label: "percorsi chiari" },
-          { value: "0", label: "intro inutili" }
+          { value: "100%", label: "Autenticato" },
+          { value: "−40%", label: "vs retail" },
+          { value: "48h", label: "Spedizione" }
         ]
       };
     }
 
     return {
-      kicker: "IRIS marketplace",
-      title: "A simpler home, stronger products, cleaner flows.",
-      text: "The structure is now flatter and easier to test: a clear home, featured products, direct buy and sell entries, and fewer stacked overlays.",
-      primaryCta: "Browse products",
-      secondaryCta: "Sell on IRIS",
-      featuredTitle: "Featured products",
-      featuredNote: "A tighter selection of standout pieces.",
-      buyTitle: "Shop with less clutter",
-      buyText: "Go straight to the catalog, use classic filters and open product details without stacked windows.",
-      buyPoints: ["Classic shop layout", "Straight product detail", "Wishlist, chat and cart in one flow"],
-      sellTitle: "Sell with a direct flow",
-      sellText: "Photos, details, price and publishing now live in one path without intro screens in the middle.",
-      sellPoints: ["Photo upload", "Instant preview", "Profile with listings and orders"],
+      kicker: "IRIS — Curated Luxury",
+      title: "Authentic luxury.\nFinally accessible.",
+      text: "Every piece certified by our team of experts. Hermès, Chanel, Louis Vuitton — authenticated one by one, delivered to your door.",
+      primaryCta: "Browse the collection",
+      secondaryCta: "Sell with IRIS",
+      featuredTitle: "Collector's Pieces",
+      featuredNote: "A curated selection of the most sought-after pieces.",
+      buyTitle: "Shop with confidence",
+      buyText: "A rigorous selection of authenticated pieces from the finest Maisons. Every item inspected by our team before sale.",
+      buyPoints: ["100% Authenticated", "Insured shipping", "14-day returns"],
+      sellTitle: "Sell with elegance",
+      sellText: "Upload your photos, set your price. We handle the rest — authentication, communication, insured shipping.",
+      sellPoints: ["Authentication included", "Maximum visibility", "Guaranteed payment"],
       sideCards: [
-        { title: "Clean home", text: "One clear entry point instead of layered intro screens.", tag: "UX reset" },
-        { title: "Buy and sell", text: "Two main flows that are easier to understand and test.", tag: "Simplified flow" },
-        { title: "Ready for real backend", text: "This structure is easier to connect to auth, database and Stripe.", tag: "Next step" }
+        { title: "IRIS Authentication", text: "Every item examined by certified experts. No compromises on quality.", tag: "GUARANTEE" },
+        { title: "Houses of Excellence", text: "Hermès, Chanel, Balenciaga — only editorially selected pieces.", tag: "CURATED" },
+        { title: "Premium Delivery", text: "Luxury packaging, insured shipping, 14-day guaranteed returns.", tag: "TRUSTED" }
       ],
       strip: [
-        { value: "1", label: "main home" },
-        { value: "2", label: "clear flows" },
-        { value: "0", label: "extra intros" }
+        { value: "100%", label: "Authenticated" },
+        { value: "−40%", label: "vs retail" },
+        { value: "48h", label: "Shipping" }
       ]
     };
   }

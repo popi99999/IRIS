@@ -2311,6 +2311,14 @@
       if (backButton) {
         backButton.textContent = t("home");
       }
+      const authBadge = qs("#authBadge");
+      if (authBadge) {
+        const homeCopy = getHomeCopy();
+        const badgeLabel = homeCopy && Array.isArray(homeCopy.strip) && homeCopy.strip[0] && homeCopy.strip[0].label
+          ? homeCopy.strip[0].label
+          : "Authenticated";
+        authBadge.textContent = "✦ 100% " + badgeLabel;
+      }
       const opsButton = qs("#opsBtn");
       if (opsButton) {
         opsButton.textContent = "Ops";

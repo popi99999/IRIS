@@ -5,7 +5,21 @@
     cart: "iris-cart",
     listings: "iris-local-listings",
     orders: "iris-orders",
-    favorites: "iris-favorites"
+    favorites: "iris-favorites",
+    notifications: "iris-notifications",
+    emailOutbox: "iris-email-outbox",
+    supportTickets: "iris-support-tickets",
+    auditLog: "iris-audit-log",
+    chats: "iris-chats",
+    reviews: "iris-reviews"
+  };
+
+  const PLATFORM_CONFIG = {
+    ownerEmail: "owner@iris-fashion.it",
+    adminEmails: ["owner@iris-fashion.it", "admin@iris-fashion.it"],
+    supportEmail: "support@iris-fashion.it",
+    emailFrom: "IRIS <noreply@iris-fashion.it>",
+    platformFeeRate: 0.12
   };
 
   const SHIPPING_COST = 25;
@@ -15,6 +29,11 @@
     cart: loadJson(STORAGE_KEYS.cart, []),
     listings: loadJson(STORAGE_KEYS.listings, []),
     orders: loadJson(STORAGE_KEYS.orders, []),
+    notifications: loadJson(STORAGE_KEYS.notifications, []),
+    emailOutbox: loadJson(STORAGE_KEYS.emailOutbox, []),
+    supportTickets: loadJson(STORAGE_KEYS.supportTickets, []),
+    auditLog: loadJson(STORAGE_KEYS.auditLog, []),
+    reviews: loadJson(STORAGE_KEYS.reviews, []),
     pendingAction: null,
     authMode: "login",
     authReturnView: "home",
@@ -22,7 +41,9 @@
     checkoutSource: "cart",
     sellPhotos: [],
     activeDetailImage: 0,
-    lastNonDetailView: "home"
+    lastNonDetailView: "home",
+    opsModalMode: null,
+    opsModalPayload: null
   };
 
   const existingFavorites = loadJson(STORAGE_KEYS.favorites, []);
@@ -35,15 +56,20 @@
   injectHomeView();
   assignSellFormIds();
   injectSellHelpers();
+  normalizeMarketState();
   hydrateLocalListings();
+  ensureOpsShell();
   syncCurrentUserSeller();
   overrideMarketplaceFunctions();
+  overrideOperationalFlows();
   bindStaticEnhancements();
   initializeSimplifiedShell();
   syncSessionUi();
   updateCartBadge();
   updateFavBadge();
   renderProfilePanel();
+  renderOpsView();
+  renderNotifications();
   renderHomeView();
   renderSellPhotoPreview();
   if (typeof applyLang === "function") {
@@ -122,6 +148,7 @@
       id: "seller-" + slugify(state.currentUser.email),
       name: state.currentUser.name,
       avatar: state.currentUser.avatar || "👤",
+      email: normalizeEmail(state.currentUser.email),
       rating: 5,
       sales: ownListings.length,
       city: state.currentUser.city || (curLang === "it" ? "Italia" : "Italy"),
@@ -134,6 +161,322 @@
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+  }
+
+  function langText(it, en) {
+    return curLang === "it" ? it : en;
+  }
+
+  function normalizeEmail(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function createId(prefix) {
+    return prefix + "-" + Math.random().toString(36).slice(2, 10);
+  }
+
+  function formatDateTime(value) {
+    if (!value) {
+      return langText("Non disponibile", "Not available");
+    }
+
+    return new Date(value).toLocaleString(curLang === "it" ? "it-IT" : "en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  function formatRelativeTime(value) {
+    const diffMinutes = Math.max(0, Math.round((Date.now() - Number(value || 0)) / 60000));
+    if (diffMinutes < 1) {
+      return langText("adesso", "now");
+    }
+    if (diffMinutes < 60) {
+      return langText(diffMinutes + " min fa", diffMinutes + " min ago");
+    }
+
+    const diffHours = Math.round(diffMinutes / 60);
+    if (diffHours < 24) {
+      return langText(diffHours + " h fa", diffHours + " h ago");
+    }
+
+    const diffDays = Math.round(diffHours / 24);
+    return langText(diffDays + " g fa", diffDays + " d ago");
+  }
+
+  function deriveUserRole(email) {
+    return PLATFORM_CONFIG.adminEmails.includes(normalizeEmail(email)) ? "admin" : "member";
+  }
+
+  function isAdminUser(user) {
+    return Boolean(user && deriveUserRole(user.email) === "admin");
+  }
+
+  function isCurrentUserAdmin() {
+    return isAdminUser(state.currentUser);
+  }
+
+  function ensureSellerEmail(seller) {
+    if (!seller) {
+      return "";
+    }
+
+    if (!seller.email) {
+      seller.email = slugify(seller.name || seller.id || "seller") + "@iris-seller.local";
+    }
+
+    return seller.email;
+  }
+
+  function getPlatformFee(subtotal) {
+    return Math.round(Number(subtotal || 0) * PLATFORM_CONFIG.platformFeeRate);
+  }
+
+  function inferOrderTimeline(createdAt, status) {
+    const timeline = [
+      {
+        id: createId("evt"),
+        type: "order_created",
+        at: createdAt,
+        label: langText("Ordine creato", "Order created")
+      },
+      {
+        id: createId("evt"),
+        type: "payment_captured",
+        at: createdAt,
+        label: langText("Pagamento confermato", "Payment confirmed")
+      }
+    ];
+
+    if (status === "shipped" || status === "delivered") {
+      timeline.push({
+        id: createId("evt"),
+        type: "order_shipped",
+        at: createdAt,
+        label: langText("Ordine spedito", "Order shipped")
+      });
+    }
+
+    if (status === "delivered") {
+      timeline.push({
+        id: createId("evt"),
+        type: "order_delivered",
+        at: createdAt,
+        label: langText("Ordine consegnato", "Order delivered")
+      });
+    }
+
+    return timeline;
+  }
+
+  function normalizeListingRecord(listing) {
+    const seller = listing.seller || null;
+    if (seller) {
+      ensureSellerEmail(seller);
+    }
+
+    return Object.assign(
+      {
+        inventoryStatus: "active",
+        listingStatus: "published",
+        orderId: null,
+        soldAt: null
+      },
+      listing,
+      {
+        seller: seller
+      }
+    );
+  }
+
+  function normalizeOrderRecord(order) {
+    const createdAt = Number(order.createdAt || Date.now());
+    const normalizedStatus = order.status === "created" ? "paid" : (order.status || "paid");
+    const items = Array.isArray(order.items)
+      ? order.items.map(function (item) {
+          const product =
+            prods.find(function (candidate) { return candidate.id === item.productId; }) ||
+            state.listings.find(function (candidate) { return candidate.id === item.productId; });
+          const seller = product && product.seller
+            ? product.seller
+            : {
+                id: item.sellerId || "seller-unknown",
+                name: item.sellerName || langText("Venditore sconosciuto", "Unknown seller"),
+                email: item.sellerEmail || ""
+              };
+
+          ensureSellerEmail(seller);
+
+          return Object.assign(
+            {
+              qty: 1,
+              lineStatus: normalizedStatus
+            },
+            item,
+            {
+              name: item.name || (product ? product.name : langText("Articolo", "Item")),
+              brand: item.brand || (product ? product.brand : "IRIS"),
+              price: Number(item.price || (product ? product.price : 0)),
+              sellerId: item.sellerId || seller.id,
+              sellerName: item.sellerName || seller.name,
+              sellerEmail: normalizeEmail(item.sellerEmail || seller.email)
+            }
+          );
+        })
+      : [];
+    const subtotal = typeof order.subtotal === "number"
+      ? order.subtotal
+      : items.reduce(function (sum, item) { return sum + Number(item.price || 0) * Number(item.qty || 1); }, 0);
+    const shippingCost = typeof order.shippingCost === "number" ? order.shippingCost : SHIPPING_COST;
+    const total = typeof order.total === "number" ? order.total : subtotal + shippingCost;
+
+    return Object.assign({}, order, {
+      id: order.id || createId("ord"),
+      number: order.number || ("IRIS-" + String(createdAt).slice(-8)),
+      buyerEmail: normalizeEmail(order.buyerEmail),
+      buyerName: order.buyerName || (order.shipping && order.shipping.name) || langText("Cliente IRIS", "IRIS customer"),
+      items: items,
+      sellerEmails: Array.from(new Set(items.map(function (item) { return normalizeEmail(item.sellerEmail); }).filter(Boolean))),
+      shipping: Object.assign(
+        {
+          name: "",
+          address: "",
+          city: "",
+          country: langText("Italia", "Italy"),
+          note: "",
+          carrier: "",
+          trackingNumber: "",
+          method: langText("Spedizione assicurata", "Insured shipping"),
+          labelStatus: "pending",
+          shippedAt: null,
+          deliveredAt: null
+        },
+        order.shipping || {}
+      ),
+      status: normalizedStatus,
+      payment: Object.assign(
+        {
+          provider: "prototype_manual",
+          status: "captured",
+          capturedAt: createdAt,
+          receiptNumber: "RCPT-" + String(createdAt).slice(-8),
+          platformFee: getPlatformFee(subtotal),
+          sellerNet: Math.max(0, subtotal - getPlatformFee(subtotal)),
+          refundStatus: "none",
+          payoutStatus: normalizedStatus === "delivered" ? "ready" : "pending_shipment"
+        },
+        order.payment || {}
+      ),
+      timeline: Array.isArray(order.timeline) && order.timeline.length ? order.timeline : inferOrderTimeline(createdAt, normalizedStatus),
+      supportTicketIds: Array.isArray(order.supportTicketIds) ? order.supportTicketIds : [],
+      emailIds: Array.isArray(order.emailIds) ? order.emailIds : [],
+      notificationIds: Array.isArray(order.notificationIds) ? order.notificationIds : [],
+      reviewStatus: order.reviewStatus || "pending",
+      createdAt: createdAt,
+      subtotal: subtotal,
+      shippingCost: shippingCost,
+      total: total
+    });
+  }
+
+  function mergeStoredChatThreads(storedChats) {
+    if (!Array.isArray(storedChats) || typeof chats === "undefined") {
+      return;
+    }
+
+    chats.splice(0, chats.length);
+    storedChats.forEach(function (thread) {
+      chats.push(thread);
+    });
+  }
+
+  function hydrateStoredReviews() {
+    state.reviews.forEach(function (review) {
+      if (!reviewsData[review.sellerId]) {
+        reviewsData[review.sellerId] = [];
+      }
+
+      if (!reviewsData[review.sellerId].some(function (entry) { return entry.id === review.id; })) {
+        reviewsData[review.sellerId].push(review);
+      }
+    });
+  }
+
+  function syncInventoryFromOrders() {
+    state.orders.forEach(function (order) {
+      order.items.forEach(function (item) {
+        const product = prods.find(function (candidate) { return candidate.id === item.productId; });
+        if (product) {
+          product.inventoryStatus = "sold";
+          product.listingStatus = "sold";
+          product.orderId = order.id;
+          product.soldAt = order.createdAt;
+        }
+
+        state.listings = state.listings.map(function (listing) {
+          if (listing.id !== item.productId) {
+            return listing;
+          }
+
+          return Object.assign({}, listing, {
+            inventoryStatus: "sold",
+            listingStatus: "sold",
+            orderId: order.id,
+            soldAt: order.createdAt
+          });
+        });
+      });
+    });
+    saveJson(STORAGE_KEYS.listings, state.listings);
+  }
+
+  function normalizeMarketState() {
+    sellers.forEach(function (seller) {
+      ensureSellerEmail(seller);
+    });
+
+    state.users = state.users.map(function (user) {
+      return Object.assign({}, user, {
+        email: normalizeEmail(user.email),
+        role: user.role || deriveUserRole(user.email)
+      });
+    });
+    saveJson(STORAGE_KEYS.users, state.users);
+
+    state.listings = state.listings.map(normalizeListingRecord);
+    state.orders = state.orders.map(normalizeOrderRecord);
+    state.notifications = Array.isArray(state.notifications) ? state.notifications : [];
+    state.emailOutbox = Array.isArray(state.emailOutbox) ? state.emailOutbox : [];
+    state.supportTickets = Array.isArray(state.supportTickets) ? state.supportTickets : [];
+    state.auditLog = Array.isArray(state.auditLog) ? state.auditLog : [];
+    state.reviews = Array.isArray(state.reviews) ? state.reviews : [];
+
+    if (state.currentUser) {
+      state.currentUser = Object.assign({}, state.currentUser, {
+        email: normalizeEmail(state.currentUser.email),
+        role: state.currentUser.role || deriveUserRole(state.currentUser.email)
+      });
+      saveJson(STORAGE_KEYS.session, state.currentUser);
+    }
+
+    const storedChats = loadJson(STORAGE_KEYS.chats, null);
+    if (storedChats) {
+      mergeStoredChatThreads(storedChats);
+    }
+
+    hydrateStoredReviews();
+    syncInventoryFromOrders();
+
+    saveJson(STORAGE_KEYS.listings, state.listings);
+    saveJson(STORAGE_KEYS.orders, state.orders);
+    saveJson(STORAGE_KEYS.notifications, state.notifications);
+    saveJson(STORAGE_KEYS.emailOutbox, state.emailOutbox);
+    saveJson(STORAGE_KEYS.supportTickets, state.supportTickets);
+    saveJson(STORAGE_KEYS.auditLog, state.auditLog);
+    saveJson(STORAGE_KEYS.reviews, state.reviews);
   }
 
   function extendTranslations() {
@@ -438,7 +781,7 @@
     }
 
     const copy = getHomeCopy();
-    const featured = prods.slice(0, 4);
+    const featured = getVisibleCatalogProducts().slice(0, 4);
 
     container.innerHTML =
       "<div class=\"irisx-home-shell\"><section class=\"irisx-home-hero\">" +
@@ -498,7 +841,7 @@
       return "sell";
     }
 
-    const activeView = ["home", "shop", "fav", "chat", "profile", "seller"].find(function (view) {
+    const activeView = ["home", "shop", "fav", "chat", "profile", "seller", "ops"].find(function (view) {
       const node = qs("#" + view + "-view");
       return node && node.classList.contains("active");
     });
@@ -604,12 +947,13 @@
       });
     }
 
-    qsa("#irisxAuthModal, #irisxCheckoutModal, #irisxCartDrawer").forEach((node) => {
+    qsa("#irisxAuthModal, #irisxCheckoutModal, #irisxCartDrawer, #irisxOpsModal").forEach((node) => {
       node.addEventListener("click", function (event) {
         if (event.target.classList.contains("irisx-modal-backdrop") || event.target.classList.contains("irisx-drawer-backdrop")) {
           closeAuthModal();
           closeCheckout();
           closeCart();
+          closeOpsModal();
         }
       });
     });
@@ -641,6 +985,1036 @@
     sellers[existingIndex] = seller;
   }
 
+  function persistChats() {
+    saveJson(STORAGE_KEYS.chats, typeof chats === "undefined" ? [] : chats);
+  }
+
+  function persistOrders() {
+    saveJson(STORAGE_KEYS.orders, state.orders);
+  }
+
+  function persistNotifications() {
+    saveJson(STORAGE_KEYS.notifications, state.notifications);
+  }
+
+  function persistEmailOutbox() {
+    saveJson(STORAGE_KEYS.emailOutbox, state.emailOutbox);
+  }
+
+  function persistSupportTickets() {
+    saveJson(STORAGE_KEYS.supportTickets, state.supportTickets);
+  }
+
+  function persistAuditLog() {
+    saveJson(STORAGE_KEYS.auditLog, state.auditLog);
+  }
+
+  function persistReviews() {
+    saveJson(STORAGE_KEYS.reviews, state.reviews);
+  }
+
+  function isProductPurchasable(product) {
+    return Boolean(product && (product.inventoryStatus || "active") === "active");
+  }
+
+  function getVisibleCatalogProducts() {
+    return prods.filter(isProductPurchasable);
+  }
+
+  function getProductStatusLabel(product) {
+    if (isProductPurchasable(product)) {
+      return "";
+    }
+
+    return langText("Venduto", "Sold");
+  }
+
+  function getOrderStatusLabel(order) {
+    if (order.status === "paid") {
+      return langText("Pagato - in attesa di spedizione", "Paid - awaiting shipment");
+    }
+    if (order.status === "shipped") {
+      return langText("Spedito", "Shipped");
+    }
+    if (order.status === "delivered") {
+      return langText("Consegnato", "Delivered");
+    }
+    return order.status;
+  }
+
+  function appendOrderEvent(order, type, label, meta) {
+    order.timeline = Array.isArray(order.timeline) ? order.timeline : [];
+    order.timeline.unshift({
+      id: createId("evt"),
+      type: type,
+      at: Date.now(),
+      label: label,
+      meta: meta || null
+    });
+  }
+
+  function recordAuditEvent(type, summary, meta) {
+    state.auditLog.unshift({
+      id: createId("log"),
+      type: type,
+      summary: summary,
+      meta: meta || null,
+      at: Date.now()
+    });
+    persistAuditLog();
+  }
+
+  function createNotification(payload) {
+    const notification = {
+      id: createId("ntf"),
+      kind: payload.kind || "system",
+      title: payload.title || "IRIS",
+      body: payload.body || "",
+      recipientEmail: normalizeEmail(payload.recipientEmail),
+      audience: payload.audience || "user",
+      unread: true,
+      link: payload.link || "",
+      createdAt: Date.now()
+    };
+
+    state.notifications.unshift(notification);
+    persistNotifications();
+    return notification;
+  }
+
+  function getVisibleNotifications() {
+    if (isCurrentUserAdmin()) {
+      return state.notifications.filter(function (notification) {
+        return notification.audience === "admin" || notification.recipientEmail === normalizeEmail(state.currentUser.email);
+      });
+    }
+
+    if (!state.currentUser) {
+      return [];
+    }
+
+    return state.notifications.filter(function (notification) {
+      return notification.recipientEmail === normalizeEmail(state.currentUser.email);
+    });
+  }
+
+  function buildEmailMessage(type, payload) {
+    if (type === "welcome-user") {
+      return {
+        subject: langText("Benvenuta su IRIS", "Welcome to IRIS"),
+        body: langText(
+          "Ciao " + payload.name + ", il tuo account IRIS e' stato creato. Completa la verifica email prima del go-live del backend.",
+          "Hi " + payload.name + ", your IRIS account is ready. Complete email verification before backend go-live."
+        )
+      };
+    }
+
+    if (type === "verify-account") {
+      return {
+        subject: langText("Verifica il tuo account IRIS", "Verify your IRIS account"),
+        body: langText(
+          "Attiva il tuo account confermando l'indirizzo email " + payload.email + ".",
+          "Activate your account by confirming the email address " + payload.email + "."
+        )
+      };
+    }
+
+    if (type === "order-buyer") {
+      return {
+        subject: langText("Ordine ricevuto " + payload.orderNumber, "Order received " + payload.orderNumber),
+        body: langText(
+          "Abbiamo registrato l'ordine " + payload.orderNumber + " per " + payload.total + ". Ti aggiorneremo quando il seller spedisce.",
+          "We recorded order " + payload.orderNumber + " for " + payload.total + ". We will update you once the seller ships."
+        )
+      };
+    }
+
+    if (type === "order-admin") {
+      return {
+        subject: langText("Nuovo ordine marketplace", "New marketplace order"),
+        body: langText(
+          "Nuovo ordine " + payload.orderNumber + " creato da " + payload.buyerEmail + ".",
+          "New order " + payload.orderNumber + " created by " + payload.buyerEmail + "."
+        )
+      };
+    }
+
+    if (type === "payment-confirmed") {
+      return {
+        subject: langText("Pagamento confermato " + payload.orderNumber, "Payment confirmed " + payload.orderNumber),
+        body: langText(
+          "Pagamento registrato con ricevuta " + payload.receiptNumber + ".",
+          "Payment recorded with receipt " + payload.receiptNumber + "."
+        )
+      };
+    }
+
+    if (type === "order-receipt") {
+      return {
+        subject: langText("Ricevuta ordine " + payload.orderNumber, "Order receipt " + payload.orderNumber),
+        body: langText(
+          "Riepilogo ordine: " + payload.itemsSummary + ". Totale " + payload.total + ".",
+          "Order summary: " + payload.itemsSummary + ". Total " + payload.total + "."
+        )
+      };
+    }
+
+    if (type === "item-sold-seller") {
+      return {
+        subject: langText("Articolo venduto su IRIS", "Item sold on IRIS"),
+        body: langText(
+          "Hai venduto " + payload.itemsSummary + ". Prepara la spedizione per l'ordine " + payload.orderNumber + ".",
+          "You sold " + payload.itemsSummary + ". Prepare shipment for order " + payload.orderNumber + "."
+        )
+      };
+    }
+
+    if (type === "new-message") {
+      return {
+        subject: langText("Nuovo messaggio su IRIS", "New IRIS message"),
+        body: payload.preview
+      };
+    }
+
+    if (type === "new-offer") {
+      return {
+        subject: langText("Nuova offerta ricevuta", "New offer received"),
+        body: payload.preview
+      };
+    }
+
+    if (type === "item-shipped") {
+      return {
+        subject: langText("Ordine spedito " + payload.orderNumber, "Order shipped " + payload.orderNumber),
+        body: langText(
+          "Il tuo ordine e' stato spedito con " + payload.carrier + " - tracking " + payload.trackingNumber + ".",
+          "Your order was shipped with " + payload.carrier + " - tracking " + payload.trackingNumber + "."
+        )
+      };
+    }
+
+    if (type === "support-request") {
+      return {
+        subject: langText("Nuova richiesta supporto", "New support request"),
+        body: payload.preview
+      };
+    }
+
+    if (type === "issue-reported") {
+      return {
+        subject: langText("Segnalazione problema ordine", "Order issue reported"),
+        body: payload.preview
+      };
+    }
+
+    return {
+      subject: "IRIS",
+      body: payload.preview || "IRIS event"
+    };
+  }
+
+  function enqueueEmail(type, to, payload) {
+    const email = buildEmailMessage(type, payload || {});
+    const queued = {
+      id: createId("mail"),
+      type: type,
+      to: normalizeEmail(to),
+      subject: email.subject,
+      body: email.body,
+      templatePath: "docs/email-trigger-matrix.md#" + type,
+      payload: payload || {},
+      status: "queued",
+      createdAt: Date.now()
+    };
+
+    state.emailOutbox.unshift(queued);
+    persistEmailOutbox();
+    return queued;
+  }
+
+  function getBuyerOrders() {
+    if (!state.currentUser) {
+      return [];
+    }
+
+    return state.orders
+      .filter(function (order) { return normalizeEmail(order.buyerEmail) === normalizeEmail(state.currentUser.email); })
+      .sort(function (left, right) { return right.createdAt - left.createdAt; });
+  }
+
+  function getSellerOrdersForCurrentUser() {
+    if (!state.currentUser) {
+      return [];
+    }
+
+    return state.orders
+      .filter(function (order) {
+        return order.items.some(function (item) { return normalizeEmail(item.sellerEmail) === normalizeEmail(state.currentUser.email); });
+      })
+      .sort(function (left, right) { return right.createdAt - left.createdAt; });
+  }
+
+  function getTicketsForCurrentUser() {
+    if (!state.currentUser) {
+      return [];
+    }
+
+    if (isCurrentUserAdmin()) {
+      return state.supportTickets;
+    }
+
+    return state.supportTickets.filter(function (ticket) {
+      return (
+        normalizeEmail(ticket.buyerEmail) === normalizeEmail(state.currentUser.email) ||
+        normalizeEmail(ticket.sellerEmail) === normalizeEmail(state.currentUser.email)
+      );
+    });
+  }
+
+  function getRecentAdminUsers() {
+    return state.users.slice().sort(function (left, right) {
+      return String(right.memberSince || "").localeCompare(String(left.memberSince || ""));
+    });
+  }
+
+  function ensureOpsShell() {
+    const navLinks = qs(".tn-links");
+    if (navLinks && !qs("#opsBtn")) {
+      const opsButton = document.createElement("button");
+      opsButton.className = "tn-btn";
+      opsButton.id = "opsBtn";
+      opsButton.setAttribute("data-nav-view", "ops");
+      opsButton.addEventListener("click", function () {
+        showBuyView("ops");
+      });
+      navLinks.appendChild(opsButton);
+    }
+
+    const sellerView = qs("#seller-view");
+    if (sellerView && !qs("#ops-view")) {
+      sellerView.insertAdjacentHTML("afterend", "<section id=\"ops-view\" class=\"container\"></section>");
+    }
+
+    if (!qs("#irisxOpsModal")) {
+      document.body.insertAdjacentHTML("beforeend", "<div class=\"irisx-modal\" id=\"irisxOpsModal\"></div>");
+    }
+
+    renderOpsModal();
+  }
+
+  function openOpsModal(mode, payload) {
+    state.opsModalMode = mode;
+    state.opsModalPayload = payload || null;
+    renderOpsModal();
+    qs("#irisxOpsModal").classList.add("open");
+  }
+
+  function closeOpsModal() {
+    state.opsModalMode = null;
+    state.opsModalPayload = null;
+    const modal = qs("#irisxOpsModal");
+    if (modal) {
+      modal.classList.remove("open");
+    }
+  }
+
+  function renderOpsModal() {
+    const modal = qs("#irisxOpsModal");
+    if (!modal) {
+      return;
+    }
+
+    if (!state.opsModalMode) {
+      modal.innerHTML = "";
+      return;
+    }
+
+    if (state.opsModalMode === "ship") {
+      modal.innerHTML =
+        "<div class=\"irisx-modal-backdrop\"></div><div class=\"irisx-modal-card\"><div class=\"irisx-card-head\"><div><div class=\"irisx-title\">" +
+        langText("Segna ordine spedito", "Mark order as shipped") +
+        "</div><div class=\"irisx-subtitle\">" +
+        langText("Inserisci carrier e tracking per il buyer.", "Add carrier and tracking for the buyer.") +
+        "</div></div><button class=\"irisx-close\" onclick=\"closeOpsModal()\">✕</button></div><div class=\"irisx-card-body\"><div class=\"irisx-form-grid\"><div class=\"irisx-field\"><label for=\"opsCarrier\">" +
+        langText("Corriere", "Carrier") +
+        "</label><input id=\"opsCarrier\" type=\"text\" placeholder=\"DHL\"></div><div class=\"irisx-field\"><label for=\"opsTracking\">" +
+        langText("Tracking number", "Tracking number") +
+        "</label><input id=\"opsTracking\" type=\"text\" placeholder=\"IRIS-TRACK-001\"></div></div><div class=\"irisx-actions\"><button class=\"irisx-primary\" onclick=\"submitOpsModal()\">" +
+        langText("Conferma spedizione", "Confirm shipment") +
+        "</button><button class=\"irisx-secondary\" onclick=\"closeOpsModal()\">" +
+        langText("Annulla", "Cancel") +
+        "</button></div></div></div>";
+      return;
+    }
+
+    if (state.opsModalMode === "support") {
+      modal.innerHTML =
+        "<div class=\"irisx-modal-backdrop\"></div><div class=\"irisx-modal-card\"><div class=\"irisx-card-head\"><div><div class=\"irisx-title\">" +
+        langText("Richiedi supporto", "Request support") +
+        "</div><div class=\"irisx-subtitle\">" +
+        langText("Apri un ticket legato all'ordine selezionato.", "Open a ticket for the selected order.") +
+        "</div></div><button class=\"irisx-close\" onclick=\"closeOpsModal()\">✕</button></div><div class=\"irisx-card-body\"><div class=\"irisx-form-grid\"><div class=\"irisx-field\"><label for=\"opsTicketReason\">" +
+        langText("Motivo", "Reason") +
+        "</label><select id=\"opsTicketReason\"><option value=\"shipping\">" +
+        langText("Problema spedizione", "Shipping issue") +
+        "</option><option value=\"item_not_as_described\">" +
+        langText("Articolo non conforme", "Item not as described") +
+        "</option><option value=\"payment\">" +
+        langText("Problema pagamento", "Payment issue") +
+        "</option><option value=\"other\">" +
+        langText("Altro", "Other") +
+        "</option></select></div><div class=\"irisx-field\"><label for=\"opsTicketMessage\">" +
+        langText("Dettagli", "Details") +
+        "</label><textarea id=\"opsTicketMessage\"></textarea></div></div><div class=\"irisx-actions\"><button class=\"irisx-primary\" onclick=\"submitOpsModal()\">" +
+        langText("Apri ticket", "Open ticket") +
+        "</button><button class=\"irisx-secondary\" onclick=\"closeOpsModal()\">" +
+        langText("Annulla", "Cancel") +
+        "</button></div></div></div>";
+      return;
+    }
+
+    if (state.opsModalMode === "review") {
+      modal.innerHTML =
+        "<div class=\"irisx-modal-backdrop\"></div><div class=\"irisx-modal-card\"><div class=\"irisx-card-head\"><div><div class=\"irisx-title\">" +
+        langText("Lascia una recensione", "Leave a review") +
+        "</div><div class=\"irisx-subtitle\">" +
+        langText("Valuta la tua esperienza con il seller.", "Rate your experience with the seller.") +
+        "</div></div><button class=\"irisx-close\" onclick=\"closeOpsModal()\">✕</button></div><div class=\"irisx-card-body\"><div class=\"irisx-form-grid\"><div class=\"irisx-field\"><label for=\"opsReviewRating\">" +
+        langText("Valutazione", "Rating") +
+        "</label><select id=\"opsReviewRating\"><option value=\"5\">5</option><option value=\"4\">4</option><option value=\"3\">3</option><option value=\"2\">2</option><option value=\"1\">1</option></select></div><div class=\"irisx-field\"><label for=\"opsReviewMessage\">" +
+        langText("Commento", "Comment") +
+        "</label><textarea id=\"opsReviewMessage\"></textarea></div></div><div class=\"irisx-actions\"><button class=\"irisx-primary\" onclick=\"submitOpsModal()\">" +
+        langText("Invia recensione", "Submit review") +
+        "</button><button class=\"irisx-secondary\" onclick=\"closeOpsModal()\">" +
+        langText("Annulla", "Cancel") +
+        "</button></div></div></div>";
+      return;
+    }
+  }
+
+  function submitOpsModal() {
+    if (state.opsModalMode === "ship") {
+      submitShipmentForOrder(state.opsModalPayload.orderId);
+      return;
+    }
+
+    if (state.opsModalMode === "support") {
+      submitSupportTicket(state.opsModalPayload.orderId);
+      return;
+    }
+
+    if (state.opsModalMode === "review") {
+      submitOrderReview(state.opsModalPayload.orderId);
+    }
+  }
+
+  function renderOpsView() {
+    const container = qs("#ops-view");
+    if (!container) {
+      return;
+    }
+
+    if (!isCurrentUserAdmin()) {
+      container.innerHTML = "";
+      return;
+    }
+
+    const pendingShipments = state.orders.filter(function (order) { return order.status === "paid"; }).length;
+    const openTickets = state.supportTickets.filter(function (ticket) { return ticket.status !== "resolved"; }).length;
+    const readyPayouts = state.orders.filter(function (order) { return order.payment && order.payment.payoutStatus === "ready"; }).length;
+
+    container.innerHTML =
+      "<div class=\"irisx-ops-shell\"><div class=\"irisx-profile-head\"><div class=\"irisx-profile-title\">OPS</div><div class=\"irisx-kicker\">" +
+      langText("Console owner", "Owner console") +
+      "</div></div><div class=\"irisx-ops-grid\"><section class=\"irisx-account-card\"><h3>" +
+      langText("Panoramica", "Overview") +
+      "</h3><div class=\"irisx-account-stats\"><div class=\"irisx-account-stat\"><strong>" +
+      state.orders.length +
+      "</strong><span>" +
+      langText("ordini", "orders") +
+      "</span></div><div class=\"irisx-account-stat\"><strong>" +
+      pendingShipments +
+      "</strong><span>" +
+      langText("da spedire", "to ship") +
+      "</span></div><div class=\"irisx-account-stat\"><strong>" +
+      openTickets +
+      "</strong><span>" +
+      langText("ticket aperti", "open tickets") +
+      "</span></div><div class=\"irisx-account-stat\"><strong>" +
+      readyPayouts +
+      "</strong><span>" +
+      langText("payout ready", "payout ready") +
+      "</span></div></div></section><section class=\"irisx-account-card\"><h3>" +
+      langText("Outbox email", "Email outbox") +
+      "</h3><div class=\"irisx-order-list\">" +
+      (state.emailOutbox.length
+        ? state.emailOutbox.slice(0, 6).map(function (mail) {
+            return "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" + escapeHtml(mail.subject) + "</strong><span>" + escapeHtml(mail.to) + "</span></div><div class=\"irisx-order-items\"><div>" + escapeHtml(mail.type) + "</div><div>" + formatRelativeTime(mail.createdAt) + "</div></div></div>";
+          }).join("")
+        : "<div class=\"irisx-empty-state\">" + langText("Nessuna email in coda.", "No queued emails.") + "</div>") +
+      "</div></section></div><div class=\"irisx-profile-section\"><div class=\"irisx-profile-head\"><div class=\"irisx-profile-title\">" +
+      langText("Ordini", "Orders") +
+      "</div></div><div class=\"irisx-order-list\">" +
+      (state.orders.length
+        ? state.orders.map(function (order) {
+            const canMarkPayout = order.payment && order.payment.payoutStatus === "ready";
+            return "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" + escapeHtml(order.number) + "</strong><span>" + escapeHtml(getOrderStatusLabel(order)) + "</span></div><div class=\"irisx-order-items\"><div>" + escapeHtml(order.buyerEmail) + " - " + escapeHtml(formatCurrency(order.total)) + "</div><div>" + escapeHtml(order.items.map(function (item) { return item.brand + " " + item.name; }).join(", ")) + "</div></div>" + (canMarkPayout ? "<div class=\"irisx-actions\"><button class=\"irisx-secondary\" onclick=\"markOrderPayoutPaid('" + order.id + "')\">" + langText("Segna payout pagato", "Mark payout paid") + "</button></div>" : "") + "</div>";
+          }).join("")
+        : "<div class=\"irisx-empty-state\">" + langText("Nessun ordine ancora.", "No orders yet.") + "</div>") +
+      "</div></div><div class=\"irisx-profile-section\"><div class=\"irisx-profile-head\"><div class=\"irisx-profile-title\">" +
+      langText("Supporto", "Support") +
+      "</div></div><div class=\"irisx-order-list\">" +
+      (state.supportTickets.length
+        ? state.supportTickets.map(function (ticket) {
+            return "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" + escapeHtml(ticket.id) + "</strong><span>" + escapeHtml(ticket.status) + "</span></div><div class=\"irisx-order-items\"><div>" + escapeHtml(ticket.reason) + " - " + escapeHtml(ticket.buyerEmail) + "</div><div>" + escapeHtml(ticket.message) + "</div></div>" + (ticket.status !== "resolved" ? "<div class=\"irisx-actions\"><button class=\"irisx-secondary\" onclick=\"resolveSupportTicket('" + ticket.id + "')\">" + langText("Segna risolto", "Mark resolved") + "</button></div>" : "") + "</div>";
+          }).join("")
+        : "<div class=\"irisx-empty-state\">" + langText("Nessun ticket aperto.", "No open tickets.") + "</div>") +
+      "</div></div><div class=\"irisx-profile-section\"><div class=\"irisx-profile-head\"><div class=\"irisx-profile-title\">" +
+      langText("Utenti recenti", "Recent users") +
+      "</div></div><div class=\"irisx-order-list\">" +
+      getRecentAdminUsers().slice(0, 6).map(function (user) {
+        return "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" + escapeHtml(user.name || user.email) + "</strong><span>" + escapeHtml(user.role || "member") + "</span></div><div class=\"irisx-order-items\"><div>" + escapeHtml(user.email) + "</div></div></div>";
+      }).join("") +
+      "</div></div></div>";
+  }
+
+  function createOrderFromCheckout(items, shipping) {
+    const createdAt = Date.now();
+    const normalizedItems = items.map(function (entry) {
+      const product = entry.product;
+      const seller = product.seller || {};
+      ensureSellerEmail(seller);
+      return {
+        productId: product.id,
+        name: product.name,
+        brand: product.brand,
+        qty: entry.qty,
+        price: product.price,
+        sellerId: seller.id || "seller-unknown",
+        sellerName: seller.name || langText("Venditore sconosciuto", "Unknown seller"),
+        sellerEmail: normalizeEmail(seller.email),
+        lineStatus: "paid"
+      };
+    });
+    const subtotal = getCartSubtotal(items);
+    const platformFee = getPlatformFee(subtotal);
+    const order = {
+      id: createId("ord"),
+      number: "IRIS-" + String(createdAt).slice(-8),
+      buyerEmail: normalizeEmail(state.currentUser.email),
+      buyerName: shipping.name,
+      items: normalizedItems,
+      sellerEmails: Array.from(new Set(normalizedItems.map(function (item) { return normalizeEmail(item.sellerEmail); }).filter(Boolean))),
+      shipping: {
+        name: shipping.name,
+        address: shipping.address,
+        city: shipping.city,
+        country: shipping.country,
+        note: shipping.note,
+        carrier: "",
+        trackingNumber: "",
+        method: langText("Spedizione assicurata", "Insured shipping"),
+        labelStatus: "pending",
+        shippedAt: null,
+        deliveredAt: null
+      },
+      status: "paid",
+      payment: {
+        provider: "prototype_manual",
+        status: "captured",
+        capturedAt: createdAt,
+        receiptNumber: "RCPT-" + String(createdAt).slice(-8),
+        platformFee: platformFee,
+        sellerNet: Math.max(0, subtotal - platformFee),
+        refundStatus: "none",
+        payoutStatus: "pending_shipment"
+      },
+      timeline: inferOrderTimeline(createdAt, "paid"),
+      supportTicketIds: [],
+      emailIds: [],
+      notificationIds: [],
+      reviewStatus: "pending",
+      createdAt: createdAt,
+      subtotal: subtotal,
+      shippingCost: SHIPPING_COST,
+      total: subtotal + SHIPPING_COST
+    };
+
+    return order;
+  }
+
+  function notifyNewUser(user) {
+    enqueueEmail("welcome-user", user.email, {
+      name: user.name,
+      email: user.email
+    });
+    enqueueEmail("verify-account", user.email, {
+      email: user.email
+    });
+    createNotification({
+      audience: "admin",
+      kind: "user",
+      title: langText("Nuova registrazione", "New registration"),
+      body: user.email,
+      recipientEmail: PLATFORM_CONFIG.ownerEmail
+    });
+    recordAuditEvent("user_registered", user.email);
+  }
+
+  function notifyNewListing(listing) {
+    createNotification({
+      audience: "admin",
+      kind: "listing",
+      title: langText("Nuovo annuncio", "New listing"),
+      body: listing.brand + " " + listing.name,
+      recipientEmail: PLATFORM_CONFIG.ownerEmail
+    });
+    recordAuditEvent("listing_created", listing.brand + " " + listing.name, {
+      ownerEmail: listing.ownerEmail
+    });
+  }
+
+  function notifyNewOrder(order) {
+    const itemsSummary = order.items.map(function (item) { return item.brand + " " + item.name; }).join(", ");
+    const buyerPayload = {
+      orderNumber: order.number,
+      total: formatCurrency(order.total),
+      itemsSummary: itemsSummary,
+      receiptNumber: order.payment.receiptNumber
+    };
+
+    order.emailIds.push(enqueueEmail("order-buyer", order.buyerEmail, buyerPayload).id);
+    order.emailIds.push(enqueueEmail("payment-confirmed", order.buyerEmail, buyerPayload).id);
+    order.emailIds.push(enqueueEmail("order-receipt", order.buyerEmail, buyerPayload).id);
+    order.emailIds.push(enqueueEmail("order-admin", PLATFORM_CONFIG.ownerEmail, {
+      orderNumber: order.number,
+      buyerEmail: order.buyerEmail
+    }).id);
+
+    order.items.forEach(function (item) {
+      order.emailIds.push(enqueueEmail("item-sold-seller", item.sellerEmail, {
+        orderNumber: order.number,
+        itemsSummary: item.brand + " " + item.name
+      }).id);
+      order.notificationIds.push(createNotification({
+        audience: "user",
+        kind: "sale",
+        title: langText("Articolo venduto", "Item sold"),
+        body: item.brand + " " + item.name,
+        recipientEmail: item.sellerEmail
+      }).id);
+    });
+
+    order.notificationIds.push(createNotification({
+      audience: "user",
+      kind: "order",
+      title: langText("Nuovo ordine", "New order"),
+      body: order.number + " - " + formatCurrency(order.total),
+      recipientEmail: order.buyerEmail
+    }).id);
+    order.notificationIds.push(createNotification({
+      audience: "admin",
+      kind: "order",
+      title: langText("Nuovo ordine marketplace", "New marketplace order"),
+      body: order.number + " - " + order.buyerEmail,
+      recipientEmail: PLATFORM_CONFIG.ownerEmail
+    }).id);
+    recordAuditEvent("order_created", order.number, {
+      buyerEmail: order.buyerEmail
+    });
+  }
+
+  function updateOrderRecord(orderId, updater) {
+    let updatedOrder = null;
+    state.orders = state.orders.map(function (order) {
+      if (order.id !== orderId) {
+        return order;
+      }
+
+      updatedOrder = updater(order);
+      return updatedOrder;
+    });
+
+    persistOrders();
+    renderProfilePanel();
+    renderOpsView();
+    return updatedOrder;
+  }
+
+  function openShipmentModal(orderId) {
+    openOpsModal("ship", { orderId: orderId });
+  }
+
+  function submitShipmentForOrder(orderId) {
+    const carrierField = qs("#opsCarrier");
+    const trackingField = qs("#opsTracking");
+    const carrier = carrierField ? carrierField.value.trim() : "";
+    const trackingNumber = trackingField ? trackingField.value.trim() : "";
+
+    if (!carrier || !trackingNumber) {
+      showToast(langText("Inserisci corriere e tracking.", "Please add carrier and tracking."));
+      return;
+    }
+
+    const updated = updateOrderRecord(orderId, function (order) {
+      order.status = "shipped";
+      order.shipping.carrier = carrier;
+      order.shipping.trackingNumber = trackingNumber;
+      order.shipping.shippedAt = Date.now();
+      order.shipping.labelStatus = "generated";
+      order.payment.payoutStatus = "pending_delivery";
+      appendOrderEvent(order, "order_shipped", langText("Ordine spedito", "Order shipped"), {
+        carrier: carrier,
+        trackingNumber: trackingNumber
+      });
+      return order;
+    });
+
+    if (!updated) {
+      return;
+    }
+
+    enqueueEmail("item-shipped", updated.buyerEmail, {
+      orderNumber: updated.number,
+      carrier: carrier,
+      trackingNumber: trackingNumber
+    });
+    createNotification({
+      audience: "user",
+      kind: "shipping",
+      title: langText("Ordine spedito", "Order shipped"),
+      body: carrier + " - " + trackingNumber,
+      recipientEmail: updated.buyerEmail
+    });
+    recordAuditEvent("order_shipped", updated.number, {
+      carrier: carrier,
+      trackingNumber: trackingNumber
+    });
+
+    closeOpsModal();
+    showToast(langText("Spedizione aggiornata.", "Shipment updated."));
+  }
+
+  function confirmOrderDelivered(orderId) {
+    const updated = updateOrderRecord(orderId, function (order) {
+      order.status = "delivered";
+      order.shipping.deliveredAt = Date.now();
+      order.payment.payoutStatus = "ready";
+      appendOrderEvent(order, "order_delivered", langText("Ordine consegnato", "Order delivered"));
+      return order;
+    });
+
+    if (!updated) {
+      return;
+    }
+
+    createNotification({
+      audience: "user",
+      kind: "delivery",
+      title: langText("Ordine consegnato", "Order delivered"),
+      body: updated.number,
+      recipientEmail: updated.buyerEmail
+    });
+    updated.items.forEach(function (item) {
+      createNotification({
+        audience: "user",
+        kind: "delivery",
+        title: langText("Consegna confermata", "Delivery confirmed"),
+        body: updated.number,
+        recipientEmail: item.sellerEmail
+      });
+    });
+    recordAuditEvent("order_delivered", updated.number);
+    renderProfilePanel();
+    renderOpsView();
+  }
+
+  function openSupportModal(orderId) {
+    openOpsModal("support", { orderId: orderId });
+  }
+
+  function submitSupportTicket(orderId) {
+    const reasonField = qs("#opsTicketReason");
+    const messageField = qs("#opsTicketMessage");
+    const reason = reasonField ? reasonField.value.trim() : "other";
+    const message = messageField ? messageField.value.trim() : "";
+
+    if (!message) {
+      showToast(langText("Inserisci i dettagli della richiesta.", "Please enter request details."));
+      return;
+    }
+
+    const order = state.orders.find(function (candidate) { return candidate.id === orderId; });
+    if (!order) {
+      return;
+    }
+
+    const ticket = {
+      id: createId("tkt"),
+      orderId: order.id,
+      orderNumber: order.number,
+      buyerEmail: order.buyerEmail,
+      sellerEmail: order.items[0] ? order.items[0].sellerEmail : "",
+      status: "open",
+      reason: reason,
+      message: message,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+
+    state.supportTickets.unshift(ticket);
+    persistSupportTickets();
+
+    updateOrderRecord(orderId, function (currentOrder) {
+      currentOrder.supportTicketIds.push(ticket.id);
+      appendOrderEvent(currentOrder, "support_ticket_opened", langText("Ticket supporto aperto", "Support ticket opened"), {
+        ticketId: ticket.id
+      });
+      return currentOrder;
+    });
+
+    enqueueEmail("support-request", PLATFORM_CONFIG.supportEmail, {
+      preview: order.number + " - " + message
+    });
+    enqueueEmail("issue-reported", order.buyerEmail, {
+      preview: message
+    });
+    createNotification({
+      audience: "admin",
+      kind: "support",
+      title: langText("Nuovo ticket supporto", "New support ticket"),
+      body: order.number + " - " + reason,
+      recipientEmail: PLATFORM_CONFIG.ownerEmail
+    });
+    createNotification({
+      audience: "user",
+      kind: "support",
+      title: langText("Ticket aperto", "Ticket opened"),
+      body: order.number,
+      recipientEmail: order.buyerEmail
+    });
+    recordAuditEvent("support_ticket_opened", order.number, {
+      ticketId: ticket.id
+    });
+
+    closeOpsModal();
+    renderProfilePanel();
+    renderOpsView();
+    showToast(langText("Ticket creato.", "Ticket created."));
+  }
+
+  function resolveSupportTicket(ticketId) {
+    state.supportTickets = state.supportTickets.map(function (ticket) {
+      if (ticket.id !== ticketId) {
+        return ticket;
+      }
+
+      return Object.assign({}, ticket, {
+        status: "resolved",
+        updatedAt: Date.now()
+      });
+    });
+    persistSupportTickets();
+    renderOpsView();
+  }
+
+  function openReviewModal(orderId) {
+    openOpsModal("review", { orderId: orderId });
+  }
+
+  function submitOrderReview(orderId) {
+    const ratingField = qs("#opsReviewRating");
+    const messageField = qs("#opsReviewMessage");
+    const rating = ratingField ? Number(ratingField.value) : 5;
+    const message = messageField ? messageField.value.trim() : "";
+    const order = state.orders.find(function (candidate) { return candidate.id === orderId; });
+
+    if (!order || !order.items[0]) {
+      return;
+    }
+
+    const review = {
+      id: createId("rev"),
+      sellerId: order.items[0].sellerId,
+      buyer: state.currentUser ? state.currentUser.name : langText("Cliente IRIS", "IRIS customer"),
+      rating: rating,
+      text: message || langText("Esperienza positiva.", "Positive experience."),
+      date: new Date().toLocaleDateString(curLang === "it" ? "it-IT" : "en-US", {
+        month: "short",
+        year: "numeric"
+      }),
+      product: order.items.map(function (item) { return item.name; }).join(", ")
+    };
+
+    state.reviews.unshift(review);
+    persistReviews();
+    hydrateStoredReviews();
+
+    updateOrderRecord(orderId, function (currentOrder) {
+      currentOrder.reviewStatus = "submitted";
+      appendOrderEvent(currentOrder, "buyer_review_submitted", langText("Recensione buyer inviata", "Buyer review submitted"));
+      return currentOrder;
+    });
+
+    closeOpsModal();
+    renderProfilePanel();
+    showToast(langText("Recensione salvata.", "Review saved."));
+  }
+
+  function markOrderPayoutPaid(orderId) {
+    const updated = updateOrderRecord(orderId, function (order) {
+      order.payment.payoutStatus = "paid";
+      appendOrderEvent(order, "seller_payout_paid", langText("Payout seller completato", "Seller payout completed"));
+      return order;
+    });
+
+    if (!updated) {
+      return;
+    }
+
+    recordAuditEvent("seller_payout_paid", updated.number);
+    renderOpsView();
+  }
+
+  function overrideOperationalFlows() {
+    renderNotifications = function () {
+      const panel = qs("#notifPanel");
+      const badge = qs("#notifBadge");
+      if (!panel || !badge) {
+        return;
+      }
+
+      const visibleNotifications = getVisibleNotifications();
+      const unread = visibleNotifications.filter(function (notification) { return notification.unread; }).length;
+      badge.textContent = unread;
+      badge.style.display = unread ? "flex" : "none";
+      panel.innerHTML = "<div class=\"notif-head\"><span class=\"notif-title\">" +
+        langText("Notifiche", "Notifications") +
+        "</span><button class=\"notif-clear\" onclick=\"markAllRead()\">" +
+        langText("Segna tutto letto", "Mark all read") +
+        "</button></div>" +
+        (visibleNotifications.length
+          ? visibleNotifications.map(function (notification) {
+              return "<div class=\"notif-item" + (notification.unread ? " unread" : "") + "\" onclick=\"readNotif('" + notification.id + "')\"><div class=\"notif-icon\">•</div><div class=\"notif-content\"><div class=\"notif-text\">" + escapeHtml(notification.title) + "</div><div class=\"notif-time\">" + escapeHtml(notification.body) + " - " + formatRelativeTime(notification.createdAt) + "</div></div>" + (notification.unread ? "<div class=\"notif-dot\"></div>" : "") + "</div>";
+            }).join("")
+          : "<div class=\"notif-empty\">" + langText("Nessuna notifica", "No notifications") + "</div>");
+    };
+
+    readNotif = function (id) {
+      state.notifications = state.notifications.map(function (notification) {
+        if (notification.id !== id) {
+          return notification;
+        }
+
+        return Object.assign({}, notification, {
+          unread: false
+        });
+      });
+      persistNotifications();
+      renderNotifications();
+    };
+
+    markAllRead = function () {
+      state.notifications = state.notifications.map(function (notification) {
+        const isVisibleToCurrentUser = getVisibleNotifications().some(function (visible) { return visible.id === notification.id; });
+        return isVisibleToCurrentUser ? Object.assign({}, notification, { unread: false }) : notification;
+      });
+      persistNotifications();
+      renderNotifications();
+    };
+
+    sendChat = function () {
+      if (!curChat) {
+        return;
+      }
+      const input = qs("#chatInput");
+      if (!input || !input.value.trim()) {
+        return;
+      }
+
+      const conversation = chats.find(function (thread) { return thread.id === curChat; });
+      if (!conversation) {
+        return;
+      }
+
+      const message = input.value.trim();
+      conversation.msgs.push({
+        from: "me",
+        text: message,
+        time: langText("Ora", "Now")
+      });
+      persistChats();
+      input.value = "";
+      openChatById(curChat);
+
+      ensureSellerEmail(conversation.with);
+      createNotification({
+        audience: "user",
+        kind: "message",
+        title: langText("Nuovo messaggio", "New message"),
+        body: message,
+        recipientEmail: conversation.with.email
+      });
+      enqueueEmail("new-message", conversation.with.email, {
+        preview: message
+      });
+      renderNotifications();
+    };
+
+    sendOffer = function () {
+      const input = qs("#offerInput");
+      const amount = input ? input.value : "";
+      if (!amount) {
+        return;
+      }
+
+      const product = prods.find(function (candidate) { return candidate.id === offerProdId; });
+      if (!product || !isProductPurchasable(product)) {
+        showToast(langText("Questo articolo non e' piu' disponibile.", "This item is no longer available."));
+        return;
+      }
+
+      openChat(product.seller.id, product.id);
+      const conversation = chats.find(function (thread) { return thread.with.id === product.seller.id; });
+      if (conversation) {
+        conversation.msgs.push({
+          from: "me",
+          text: langText("Offerta inviata: €", "Offer sent: EUR ") + Number(amount).toLocaleString() + " - " + product.name,
+          time: langText("Ora", "Now")
+        });
+        persistChats();
+      }
+
+      ensureSellerEmail(product.seller);
+      createNotification({
+        audience: "user",
+        kind: "offer",
+        title: langText("Nuova offerta", "New offer"),
+        body: product.name + " - " + formatCurrency(amount),
+        recipientEmail: product.seller.email
+      });
+      enqueueEmail("new-offer", product.seller.email, {
+        preview: product.name + " - " + formatCurrency(amount)
+      });
+      closeOffer();
+      if (conversation) {
+        openChatById(conversation.id);
+      }
+      renderNotifications();
+    };
+
+    window.closeOpsModal = closeOpsModal;
+    window.submitOpsModal = submitOpsModal;
+    window.openShipmentModal = openShipmentModal;
+    window.openSupportModal = openSupportModal;
+    window.confirmOrderDelivered = confirmOrderDelivered;
+    window.resolveSupportTicket = resolveSupportTicket;
+    window.markOrderPayoutPaid = markOrderPayoutPaid;
+    window.openReviewModal = openReviewModal;
+    window.readNotif = readNotif;
+    window.markAllRead = markAllRead;
+  }
+
   function overrideMarketplaceFunctions() {
     const originalApplyLang = applyLang;
     applyLang = function () {
@@ -653,10 +2027,16 @@
       if (backButton) {
         backButton.textContent = t("home");
       }
+      const opsButton = qs("#opsBtn");
+      if (opsButton) {
+        opsButton.textContent = "Ops";
+      }
       syncSessionUi();
       renderHomeView();
       renderCartDrawer();
       renderCheckoutModal();
+      renderOpsModal();
+      renderOpsView();
       renderProfilePanel();
       updateSellStatus(t("sell_status_idle"));
     };
@@ -747,7 +2127,7 @@
 
     showBuyView = function (view) {
       const targetView = view || "home";
-      const ids = ["home-view", "shop-view", "detail-view", "fav-view", "chat-view", "profile-view", "seller-view"];
+      const ids = ["home-view", "shop-view", "detail-view", "fav-view", "chat-view", "profile-view", "seller-view", "ops-view"];
 
       ids.forEach(function (id) {
         const element = qs("#" + id);
@@ -827,11 +2207,18 @@
       if (targetView === "seller") {
         qs("#seller-view").classList.add("active", "view-enter");
         setActiveNav("");
+        return;
+      }
+
+      if (targetView === "ops") {
+        qs("#ops-view").classList.add("active", "view-enter");
+        renderOpsView();
+        setActiveNav("ops");
       }
     };
 
     render = function () {
-      const items = getFiltered();
+      const items = getFiltered().filter(isProductPurchasable);
       const grid = qs("#grid");
       const activeFilters = qs("#activeFilters");
 
@@ -1017,25 +2404,9 @@
         product.id +
         ")\">" +
         t("chat") +
-        "</button></div></div><div class=\"irisx-detail-actions\"><button class=\"det-buy\" onclick=\"buyNow(" +
-        product.id +
-        ")\">" +
-        t("buy_now") +
-        " · " +
-        formatCurrency(product.price) +
-        "</button><button class=\"irisx-secondary\" onclick=\"addToCart(" +
-        product.id +
-        ")\">" +
-        t("add_to_cart") +
-        "</button><button class=\"det-offer\" onclick=\"openOffer(" +
-        product.id +
-        ")\">" +
-        t("make_offer") +
-        "</button><button class=\"det-fav\" onclick=\"toggleFav(" +
-        product.id +
-        ",null)\">" +
-        (liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")) +
-        "</button></div><div class=\"det-auth\"><div class=\"det-auth-t\">" +
+        "</button></div></div>" +
+        getDetailActionsMarkup(product, liked) +
+        "<div class=\"det-auth\"><div class=\"det-auth-t\">" +
         t("guarantee") +
         "</div><ul><li>" +
         t("auth_1") +
@@ -1080,16 +2451,61 @@
 
   function productVisualMarkup(product, compact) {
     const hasImages = Array.isArray(product.images) && product.images.length > 0;
+    const soldTag = !isProductPurchasable(product) ? "<span class=\"pi-tag sold\">" + escapeHtml(getProductStatusLabel(product)) + "</span>" : "";
     const media = hasImages
       ? "<div class=\"pi\"><div class=\"pi-bg irisx-media\"><img class=\"irisx-card-image\" src=\"" +
         product.images[0] +
         "\" alt=\"" +
         escapeHtml(product.name) +
         "\"></div>" +
-        (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(product.cond) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(product.fit) + "</span>" : "") + "</div>") +
+        (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(product.cond) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(product.fit) + "</span>" : "") + soldTag + "</div>") +
         "</div>"
-      : "<div class=\"pi\"><div class=\"pi-bg\"><div class=\"pi-emoji\">" + escapeHtml(product.emoji || "👜") + "</div></div>" + (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(product.cond) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(product.fit) + "</span>" : "") + "</div>") + "</div>";
+      : "<div class=\"pi\"><div class=\"pi-bg\"><div class=\"pi-emoji\">" + escapeHtml(product.emoji || "👜") + "</div></div>" + (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(product.cond) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(product.fit) + "</span>" : "") + soldTag + "</div>") + "</div>";
     return media;
+  }
+
+  function getDetailActionsMarkup(product, liked) {
+    if (!isProductPurchasable(product)) {
+      return (
+        "<div class=\"irisx-note\">" +
+        langText("Questo articolo risulta gia' venduto o non disponibile per nuovi acquisti.", "This item is already sold or unavailable.") +
+        "</div><div class=\"irisx-detail-actions\"><button class=\"det-fav\" onclick=\"toggleFav(" +
+        product.id +
+        ",null)\">" +
+        (liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")) +
+        "</button></div>"
+      );
+    }
+
+    return (
+      "<div class=\"irisx-detail-actions\"><button class=\"det-buy\" onclick=\"buyNow(" +
+      product.id +
+      ")\">" +
+      t("buy_now") +
+      " · " +
+      formatCurrency(product.price) +
+      "</button><button class=\"irisx-secondary\" onclick=\"addToCart(" +
+      product.id +
+      ")\">" +
+      t("add_to_cart") +
+      "</button><button class=\"det-offer\" onclick=\"openOffer(" +
+      product.id +
+      ")\">" +
+      t("make_offer") +
+      "</button><button class=\"det-fav\" onclick=\"toggleFav(" +
+      product.id +
+      ",null)\">" +
+      (liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")) +
+      "</button></div>"
+    );
+  }
+
+  function getProductCardMarkupDiscount(discount) {
+    return "-" + discount + "%";
+  }
+
+  function getProductCardMarkupFooter(product, discount) {
+    return isProductPurchasable(product) ? getProductCardMarkupDiscount(discount) : getProductStatusLabel(product);
   }
 
   function productCardMarkup(product) {
@@ -1120,9 +2536,9 @@
       formatCurrency(product.price) +
       "</span><span class=\"p-orig\">" +
       formatCurrency(product.orig) +
-      "</span></div><span class=\"p-disc\">-" +
-      discount +
-      "%</span></div></div></div>"
+      "</span></div><span class=\"p-disc\">" +
+      escapeHtml(getProductCardMarkupFooter(product, discount)) +
+      "</span></div></div></div>"
     );
   }
 
@@ -1258,16 +2674,24 @@
           id: u.uid,
           name: u.displayName || "Utente Google",
           email: u.email,
+          role: deriveUserRole(u.email),
           city: "",
           country: "Italia",
           bio: "",
           memberSince: new Date().toISOString().slice(0, 10),
           avatar: u.photoURL || ""
         };
+        if (!state.users.some(function (user) { return normalizeEmail(user.email) === normalizeEmail(u.email); })) {
+          state.users.push(Object.assign({}, state.currentUser, { password: "" }));
+          saveJson(STORAGE_KEYS.users, state.users);
+          notifyNewUser(state.currentUser);
+        }
         saveJson(STORAGE_KEYS.session, state.currentUser);
         syncCurrentUserSeller();
         syncSessionUi();
         renderProfilePanel();
+        renderNotifications();
+        renderOpsView();
         closeAuthModal();
         showToast(t("login_success"));
         showPage("buy");
@@ -1286,6 +2710,7 @@
       id: "google_" + Date.now(),
       name: mockName,
       email: mockEmail,
+      role: deriveUserRole(mockEmail),
       city: "Milano",
       country: "Italia",
       bio: "",
@@ -1297,11 +2722,14 @@
     if (!existing) {
       state.users.push(Object.assign({}, state.currentUser, { password: "" }));
       saveJson(STORAGE_KEYS.users, state.users);
+      notifyNewUser(state.currentUser);
     }
     saveJson(STORAGE_KEYS.session, state.currentUser);
     syncCurrentUserSeller();
     syncSessionUi();
     renderProfilePanel();
+    renderNotifications();
+    renderOpsView();
     closeAuthModal();
     showToast(curLang === "it" ? "Accesso con Google effettuato." : "Signed in with Google.");
     showPage("buy");
@@ -1339,6 +2767,7 @@
         id: existingUser.id,
         name: existingUser.name,
         email: existingUser.email,
+        role: existingUser.role || deriveUserRole(existingUser.email),
         city: existingUser.city,
         country: existingUser.country,
         bio: existingUser.bio,
@@ -1349,6 +2778,8 @@
       syncCurrentUserSeller();
       syncSessionUi();
       renderProfilePanel();
+      renderNotifications();
+      renderOpsView();
       const returnView = state.authReturnView;
       closeAuthModal();
       showToast(t("login_success"));
@@ -1374,6 +2805,7 @@
       id: "user-" + Date.now(),
       name: name,
       email: email,
+      role: deriveUserRole(email),
       password: password,
       city: curLang === "it" ? "Italia" : "Italy",
       country: curLang === "it" ? "Italia" : "Italy",
@@ -1388,6 +2820,7 @@
       id: newUser.id,
       name: newUser.name,
       email: newUser.email,
+      role: newUser.role,
       city: newUser.city,
       country: newUser.country,
       bio: newUser.bio,
@@ -1398,6 +2831,9 @@
     syncCurrentUserSeller();
     syncSessionUi();
     renderProfilePanel();
+    notifyNewUser(newUser);
+    renderNotifications();
+    renderOpsView();
     const returnView = state.authReturnView;
     closeAuthModal();
     showToast(t("register_success"));
@@ -1438,6 +2874,8 @@
     saveJson(STORAGE_KEYS.session, null);
     syncSessionUi();
     renderProfilePanel();
+    renderOpsView();
+    renderNotifications();
     showToast(t("logout_success"));
   }
 
@@ -1445,6 +2883,11 @@
     const authButton = qs("#authBtn");
     if (authButton) {
       authButton.textContent = state.currentUser ? t("logout") : t("login");
+    }
+
+    const opsButton = qs("#opsBtn");
+    if (opsButton) {
+      opsButton.style.display = isCurrentUserAdmin() ? "" : "none";
     }
 
     const profileButton = qs(".tn-btn[onclick*=\"profile\"]");
@@ -1465,6 +2908,15 @@
   }
 
   function addToCart(productId) {
+    const product = prods.find(function (candidate) {
+      return candidate.id === productId;
+    });
+
+    if (!isProductPurchasable(product)) {
+      showToast(langText("Questo articolo non e' piu' disponibile.", "This item is no longer available."));
+      return;
+    }
+
     const existing = state.cart.find(function (item) {
       return item.productId === productId;
     });
@@ -1637,6 +3089,12 @@
       return;
     }
 
+    if (state.checkoutItems.some(function (entry) { return !isProductPurchasable(entry.product); })) {
+      showToast(langText("Uno o piu' articoli non sono piu' acquistabili.", "One or more items are no longer available."));
+      state.checkoutItems = state.checkoutItems.filter(function (entry) { return isProductPurchasable(entry.product); });
+      return;
+    }
+
     renderCheckoutModal();
     qs("#irisxCheckoutModal").classList.add("open");
   }
@@ -1742,35 +3200,42 @@
     });
     saveJson(STORAGE_KEYS.session, state.currentUser);
 
-    const subtotal = getCartSubtotal(state.checkoutItems);
-    const order = {
-      id: "ord-" + Date.now(),
-      buyerEmail: state.currentUser.email,
-      items: state.checkoutItems.map(function (entry) {
-        return {
-          productId: entry.product.id,
-          name: entry.product.name,
-          brand: entry.product.brand,
-          qty: entry.qty,
-          price: entry.product.price
-        };
-      }),
-      shipping: {
+    state.users = state.users.map(function (user) {
+      if (normalizeEmail(user.email) !== normalizeEmail(state.currentUser.email)) {
+        return user;
+      }
+
+      return Object.assign({}, user, {
         name: name,
-        address: address,
         city: city,
         country: country,
-        note: note
-      },
-      status: "created",
-      subtotal: subtotal,
-      shippingCost: SHIPPING_COST,
-      total: subtotal + SHIPPING_COST,
-      createdAt: Date.now()
-    };
+        address: address
+      });
+    });
+    saveJson(STORAGE_KEYS.users, state.users);
+
+    const order = createOrderFromCheckout(state.checkoutItems, {
+      name: name,
+      address: address,
+      city: city,
+      country: country,
+      note: note
+    });
+
+    if (order.items.some(function (item) {
+      const product = prods.find(function (candidate) { return candidate.id === item.productId; });
+      return !isProductPurchasable(product);
+    })) {
+      showToast(langText("Uno o piu' articoli non sono piu' disponibili.", "One or more items are no longer available."));
+      closeCheckout();
+      render();
+      return;
+    }
 
     state.orders.unshift(order);
-    saveJson(STORAGE_KEYS.orders, state.orders);
+    notifyNewOrder(order);
+    persistOrders();
+    syncInventoryFromOrders();
 
     if (state.checkoutSource === "cart") {
       state.cart = [];
@@ -1780,6 +3245,8 @@
 
     renderCartDrawer();
     renderProfilePanel();
+    renderOpsView();
+    renderNotifications();
     syncSessionUi();
     closeCheckout();
     showToast(t("checkout_success"));
@@ -1909,14 +3376,21 @@
       seller: seller,
       date: Date.now(),
       images: state.sellPhotos.map(function (photo) { return photo.src; }),
-      isUserListing: true
+      isUserListing: true,
+      inventoryStatus: "active",
+      listingStatus: "published",
+      orderId: null,
+      soldAt: null
     };
 
     state.listings.unshift(listing);
     saveJson(STORAGE_KEYS.listings, state.listings);
     prods.unshift(listing);
+    notifyNewListing(listing);
     render();
     renderProfilePanel();
+    renderOpsView();
+    renderNotifications();
     showToast(t("publish_success"));
     resetSellForm();
     updateSellStatus(t("publish_success"));
@@ -1947,6 +3421,124 @@
     state.sellPhotos = [];
     renderSellPhotoPreview();
     updateFee();
+  }
+
+  function renderOrderTimeline(order) {
+    if (!Array.isArray(order.timeline) || !order.timeline.length) {
+      return "";
+    }
+
+    return "<div class=\"irisx-order-timeline\">" +
+      order.timeline
+        .slice(0, 4)
+        .map(function (event) {
+          return "<div class=\"irisx-order-event\"><strong>" + escapeHtml(event.label) + "</strong><span>" + escapeHtml(formatDateTime(event.at)) + "</span></div>";
+        })
+        .join("") +
+      "</div>";
+  }
+
+  function renderBuyerOrdersMarkup(orders) {
+    if (!orders.length) {
+      return "<div class=\"irisx-empty-state\">" + t("no_orders_yet") + "</div>";
+    }
+
+    return "<div class=\"irisx-order-list\">" +
+      orders
+        .map(function (order) {
+          const actions = [];
+          if (order.status === "shipped") {
+            actions.push("<button class=\"irisx-secondary\" onclick=\"confirmOrderDelivered('" + order.id + "')\">" + langText("Conferma consegna", "Confirm delivery") + "</button>");
+          }
+          actions.push("<button class=\"irisx-secondary\" onclick=\"openSupportModal('" + order.id + "')\">" + langText("Supporto", "Support") + "</button>");
+          if (order.status === "delivered" && order.reviewStatus !== "submitted") {
+            actions.push("<button class=\"irisx-secondary\" onclick=\"openReviewModal('" + order.id + "')\">" + langText("Lascia recensione", "Leave review") + "</button>");
+          }
+
+          return "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" +
+            escapeHtml(order.number) +
+            "</strong><span>" +
+            escapeHtml(getOrderStatusLabel(order)) +
+            "</span></div><div class=\"irisx-order-items\"><div>" +
+            escapeHtml(order.items.map(function (item) { return item.brand + " " + item.name; }).join(", ")) +
+            "</div><div>" +
+            escapeHtml(order.shipping.method) +
+            (order.shipping.trackingNumber ? " - " + escapeHtml(order.shipping.trackingNumber) : "") +
+            "</div><div>" +
+            escapeHtml(formatCurrency(order.total)) +
+            " - " +
+            escapeHtml(formatDateTime(order.createdAt)) +
+            "</div></div>" +
+            renderOrderTimeline(order) +
+            (actions.length ? "<div class=\"irisx-actions\">" + actions.join("") + "</div>" : "") +
+            "</div>";
+        })
+        .join("") +
+      "</div>";
+  }
+
+  function renderSellerOrdersMarkup(orders) {
+    if (!orders.length) {
+      return "<div class=\"irisx-empty-state\">" + langText("Nessun ordine seller ancora.", "No seller orders yet.") + "</div>";
+    }
+
+    return "<div class=\"irisx-order-list\">" +
+      orders
+        .map(function (order) {
+          const sellerItems = order.items.filter(function (item) {
+            return normalizeEmail(item.sellerEmail) === normalizeEmail(state.currentUser.email);
+          });
+          const actions = [];
+          if (order.status === "paid") {
+            actions.push("<button class=\"irisx-secondary\" onclick=\"openShipmentModal('" + order.id + "')\">" + langText("Segna spedito", "Mark shipped") + "</button>");
+          }
+          if (order.status === "shipped") {
+            actions.push("<button class=\"irisx-secondary\" disabled>" + langText("In transito", "In transit") + "</button>");
+          }
+
+          return "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" +
+            escapeHtml(order.number) +
+            "</strong><span>" +
+            escapeHtml(getOrderStatusLabel(order)) +
+            "</span></div><div class=\"irisx-order-items\"><div>" +
+            escapeHtml(langText("Buyer", "Buyer")) +
+            ": " +
+            escapeHtml(order.buyerEmail) +
+            "</div><div>" +
+            escapeHtml(sellerItems.map(function (item) { return item.brand + " " + item.name; }).join(", ")) +
+            "</div><div>" +
+            escapeHtml(order.shipping.address + ", " + order.shipping.city + ", " + order.shipping.country) +
+            "</div></div>" +
+            renderOrderTimeline(order) +
+            (actions.length ? "<div class=\"irisx-actions\">" + actions.join("") + "</div>" : "") +
+            "</div>";
+        })
+        .join("") +
+      "</div>";
+  }
+
+  function renderSupportTicketsMarkup(tickets) {
+    if (!tickets.length) {
+      return "<div class=\"irisx-empty-state\">" + langText("Nessun ticket aperto.", "No open tickets.") + "</div>";
+    }
+
+    return "<div class=\"irisx-order-list\">" +
+      tickets
+        .map(function (ticket) {
+          return "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" +
+            escapeHtml(ticket.orderNumber || ticket.orderId) +
+            "</strong><span>" +
+            escapeHtml(ticket.status) +
+            "</span></div><div class=\"irisx-order-items\"><div>" +
+            escapeHtml(ticket.reason) +
+            "</div><div>" +
+            escapeHtml(ticket.message) +
+            "</div><div>" +
+            escapeHtml(formatDateTime(ticket.createdAt)) +
+            "</div></div></div>";
+        })
+        .join("") +
+      "</div>";
   }
 
   function renderProfilePanel() {
@@ -1992,36 +3584,17 @@
     }
 
     const listings = getMyListings();
-    const orders = getMyOrders();
+    const orders = getBuyerOrders();
+    const sellerOrders = getSellerOrdersForCurrentUser();
+    const tickets = getTicketsForCurrentUser();
     const bio = state.currentUser.bio || "";
 
     const listingsHtml = listings.length
       ? "<div class=\"pgrid\">" + listings.map(function (listing) { return productCardMarkup(listing); }).join("") + "</div>"
       : "<div class=\"irisx-empty-state\">" + t("not_selling") + "</div>";
-
-    const ordersHtml = orders.length
-      ? "<div class=\"irisx-order-list\">" +
-        orders
-          .map(function (order) {
-            return (
-              "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" +
-              escapeHtml(order.id) +
-              "</strong><span>" +
-              new Date(order.createdAt).toLocaleDateString(curLang === "it" ? "it-IT" : "en-US") +
-              " · " +
-              formatCurrency(order.total) +
-              "</span></div><div class=\"irisx-order-items\">" +
-              order.items
-                .map(function (item) {
-                  return "<div>" + escapeHtml(item.brand) + " · " + escapeHtml(item.name) + " · " + t("qty") + ": " + item.qty + "</div>";
-                })
-                .join("") +
-              "</div></div>"
-            );
-          })
-          .join("") +
-        "</div>"
-      : "<div class=\"irisx-empty-state\">" + t("no_orders_yet") + "</div>";
+    const ordersHtml = renderBuyerOrdersMarkup(orders);
+    const sellerOrdersHtml = renderSellerOrdersMarkup(sellerOrders);
+    const ticketsHtml = renderSupportTicketsMarkup(tickets);
 
     const favoritesHtml = favoritesItems.length
       ? "<div class=\"irisx-favorites-grid\">" + favoritesItems.map(function (item) { return productCardMarkup(item); }).join("") + "</div>"
@@ -2053,7 +3626,9 @@
       t("sell") +
       "</button><button class=\"irisx-danger\" onclick=\"logout()\">" +
       t("logout") +
-      "</button></div></div><div class=\"irisx-account-grid\"><section class=\"irisx-account-card\"><h3>" +
+      "</button>" +
+      (isCurrentUserAdmin() ? "<button class=\"irisx-secondary\" onclick=\"showBuyView('ops')\">Ops</button>" : "") +
+      "</div></div><div class=\"irisx-account-grid\"><section class=\"irisx-account-card\"><h3>" +
       t("profile_details") +
       "</h3><p>" +
       (curLang === "it" ? "Qui puoi aggiornare le informazioni del tuo account." : "Update your account details here.") +
@@ -2104,9 +3679,17 @@
       "</div></div>" +
       listingsHtml +
       "</div><div class=\"irisx-profile-section\"><div class=\"irisx-profile-head\"><div class=\"irisx-profile-title\">" +
-      t("my_orders") +
+      langText("Ordini buyer", "Buyer orders") +
       "</div></div>" +
       ordersHtml +
+      "</div><div class=\"irisx-profile-section\"><div class=\"irisx-profile-head\"><div class=\"irisx-profile-title\">" +
+      langText("Seller workflow", "Seller workflow") +
+      "</div></div>" +
+      sellerOrdersHtml +
+      "</div><div class=\"irisx-profile-section\"><div class=\"irisx-profile-head\"><div class=\"irisx-profile-title\">" +
+      langText("Supporto / dispute", "Support / disputes") +
+      "</div></div>" +
+      ticketsHtml +
       "</div><div class=\"irisx-profile-section\"><div class=\"irisx-profile-head\"><div class=\"irisx-profile-title\">" +
       t("favorites_section") +
       "</div></div>" +
@@ -2172,6 +3755,7 @@
     syncSessionUi();
     render();
     renderProfilePanel();
+    renderOpsView();
     showToast(t("profile_saved"));
   }
 

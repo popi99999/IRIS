@@ -567,6 +567,43 @@ body.light-mode .irisx-divider::after {
   gap: 0.35rem;
 }
 
+.irisx-order-timeline {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(167, 139, 250, 0.08);
+}
+
+.irisx-order-event {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.72rem;
+}
+
+.irisx-order-event strong {
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 500;
+}
+
+.irisx-order-event span {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.irisx-ops-shell {
+  padding-top: 70px;
+  padding-bottom: 4rem;
+}
+
+.irisx-ops-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
 .irisx-favorites-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -730,7 +767,8 @@ body.light-mode .irisx-divider::after {
 #fav-view,
 #chat-view,
 #profile-view,
-#seller-view {
+#seller-view,
+#ops-view {
   display: none;
 }
 
@@ -738,7 +776,8 @@ body.light-mode .irisx-divider::after {
 #shop-view.active,
 #fav-view.active,
 #profile-view.active,
-#seller-view.active {
+#seller-view.active,
+#ops-view.active {
   display: block;
 }
 
@@ -766,6 +805,12 @@ body.light-mode .irisx-divider::after {
   bottom: 0.2rem;
   height: 1px;
   background: rgba(167, 139, 250, 0.55);
+}
+
+.pi-tag.sold {
+  background: rgba(255, 95, 133, 0.18);
+  color: rgba(255, 227, 234, 0.88);
+  border: 1px solid rgba(255, 95, 133, 0.18);
 }
 
 .irisx-home {
@@ -1150,14 +1195,16 @@ body.light-mode .irisx-account-stat {
 
 body.light-mode .irisx-account-card h3,
 body.light-mode .irisx-order-head strong,
-body.light-mode .irisx-account-stat strong {
+body.light-mode .irisx-account-stat strong,
+body.light-mode .irisx-order-event strong {
   color: #1a0a35;
 }
 
 body.light-mode .irisx-account-card p,
 body.light-mode .irisx-order-head span,
 body.light-mode .irisx-order-items,
-body.light-mode .irisx-account-stat span {
+body.light-mode .irisx-account-stat span,
+body.light-mode .irisx-order-event span {
   color: rgba(26, 10, 53, 0.5);
 }
 
@@ -1210,6 +1257,7 @@ body.light-mode .irisx-home-strip span {
   }
 
   .irisx-account-grid,
+  .irisx-ops-grid,
   .irisx-home-hero,
   .irisx-home-columns,
   .irisx-home-grid,
@@ -1284,7 +1332,8 @@ body.light-mode .irisx-home-strip span {
   #fav-view,
   #chat-view,
   #profile-view,
-  #seller-view {
+  #seller-view,
+  #ops-view {
     padding-top: 128px !important;
   }
 

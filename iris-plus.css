@@ -813,6 +813,39 @@ body.light-mode .irisx-divider::after {
   border: 1px solid rgba(255, 95, 133, 0.18);
 }
 
+.irisx-lang-select {
+  appearance: none;
+  min-width: 108px;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 14px) calc(50% - 2px), calc(100% - 9px) calc(50% - 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 1.8rem !important;
+}
+
+.irisx-rtl {
+  direction: rtl;
+}
+
+.irisx-rtl .tn-row,
+.irisx-rtl .shop-layout,
+.irisx-rtl .shop-bar,
+.irisx-rtl .det-layout,
+.irisx-rtl .prof-header,
+.irisx-rtl .irisx-ops-grid {
+  direction: rtl;
+}
+
+.irisx-rtl .tn-links {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.irisx-rtl .tn-search {
+  margin-left: 0;
+  margin-right: auto;
+}
+
 .irisx-home {
   min-height: 100vh;
   padding-top: 70px;
@@ -1319,9 +1352,13 @@ body.light-mode .irisx-home-strip span {
   .tn-chat,
   .notif-wrap,
   #authBtn,
-  .mode-toggle,
-  .lang-toggle {
+  .mode-toggle {
     display: none !important;
+  }
+
+  .tn-links .irisx-lang-select {
+    display: block !important;
+    grid-column: span 2;
   }
 
   .irisx-home {

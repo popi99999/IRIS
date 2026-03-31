@@ -22,6 +22,14 @@
     platformFeeRate: 0.12
   };
 
+  const LOCALE_SETTINGS = window.IRIS_LOCALE_SETTINGS || {
+    it: { label: "IT", nativeLabel: "Italiano", locale: "it-IT", currency: "EUR", rate: 1, dir: "ltr" },
+    en: { label: "EN", nativeLabel: "English", locale: "en-US", currency: "USD", rate: 1.09, dir: "ltr" }
+  };
+  const HOME_COPY = window.IRIS_HOME_COPY || {};
+  const FACET_TRANSLATIONS = window.IRIS_FACET_TRANSLATIONS || {};
+  const I18N_PACKS = window.IRIS_I18N_PACKS || {};
+
   const SHIPPING_COST = 25;
   const state = {
     users: loadJson(STORAGE_KEYS.users, []),
@@ -56,6 +64,8 @@
   injectHomeView();
   assignSellFormIds();
   injectSellHelpers();
+  ensureLanguageSelector();
+  rebindMarketplaceSearch();
   normalizeMarketState();
   hydrateLocalListings();
   ensureOpsShell();
@@ -99,6 +109,14 @@
     localStorage.setItem(key, JSON.stringify(value));
   }
 
+  function getLocaleConfig() {
+    return LOCALE_SETTINGS[curLang] || LOCALE_SETTINGS.en || LOCALE_SETTINGS.it;
+  }
+
+  function isRtlLocale() {
+    return getLocaleConfig().dir === "rtl";
+  }
+
   function escapeHtml(value) {
     return String(value || "")
       .replace(/&/g, "&amp;")
@@ -108,16 +126,286 @@
       .replace(/'/g, "&#39;");
   }
 
+  function convertBaseEurAmount(value) {
+    const rate = Number(getLocaleConfig().rate || 1);
+    return Number(value || 0) * rate;
+  }
+
+  function parseLocalizedNumberInput(value) {
+    if (value === null || value === undefined || value === "") {
+      return null;
+    }
+    const parsed = Number(String(value).replace(",", ".").trim());
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  function normalizeSearchText(value) {
+    return String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
+  function normalizeCategoryValue(value) {
+    if (value === "Abbigliamento donna" || value === "Abbigliamento uomo") {
+      return "Abbigliamento";
+    }
+    return value;
+  }
+
+  function getFacetLabel(type, value) {
+    const scoped = FACET_TRANSLATIONS[type] || {};
+    const direct = scoped[value];
+    if (direct && direct[curLang]) {
+      return direct[curLang];
+    }
+    if (direct && direct.en && curLang !== "it") {
+      return direct.en;
+    }
+    return value;
+  }
+
   function formatCurrency(value) {
-    return "€" + Number(value || 0).toLocaleString(curLang === "it" ? "it-IT" : "en-US");
+    const locale = getLocaleConfig();
+    return new Intl.NumberFormat(locale.locale, {
+      style: "currency",
+      currency: locale.currency,
+      maximumFractionDigits: locale.currency === "JPY" ? 0 : 2
+    }).format(convertBaseEurAmount(value));
+  }
+
+  function formatLocalCurrencyValue(value) {
+    const locale = getLocaleConfig();
+    return new Intl.NumberFormat(locale.locale, {
+      style: "currency",
+      currency: locale.currency,
+      maximumFractionDigits: locale.currency === "JPY" ? 0 : 2
+    }).format(Number(value || 0));
   }
 
   function getAvailableBrands() {
-    return [...new Set(prods.map((product) => product.brand))].sort();
+    return [...new Set(getVisibleCatalogProducts().map((product) => product.brand))].sort();
   }
 
   function getAvailableCategories() {
-    return [...new Set(prods.map((product) => product.cat))].sort();
+    return [...new Set(getVisibleCatalogProducts().map((product) => normalizeCategoryValue(product.cat)))].sort();
+  }
+
+  function getAvailableConditions() {
+    return [...new Set(getVisibleCatalogProducts().map((product) => product.cond))];
+  }
+
+  function getAvailableFits() {
+    return [...new Set(getVisibleCatalogProducts().map((product) => product.fit).filter((fit) => fit && fit !== "—"))];
+  }
+
+  function getAvailableColors() {
+    return [...new Set(getVisibleCatalogProducts().map((product) => product.color))];
+  }
+
+  function getColorSwatch(value) {
+    if (colorMap[value]) {
+      return colorMap[value];
+    }
+    const normalized = normalizeSearchText(value);
+    let hash = 0;
+    for (let index = 0; index < normalized.length; index += 1) {
+      hash = normalized.charCodeAt(index) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash % 360);
+    return "hsl(" + hue + ",55%,55%)";
+  }
+
+  function setLanguage(nextLang) {
+    const fallback = LOCALE_SETTINGS.en ? "en" : Object.keys(LOCALE_SETTINGS)[0];
+    curLang = LOCALE_SETTINGS[nextLang] ? nextLang : fallback;
+    localStorage.setItem("iris-lang", curLang);
+    document.documentElement.lang = curLang;
+    document.documentElement.dir = isRtlLocale() ? "rtl" : "ltr";
+    document.body.classList.toggle("irisx-rtl", isRtlLocale());
+    if (typeof applyLang === "function") {
+      applyLang();
+    }
+  }
+
+  function ensureLanguageSelector() {
+    const current = document.getElementById("langToggle");
+    if (!current) {
+      return;
+    }
+
+    if (current.tagName === "SELECT") {
+      current.value = LOCALE_SETTINGS[curLang] ? curLang : "en";
+      return;
+    }
+
+    const select = document.createElement("select");
+    select.id = "langToggle";
+    select.className = "lang-toggle irisx-lang-select";
+    select.setAttribute("aria-label", "Language");
+    Object.keys(LOCALE_SETTINGS).forEach(function (code) {
+      const locale = LOCALE_SETTINGS[code];
+      const option = document.createElement("option");
+      option.value = code;
+      option.textContent = locale.label + " · " + locale.currency;
+      select.appendChild(option);
+    });
+    select.value = LOCALE_SETTINGS[curLang] ? curLang : "en";
+    select.addEventListener("change", function () {
+      setLanguage(this.value);
+    });
+    current.replaceWith(select);
+  }
+
+  function getProductSearchIndex(product) {
+    const translatedValues = [
+      getFacetLabel("cats", normalizeCategoryValue(product.cat)),
+      getFacetLabel("conds", product.cond),
+      getFacetLabel("fits", product.fit),
+      getFacetLabel("colors", product.color)
+    ];
+
+    return normalizeSearchText(
+      [
+        product.brand,
+        product.name,
+        product.cat,
+        normalizeCategoryValue(product.cat),
+        product.sz,
+        product.color,
+        product.material,
+        product.desc,
+        product.seller && product.seller.name,
+        product.seller && product.seller.city,
+        translatedValues.join(" "),
+        (product.chips || []).join(" ")
+      ].join(" ")
+    );
+  }
+
+  function applyAutocompleteSelection(type, value) {
+    const dropdown = document.getElementById("acDropdown");
+    if (dropdown) {
+      dropdown.classList.remove("open");
+    }
+
+    if (type === "product") {
+      showDetail(Number(value));
+      return;
+    }
+
+    showBuyView("shop");
+    if (type === "brand") {
+      filters.brands = [value];
+    }
+    if (type === "category") {
+      filters.cats = [value];
+    }
+    if (type === "seller") {
+      filters.search = value;
+      const input = document.getElementById("searchInput");
+      if (input) {
+        input.value = value;
+      }
+    }
+    initFilters();
+    render();
+  }
+
+  function renderAutocompleteSuggestions(query) {
+    const dropdown = document.getElementById("acDropdown");
+    if (!dropdown) {
+      return;
+    }
+
+    const normalized = normalizeSearchText(query);
+    if (normalized.length < 2) {
+      dropdown.classList.remove("open");
+      dropdown.innerHTML = "";
+      return;
+    }
+
+    const products = getVisibleCatalogProducts().filter(function (product) {
+      return getProductSearchIndex(product).includes(normalized);
+    }).slice(0, 4);
+    const brands = getAvailableBrands().filter(function (brand) {
+      return normalizeSearchText(brand).includes(normalized);
+    }).slice(0, 4);
+    const categories = getAvailableCategories().filter(function (category) {
+      return normalizeSearchText(category + " " + getFacetLabel("cats", category)).includes(normalized);
+    }).slice(0, 3);
+    const sellers = [...new Set(getVisibleCatalogProducts().map(function (product) { return product.seller; }))]
+      .filter(Boolean)
+      .filter(function (seller) {
+        return normalizeSearchText(seller.name + " " + seller.city).includes(normalized);
+      })
+      .slice(0, 3);
+
+    let html = "";
+    if (products.length) {
+      html += "<div class=\"ac-group-title\">" + escapeHtml(t("sg_products")) + "</div>";
+      html += products
+        .map(function (product) {
+          return "<div class=\"ac-item\" onclick=\"applyAutocompleteSelection('product','" + product.id + "')\"><span class=\"ac-item-icon\">" + escapeHtml(product.emoji) + "</span>" + escapeHtml(product.brand + " — " + product.name) + "<span style=\"margin-left:auto;font-size:.7rem;opacity:.4\">" + escapeHtml(formatCurrency(product.price)) + "</span></div>";
+        })
+        .join("");
+    }
+    if (brands.length) {
+      html += "<div class=\"ac-group-title\">" + escapeHtml(t("sg_brands")) + "</div>";
+      html += brands
+        .map(function (brand) {
+          return "<div class=\"ac-item\" onclick=\"applyAutocompleteSelection('brand','" + escapeHtml(brand) + "')\"><span class=\"ac-item-icon\">🏷️</span>" + escapeHtml(brand) + "</div>";
+        })
+        .join("");
+    }
+    if (categories.length) {
+      html += "<div class=\"ac-group-title\">" + escapeHtml(t("category")) + "</div>";
+      html += categories
+        .map(function (category) {
+          return "<div class=\"ac-item\" onclick=\"applyAutocompleteSelection('category','" + escapeHtml(category) + "')\"><span class=\"ac-item-icon\">◻</span>" + escapeHtml(getFacetLabel("cats", category)) + "</div>";
+        })
+        .join("");
+    }
+    if (sellers.length) {
+      html += "<div class=\"ac-group-title\">" + escapeHtml(t("sg_sellers")) + "</div>";
+      html += sellers
+        .map(function (seller) {
+          return "<div class=\"ac-item\" onclick=\"applyAutocompleteSelection('seller','" + escapeHtml(seller.name) + "')\"><span class=\"ac-item-icon\">" + escapeHtml(seller.avatar || "👤") + "</span>" + escapeHtml(seller.name) + "<span style=\"margin-left:auto;font-size:.65rem;opacity:.3\">" + escapeHtml(seller.city) + "</span></div>";
+        })
+        .join("");
+    }
+
+    dropdown.innerHTML = html;
+    dropdown.classList.toggle("open", Boolean(html));
+  }
+
+  function rebindMarketplaceSearch() {
+    const original = document.getElementById("searchInput");
+    if (!original) {
+      return;
+    }
+
+    const input = original.cloneNode(true);
+    input.removeAttribute("oninput");
+    input.value = filters.search || "";
+    input.addEventListener("input", function () {
+      handleSearch(this.value);
+      renderAutocompleteSuggestions(this.value);
+    });
+    input.addEventListener("focus", function () {
+      renderAutocompleteSuggestions(this.value);
+    });
+    input.addEventListener("blur", function () {
+      setTimeout(function () {
+        const dropdown = document.getElementById("acDropdown");
+        if (dropdown) {
+          dropdown.classList.remove("open");
+        }
+      }, 180);
+    });
+    original.replaceWith(input);
+    window.applyAutocompleteSelection = applyAutocompleteSelection;
   }
 
   function getMyListings() {
@@ -177,10 +465,10 @@
 
   function formatDateTime(value) {
     if (!value) {
-      return langText("Non disponibile", "Not available");
+      return t("not_available");
     }
 
-    return new Date(value).toLocaleString(curLang === "it" ? "it-IT" : "en-US", {
+    return new Date(value).toLocaleString(getLocaleConfig().locale, {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -191,20 +479,22 @@
 
   function formatRelativeTime(value) {
     const diffMinutes = Math.max(0, Math.round((Date.now() - Number(value || 0)) / 60000));
+    const formatter = new Intl.RelativeTimeFormat(getLocaleConfig().locale, { numeric: "auto" });
+
     if (diffMinutes < 1) {
-      return langText("adesso", "now");
+      return formatter.format(0, "minute");
     }
     if (diffMinutes < 60) {
-      return langText(diffMinutes + " min fa", diffMinutes + " min ago");
+      return formatter.format(-diffMinutes, "minute");
     }
 
     const diffHours = Math.round(diffMinutes / 60);
     if (diffHours < 24) {
-      return langText(diffHours + " h fa", diffHours + " h ago");
+      return formatter.format(-diffHours, "hour");
     }
 
     const diffDays = Math.round(diffHours / 24);
-    return langText(diffDays + " g fa", diffDays + " d ago");
+    return formatter.format(-diffDays, "day");
   }
 
   function deriveUserRole(email) {
@@ -545,7 +835,14 @@
       sell_status_ready: "Le foto sono state caricate e il form e' pronto.",
       sell_status_auth: "Per pubblicare davvero serve autenticarti.",
       shipping: "Spedizione",
-      prototype_mode: "Modalita' prototipo avanzata"
+      prototype_mode: "Modalita' prototipo avanzata",
+      search_short: "Ricerca",
+      size_placeholder: "es. M, 42, 30cm...",
+      price_min: "Min",
+      price_max: "Max",
+      dimensions: "Dimensioni",
+      material: "Materiale",
+      not_available: "N/A"
     });
 
     Object.assign(i18n.en, {
@@ -613,40 +910,28 @@
       sell_status_ready: "Photos uploaded and form ready to publish.",
       sell_status_auth: "You need to sign in before publishing.",
       shipping: "Shipping",
-      prototype_mode: "Advanced prototype mode"
+      prototype_mode: "Advanced prototype mode",
+      search_short: "Search",
+      size_placeholder: "e.g. M, 42, 30cm...",
+      price_min: "Min",
+      price_max: "Max",
+      dimensions: "Dimensions",
+      material: "Material",
+      not_available: "N/A"
     });
+
+    Object.keys(I18N_PACKS).forEach(function (code) {
+      i18n[code] = Object.assign({}, i18n.en, I18N_PACKS[code]);
+    });
+
+    t = function (key) {
+      return (i18n[curLang] && i18n[curLang][key]) || i18n.en[key] || i18n.it[key] || key;
+    };
   }
 
   function getHomeCopy() {
-    if (curLang === "it") {
-      return {
-        kicker: "IRIS — Moda d'Autore",
-        title: "Il lusso autentico.\nFinalmente accessibile.",
-        text: "Ogni articolo certificato dalla nostra équipe di esperti. Hermès, Chanel, Louis Vuitton — autenticati pezzo per pezzo, consegnati a casa tua.",
-        primaryCta: "Scopri la collezione",
-        secondaryCta: "Vendi con IRIS",
-        featuredTitle: "Pezzi da Collezione",
-        featuredNote: "Una selezione esclusiva dei pezzi più ricercati.",
-        buyTitle: "Acquista con fiducia",
-        buyText: "Una selezione rigorosa di pezzi autenticati dalle Maison più ambite. Ogni articolo ispezionato dalla nostra équipe prima della vendita.",
-        buyPoints: ["100% Autenticato", "Spedizione assicurata", "Reso in 14 giorni"],
-        sellTitle: "Vendi con eleganza",
-        sellText: "Carica le foto, imposta il prezzo. Il resto lo facciamo noi — autenticazione, comunicazione, spedizione sicura.",
-        sellPoints: ["Autenticazione inclusa", "Massima visibilità", "Pagamento garantito"],
-        sideCards: [
-          { title: "Autenticazione IRIS", text: "Ogni articolo esaminato da esperti certificati. Nessun compromesso sulla qualità.", tag: "GARANZIA" },
-          { title: "Maison d'Eccellenza", text: "Hermès, Chanel, Balenciaga — solo pezzi selezionati con rigore editoriale.", tag: "SELEZIONE" },
-          { title: "Consegna Premium", text: "Imballaggio di lusso, spedizione assicurata, reso garantito in 14 giorni.", tag: "AFFIDABILE" }
-        ],
-        strip: [
-          { value: "100%", label: "Autenticato" },
-          { value: "−40%", label: "vs retail" },
-          { value: "48h", label: "Spedizione" }
-        ]
-      };
-    }
-
-    return {
+    return HOME_COPY[curLang] || HOME_COPY.en || HOME_COPY.it || {
+      sectionKicker: "IRIS edit",
       kicker: "IRIS — Curated Luxury",
       title: "Authentic luxury.\nFinally accessible.",
       text: "Every piece certified by our team of experts. Hermès, Chanel, Louis Vuitton — authenticated one by one, delivered to your door.",
@@ -655,21 +940,13 @@
       featuredTitle: "Collector's Pieces",
       featuredNote: "A curated selection of the most sought-after pieces.",
       buyTitle: "Shop with confidence",
-      buyText: "A rigorous selection of authenticated pieces from the finest Maisons. Every item inspected by our team before sale.",
+      buyText: "A rigorous selection of authenticated pieces from the finest Maisons.",
       buyPoints: ["100% Authenticated", "Insured shipping", "14-day returns"],
       sellTitle: "Sell with elegance",
-      sellText: "Upload your photos, set your price. We handle the rest — authentication, communication, insured shipping.",
+      sellText: "Upload your photos, set your price. We handle the rest.",
       sellPoints: ["Authentication included", "Maximum visibility", "Guaranteed payment"],
-      sideCards: [
-        { title: "IRIS Authentication", text: "Every item examined by certified experts. No compromises on quality.", tag: "GUARANTEE" },
-        { title: "Houses of Excellence", text: "Hermès, Chanel, Balenciaga — only editorially selected pieces.", tag: "CURATED" },
-        { title: "Premium Delivery", text: "Luxury packaging, insured shipping, 14-day guaranteed returns.", tag: "TRUSTED" }
-      ],
-      strip: [
-        { value: "100%", label: "Authenticated" },
-        { value: "−40%", label: "vs retail" },
-        { value: "48h", label: "Shipping" }
-      ]
+      sideCards: [],
+      strip: []
     };
   }
 
@@ -809,7 +1086,9 @@
           return "<div class=\"irisx-home-card\"><strong>" + escapeHtml(card.title) + "</strong><span>" + escapeHtml(card.text) + "</span><em>" + escapeHtml(card.tag) + "</em></div>";
         })
         .join("") +
-      "</div></aside></section><section class=\"irisx-home-story\"><div class=\"irisx-home-section-head\"><div><div class=\"irisx-home-section-kicker\">IRIS edit</div><div class=\"irisx-home-section-title\">" +
+      "</div></aside></section><section class=\"irisx-home-story\"><div class=\"irisx-home-section-head\"><div><div class=\"irisx-home-section-kicker\">" +
+      escapeHtml(copy.sectionKicker || "IRIS edit") +
+      "</div><div class=\"irisx-home-section-title\">" +
       escapeHtml(copy.featuredTitle) +
       "</div></div><div class=\"irisx-home-section-note\">" +
       escapeHtml(copy.featuredNote) +
@@ -1979,7 +2258,7 @@
       if (conversation) {
         conversation.msgs.push({
           from: "me",
-          text: langText("Offerta inviata: €", "Offer sent: EUR ") + Number(amount).toLocaleString() + " - " + product.name,
+          text: langText("Offerta inviata: ", "Offer sent: ") + formatLocalCurrencyValue(amount) + " - " + product.name,
           time: langText("Ora", "Now")
         });
         persistChats();
@@ -1990,11 +2269,11 @@
         audience: "user",
         kind: "offer",
         title: langText("Nuova offerta", "New offer"),
-        body: product.name + " - " + formatCurrency(amount),
+        body: product.name + " - " + formatLocalCurrencyValue(amount),
         recipientEmail: product.seller.email
       });
       enqueueEmail("new-offer", product.seller.email, {
-        preview: product.name + " - " + formatCurrency(amount)
+        preview: product.name + " - " + formatLocalCurrencyValue(amount)
       });
       closeOffer();
       if (conversation) {
@@ -2019,6 +2298,11 @@
     const originalApplyLang = applyLang;
     applyLang = function () {
       originalApplyLang();
+      const locale = getLocaleConfig();
+      ensureLanguageSelector();
+      document.documentElement.lang = curLang;
+      document.documentElement.dir = isRtlLocale() ? "rtl" : "ltr";
+      document.body.classList.toggle("irisx-rtl", isRtlLocale());
       const homeButton = qs(".tn-home");
       if (homeButton) {
         homeButton.textContent = t("home");
@@ -2031,8 +2315,46 @@
       if (opsButton) {
         opsButton.textContent = "Ops";
       }
+      const langSelect = qs("#langToggle");
+      if (langSelect) {
+        langSelect.value = curLang;
+        langSelect.setAttribute("title", locale.nativeLabel + " · " + locale.currency);
+      }
+      const cartButton = qs("#cartBtn");
+      if (cartButton) {
+        cartButton.setAttribute("aria-label", t("cart_open"));
+      }
+      const searchInput = qs("#searchInput");
+      if (searchInput) {
+        searchInput.placeholder = t("search_placeholder");
+        renderAutocompleteSuggestions(searchInput.value || "");
+      }
+      const filterSearchInputs = qsa(".filters .f-search");
+      if (filterSearchInputs[0]) {
+        filterSearchInputs[0].placeholder = t("search_brand");
+      }
+      if (filterSearchInputs[1]) {
+        filterSearchInputs[1].placeholder = t("size_placeholder");
+      }
+      const minInput = qs("#f-pmin");
+      const maxInput = qs("#f-pmax");
+      if (minInput) {
+        minInput.placeholder = t("price_min");
+      }
+      if (maxInput) {
+        maxInput.placeholder = t("price_max");
+      }
+      const count = qs("#resultCount");
+      const countWrap = count ? count.parentElement : null;
+      if (countWrap) {
+        countWrap.innerHTML = "<span id=\"resultCount\">" + (count.textContent || "0") + "</span> " + escapeHtml(t("results"));
+      }
+      initFilters();
       syncSessionUi();
       renderHomeView();
+      if (typeof renderFooters === "function") {
+        renderFooters();
+      }
       renderCartDrawer();
       renderCheckoutModal();
       renderOpsModal();
@@ -2041,9 +2363,19 @@
       updateSellStatus(t("sell_status_idle"));
     };
 
+    switchLang = function (nextLang) {
+      const localeCodes = Object.keys(LOCALE_SETTINGS);
+      if (nextLang && LOCALE_SETTINGS[nextLang]) {
+        setLanguage(nextLang);
+        return;
+      }
+      const currentIndex = Math.max(0, localeCodes.indexOf(curLang));
+      setLanguage(localeCodes[(currentIndex + 1) % localeCodes.length]);
+    };
+
     renderBrandFilters = function (query) {
       const brands = getAvailableBrands();
-      const filtered = query ? brands.filter((brand) => brand.toLowerCase().includes(query.toLowerCase())) : brands;
+      const filtered = query ? brands.filter((brand) => normalizeSearchText(brand).includes(normalizeSearchText(query))) : brands;
       qs("#f-brands").innerHTML = filtered
         .map(
           (brand) =>
@@ -2059,49 +2391,140 @@
     };
 
     initFilters = function () {
+      const brandSearch = qs(".filters .f-search");
+      const brandQuery = brandSearch ? brandSearch.value : "";
       qs("#f-cats").innerHTML = getAvailableCategories()
         .map(
           (category) =>
-            "<div class=\"f-opt\" onclick=\"toggleOpt(this,'cats','" +
+            "<div class=\"f-opt" + (filters.cats.includes(category) ? " on" : "") + "\" onclick=\"toggleOpt(this,'cats','" +
             escapeHtml(category) +
             "')\"><div class=\"f-check\">✓</div>" +
-            escapeHtml(category) +
+            escapeHtml(getFacetLabel("cats", category)) +
             "</div>"
         )
         .join("");
-      renderBrandFilters("");
-      qs("#f-conds").innerHTML = allConds
+      renderBrandFilters(brandQuery);
+      qs("#f-conds").innerHTML = getAvailableConditions()
         .map(
           (condition) =>
-            "<div class=\"f-opt\" onclick=\"toggleOpt(this,'conds','" +
+            "<div class=\"f-opt" + (filters.conds.includes(condition) ? " on" : "") + "\" onclick=\"toggleOpt(this,'conds','" +
             escapeHtml(condition) +
             "')\"><div class=\"f-check\">✓</div>" +
-            escapeHtml(condition) +
+            escapeHtml(getFacetLabel("conds", condition)) +
             "</div>"
         )
         .join("");
-      qs("#f-fit").innerHTML = allFits
+      qs("#f-fit").innerHTML = getAvailableFits()
         .map(
           (fit) =>
-            "<button class=\"f-fit-btn\" onclick=\"toggleFit(this,'" +
+            "<button class=\"f-fit-btn" + (filters.fits.includes(fit) ? " on" : "") + "\" onclick=\"toggleFit(this,'" +
             escapeHtml(fit) +
             "')\">" +
-            escapeHtml(fit) +
+            escapeHtml(getFacetLabel("fits", fit)) +
             "</button>"
         )
         .join("");
-      qs("#f-colors").innerHTML = allColors
+      qs("#f-colors").innerHTML = getAvailableColors()
         .map(
           (color) =>
-            "<div class=\"f-color\" onclick=\"toggleColor(this,'" +
+            "<div class=\"f-color" + (filters.colors.includes(color) ? " on" : "") + "\" onclick=\"toggleColor(this,'" +
             escapeHtml(color) +
             "')\" style=\"background:" +
-            escapeHtml(colorMap[color]) +
+            escapeHtml(getColorSwatch(color)) +
             "\" title=\"" +
-            escapeHtml(color) +
+            escapeHtml(getFacetLabel("colors", color)) +
             "\"></div>"
         )
         .join("");
+
+      if (qs("#f-size")) {
+        qs("#f-size").value = filters.size || "";
+      }
+      if (qs("#f-pmin")) {
+        qs("#f-pmin").value = filters.pmin || "";
+      }
+      if (qs("#f-pmax")) {
+        qs("#f-pmax").value = filters.pmax || "";
+      }
+    };
+
+    clearFilters = function () {
+      filters = { cats: [], brands: [], conds: [], fits: [], colors: [], size: "", pmin: "", pmax: "", search: "" };
+      const searchInput = qs("#searchInput");
+      if (searchInput) {
+        searchInput.value = "";
+      }
+      const brandSearch = qs(".filters .f-search");
+      if (brandSearch) {
+        brandSearch.value = "";
+      }
+      initFilters();
+      render();
+    };
+
+    applyFilters = function () {
+      const sizeInput = qs("#f-size");
+      const minInput = qs("#f-pmin");
+      const maxInput = qs("#f-pmax");
+      filters.size = sizeInput ? sizeInput.value.trim() : "";
+      filters.pmin = minInput ? minInput.value.trim() : "";
+      filters.pmax = maxInput ? maxInput.value.trim() : "";
+      render();
+    };
+
+    handleSearch = function (value) {
+      filters.search = (value || "").trim();
+      if (filters.search && !qs("#shop-view.active")) {
+        showBuyView("shop");
+      } else {
+        render();
+      }
+    };
+
+    getFiltered = function () {
+      const minPrice = parseLocalizedNumberInput(filters.pmin);
+      const maxPrice = parseLocalizedNumberInput(filters.pmax);
+      const sizeQuery = normalizeSearchText(filters.size);
+      const searchQuery = normalizeSearchText(filters.search);
+
+      const items = getVisibleCatalogProducts().filter(function (product) {
+        const normalizedCategory = normalizeCategoryValue(product.cat);
+        const convertedPrice = convertBaseEurAmount(product.price);
+        const searchable = getProductSearchIndex(product);
+
+        if (filters.cats.length && !filters.cats.includes(normalizedCategory)) return false;
+        if (filters.brands.length && !filters.brands.includes(product.brand)) return false;
+        if (filters.conds.length && !filters.conds.includes(product.cond)) return false;
+        if (filters.fits.length && !filters.fits.includes(product.fit)) return false;
+        if (filters.colors.length && !filters.colors.includes(product.color)) return false;
+        if (sizeQuery && !normalizeSearchText(product.sz + " " + product.dims).includes(sizeQuery)) return false;
+        if (minPrice !== null && convertedPrice < minPrice) return false;
+        if (maxPrice !== null && convertedPrice > maxPrice) return false;
+        if (searchQuery && !searchable.includes(searchQuery)) return false;
+        return true;
+      });
+
+      if (curSort === "price_asc") items.sort(function (a, b) { return a.price - b.price; });
+      else if (curSort === "price_desc") items.sort(function (a, b) { return b.price - a.price; });
+      else if (curSort === "discount") items.sort(function (a, b) { return (1 - b.price / b.orig) - (1 - a.price / a.orig); });
+      else items.sort(function (a, b) { return b.date - a.date; });
+      return items;
+    };
+
+    removeChip = function (type, value) {
+      if (type === "size" || type === "pmin" || type === "pmax" || type === "search") {
+        filters[type] = "";
+        if (type === "search" && qs("#searchInput")) {
+          qs("#searchInput").value = "";
+        }
+      } else {
+        const index = filters[type].indexOf(value);
+        if (index > -1) {
+          filters[type].splice(index, 1);
+        }
+      }
+      initFilters();
+      render();
     };
 
     const originalToggleFav = toggleFav;
@@ -2225,11 +2648,15 @@
       qs("#resultCount").textContent = items.length;
 
       const chips = [];
-      filters.cats.forEach((value) => chips.push({ label: value, type: "cats", value: value }));
+      filters.cats.forEach((value) => chips.push({ label: getFacetLabel("cats", value), type: "cats", value: value }));
       filters.brands.forEach((value) => chips.push({ label: value, type: "brands", value: value }));
-      filters.conds.forEach((value) => chips.push({ label: value, type: "conds", value: value }));
-      filters.fits.forEach((value) => chips.push({ label: value, type: "fits", value: value }));
-      filters.colors.forEach((value) => chips.push({ label: value, type: "colors", value: value }));
+      filters.conds.forEach((value) => chips.push({ label: getFacetLabel("conds", value), type: "conds", value: value }));
+      filters.fits.forEach((value) => chips.push({ label: getFacetLabel("fits", value), type: "fits", value: value }));
+      filters.colors.forEach((value) => chips.push({ label: getFacetLabel("colors", value), type: "colors", value: value }));
+      if (filters.size) chips.push({ label: t("size") + ": " + filters.size, type: "size", value: filters.size });
+      if (filters.pmin) chips.push({ label: t("price_min") + ": " + formatLocalCurrencyValue(filters.pmin), type: "pmin", value: filters.pmin });
+      if (filters.pmax) chips.push({ label: t("price_max") + ": " + formatLocalCurrencyValue(filters.pmax), type: "pmax", value: filters.pmax });
+      if (filters.search) chips.push({ label: t("search_short") + ": " + filters.search, type: "search", value: filters.search });
 
       activeFilters.innerHTML = chips
         .map(
@@ -2302,6 +2729,9 @@
       state.activeDetailImage = 0;
       const discount = Math.round((1 - product.price / product.orig) * 100);
       const liked = favorites.has(product.id);
+      const fitLabel = getFacetLabel("fits", product.fit === "—" ? "—" : product.fit);
+      const colorLabel = getFacetLabel("colors", product.color);
+      const conditionLabel = getFacetLabel("conds", product.cond);
       const similar = prods.filter((item) => item.id !== product.id && (item.brand === product.brand || item.cat === product.cat)).slice(0, 4);
       const detailView = qs("#detail-view");
       const chips = product.chips
@@ -2361,23 +2791,23 @@
         "</div></div><div class=\"det-fit-item\"><div class=\"det-fit-label\">" +
         t("fit_label") +
         "</div><div class=\"det-fit-value\">" +
-        escapeHtml(product.fit === "—" ? "N/A" : product.fit) +
+        escapeHtml(product.fit === "—" ? t("not_available") : fitLabel) +
         "</div></div><div class=\"det-fit-item\"><div class=\"det-fit-label\">" +
         t("color") +
         "</div><div class=\"det-fit-value\">" +
-        escapeHtml(product.color) +
+        escapeHtml(colorLabel) +
         "</div></div><div class=\"det-fit-item\"><div class=\"det-fit-label\">" +
-        (curLang === "it" ? "Dimensioni" : "Dimensions") +
+        t("dimensions") +
         "</div><div class=\"det-fit-value\">" +
         escapeHtml(product.dims) +
         "</div></div><div class=\"det-fit-item\"><div class=\"det-fit-label\">" +
-        (curLang === "it" ? "Materiale" : "Material") +
+        t("material") +
         "</div><div class=\"det-fit-value\">" +
         escapeHtml(product.material) +
         "</div></div><div class=\"det-fit-item\"><div class=\"det-fit-label\">" +
         t("condition") +
         "</div><div class=\"det-fit-value\">" +
-        escapeHtml(product.cond) +
+        escapeHtml(conditionLabel) +
         "</div></div></div></div><div class=\"det-section\"><div class=\"det-section-title\">" +
         t("description") +
         "</div><div class=\"det-desc\">" +
@@ -2447,10 +2877,13 @@
     window.removeSellPhoto = removeSellPhoto;
     window.setDetailImage = setDetailImage;
     window.saveProfileDetails = saveProfileDetails;
+    window.irisFormatCurrency = formatCurrency;
   }
 
   function productVisualMarkup(product, compact) {
     const hasImages = Array.isArray(product.images) && product.images.length > 0;
+    const conditionLabel = getFacetLabel("conds", product.cond);
+    const fitLabel = getFacetLabel("fits", product.fit);
     const soldTag = !isProductPurchasable(product) ? "<span class=\"pi-tag sold\">" + escapeHtml(getProductStatusLabel(product)) + "</span>" : "";
     const media = hasImages
       ? "<div class=\"pi\"><div class=\"pi-bg irisx-media\"><img class=\"irisx-card-image\" src=\"" +
@@ -2458,9 +2891,9 @@
         "\" alt=\"" +
         escapeHtml(product.name) +
         "\"></div>" +
-        (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(product.cond) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(product.fit) + "</span>" : "") + soldTag + "</div>") +
+        (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(conditionLabel) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(fitLabel) + "</span>" : "") + soldTag + "</div>") +
         "</div>"
-      : "<div class=\"pi\"><div class=\"pi-bg\"><div class=\"pi-emoji\">" + escapeHtml(product.emoji || "👜") + "</div></div>" + (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(product.cond) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(product.fit) + "</span>" : "") + soldTag + "</div>") + "</div>";
+      : "<div class=\"pi\"><div class=\"pi-bg\"><div class=\"pi-emoji\">" + escapeHtml(product.emoji || "👜") + "</div></div>" + (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(conditionLabel) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(fitLabel) + "</span>" : "") + soldTag + "</div>") + "</div>";
     return media;
   }
 
@@ -2511,6 +2944,7 @@
   function productCardMarkup(product) {
     const discount = Math.round((1 - product.price / product.orig) * 100);
     const liked = favorites.has(product.id);
+    const colorLabel = getFacetLabel("colors", product.color);
     return (
       "<div class=\"pc\" onclick=\"showDetail(" +
       product.id +
@@ -2529,7 +2963,7 @@
       "</div><div class=\"p-meta\">" +
       escapeHtml(product.sz) +
       " · " +
-      escapeHtml(product.color) +
+      escapeHtml(colorLabel) +
       " · " +
       escapeHtml(product.seller.name) +
       "</div><div class=\"p-footer\"><div><span class=\"p-price\">" +
@@ -2890,8 +3324,9 @@
       opsButton.style.display = isCurrentUserAdmin() ? "" : "none";
     }
 
-    const profileButton = qs(".tn-btn[onclick*=\"profile\"]");
+    const profileButton = qs(".tn-profile") || qs(".tn-btn[data-nav-view=\"profile\"]") || qs(".tn-btn[onclick*=\"profile\"]");
     if (profileButton) {
+      profileButton.setAttribute("aria-label", t("profile_nav"));
       profileButton.textContent = "👤 " + t("profile_nav");
     }
   }

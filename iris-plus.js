@@ -81,6 +81,8 @@
     opsModalPayload: null
   };
 
+  ensureFilterStateShape();
+
   const existingFavorites = loadJson(STORAGE_KEYS.favorites, []);
   if (existingFavorites.length) {
     favorites = new Set(existingFavorites);
@@ -229,6 +231,22 @@
 
   function getAvailableColors() {
     return [...new Set(getVisibleCatalogProducts().map((product) => product.color))];
+  }
+
+  function getAvailableMaterials() {
+    return [...new Set(
+      getVisibleCatalogProducts()
+        .map(function (product) { return String(product.material || "").trim(); })
+        .filter(function (material) {
+          const normalized = normalizeSearchText(material);
+          return normalized && normalized !== "non indicato" && normalized !== "not specified" && normalized !== "n/a";
+        })
+    )].sort();
+  }
+
+  function ensureFilterStateShape() {
+    filters.materials = Array.isArray(filters.materials) ? filters.materials : [];
+    filters.verifiedOnly = Boolean(filters.verifiedOnly);
   }
 
   function getColorSwatch(value) {
@@ -1663,6 +1681,53 @@
     renderCheckoutModal();
   }
 
+  function ensureAssistanceButton() {
+    const navLinks = qs(".tn-links");
+    const shopButton = qs(".tn-shop", navLinks);
+    if (!navLinks || qs("#helpBtn")) {
+      return;
+    }
+    const helpButton = document.createElement("button");
+    helpButton.className = "tn-btn tn-help";
+    helpButton.id = "helpBtn";
+    helpButton.addEventListener("click", function () {
+      openStatic("marketplace-overview");
+    });
+    navLinks.insertBefore(helpButton, shopButton ? shopButton.nextSibling : navLinks.firstChild);
+  }
+
+  function ensureFilterEnhancements() {
+    ensureFilterStateShape();
+    const conditionGroup = qs("#f-conds") ? qs("#f-conds").closest(".f-group") : null;
+    const colorGroup = qs("#f-colors") ? qs("#f-colors").closest(".f-group") : null;
+    if (conditionGroup && !qs("#f-materials")) {
+      conditionGroup.insertAdjacentHTML("afterend", `
+        <div class="f-group irisx-filter-group-extra">
+          <div class="f-label" onclick="toggleFilter(this)">${langText("Materiale", "Material")}</div>
+          <div class="f-body" id="f-materials"></div>
+        </div>
+      `);
+    }
+    if (colorGroup && !qs("#f-verified")) {
+      colorGroup.insertAdjacentHTML("afterend", `
+        <div class="f-group irisx-filter-group-extra">
+          <div class="f-label" onclick="toggleFilter(this)">${langText("Trust", "Trust")}</div>
+          <div class="f-body" id="f-verified"></div>
+        </div>
+      `);
+    }
+  }
+
+  function ensureStaticBackButtons() {
+    qsa(".static-modal").forEach(function (modal) {
+      if (qs(".sm-back", modal)) {
+        return;
+      }
+      const modalId = String(modal.id || "").replace(/^modal-/, "");
+      modal.insertAdjacentHTML("afterbegin", `<button class="sm-back" onclick="closeStatic('${modalId}')">← ${langText("Indietro", "Back")}</button>`);
+    });
+  }
+
   function assignSellFormIds() {
     const labelMap = {
       "Categoria *": "sf-cat",
@@ -1901,6 +1966,9 @@
   }
 
   function bindStaticEnhancements() {
+    ensureAssistanceButton();
+    ensureFilterEnhancements();
+    ensureStaticBackButtons();
     const fileInput = qs("#fileIn");
     if (fileInput) {
       fileInput.addEventListener("change", handleSellPhotosSelected);
@@ -3350,6 +3418,10 @@
     const originalApplyLang = applyLang;
     applyLang = function () {
       originalApplyLang();
+      ensureFilterStateShape();
+      ensureAssistanceButton();
+      ensureFilterEnhancements();
+      ensureStaticBackButtons();
       const locale = getLocaleConfig();
       ensureLanguageSelector();
       document.documentElement.lang = curLang;
@@ -3361,16 +3433,15 @@
       }
       const backButton = qs("#tnBackBtn");
       if (backButton) {
-        backButton.textContent = t("home");
+        backButton.textContent = langText("← Home", "← Home");
       }
-      const authBadge = qs("#authBadge");
-      if (authBadge) {
-        const homeCopy = getHomeCopy();
-        const badgeLabel = homeCopy && Array.isArray(homeCopy.strip) && homeCopy.strip[0] && homeCopy.strip[0].label
-          ? homeCopy.strip[0].label
-          : "Authenticated";
-        authBadge.textContent = "✦ 100% " + badgeLabel;
+      const helpButton = qs("#helpBtn");
+      if (helpButton) {
+        helpButton.textContent = langText("Assistenza", "Help");
       }
+      qsa(".sm-back").forEach(function (button) {
+        button.textContent = langText("← Indietro", "← Back");
+      });
       const opsButton = qs("#opsBtn");
       if (opsButton) {
         opsButton.textContent = "Ops";
@@ -3451,6 +3522,8 @@
     };
 
     initFilters = function () {
+      ensureFilterStateShape();
+      ensureFilterEnhancements();
       const brandSearch = qs(".filters .f-search");
       const brandQuery = brandSearch ? brandSearch.value : "";
       qs("#f-cats").innerHTML = getAvailableCategories()
@@ -3496,6 +3569,22 @@
             "\"></div>"
         )
         .join("");
+      if (qs("#f-materials")) {
+        qs("#f-materials").innerHTML = getAvailableMaterials()
+          .map(
+            (material) =>
+              "<div class=\"f-opt" + (filters.materials.includes(material) ? " on" : "") + "\" onclick=\"toggleOpt(this,'materials','" +
+              escapeHtml(material) +
+              "')\"><div class=\"f-check\">✓</div>" +
+              escapeHtml(material) +
+              "</div>"
+          )
+          .join("");
+      }
+      if (qs("#f-verified")) {
+        qs("#f-verified").innerHTML = `<div class="f-opt${filters.verifiedOnly ? " on" : ""}" onclick="toggleVerifiedOnly(this)"><div class="f-check">✓</div>${langText("Solo prodotti verificati", "Verified products only")}</div>
+        <div class="irisx-filter-note">${langText("Mostra solo articoli già marcati come autenticati o verificati.", "Show only items already marked as authenticated or verified.")}</div>`;
+      }
 
       if (qs("#f-size")) {
         qs("#f-size").value = filters.size || "";
@@ -3509,7 +3598,7 @@
     };
 
     clearFilters = function () {
-      filters = { cats: [], brands: [], conds: [], fits: [], colors: [], size: "", pmin: "", pmax: "", search: "" };
+      filters = { cats: [], brands: [], conds: [], fits: [], colors: [], materials: [], verifiedOnly: false, size: "", pmin: "", pmax: "", search: "" };
       const searchInput = qs("#searchInput");
       if (searchInput) {
         searchInput.value = "";
@@ -3542,6 +3631,7 @@
     };
 
     getFiltered = function () {
+      ensureFilterStateShape();
       const minPrice = parseLocalizedNumberInput(filters.pmin);
       const maxPrice = parseLocalizedNumberInput(filters.pmax);
       const sizeQuery = normalizeSearchText(filters.size);
@@ -3557,6 +3647,8 @@
         if (filters.conds.length && !filters.conds.includes(product.cond)) return false;
         if (filters.fits.length && !filters.fits.includes(product.fit)) return false;
         if (filters.colors.length && !filters.colors.includes(product.color)) return false;
+        if (filters.materials.length && !filters.materials.includes(product.material)) return false;
+        if (filters.verifiedOnly && !isListingVerified(product)) return false;
         if (sizeQuery && !normalizeSearchText(product.sz + " " + product.dims).includes(sizeQuery)) return false;
         if (minPrice !== null && convertedPrice < minPrice) return false;
         if (maxPrice !== null && convertedPrice > maxPrice) return false;
@@ -3577,6 +3669,8 @@
         if (type === "search" && qs("#searchInput")) {
           qs("#searchInput").value = "";
         }
+      } else if (type === "verifiedOnly") {
+        filters.verifiedOnly = false;
       } else {
         const index = filters[type].indexOf(value);
         if (index > -1) {
@@ -3586,6 +3680,16 @@
       initFilters();
       render();
     };
+
+    toggleVerifiedOnly = function (element) {
+      ensureFilterStateShape();
+      filters.verifiedOnly = !filters.verifiedOnly;
+      if (element) {
+        element.classList.toggle("on", filters.verifiedOnly);
+      }
+      render();
+    };
+    window.toggleVerifiedOnly = toggleVerifiedOnly;
 
     const originalToggleFav = toggleFav;
     toggleFav = function (id, button) {
@@ -3749,6 +3853,8 @@
       filters.conds.forEach((value) => chips.push({ label: getFacetLabel("conds", value), type: "conds", value: value }));
       filters.fits.forEach((value) => chips.push({ label: getFacetLabel("fits", value), type: "fits", value: value }));
       filters.colors.forEach((value) => chips.push({ label: getFacetLabel("colors", value), type: "colors", value: value }));
+      filters.materials.forEach((value) => chips.push({ label: `${langText("Materiale", "Material")}: ${value}`, type: "materials", value: value }));
+      if (filters.verifiedOnly) chips.push({ label: langText("Solo verificati", "Verified only"), type: "verifiedOnly", value: "true" });
       if (filters.size) chips.push({ label: t("size") + ": " + filters.size, type: "size", value: filters.size });
       if (filters.pmin) chips.push({ label: t("price_min") + ": " + formatLocalCurrencyValue(filters.pmin), type: "pmin", value: filters.pmin });
       if (filters.pmax) chips.push({ label: t("price_max") + ": " + formatLocalCurrencyValue(filters.pmax), type: "pmax", value: filters.pmax });
@@ -3982,15 +4088,16 @@
     const conditionLabel = getFacetLabel("conds", product.cond);
     const fitLabel = getFacetLabel("fits", product.fit);
     const soldTag = !isProductPurchasable(product) ? "<span class=\"pi-tag sold\">" + escapeHtml(getProductStatusLabel(product)) + "</span>" : "";
+    const verifiedTag = isListingVerified(product) ? `<span class="pi-tag verified">${langText("Verified", "Verified")}</span>` : "";
     const media = hasImages
       ? "<div class=\"pi\"><div class=\"pi-bg irisx-media\"><img class=\"irisx-card-image\" src=\"" +
         product.images[0] +
         "\" alt=\"" +
         escapeHtml(product.name) +
         "\"></div>" +
-        (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(conditionLabel) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(fitLabel) + "</span>" : "") + soldTag + "</div>") +
+        (compact ? "" : "<div class=\"pi-tags\">" + verifiedTag + "<span class=\"pi-tag avail\">" + escapeHtml(conditionLabel) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(fitLabel) + "</span>" : "") + soldTag + "</div>") +
         "</div>"
-      : "<div class=\"pi\"><div class=\"pi-bg\"><div class=\"pi-emoji\">" + escapeHtml(product.emoji || "👜") + "</div></div>" + (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(conditionLabel) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(fitLabel) + "</span>" : "") + soldTag + "</div>") + "</div>";
+      : "<div class=\"pi\"><div class=\"pi-bg\"><div class=\"pi-emoji\">" + escapeHtml(product.emoji || "👜") + "</div></div>" + (compact ? "" : "<div class=\"pi-tags\">" + verifiedTag + "<span class=\"pi-tag avail\">" + escapeHtml(conditionLabel) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(fitLabel) + "</span>" : "") + soldTag + "</div>") + "</div>";
     return media;
   }
 
@@ -4081,7 +4188,7 @@
       ? `<div class="irisx-verified-badge"><span class="irisx-verified-badge__icon">✦</span><span>${langText("Verified", "Verified")}</span></div>`
       : "";
     if (!images.length) {
-      return "<div class=\"det-img-main\">" + verifiedBadge + escapeHtml(product.emoji || "👜") + "</div>";
+      return `<div class="irisx-detail-gallery irisx-detail-gallery--empty"><div class="irisx-detail-stage irisx-detail-stage--empty">${verifiedBadge}<div class="det-img-main">${escapeHtml(product.emoji || "👜")}</div></div></div>`;
     }
 
     const thumbs = images
@@ -4103,15 +4210,15 @@
       .join("");
 
     return (
-      "<div><div class=\"irisx-detail-stage\">" +
+      `<div class="irisx-detail-gallery">` +
+      (images.length > 1 ? `<div class="irisx-detail-thumbs">${thumbs}</div>` : "") +
+      "<div class=\"irisx-detail-stage\">" +
       verifiedBadge +
       "<img class=\"irisx-detail-image\" id=\"detailMainImage\" src=\"" +
       images[state.activeDetailImage] +
       "\" alt=\"" +
       escapeHtml(product.name) +
-      "\"></div>" +
-      (images.length > 1 ? "<div class=\"irisx-detail-thumbs\">" + thumbs + "</div>" : "") +
-      "</div>"
+      "\"></div></div>"
     );
   }
 
@@ -5377,6 +5484,40 @@
 
   const CHECKOUT_STEPS = ["address", "shipping", "payment", "review", "confirmation"];
   const POLICY_PAGE_CONTENT = {
+    "marketplace-overview": {
+      title: langText("Assistenza IRIS", "IRIS Help"),
+      subtitle: langText("Panoramica rapida di come funziona il marketplace: autenticazione, offerte, commissioni, supporto e ordini.", "A quick overview of how the marketplace works: authentication, offers, fees, support, and orders."),
+      sections: [
+        {
+          title: langText("Come funziona l'autenticazione", "How authentication works"),
+          body: langText(
+            "IRIS prepara il flusso con presa in carico seller, tracking, stato in authentication e conferma finale verso il buyer. Il badge Verified evidenzia gli articoli già marcati come autenticati o verificati nel prototipo.",
+            "IRIS prepares the flow with seller intake, tracking, in authentication status, and final confirmation to the buyer. The Verified badge highlights items already marked as authenticated or verified in the prototype."
+          )
+        },
+        {
+          title: langText("Commissioni e modalità di vendita", "Fees and selling modes"),
+          body: langText(
+            `Il percorso autonomo applica ${Math.round(PLATFORM_CONFIG.selfServeFeeRate * 100)}% sul venduto. Il percorso Concierge applica ${Math.round(PLATFORM_CONFIG.conciergeFeeRate * 100)}% e copre più operatività. La pubblicazione resta gratuita nel prototipo.`,
+            `The self-serve path applies ${Math.round(PLATFORM_CONFIG.selfServeFeeRate * 100)}% on the sale. The Concierge path applies ${Math.round(PLATFORM_CONFIG.conciergeFeeRate * 100)}% and covers more operations. Listing remains free in the prototype.`
+          )
+        },
+        {
+          title: langText("Offerte, ordini e pagamenti", "Offers, orders, and payments"),
+          body: langText(
+            "Le offerte non sono semplici messaggi: il buyer inserisce una cifra, il sistema controlla la soglia minima e prepara una logica di autorizzazione pagamento. Se il seller accetta, l'ordine viene creato e il flusso continua verso spedizione e consegna.",
+            "Offers are not simple messages: the buyer enters an amount, the system checks the minimum threshold, and prepares a payment authorization flow. If the seller accepts, the order is created and the flow continues toward shipping and delivery."
+          )
+        },
+        {
+          title: langText("Supporto e assistenza", "Support and assistance"),
+          body: langText(
+            "Dal profilo e dai dettagli ordine puoi aprire ticket, dispute o richieste di aiuto. Nell'area prodotto trovi sempre un accesso rapido a questa panoramica, così buyer e seller capiscono subito il percorso prima di comprare o vendere.",
+            "From the profile and order detail you can open tickets, disputes, or help requests. On the product page you always get a quick entry point to this overview, so buyers and sellers understand the flow before buying or selling."
+          )
+        }
+      ]
+    },
     "shipping-policy": {
       title: langText("Shipping Policy", "Shipping Policy"),
       subtitle: langText("Linee guida operative per spedizioni buyer e seller.", "Operational guidelines for buyer and seller shipments."),
@@ -8615,62 +8756,84 @@
   }
 
   function getMeasurementDiagramSvg(diagram) {
-    if (diagram === "length") {
-      return `<svg viewBox="0 0 320 360" role="img" aria-label="Length guide">
-        <rect width="320" height="360" fill="#ffffff"></rect>
-        <path d="M112 46h96l22 12 18 32 14 174-18 34h-27l-16-182-25 15v176h-32V131l-25-15-16 182H76L58 264 72 90l18-32 22-12z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
-        <path d="M126 50h68l13 18h-94z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
-        <line x1="160" y1="54" x2="160" y2="294" stroke="#2491ff" stroke-width="4" stroke-dasharray="10 8"></line>
-        <polygon points="160,38 152,54 168,54" fill="#2491ff"></polygon>
-        <polygon points="160,310 152,294 168,294" fill="#2491ff"></polygon>
+    const wrapDiagram = function (label, inner) {
+      return `<svg viewBox="0 0 320 360" role="img" aria-label="${escapeHtml(label)}">
+        <defs>
+          <linearGradient id="irisMeasureBg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#fffdf8"></stop>
+            <stop offset="100%" stop-color="#f4edff"></stop>
+          </linearGradient>
+          <filter id="irisShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#1a0a35" flood-opacity=".08"></feDropShadow>
+          </filter>
+        </defs>
+        <rect width="320" height="360" rx="24" fill="url(#irisMeasureBg)"></rect>
+        <rect x="16" y="16" width="288" height="328" rx="20" fill="#fffdfa" stroke="rgba(124,58,237,.08)"></rect>
+        <text x="30" y="42" fill="#7c3aed" font-size="11" letter-spacing="3.2" font-family="Outfit, sans-serif">IRIS FIT GUIDE</text>
+        <g filter="url(#irisShadow)">
+          ${inner}
+        </g>
       </svg>`;
+    };
+    const topOutline = `
+      <path d="M116 74h88l18 12 20 34 14 168-17 34h-31l-15-171-21 12v159h-24V163l-21-12-15 171H81l-17-34 14-168 20-34 18-12z" fill="none" stroke="#c9c0da" stroke-width="2.4" stroke-linejoin="round"></path>
+      <path d="M132 78h56l17 20h-90z" fill="none" stroke="#c9c0da" stroke-width="2.4" stroke-linejoin="round"></path>
+      <path d="M146 116v210" stroke="#ece5f8" stroke-width="1.2"></path>
+      <path d="M174 116v210" stroke="#ece5f8" stroke-width="1.2"></path>
+    `;
+    const bottomOutline = `
+      <path d="M114 72h92l18 22-12 206h-32l-10-112h-20l-10 112H108L96 94z" fill="none" stroke="#c9c0da" stroke-width="2.4" stroke-linejoin="round"></path>
+      <path d="M114 72h92" stroke="#c9c0da" stroke-width="2.4"></path>
+      <path d="M160 90v38" stroke="#e7dff7" stroke-width="1.4"></path>
+    `;
+    const arrowStroke = `stroke="#7c3aed" stroke-width="4" stroke-dasharray="10 8" stroke-linecap="round"`;
+    const arrowHead = `fill="#c4a06a"`;
+    if (diagram === "length") {
+      return wrapDiagram("Length guide", `
+        ${topOutline}
+        <line x1="160" y1="88" x2="160" y2="301" ${arrowStroke}></line>
+        <polygon points="160,74 151,91 169,91" ${arrowHead}></polygon>
+        <polygon points="160,315 151,298 169,298" ${arrowHead}></polygon>
+      `);
     }
     if (diagram === "shoulder") {
-      return `<svg viewBox="0 0 320 360" role="img" aria-label="Shoulder guide">
-        <rect width="320" height="360" fill="#ffffff"></rect>
-        <path d="M112 46h96l22 12 18 32 14 174-18 34h-27l-16-182-25 15v176h-32V131l-25-15-16 182H76L58 264 72 90l18-32 22-12z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
-        <path d="M126 50h68l13 18h-94z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
-        <line x1="106" y1="77" x2="214" y2="77" stroke="#2491ff" stroke-width="4" stroke-dasharray="10 8"></line>
-        <polygon points="92,77 108,69 108,85" fill="#2491ff"></polygon>
-        <polygon points="228,77 212,69 212,85" fill="#2491ff"></polygon>
-      </svg>`;
+      return wrapDiagram("Shoulder guide", `
+        ${topOutline}
+        <line x1="104" y1="108" x2="216" y2="108" ${arrowStroke}></line>
+        <polygon points="90,108 106,100 106,116" ${arrowHead}></polygon>
+        <polygon points="230,108 214,100 214,116" ${arrowHead}></polygon>
+      `);
     }
     if (diagram === "sleeve") {
-      return `<svg viewBox="0 0 320 360" role="img" aria-label="Sleeve guide">
-        <rect width="320" height="360" fill="#ffffff"></rect>
-        <path d="M112 46h96l22 12 18 32 14 174-18 34h-27l-16-182-25 15v176h-32V131l-25-15-16 182H76L58 264 72 90l18-32 22-12z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
-        <path d="M126 50h68l13 18h-94z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
-        <line x1="226" y1="86" x2="260" y2="266" stroke="#2491ff" stroke-width="4" stroke-dasharray="10 8"></line>
-        <polygon points="224,70 218,86 234,83" fill="#2491ff"></polygon>
-        <polygon points="262,282 252,269 267,266" fill="#2491ff"></polygon>
-      </svg>`;
+      return wrapDiagram("Sleeve guide", `
+        ${topOutline}
+        <line x1="226" y1="118" x2="257" y2="284" ${arrowStroke}></line>
+        <polygon points="223,102 217,118 233,115" ${arrowHead}></polygon>
+        <polygon points="260,300 250,287 265,284" ${arrowHead}></polygon>
+      `);
     }
     if (diagram === "waist") {
-      return `<svg viewBox="0 0 320 360" role="img" aria-label="Waist guide">
-        <rect width="320" height="360" fill="#ffffff"></rect>
-        <path d="M115 52h90l20 25-10 208h-36l-8-108h-22l-8 108h-36L95 77z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
-        <line x1="110" y1="78" x2="210" y2="78" stroke="#2491ff" stroke-width="4" stroke-dasharray="10 8"></line>
-        <polygon points="94,78 110,70 110,86" fill="#2491ff"></polygon>
-        <polygon points="226,78 210,70 210,86" fill="#2491ff"></polygon>
-      </svg>`;
+      return wrapDiagram("Waist guide", `
+        ${bottomOutline}
+        <line x1="112" y1="96" x2="208" y2="96" ${arrowStroke}></line>
+        <polygon points="98,96 114,88 114,104" ${arrowHead}></polygon>
+        <polygon points="222,96 206,88 206,104" ${arrowHead}></polygon>
+      `);
     }
     if (diagram === "legOpening") {
-      return `<svg viewBox="0 0 320 360" role="img" aria-label="Leg opening guide">
-        <rect width="320" height="360" fill="#ffffff"></rect>
-        <path d="M115 52h90l20 25-10 208h-36l-8-108h-22l-8 108h-36L95 77z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
-        <line x1="168" y1="284" x2="210" y2="284" stroke="#2491ff" stroke-width="4" stroke-dasharray="10 8"></line>
-        <polygon points="152,284 168,276 168,292" fill="#2491ff"></polygon>
-        <polygon points="226,284 210,276 210,292" fill="#2491ff"></polygon>
-      </svg>`;
+      return wrapDiagram("Leg opening guide", `
+        ${bottomOutline}
+        <line x1="168" y1="301" x2="209" y2="301" ${arrowStroke}></line>
+        <polygon points="154,301 170,293 170,309" ${arrowHead}></polygon>
+        <polygon points="223,301 207,293 207,309" ${arrowHead}></polygon>
+      `);
     }
-    return `<svg viewBox="0 0 320 360" role="img" aria-label="Chest guide">
-      <rect width="320" height="360" fill="#ffffff"></rect>
-      <path d="M112 46h96l22 12 18 32 14 174-18 34h-27l-16-182-25 15v176h-32V131l-25-15-16 182H76L58 264 72 90l18-32 22-12z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
-      <path d="M126 50h68l13 18h-94z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
-      <line x1="102" y1="148" x2="218" y2="148" stroke="#2491ff" stroke-width="4" stroke-dasharray="10 8"></line>
-      <polygon points="88,148 104,140 104,156" fill="#2491ff"></polygon>
-      <polygon points="232,148 216,140 216,156" fill="#2491ff"></polygon>
-    </svg>`;
+    return wrapDiagram(diagram === "chest" ? "Chest guide" : "Measurement guide", `
+      ${topOutline}
+      <line x1="102" y1="178" x2="218" y2="178" ${arrowStroke}></line>
+      <polygon points="88,178 104,170 104,186" ${arrowHead}></polygon>
+      <polygon points="232,178 216,170 216,186" ${arrowHead}></polygon>
+    `);
   }
 
   function renderMeasurementsSection(product) {
@@ -8892,7 +9055,18 @@
         <button class="det-back" onclick="closeDetail()">${t("back_shop")}</button>
         <div class="det-brand">${escapeHtml(product.brand)}</div>
         <div class="det-name">${escapeHtml(product.name)}</div>
+        <div class="irisx-detail-subline">${escapeHtml(product.sz)} · ${escapeHtml(conditionLabel)} · ${escapeHtml(seller.city)}</div>
         <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
+        <div class="irisx-product-help-card">
+          <div>
+            <strong>${langText("Assistenza IRIS", "IRIS Help")}</strong>
+            <span>${langText(`Autenticazione, offerte, spedizione e commissioni ${Math.round(PLATFORM_CONFIG.selfServeFeeRate * 100)}% / ${Math.round(PLATFORM_CONFIG.conciergeFeeRate * 100)}% spiegate in modo chiaro.`, `Authentication, offers, shipping, and ${Math.round(PLATFORM_CONFIG.selfServeFeeRate * 100)}% / ${Math.round(PLATFORM_CONFIG.conciergeFeeRate * 100)}% fees explained clearly.`)}</span>
+          </div>
+          <div class="irisx-actions">
+            <button class="irisx-secondary" onclick="openStatic('marketplace-overview')">${langText("Come funziona", "How it works")}</button>
+            <button class="irisx-secondary" onclick="showBuyView('profile');setProfileArea('account','help_contact')">${langText("Assistenza", "Support")}</button>
+          </div>
+        </div>
         <div class="det-div"></div>
         <div class="det-section"><div class="det-section-title">${t("details")}</div><div class="det-chips">${chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div></div>
         <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(product.sz)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
@@ -8931,6 +9105,7 @@
       }
       const page = POLICY_PAGE_CONTENT[id];
       document.body.insertAdjacentHTML("beforeend", `<div class="static-modal" id="modal-${id}">
+        <button class="sm-back" onclick="closeStatic('${id}')">← ${langText("Indietro", "Back")}</button>
         <button class="sm-close" onclick="closeStatic('${id}')">✕</button>
         <div class="sm-inner">
           <div class="sm-title">${escapeHtml(page.title)}</div>

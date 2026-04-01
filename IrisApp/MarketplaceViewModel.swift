@@ -3,16 +3,16 @@ import WebKit
 
 @MainActor
 final class MarketplaceViewModel: NSObject, ObservableObject {
-    enum Source {
-        case live
+    enum Source: CaseIterable {
         case bundled
+        case live
 
         var label: String {
             switch self {
+            case .bundled:
+                return "App"
             case .live:
                 return "Live"
-            case .bundled:
-                return "Offline copy"
             }
         }
     }
@@ -20,7 +20,7 @@ final class MarketplaceViewModel: NSObject, ObservableObject {
     @Published var isLoading = true
     @Published var errorMessage: String?
     @Published var pageTitle = "IRIS"
-    @Published var source: Source = .live
+    @Published var source: Source = .bundled
 
     let webView: WKWebView
     private let liveURL = URL(string: "https://popi99999.github.io/IRIS/")!
@@ -41,19 +41,20 @@ final class MarketplaceViewModel: NSObject, ObservableObject {
         super.init()
 
         self.webView.navigationDelegate = self
-        loadMarketplace(preferLive: true)
+        loadMarketplace(source: .bundled)
     }
 
-    func loadMarketplace(preferLive: Bool) {
-        if preferLive {
+    func loadMarketplace(source requestedSource: Source? = nil) {
+        let nextSource = requestedSource ?? source
+        switch nextSource {
+        case .live:
             source = .live
             errorMessage = nil
             isLoading = true
             webView.load(URLRequest(url: liveURL))
-            return
+        case .bundled:
+            loadBundledMarketplace()
         }
-
-        loadBundledMarketplace()
     }
 
     private func loadBundledMarketplace() {
@@ -76,9 +77,13 @@ final class MarketplaceViewModel: NSObject, ObservableObject {
         webView.loadFileURL(indexURL, allowingReadAccessTo: webRoot)
     }
 
+    func switchSource(_ nextSource: Source) {
+        loadMarketplace(source: nextSource)
+    }
+
     func reload() {
         if webView.url == nil {
-            loadMarketplace(preferLive: true)
+            loadMarketplace()
         } else {
             webView.reload()
         }

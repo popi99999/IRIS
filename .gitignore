@@ -1,1 +1,4 @@
 .playwright-cli/
+.DS_Store
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/

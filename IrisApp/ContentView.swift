@@ -46,6 +46,11 @@ struct ContentView: View {
 
             Spacer()
 
+            HStack(spacing: 8) {
+                sourceButton(.bundled)
+                sourceButton(.live)
+            }
+
             Button {
                 model.reload()
             } label: {
@@ -61,6 +66,21 @@ struct ContentView: View {
         .padding(.top, 8)
         .padding(.bottom, 10)
         .background(.ultraThinMaterial)
+    }
+
+    private func sourceButton(_ source: MarketplaceViewModel.Source) -> some View {
+        let isSelected = model.source == source
+        return Button {
+            model.switchSource(source)
+        } label: {
+            Text(source.label)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(isSelected ? .black : .white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(isSelected ? .white : .white.opacity(0.1))
+                .clipShape(Capsule())
+        }
     }
 
     private var loadingOverlay: some View {

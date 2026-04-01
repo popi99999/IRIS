@@ -3,6 +3,53 @@ import WebKit
 
 @MainActor
 final class MarketplaceViewModel: NSObject, ObservableObject {
+    private static let storageShim = """
+    (function () {
+      function createStorage() {
+        var store = {};
+        return {
+          getItem: function (key) {
+            return Object.prototype.hasOwnProperty.call(store, key) ? store[key] : null;
+          },
+          setItem: function (key, value) {
+            store[String(key)] = String(value);
+          },
+          removeItem: function (key) {
+            delete store[String(key)];
+          },
+          clear: function () {
+            store = {};
+          },
+          key: function (index) {
+            return Object.keys(store)[index] || null;
+          },
+          get length() {
+            return Object.keys(store).length;
+          }
+        };
+      }
+
+      function ensureStorage(name) {
+        var fallback = createStorage();
+        try {
+          var storage = window[name];
+          var probeKey = "__iris_probe__";
+          storage.setItem(probeKey, "1");
+          storage.removeItem(probeKey);
+        } catch (error) {
+          Object.defineProperty(window, name, {
+            configurable: true,
+            enumerable: true,
+            value: fallback
+          });
+        }
+      }
+
+      ensureStorage("localStorage");
+      ensureStorage("sessionStorage");
+    })();
+    """
+
     enum Source: CaseIterable {
         case bundled
         case live
@@ -27,6 +74,14 @@ final class MarketplaceViewModel: NSObject, ObservableObject {
 
     override init() {
         let configuration = WKWebViewConfiguration()
+        let userContentController = WKUserContentController()
+        let storageShimScript = WKUserScript(
+            source: Self.storageShim,
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: false
+        )
+        userContentController.addUserScript(storageShimScript)
+        configuration.userContentController = userContentController
         configuration.defaultWebpagePreferences.allowsContentJavaScript = true
         configuration.allowsInlineMediaPlayback = true
         configuration.mediaTypesRequiringUserActionForPlayback = []

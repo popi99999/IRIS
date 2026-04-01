@@ -1473,6 +1473,8 @@ body.light-mode .irisx-home-strip span {
 .topnav .tn-primary:hover {
   background: linear-gradient(135deg, #9D5CF5, #7C3AED) !important;
   box-shadow: 0 0 24px rgba(124,58,237,.4) !important;
+}
+
 .irisx-modal-card--wide {
   width: min(980px, calc(100vw - 2rem));
 }
@@ -1482,6 +1484,7 @@ body.light-mode .irisx-home-strip span {
   grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
   gap: 1.4rem;
   padding: 1.6rem 0 3rem;
+  align-items: start;
 }
 
 .irisx-workspace--admin {
@@ -1490,20 +1493,121 @@ body.light-mode .irisx-home-strip span {
 
 .irisx-workspace-sidebar,
 .irisx-workspace-main,
-.irisx-workspace-card {
+.irisx-workspace-card,
+.irisx-section-panel,
+.irisx-shortcut-card,
+.irisx-offer-card {
   border: 1px solid rgba(167, 139, 250, 0.12);
   background: rgba(12, 7, 28, 0.62);
   backdrop-filter: blur(18px);
+  border-radius: 22px;
+  box-shadow: 0 18px 48px rgba(6, 3, 16, 0.22);
 }
 
 .irisx-workspace-sidebar,
 .irisx-workspace-main {
-  padding: 1.15rem;
+  padding: 1.2rem;
 }
 
 .irisx-workspace-main {
   display: grid;
+  gap: 1.15rem;
+}
+
+.irisx-workspace-sidebar {
+  position: sticky;
+  top: 76px;
+  display: grid;
   gap: 1rem;
+  max-height: calc(100vh - 92px);
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.irisx-workspace-head,
+.irisx-section-shell,
+.irisx-workspace-content,
+.irisx-section-stack,
+.irisx-shortcut-grid,
+.irisx-sidebar-stat-grid,
+.irisx-hero-metrics,
+.irisx-offer-list,
+.irisx-offer-meta-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.irisx-section-shell {
+  grid-template-columns: minmax(220px, 270px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.irisx-workspace-head {
+  padding: 0.15rem 0.1rem 0.35rem;
+}
+
+.irisx-workspace-content {
+  align-content: start;
+  min-width: 0;
+}
+
+.irisx-section-panel {
+  padding: 1rem;
+  position: sticky;
+  top: 76px;
+  max-height: calc(100vh - 92px);
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.irisx-sidebar-stat-grid,
+.irisx-hero-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.irisx-sidebar-stat,
+.irisx-hero-metric {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.irisx-sidebar-stat strong,
+.irisx-hero-metric strong {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 1.15rem;
+  font-family: "Playfair Display", serif;
+  font-weight: 400;
+}
+
+.irisx-sidebar-stat span,
+.irisx-hero-metric span {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.irisx-sidebar-note {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem 1.05rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.14), rgba(124, 58, 237, 0.05));
+  border: 1px solid rgba(167, 139, 250, 0.12);
+}
+
+.irisx-sidebar-note strong {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.82rem;
+}
+
+.irisx-sidebar-note span {
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.74rem;
+  line-height: 1.7;
 }
 
 .irisx-user-card {
@@ -1557,7 +1661,8 @@ body.light-mode .irisx-home-strip span {
 }
 
 .irisx-area-nav {
-  margin: 1rem 0;
+  margin: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .irisx-area-btn,
@@ -1576,10 +1681,11 @@ body.light-mode .irisx-home-strip span {
 .irisx-area-btn,
 .irisx-section-tab {
   text-align: left;
-  padding: 0.72rem 0.85rem;
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  padding: 0.85rem 0.95rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  border-radius: 14px;
 }
 
 .irisx-area-btn.on,
@@ -1594,7 +1700,7 @@ body.light-mode .irisx-home-strip span {
 }
 
 .irisx-section-tabs--account {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
 
@@ -1602,6 +1708,13 @@ body.light-mode .irisx-home-strip span {
 .irisx-nav-group-list {
   display: grid;
   gap: 0.55rem;
+}
+
+.irisx-nav-group {
+  padding: 0.95rem;
+  border-radius: 18px;
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .irisx-nav-group-title {
@@ -1643,6 +1756,7 @@ body.light-mode .irisx-home-strip span {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.95rem 1rem;
+  border-radius: 18px;
 }
 
 .irisx-inline-card div,
@@ -1678,11 +1792,65 @@ body.light-mode .irisx-home-strip span {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 .irisx-workspace-card {
   padding: 1.15rem;
+}
+
+.irisx-workspace-card--hero {
+  padding: 1.25rem;
+}
+
+.irisx-shortcut-grid {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.irisx-shortcut-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.1rem;
+}
+
+.irisx-shortcut-card .irisx-actions {
+  margin-top: auto;
+}
+
+.irisx-shortcut-card--buyer {
+  background: linear-gradient(180deg, rgba(66, 31, 122, 0.6), rgba(12, 7, 28, 0.7));
+}
+
+.irisx-shortcut-card--seller {
+  background: linear-gradient(180deg, rgba(94, 53, 177, 0.58), rgba(12, 7, 28, 0.68));
+}
+
+.irisx-shortcut-card--accent {
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.2), rgba(12, 7, 28, 0.72));
+}
+
+.irisx-shortcut-copy {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.irisx-shortcut-copy strong {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.irisx-shortcut-meta {
+  color: var(--lavender);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.irisx-shortcut-copy p {
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 0.76rem;
+  line-height: 1.75;
 }
 
 .irisx-static-field {
@@ -1788,6 +1956,24 @@ body.light-mode .irisx-home-strip span {
 .irisx-empty-state--compact {
   padding: 1rem;
   font-size: 0.72rem;
+}
+
+.irisx-empty-state--expanded {
+  display: grid;
+  gap: 0.65rem;
+  border-style: solid;
+  border-radius: 18px;
+}
+
+.irisx-empty-state--expanded strong {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.88rem;
+}
+
+.irisx-empty-state--expanded span {
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.76rem;
+  line-height: 1.7;
 }
 
 .irisx-chat-product {
@@ -1995,6 +2181,114 @@ body.light-mode .irisx-home-strip span {
   margin-bottom: 0.75rem;
 }
 
+.irisx-offer-list {
+  gap: 1rem;
+}
+
+.irisx-offer-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.15rem;
+}
+
+.irisx-offer-card--accent {
+  border-color: rgba(167, 139, 250, 0.22);
+}
+
+.irisx-offer-card--success {
+  border-color: rgba(52, 211, 153, 0.22);
+}
+
+.irisx-offer-card--danger {
+  border-color: rgba(248, 113, 113, 0.22);
+}
+
+.irisx-offer-card--muted {
+  border-color: rgba(148, 163, 184, 0.18);
+  opacity: 0.92;
+}
+
+.irisx-offer-head,
+.irisx-offer-foot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.irisx-offer-copy {
+  display: grid;
+  gap: 0.38rem;
+}
+
+.irisx-offer-copy strong {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 0.94rem;
+  font-weight: 500;
+}
+
+.irisx-offer-copy span {
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 0.76rem;
+  line-height: 1.7;
+}
+
+.irisx-offer-price {
+  display: grid;
+  gap: 0.25rem;
+  justify-items: end;
+  text-align: right;
+}
+
+.irisx-offer-price span {
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 1.45rem;
+  font-family: "Playfair Display", serif;
+  line-height: 1;
+}
+
+.irisx-offer-price em {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-style: normal;
+}
+
+.irisx-offer-meta-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.irisx-offer-meta-item {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.irisx-offer-meta-item label {
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.irisx-offer-meta-item strong {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.irisx-offer-note {
+  max-width: 62ch;
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 0.76rem;
+  line-height: 1.75;
+}
+
 body.light-mode .irisx-workspace-sidebar,
 body.light-mode .irisx-workspace-main,
 body.light-mode .irisx-workspace-card,
@@ -2002,7 +2296,10 @@ body.light-mode .irisx-order-panel,
 body.light-mode .irisx-summary-card,
 body.light-mode .irisx-checkout-main,
 body.light-mode .irisx-checkout-summary,
-body.light-mode .irisx-state-panel {
+body.light-mode .irisx-state-panel,
+body.light-mode .irisx-section-panel,
+body.light-mode .irisx-shortcut-card,
+body.light-mode .irisx-offer-card {
   background: rgba(255, 255, 255, 0.92);
   border-color: rgba(124, 58, 237, 0.12);
 }
@@ -2053,7 +2350,10 @@ body.light-mode .irisx-chat-scope-tab em {
 }
 
 body.light-mode .irisx-chat-scope-tab,
-body.light-mode .irisx-static-field {
+body.light-mode .irisx-static-field,
+body.light-mode .irisx-sidebar-stat,
+body.light-mode .irisx-hero-metric,
+body.light-mode .irisx-offer-meta-item {
   background: rgba(124, 58, 237, 0.03);
   color: rgba(26, 10, 53, 0.75);
   border-color: rgba(124, 58, 237, 0.12);
@@ -2065,10 +2365,42 @@ body.light-mode .irisx-chat-role-badge {
   color: rgba(26, 10, 53, 0.76);
 }
 
+body.light-mode .irisx-sidebar-stat strong,
+body.light-mode .irisx-hero-metric strong,
+body.light-mode .irisx-shortcut-copy strong,
+body.light-mode .irisx-sidebar-note strong,
+body.light-mode .irisx-offer-copy strong,
+body.light-mode .irisx-offer-price span,
+body.light-mode .irisx-offer-meta-item strong,
+body.light-mode .irisx-empty-state--expanded strong {
+  color: rgba(26, 10, 53, 0.9);
+}
+
+body.light-mode .irisx-sidebar-stat span,
+body.light-mode .irisx-hero-metric span,
+body.light-mode .irisx-sidebar-note span,
+body.light-mode .irisx-shortcut-copy p,
+body.light-mode .irisx-offer-copy span,
+body.light-mode .irisx-offer-price em,
+body.light-mode .irisx-offer-note,
+body.light-mode .irisx-offer-meta-item label,
+body.light-mode .irisx-empty-state--expanded span {
+  color: rgba(26, 10, 53, 0.52);
+}
+
+body.light-mode .irisx-sidebar-note {
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.08), rgba(124, 58, 237, 0.03));
+}
+
 @media (max-width: 980px) {
   .irisx-workspace,
-  .irisx-checkout-shell {
+  .irisx-checkout-shell,
+  .irisx-section-shell {
     grid-template-columns: 1fr;
+  }
+
+  .irisx-workspace-sidebar {
+    position: static;
   }
 }
 
@@ -2076,15 +2408,28 @@ body.light-mode .irisx-chat-role-badge {
   .irisx-section-tabs,
   .irisx-summary-grid,
   .irisx-checkout-stepper,
-  .irisx-policy-grid {
+  .irisx-policy-grid,
+  .irisx-shortcut-grid,
+  .irisx-sidebar-stat-grid,
+  .irisx-hero-metrics,
+  .irisx-offer-meta-grid,
+  .irisx-area-nav,
+  .irisx-section-tabs--account {
     grid-template-columns: 1fr;
   }
 
   .irisx-inline-card,
   .irisx-policy-card,
-  .irisx-section-head {
+  .irisx-section-head,
+  .irisx-offer-head,
+  .irisx-offer-foot {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .irisx-offer-price {
+    justify-items: start;
+    text-align: left;
   }
 }
 

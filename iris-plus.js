@@ -6763,50 +6763,50 @@
   function getAccountSectionGroups() {
     return [
       {
-        title: langText("Overview", "Overview"),
+        title: langText("Panoramica", "Overview"),
         entries: [
-          { id: "overview", label: langText("Overview", "Overview") }
+          { id: "overview", label: langText("Panoramica", "Overview") }
         ]
       },
       {
-        title: langText("Shopping", "Shopping"),
+        title: langText("Acquisti", "Shopping"),
         entries: [
-          { id: "shopping_preferences", label: langText("Preferences", "Preferences") },
-          { id: "shopping_sizes", label: langText("My Size", "My Size") },
-          { id: "shopping_saved_searches", label: langText("Saved searches", "Saved searches") }
+          { id: "shopping_preferences", label: langText("Preferenze", "Preferences") },
+          { id: "shopping_sizes", label: langText("Le mie taglie", "My Size") },
+          { id: "shopping_saved_searches", label: langText("Ricerche salvate", "Saved searches") }
         ]
       },
       {
-        title: langText("Selling", "Selling"),
+        title: langText("Vendita", "Selling"),
         entries: [
-          { id: "selling_preferences", label: langText("Selling preferences", "Selling preferences") },
-          { id: "selling_location", label: langText("Location", "Location") },
-          { id: "selling_vacation", label: langText("Vacation mode", "Vacation mode") },
-          { id: "selling_listing_preferences", label: langText("Listing preferences", "Listing preferences") }
+          { id: "selling_preferences", label: langText("Preferenze vendita", "Selling preferences") },
+          { id: "selling_location", label: langText("Località", "Location") },
+          { id: "selling_vacation", label: langText("Modalità vacanza", "Vacation mode") },
+          { id: "selling_listing_preferences", label: langText("Preferenze annunci", "Listing preferences") }
         ]
       },
       {
-        title: langText("Settings", "Settings"),
+        title: langText("Impostazioni", "Settings"),
         entries: [
           { id: "settings_account", label: langText("Account", "Account") },
-          { id: "settings_profile", label: langText("Profile", "Profile") },
+          { id: "settings_profile", label: langText("Profilo", "Profile") },
           { id: "settings_privacy", label: langText("Privacy", "Privacy") },
-          { id: "settings_payment", label: langText("Payment", "Payment") },
-          { id: "settings_notifications", label: langText("Notifications", "Notifications") },
-          { id: "settings_security", label: langText("Security", "Security") }
+          { id: "settings_payment", label: langText("Pagamenti", "Payment") },
+          { id: "settings_notifications", label: langText("Notifiche", "Notifications") },
+          { id: "settings_security", label: langText("Sicurezza", "Security") }
         ]
       },
       {
-        title: langText("Help / Support / Trust", "Help / Support / Trust"),
+        title: langText("Aiuto / Supporto / Trust", "Help / Support / Trust"),
         entries: [
-          { id: "help_help", label: langText("Help", "Help") },
-          { id: "help_listings", label: langText("Listings", "Listings") },
-          { id: "help_verification", label: langText("Verification", "Verification") },
-          { id: "help_shipping", label: langText("Shipping and Protection", "Shipping and Protection") },
-          { id: "help_accessibility", label: langText("Accessibility Statement", "Accessibility Statement") },
-          { id: "help_contact", label: langText("Contact Support", "Contact Support") },
-          { id: "help_about", label: langText("About", "About") },
-          { id: "help_sell", label: langText("Sell", "Sell") }
+          { id: "help_help", label: langText("Aiuto", "Help") },
+          { id: "help_listings", label: langText("Annunci", "Listings") },
+          { id: "help_verification", label: langText("Verifica", "Verification") },
+          { id: "help_shipping", label: langText("Spedizione e protezione", "Shipping and Protection") },
+          { id: "help_accessibility", label: langText("Accessibilità", "Accessibility Statement") },
+          { id: "help_contact", label: langText("Contatta il supporto", "Contact Support") },
+          { id: "help_about", label: langText("Chi siamo", "About") },
+          { id: "help_sell", label: langText("Vendi", "Sell") }
         ]
       }
     ];
@@ -6823,13 +6823,94 @@
     }).join("");
   }
 
+  function renderHeroMetric(value, label) {
+    return `<div class="irisx-hero-metric"><strong>${escapeHtml(String(value))}</strong><span>${escapeHtml(label)}</span></div>`;
+  }
+
+  function renderSectionShell(options) {
+    const kicker = options.kicker || langText("Workspace", "Workspace");
+    const metrics = options.metrics && options.metrics.length
+      ? `<div class="irisx-hero-metrics">${options.metrics.join("")}</div>`
+      : "";
+    return `<div class="irisx-section-stack">
+      <div class="irisx-workspace-card irisx-workspace-card--hero">
+        <div class="irisx-section-head">
+          <div>
+            <div class="irisx-kicker">${escapeHtml(kicker)}</div>
+            <h3>${escapeHtml(options.title)}</h3>
+            <span>${escapeHtml(options.subtitle)}</span>
+          </div>
+          ${metrics}
+        </div>
+      </div>
+      ${options.body}
+    </div>`;
+  }
+
+  function renderShortcutCard(options) {
+    const toneClass = options.tone ? ` irisx-shortcut-card--${options.tone}` : "";
+    const meta = options.meta ? `<div class="irisx-shortcut-meta">${escapeHtml(options.meta)}</div>` : "";
+    const description = options.description ? `<p>${escapeHtml(options.description)}</p>` : "";
+    const action = options.actionLabel && options.action
+      ? `<div class="irisx-actions"><button class="${escapeHtml(options.actionClass || "irisx-secondary")}" onclick="${options.action}">${escapeHtml(options.actionLabel)}</button></div>`
+      : "";
+    return `<div class="irisx-shortcut-card${toneClass}">
+      <div class="irisx-shortcut-copy">
+        <strong>${escapeHtml(options.title)}</strong>
+        ${meta}
+        ${description}
+      </div>
+      ${action}
+    </div>`;
+  }
+
+  function getOfferStatusTone(offer, expired) {
+    if (expired || offer.status === "expired") {
+      return "muted";
+    }
+    if (offer.status === "paid" || offer.status === "accepted") {
+      return "success";
+    }
+    if (offer.status === "declined" || offer.status === "authorization_failed") {
+      return "danger";
+    }
+    return "accent";
+  }
+
+  function getOfferStateCopy(offer, scope, expired) {
+    if (expired) {
+      return langText("La finestra dell'offerta è chiusa e l'autorizzazione non è più utilizzabile.", "The offer window is closed and the authorization can no longer be used.");
+    }
+    if (scope === "seller" && offer.status === "pending") {
+      return langText("Se accetti, il pagamento autorizzato viene catturato automaticamente e si genera l'ordine.", "If you accept, the authorized payment is captured automatically and the order is created.");
+    }
+    if (scope === "buyer" && offer.status === "pending") {
+      return langText("L'offerta è vincolante: stiamo tenendo pronta l'autorizzazione finché il seller non risponde.", "The offer is binding: the authorization stays ready until the seller responds.");
+    }
+    if (offer.orderId) {
+      return langText("L'offerta è collegata a un ordine già creato.", "This offer is already linked to a created order.");
+    }
+    if (offer.status === "declined") {
+      return langText("Il seller ha rifiutato l'offerta e l'autorizzazione è stata rilasciata.", "The seller declined the offer and the authorization was released.");
+    }
+    return langText("Flusso offerta predisposto per autorizzazione, capture o rilascio.", "Offer flow prepared for authorization, capture, or release.");
+  }
+
   function renderOffersMarkup(offers, scope) {
     syncOfferStates();
-    if (!offers.length) {
-      return `<div class="irisx-empty-state">${langText("Nessuna offerta presente.", "No offers available.")}</div>`;
-    }
-    return `<div class="irisx-order-list">${offers.map(function (offer) {
+    const title = scope === "seller" ? langText("Offerte ricevute", "Offers received") : langText("Offerte inviate", "Sent offers");
+    const subtitle = scope === "seller"
+      ? langText("Controlla importo, buyer, scadenza e cattura automatica del pagamento.", "Review amount, buyer, expiration, and automatic payment capture.")
+      : langText("Tieni sotto controllo lo stato dell'offerta e della relativa autorizzazione.", "Track the offer status and its linked authorization.");
+    const pendingCount = offers.filter(function (offer) { return offer.status === "pending" && !isOfferExpired(offer); }).length;
+    const linkedOrders = offers.filter(function (offer) { return Boolean(offer.orderId); }).length;
+    const body = offers.length
+      ? `<div class="irisx-offer-list">${offers.map(function (offer) {
       const expired = offer.status === "expired" || isOfferExpired(offer);
+      const tone = getOfferStatusTone(offer, expired);
+      const counterparty = scope === "seller"
+        ? (offer.buyerName || offer.buyerEmail || langText("Buyer", "Buyer"))
+        : (offer.sellerName || offer.sellerEmail || langText("Seller", "Seller"));
       const sellerActions = scope === "seller" && offer.status === "pending" && !expired
         ? `<div class="irisx-actions">
             <button class="irisx-primary" onclick="respondToOffer('${offer.id}','accepted')">${langText("Accetta e cattura pagamento", "Accept and capture payment")}</button>
@@ -6838,22 +6919,48 @@
         : offer.orderId
           ? `<div class="irisx-actions"><button class="irisx-secondary" onclick="openOrderDetail('${offer.orderId}','${scope === "seller" ? "seller" : "buyer"}')">${langText("Apri ordine", "Open order")}</button></div>`
           : "";
-      return `<div class="irisx-order-card">
-        <div class="irisx-order-head">
-          <strong>${escapeHtml(offer.productBrand)} ${escapeHtml(offer.productName)}</strong>
-          <span class="irisx-badge">${escapeHtml(getOfferStatusLabel(offer))}</span>
+      return `<div class="irisx-offer-card irisx-offer-card--${tone}">
+        <div class="irisx-offer-head">
+          <div class="irisx-offer-copy">
+            <div class="irisx-kicker">${scope === "seller" ? langText("Offerta in ingresso", "Incoming offer") : langText("Offerta vincolante", "Binding offer")}</div>
+            <strong>${escapeHtml(offer.productBrand)} ${escapeHtml(offer.productName)}</strong>
+            <span>${scope === "seller" ? langText("Buyer", "Buyer") : langText("Seller", "Seller")}: ${escapeHtml(counterparty)}</span>
+          </div>
+          <div class="irisx-offer-price">
+            <span>${escapeHtml(formatCurrency(offer.offerAmount || offer.amount))}</span>
+            ${offer.minimumOfferAmount !== null && offer.minimumOfferAmount !== undefined ? `<em>${langText("Minimo", "Minimum")}: ${escapeHtml(formatCurrency(offer.minimumOfferAmount))}</em>` : ""}
+          </div>
         </div>
-        <div class="irisx-order-items">
-          <div>${escapeHtml(formatCurrency(offer.offerAmount || offer.amount))}</div>
-          <div>${scope === "seller" ? escapeHtml(offer.buyerName || offer.buyerEmail) : escapeHtml(offer.sellerName || offer.sellerEmail)}</div>
-          <div>${langText("Scade", "Expires")}: ${escapeHtml(formatDateTime(offer.expiresAt))}</div>
-          <div>${langText("Autorizzazione", "Authorization")}: ${escapeHtml(getOfferAuthorizationLabel(offer))}</div>
-          ${offer.minimumOfferAmount !== null && offer.minimumOfferAmount !== undefined ? `<div>${langText("Minimo seller", "Seller minimum")}: ${escapeHtml(formatCurrency(offer.minimumOfferAmount))}</div>` : ""}
-          <div>${expired ? langText("Offerta scaduta", "Offer expired") : langText("Creata", "Created")}: ${escapeHtml(formatDateTime(expired ? offer.expiresAt : offer.createdAt))}</div>
+        <div class="irisx-offer-meta-grid">
+          <div class="irisx-offer-meta-item"><label>${langText("Status", "Status")}</label><strong>${escapeHtml(getOfferStatusLabel(offer))}</strong></div>
+          <div class="irisx-offer-meta-item"><label>${langText("Autorizzazione", "Authorization")}</label><strong>${escapeHtml(getOfferAuthorizationLabel(offer))}</strong></div>
+          <div class="irisx-offer-meta-item"><label>${langText("Creata", "Created")}</label><strong>${escapeHtml(formatDateTime(offer.createdAt))}</strong></div>
+          <div class="irisx-offer-meta-item"><label>${langText("Scade", "Expires")}</label><strong>${escapeHtml(formatDateTime(offer.expiresAt))}</strong></div>
         </div>
-        ${sellerActions}
+        <div class="irisx-offer-foot">
+          <div class="irisx-offer-note">${escapeHtml(getOfferStateCopy(offer, scope, expired))}</div>
+          ${sellerActions}
+        </div>
       </div>`;
-    }).join("")}</div>`;
+    }).join("")}</div>`
+      : `<div class="irisx-workspace-card">
+        <div class="irisx-empty-state irisx-empty-state--expanded">
+          <strong>${scope === "seller" ? langText("Nessuna offerta ricevuta.", "No offers received yet.") : langText("Nessuna offerta inviata.", "No offers sent yet.")}</strong>
+          <span>${scope === "seller" ? langText("Quando un buyer invia un'offerta valida la troverai qui con importo, scadenza e stato autorizzazione.", "When a buyer sends a valid offer you'll see amount, expiry, and authorization status here.") : langText("Le offerte che invii con autorizzazione pagamento compariranno qui finché il seller non accetta, rifiuta o scade.", "Offers you send with payment authorization will appear here until the seller accepts, declines, or they expire.")}</span>
+          <div class="irisx-actions"><button class="irisx-secondary" onclick="${scope === "seller" ? "setSellerSection('active')" : "showBuyView('shop')"}">${scope === "seller" ? langText("Apri annunci attivi", "Open active listings") : langText("Vai allo shop", "Go to shop")}</button></div>
+        </div>
+      </div>`;
+    return renderSectionShell({
+      kicker: scope === "seller" ? langText("Scrivania offerte", "Offer desk") : langText("Tracker offerte", "Offer tracker"),
+      title: title,
+      subtitle: subtitle,
+      metrics: [
+        renderHeroMetric(offers.length, langText("Totali", "Total")),
+        renderHeroMetric(pendingCount, langText("In attesa", "Pending")),
+        renderHeroMetric(linkedOrders, langText("Ordini collegati", "Order linked"))
+      ],
+      body: body
+    });
   }
 
   function renderNotificationsCenter() {
@@ -6881,7 +6988,7 @@
 
     if (section === "shopping_preferences") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Shopping preferences", "Shopping preferences")}</h3><span>${langText("Preferenze di acquisto, alert e visibilita' del catalogo.", "Buying preferences, alerts, and catalog visibility.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Preferenze shopping", "Shopping preferences")}</h3><span>${langText("Preferenze di acquisto, alert e visibilita' del catalogo.", "Buying preferences, alerts, and catalog visibility.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
             <div class="irisx-field"><label for="shoppingCurrency">${langText("Preferred currency", "Preferred currency")}</label><input id="shoppingCurrency" type="text" value="${escapeHtml(user.shoppingPreferences.preferredCurrency || getLocaleConfig().currency)}"></div>
@@ -6900,7 +7007,7 @@
 
     if (section === "shopping_sizes") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("My Size", "My Size")}</h3><span>${langText("Profilo taglie e brand preferiti per buyer e app futura.", "Sizing profile and preferred brands for buyer web and future app.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Le mie taglie", "My Size")}</h3><span>${langText("Profilo taglie e brand preferiti per buyer e app futura.", "Sizing profile and preferred brands for buyer web and future app.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
             <div class="irisx-field"><label for="sizeProfileTops">${langText("Tops", "Tops")}</label><input id="sizeProfileTops" type="text" value="${escapeHtml(user.sizeProfile.tops || "")}"></div>
@@ -6911,14 +7018,14 @@
             <div class="irisx-field"><label for="sizeProfileFit">${langText("Preferred fit", "Preferred fit")}</label><input id="sizeProfileFit" type="text" value="${escapeHtml(user.sizeProfile.fit || "")}"></div>
           </div>
           <div class="irisx-field"><label for="sizeProfileBrands">${langText("Preferred brands", "Preferred brands")}</label><input id="sizeProfileBrands" type="text" value="${escapeHtml(user.sizeProfile.preferredBrands || "")}" placeholder="${langText("Chanel, Prada, Loewe", "Chanel, Prada, Loewe")}"></div>
-          <div class="irisx-actions"><button class="irisx-primary" onclick="saveSizeProfile()">${langText("Salva My Size", "Save My Size")}</button></div>
+          <div class="irisx-actions"><button class="irisx-primary" onclick="saveSizeProfile()">${langText("Salva taglie", "Save My Size")}</button></div>
         </div>
       </div>`;
     }
 
     if (section === "shopping_saved_searches") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Saved searches", "Saved searches")}</h3><span>${langText("Ricerche salvate e alert mock riusabili anche nell'app.", "Saved searches and alert-ready mock logic reusable in the app.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Ricerche salvate", "Saved searches")}</h3><span>${langText("Ricerche salvate e alert mock riusabili anche nell'app.", "Saved searches and alert-ready mock logic reusable in the app.")}</span></div>
         ${savedSearches.length ? `<div class="irisx-card-stack">${savedSearches.map(function (entry) {
           return `<div class="irisx-inline-card">
             <div><strong>${escapeHtml(entry.label)}</strong><span>${escapeHtml(entry.query)} · ${escapeHtml(entry.filtersSummary || "")}</span></div>
@@ -6939,7 +7046,7 @@
 
     if (section === "selling_preferences") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Selling preferences", "Selling preferences")}</h3><span>${langText("Regole operative seller per messaggi, offerte e gestione inventario.", "Seller operating rules for messaging, offers, and inventory handling.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Preferenze vendita", "Selling preferences")}</h3><span>${langText("Regole operative seller per messaggi, offerte e gestione inventario.", "Seller operating rules for messaging, offers, and inventory handling.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
             <div class="irisx-field"><label for="sellingHandlingModel">${langText("Handling model", "Handling model")}</label><input id="sellingHandlingModel" type="text" value="${escapeHtml(user.sellingPreferences.handlingModel || "")}"></div>
@@ -6955,7 +7062,7 @@
 
     if (section === "selling_location") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Selling location", "Selling location")}</h3><span>${langText("Origine spedizioni e visibilita' area seller.", "Shipping origin and seller-facing location visibility.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Località di spedizione", "Selling location")}</h3><span>${langText("Origine spedizioni e visibilita' area seller.", "Shipping origin and seller-facing location visibility.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
             <div class="irisx-field"><label for="sellingLocationCity">${langText("City", "City")}</label><input id="sellingLocationCity" type="text" value="${escapeHtml(user.sellingPreferences.shipFromCity || "")}"></div>
@@ -6969,7 +7076,7 @@
 
     if (section === "selling_vacation") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Vacation mode", "Vacation mode")}</h3><span>${langText("Stato seller, data di ritorno e messaggio operativo.", "Seller status, return date, and operational message.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Modalità vacanza", "Vacation mode")}</h3><span>${langText("Stato seller, data di ritorno e messaggio operativo.", "Seller status, return date, and operational message.")}</span></div>
         <div class="irisx-toggle-grid">
           <label><input id="sellingVacationEnabled" type="checkbox" ${user.vacationMode.enabled ? "checked" : ""}> ${langText("Attiva vacation mode", "Enable vacation mode")}</label>
         </div>
@@ -6986,7 +7093,7 @@
 
     if (section === "selling_listing_preferences") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Listing preferences", "Listing preferences")}</h3><span>${langText("Default seller per nuove inserzioni e future bulk actions.", "Seller defaults for new listings and future bulk actions.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Preferenze annunci", "Listing preferences")}</h3><span>${langText("Default seller per nuove inserzioni e future bulk actions.", "Seller defaults for new listings and future bulk actions.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
             <div class="irisx-field"><label for="sellingDefaultCondition">${langText("Default condition", "Default condition")}</label><input id="sellingDefaultCondition" type="text" value="${escapeHtml(user.listingPreferences.defaultCondition || "")}"></div>
@@ -7006,13 +7113,13 @@
           <div class="irisx-summary-grid">
             <div class="irisx-summary-card"><strong>${escapeHtml(user.email || "")}</strong><span>${langText("Account email", "Account email")}</span></div>
             <div class="irisx-summary-card"><strong>${escapeHtml(user.phone || langText("Da aggiungere", "Add phone"))}</strong><span>${langText("Telefono obbligatorio", "Required phone number")}</span></div>
-            <div class="irisx-summary-card"><strong>${escapeHtml(user.memberSince || "2026")}</strong><span>${langText("Member since", "Member since")}</span></div>
-            <div class="irisx-summary-card"><strong>${user.addresses.length}</strong><span>${langText("Saved addresses", "Saved addresses")}</span></div>
-            <div class="irisx-summary-card"><strong>${user.security.twoFactor ? "2FA on" : "2FA off"}</strong><span>${langText("Security baseline", "Security baseline")}</span></div>
+            <div class="irisx-summary-card"><strong>${escapeHtml(user.memberSince || "2026")}</strong><span>${langText("Membro dal", "Member since")}</span></div>
+            <div class="irisx-summary-card"><strong>${user.addresses.length}</strong><span>${langText("Indirizzi salvati", "Saved addresses")}</span></div>
+            <div class="irisx-summary-card"><strong>${user.security.twoFactor ? langText("2FA attiva", "2FA on") : langText("2FA disattiva", "2FA off")}</strong><span>${langText("Base sicurezza", "Security baseline")}</span></div>
           </div>
         </div>
         <div class="irisx-workspace-card">
-          <div class="irisx-section-head"><h3>${langText("Addresses", "Addresses")}</h3><span>${langText("Shipping address book del buyer.", "Buyer shipping address book.")}</span></div>
+          <div class="irisx-section-head"><h3>${langText("Indirizzi", "Addresses")}</h3><span>${langText("Shipping address book del buyer.", "Buyer shipping address book.")}</span></div>
           <div class="irisx-card-stack">${user.addresses.map(function (address) {
             return `<div class="irisx-inline-card">
               <div><strong>${escapeHtml(address.label)}</strong><span>${escapeHtml(address.name || user.name || "")} · ${escapeHtml(address.address || "")}, ${escapeHtml(address.city || "")}, ${escapeHtml(address.country || "")}</span></div>
@@ -7037,7 +7144,7 @@
 
     if (section === "settings_profile") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Profile settings", "Profile settings")}</h3><span>${langText("Aggiorna nome, bio e localita'.", "Update name, bio, and location.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Impostazioni profilo", "Profile settings")}</h3><span>${langText("Aggiorna nome, bio e localita'.", "Update name, bio, and location.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
             <div class="irisx-field"><label for="profileNameInput">${t("full_name")}</label><input id="profileNameInput" type="text" value="${escapeHtml(user.name || "")}"></div>
@@ -7072,14 +7179,14 @@
     if (section === "settings_payment") {
       return `<div class="irisx-card-stack">
         <div class="irisx-workspace-card">
-          <div class="irisx-section-head"><h3>${langText("Payment methods", "Payment methods")}</h3><span>${langText("Scheletro per carte e metodi futuri.", "Skeleton for cards and future methods.")}</span></div>
+          <div class="irisx-section-head"><h3>${langText("Metodi di pagamento", "Payment methods")}</h3><span>${langText("Scheletro per carte e metodi futuri.", "Skeleton for cards and future methods.")}</span></div>
           ${user.paymentMethods.length ? `<div class="irisx-card-stack">${user.paymentMethods.map(function (method) {
             return `<div class="irisx-inline-card"><div><strong>${escapeHtml(method.brand)} •••• ${escapeHtml(method.last4)}</strong><span>${escapeHtml(method.label || "")}</span></div>${method.isDefault ? `<span class="irisx-badge">${langText("Default", "Default")}</span>` : ""}</div>`;
           }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun metodo salvato.", "No saved payment methods.")}</div>`}
           <div class="irisx-actions"><button class="irisx-primary" onclick="addPrototypePaymentMethod()">${langText("Aggiungi metodo mock", "Add mock method")}</button></div>
         </div>
         <div class="irisx-workspace-card">
-          <div class="irisx-section-head"><h3>${langText("Payout settings", "Payout settings")}</h3><span>${langText("Dettagli seller payout predisposti nel profilo.", "Seller payout details prepared inside the profile.")}</span></div>
+          <div class="irisx-section-head"><h3>${langText("Impostazioni payout", "Payout settings")}</h3><span>${langText("Dettagli seller payout predisposti nel profilo.", "Seller payout details prepared inside the profile.")}</span></div>
           <div class="irisx-form-grid">
             <div class="irisx-account-row">
               <div class="irisx-field"><label for="payoutMethod">${langText("Method", "Method")}</label><input id="payoutMethod" type="text" value="${escapeHtml(user.payoutSettings.method || "bank_transfer")}"></div>
@@ -7098,7 +7205,7 @@
 
     if (section === "settings_notifications") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Notifications", "Notifications")}</h3><span>${langText("Badge, notifiche in-app e preferenze mock.", "Badges, in-app notifications, and mock preferences.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Notifiche", "Notifications")}</h3><span>${langText("Badge, notifiche in-app e preferenze mock.", "Badges, in-app notifications, and mock preferences.")}</span></div>
         <div class="irisx-toggle-grid">
           <label><input id="notifPrefOrders" type="checkbox" ${user.notificationSettings.orders ? "checked" : ""}> ${langText("Ordini", "Orders")}</label>
           <label><input id="notifPrefMessages" type="checkbox" ${user.notificationSettings.messages ? "checked" : ""}> ${langText("Messaggi", "Messages")}</label>
@@ -7113,7 +7220,7 @@
 
     if (section === "settings_security") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Security", "Security")}</h3><span>${langText("2FA, login alerts e sessioni attive mock.", "2FA, login alerts, and mock active sessions.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Sicurezza", "Security")}</h3><span>${langText("2FA, login alerts e sessioni attive mock.", "2FA, login alerts, and mock active sessions.")}</span></div>
         <div class="irisx-toggle-grid">
           <label><input id="securityTwoFactor" type="checkbox" ${user.security.twoFactor ? "checked" : ""}> ${langText("Two-factor authentication", "Two-factor authentication")}</label>
           <label><input id="securityLoginAlerts" type="checkbox" ${user.security.loginAlerts ? "checked" : ""}> ${langText("Login alerts", "Login alerts")}</label>
@@ -7162,7 +7269,7 @@
 
     if (section === "help_accessibility") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Accessibility Statement", "Accessibility Statement")}</h3><span>${langText("Impegni di struttura e supporto del prototipo.", "Prototype structure and support commitments.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Dichiarazione di accessibilità", "Accessibility Statement")}</h3><span>${langText("Impegni di struttura e supporto del prototipo.", "Prototype structure and support commitments.")}</span></div>
         <div class="irisx-card-stack">
           <div class="irisx-inline-card"><div><strong>${langText("Responsive baseline", "Responsive baseline")}</strong><span>${langText("Layout account e messaging adattati a desktop e mobile.", "Account and messaging layouts are adapted for desktop and mobile.")}</span></div></div>
           <div class="irisx-inline-card"><div><strong>${langText("Assistive support path", "Assistive support path")}</strong><span>${langText("Per richieste specifiche usa Contact Support o apri il documento dedicato.", "Use Contact Support or open the dedicated statement for specific needs.")}</span></div><button class="irisx-secondary" onclick="openStatic('accessibility-statement')">${langText("Apri statement", "Open statement")}</button></div>
@@ -7172,7 +7279,7 @@
 
     if (section === "help_contact") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Contact Support", "Contact Support")}</h3><span>${langText("Ticket, dispute e issue reporting.", "Tickets, disputes, and issue reporting.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Contatta il supporto", "Contact Support")}</h3><span>${langText("Ticket, dispute e issue reporting.", "Tickets, disputes, and issue reporting.")}</span></div>
         <div class="irisx-card-stack">
           <div class="irisx-inline-card"><div><strong>${PLATFORM_CONFIG.supportEmail}</strong><span>${langText("Inbox support proprietario / team.", "Owner / team support inbox.")}</span></div></div>
         </div>
@@ -7193,50 +7300,133 @@
 
     if (section === "help_sell") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Sell", "Sell")}</h3><span>${langText("Onboarding seller, fee coerenti e scorciatoie operative.", "Seller onboarding, coherent fees, and operational shortcuts.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Vendi", "Sell")}</h3><span>${langText("Onboarding seller, fee coerenti e scorciatoie operative.", "Seller onboarding, coherent fees, and operational shortcuts.")}</span></div>
         <div class="irisx-card-stack">
           <div class="irisx-inline-card"><div><strong>${langText("Create a listing", "Create a listing")}</strong><span>${langText("Apri il form seller mantenendo fee e offer settings coerenti.", "Open the seller form while keeping fee and offer settings coherent.")}</span></div><button class="irisx-primary" onclick="showPage('sell')">${langText("Vai a Sell", "Go to Sell")}</button></div>
-          <div class="irisx-inline-card"><div><strong>${langText("Seller dashboard", "Seller dashboard")}</strong><span>${langText("Gestisci shipping queue, offerte ricevute e cronologia vendite.", "Manage shipping queue, incoming offers, and sales history.")}</span></div><button class="irisx-secondary" onclick="setProfileArea('seller','dashboard')">${langText("Apri dashboard", "Open dashboard")}</button></div>
+          <div class="irisx-inline-card"><div><strong>${langText("Dashboard seller", "Seller dashboard")}</strong><span>${langText("Gestisci shipping queue, offerte ricevute e cronologia vendite.", "Manage shipping queue, incoming offers, and sales history.")}</span></div><button class="irisx-secondary" onclick="setProfileArea('seller','dashboard')">${langText("Apri dashboard", "Open dashboard")}</button></div>
         </div>
       </div>`;
     }
 
-    return `<div class="irisx-summary-grid">
-      <div class="irisx-summary-card"><strong>${orders.length}</strong><span>${langText("Buyer orders", "Buyer orders")}</span></div>
-      <div class="irisx-summary-card"><strong>${sellerOrders.length}</strong><span>${langText("Seller workflow", "Seller workflow")}</span></div>
-      <div class="irisx-summary-card"><strong>${favoritesItems.length}</strong><span>${t("favorites_section")}</span></div>
-      <div class="irisx-summary-card"><strong>${unreadNotifications}</strong><span>${langText("Unread notifications", "Unread notifications")}</span></div>
-    </div>
-    <div class="irisx-card-stack">
-      <div class="irisx-inline-card"><div><strong>${langText("I miei ordini", "My orders")}</strong><span>${orders.length} ${langText("ordini buyer", "buyer orders")} · ${orders[0] ? getOrderStatusLabel(orders[0]) : langText("nessun ordine", "no orders")}</span></div><button class="irisx-primary" onclick="setProfileArea('buyer','orders')">${langText("Apri ordini", "Open orders")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Le mie vendite", "My sales")}</strong><span>${sellerOrders.length} ${langText("vendite", "sales")} · ${sellerOrders.filter(function (order) { return order.payment && order.payment.payoutStatus === 'ready'; }).length} ${langText("payout ready", "payout ready")}</span></div><button class="irisx-primary" onclick="setProfileArea('seller','history')">${langText("Apri vendite", "Open sales")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Metodi di pagamento", "Payment methods")}</strong><span>${user.paymentMethods.length} ${langText("metodi salvati", "saved methods")} · ${user.paymentMethods.find(function (method) { return method.isDefault; }) ? langText("default presente", "default set") : langText("default mancante", "default missing")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_payment')">${langText("Apri pagamenti", "Open payments")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Metodi per ricevere i soldi", "Payout methods")}</strong><span>${escapeHtml(user.payoutSettings.method || langText("Da configurare", "Set up needed"))} · ${escapeHtml(user.payoutSettings.status || "setup_required")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_payment')">${langText("Apri payout", "Open payout")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("I miei indirizzi", "My addresses")}</strong><span>${user.addresses.length} ${langText("indirizzi salvati", "saved addresses")} · ${user.addresses.find(function (address) { return address.isDefault; }) ? langText("default attivo", "default active") : langText("nessun default", "no default")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_account')">${langText("Apri indirizzi", "Open addresses")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Preferenze shopping", "Shopping preferences")}</strong><span>${escapeHtml(user.sizeProfile.tops || "-")} / ${escapeHtml(user.sizeProfile.shoes || "-")} · ${savedSearches.length} ${langText("ricerche salvate", "saved searches")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','shopping_sizes')">${langText("Apri preferenze", "Open preferences")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Chat prodotti che compro", "Products I'm buying")}</strong><span>${buyingThreads.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("buying")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="openMessagingInbox('buying')">${langText("Apri chat compro", "Open buying chat")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Chat prodotti che vendo", "Products I'm selling")}</strong><span>${sellingThreads.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("selling")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="openMessagingInbox('selling')">${langText("Apri chat vendo", "Open selling chat")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Shopping", "Shopping")}</strong><span>${savedSearches.length} ${langText("ricerche salvate", "saved searches")} · ${escapeHtml(user.sizeProfile.tops || "")}/${escapeHtml(user.sizeProfile.shoes || "")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','shopping_preferences')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Selling", "Selling")}</strong><span>${user.vacationMode.enabled ? langText("Vacation mode attivo", "Vacation mode enabled") : langText("Seller operativo", "Seller active")} · ${reviewsReceived.length} ${langText("reviews", "reviews")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','selling_preferences')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Settings", "Settings")}</strong><span>${user.paymentMethods.length} ${langText("metodi pagamento", "payment methods")} · ${user.addresses.length} ${langText("indirizzi", "addresses")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_account')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Help / Trust", "Help / Trust")}</strong><span>${tickets.length} ${langText("ticket aperti", "open tickets")} · ${langText("policy e supporto", "policies and support")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','help_help')">${langText("Apri", "Open")}</button></div>
-    </div>`;
+    const buyerOffers = getBuyerOffers();
+    const sellerOffers = getSellerOffers();
+    return renderSectionShell({
+      kicker: langText("Cruscotto account", "Account cockpit"),
+      title: langText("Tutto sotto controllo", "Everything in one place"),
+      subtitle: langText("Qui trovi i flussi che contano davvero: ordini, offerte, chat, pagamenti e supporto.", "The flows that matter most live here: orders, offers, chats, payments, and support."),
+      metrics: [
+        renderHeroMetric(orders.length, langText("Ordini", "Orders")),
+        renderHeroMetric(sellerOrders.length, langText("Vendite", "Sales")),
+        renderHeroMetric(buyerOffers.length + sellerOffers.length, langText("Offerte", "Offers")),
+        renderHeroMetric(unreadNotifications, langText("Notifiche", "Notifications"))
+      ],
+      body: `<div class="irisx-shortcut-grid">
+        ${renderShortcutCard({
+          title: langText("I miei ordini", "My orders"),
+          meta: `${orders.length} ${langText("ordini buyer", "buyer orders")}`,
+          description: orders[0] ? `${langText("Ultimo stato", "Latest status")}: ${getOrderStatusLabel(orders[0])}` : langText("Cronologia acquisti, tracking e supporto post-vendita.", "Purchase history, tracking, and post-order support."),
+          actionLabel: langText("Apri ordini", "Open orders"),
+          action: "setProfileArea('buyer','orders')",
+          actionClass: "irisx-primary",
+          tone: "buyer"
+        })}
+        ${renderShortcutCard({
+          title: langText("Offerte inviate", "Sent offers"),
+          meta: `${buyerOffers.length} ${langText("offerte attive o chiuse", "active or closed offers")}`,
+          description: langText("Controlla offerte in attesa, accettate e relative autorizzazioni pagamento.", "Track pending offers, accepted ones, and payment authorizations."),
+          actionLabel: langText("Apri offerte", "Open offers"),
+          action: "setProfileArea('buyer','offers')",
+          tone: "accent"
+        })}
+        ${renderShortcutCard({
+          title: langText("Le mie vendite", "My sales"),
+          meta: `${sellerOrders.length} ${langText("vendite", "sales")} · ${sellerOffers.length} ${langText("offerte ricevute", "offers received")}`,
+          description: langText("Dashboard seller, ordini da spedire e storico payout.", "Seller dashboard, shipping queue, and payout history."),
+          actionLabel: langText("Apri seller", "Open seller"),
+          action: "setProfileArea('seller','dashboard')",
+          actionClass: "irisx-primary",
+          tone: "seller"
+        })}
+        ${renderShortcutCard({
+          title: langText("Chat compro", "Buying chat"),
+          meta: `${buyingThreads.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("buying")} ${langText("non lette", "unread")}`,
+          description: langText("Domande su articoli che stai trattando o acquistando.", "Questions about items you are negotiating or buying."),
+          actionLabel: langText("Apri inbox", "Open inbox"),
+          action: "openMessagingInbox('buying')"
+        })}
+        ${renderShortcutCard({
+          title: langText("Chat vendo", "Selling chat"),
+          meta: `${sellingThreads.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("selling")} ${langText("non lette", "unread")}`,
+          description: langText("Buyer interessati ai tuoi annunci, offerte e follow-up.", "Buyers interested in your listings, offers, and follow-ups."),
+          actionLabel: langText("Apri inbox", "Open inbox"),
+          action: "openMessagingInbox('selling')"
+        })}
+        ${renderShortcutCard({
+          title: langText("Metodi di pagamento", "Payment methods"),
+          meta: `${user.paymentMethods.length} ${langText("metodi salvati", "saved methods")}`,
+          description: user.paymentMethods.find(function (method) { return method.isDefault; })
+            ? langText("Hai già un metodo predefinito salvato.", "You already have a default method saved.")
+            : langText("Aggiungi un metodo predefinito per checkout e future autorizzazioni.", "Add a default method for checkout and future authorizations."),
+          actionLabel: langText("Apri pagamenti", "Open payments"),
+          action: "setProfileArea('account','settings_payment')"
+        })}
+        ${renderShortcutCard({
+          title: langText("Indirizzi e profilo", "Addresses and profile"),
+          meta: `${user.addresses.length} ${langText("indirizzi", "addresses")} · ${escapeHtml(user.phone || langText("telefono mancante", "phone missing"))}`,
+          description: langText("Rubrica spedizioni, telefono e dati account.", "Shipping address book, phone number, and account data."),
+          actionLabel: langText("Apri account", "Open account"),
+          action: "setProfileArea('account','settings_account')"
+        })}
+        ${renderShortcutCard({
+          title: langText("Preferenze shopping", "Shopping preferences"),
+          meta: `${escapeHtml(user.sizeProfile.tops || "-")} / ${escapeHtml(user.sizeProfile.shoes || "-")} · ${savedSearches.length} ${langText("ricerche salvate", "saved searches")}`,
+          description: langText("Taglie, alert e scorciatoie per trovare prima i pezzi giusti.", "Sizes, alerts, and shortcuts to find the right pieces faster."),
+          actionLabel: langText("Apri preferenze", "Open preferences"),
+          action: "setProfileArea('account','shopping_preferences')"
+        })}
+        ${renderShortcutCard({
+          title: langText("Supporto e trust", "Support and trust"),
+          meta: `${tickets.length} ${langText("ticket aperti", "open tickets")} · ${unreadNotifications} ${langText("notifiche", "notifications")}`,
+          description: langText("Ticket assistenza, protection flow e notifiche operative.", "Support tickets, protection flow, and operational notifications."),
+          actionLabel: langText("Apri supporto", "Open support"),
+          action: "setProfileArea('account','help_contact')"
+        })}
+      </div>`
+    });
   }
 
   function renderBuyerArea(orders, favoritesItems, tickets) {
     const section = state.buyerSection || "orders";
     const selectedOrder = getSelectedOrder("buyer");
     if (section === "order_detail") {
-      return renderOrderSummaryCard(selectedOrder, "buyer");
+      return renderSectionShell({
+        kicker: langText("Dettaglio buyer", "Buyer detail"),
+        title: langText("Dettaglio ordine", "Order detail"),
+        subtitle: langText("Riepilogo completo dell'ordine selezionato.", "Full summary for the selected order."),
+        body: renderOrderSummaryCard(selectedOrder, "buyer")
+      });
     }
     if (section === "tracking") {
-      return renderOrderTrackingPanel(selectedOrder);
+      return renderSectionShell({
+        kicker: langText("Tracking buyer", "Buyer tracking"),
+        title: langText("Tracking", "Tracking"),
+        subtitle: langText("Timeline logistica e aggiornamenti dell'ordine attivo.", "Shipping timeline and updates for the active order."),
+        body: renderOrderTrackingPanel(selectedOrder)
+      });
     }
     if (section === "offers") {
       return renderOffersMarkup(getBuyerOffers(), "buyer");
     }
     if (section === "wishlist") {
-      return favoritesItems.length ? `<div class="irisx-favorites-grid">${favoritesItems.map(function (item) { return productCardMarkup(item); }).join("")}</div>` : `<div class="irisx-empty-state">${t("no_favorites_yet")}</div>`;
+      return renderSectionShell({
+        kicker: langText("Selezione buyer", "Buyer shortlist"),
+        title: langText("Wishlist", "Wishlist"),
+        subtitle: langText("I pezzi salvati che vuoi monitorare o comprare più avanti.", "Saved pieces you want to monitor or buy later."),
+        metrics: [renderHeroMetric(favoritesItems.length, langText("Salvati", "Saved"))],
+        body: favoritesItems.length
+          ? `<div class="irisx-favorites-grid">${favoritesItems.map(function (item) { return productCardMarkup(item); }).join("")}</div>`
+          : `<div class="irisx-workspace-card"><div class="irisx-empty-state irisx-empty-state--expanded"><strong>${t("no_favorites_yet")}</strong><span>${langText("Salva i prodotti migliori per ritrovarli qui con un tap.", "Save your best products and find them here with one tap.")}</span><div class="irisx-actions"><button class="irisx-secondary" onclick="showBuyView('shop')">${langText("Vai allo shop", "Go to shop")}</button></div></div></div>`
+      });
     }
     if (section === "messages") {
       return renderMessagingWorkspaceCard("buying");
@@ -7245,20 +7435,47 @@
       const history = orders.filter(function (order) {
         return ["completed", "cancelled", "refunded", "delivered"].includes(order.status);
       });
-      return renderBuyerOrdersMarkup(history);
+      return renderSectionShell({
+        kicker: langText("Archivio buyer", "Buyer archive"),
+        title: langText("Storico acquisti", "Purchase history"),
+        subtitle: langText("Ordini chiusi, completati o rimborsati.", "Closed, completed, or refunded orders."),
+        metrics: [renderHeroMetric(history.length, langText("Storico", "History"))],
+        body: renderBuyerOrdersMarkup(history)
+      });
     }
     if (section === "reviews") {
       const reviewable = orders.filter(function (order) {
         return ["delivered", "completed"].includes(order.status);
       });
-      return reviewable.length ? `<div class="irisx-card-stack">${reviewable.map(function (order) {
+      return renderSectionShell({
+        kicker: langText("Recensioni buyer", "Buyer reviews"),
+        title: langText("Recensioni", "Review flow"),
+        subtitle: langText("Lascia una review quando l'ordine è completato o consegnato.", "Leave a review once an order is delivered or completed."),
+        metrics: [renderHeroMetric(reviewable.length, langText("Da recensire", "Reviewable"))],
+        body: reviewable.length ? `<div class="irisx-card-stack">${reviewable.map(function (order) {
         return `<div class="irisx-inline-card"><div><strong>${escapeHtml(order.number)}</strong><span>${escapeHtml(order.items.map(function (item) { return item.brand + " " + item.name; }).join(", "))}</span></div>${order.reviewStatus === "submitted" ? `<span class="irisx-badge">${langText("Review inviata", "Review sent")}</span>` : `<button class="irisx-secondary" onclick="openReviewModal('${order.id}')">${langText("Recensisci", "Review")}</button>`}</div>`;
-      }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessuna review disponibile.", "No reviews available.")}</div>`;
+      }).join("")}</div>` : `<div class="irisx-workspace-card"><div class="irisx-empty-state">${langText("Nessuna review disponibile.", "No reviews available.")}</div></div>`
+      });
     }
     if (section === "support") {
-      return `<div class="irisx-workspace-card">${renderSupportTicketsMarkup(tickets)}${selectedOrder ? `<div class="irisx-actions"><button class="irisx-primary" onclick="openSupportModal('${selectedOrder.id}')">${langText("Apri supporto per ordine attivo", "Open support for active order")}</button></div>` : ""}</div>`;
+      return renderSectionShell({
+        kicker: langText("Supporto buyer", "Buyer support"),
+        title: langText("Supporto / segnala problema", "Support / report issue"),
+        subtitle: langText("Segnalazioni, dispute e richieste assistenza legate agli ordini buyer.", "Reports, disputes, and buyer order support requests."),
+        metrics: [renderHeroMetric(tickets.length, langText("Ticket", "Tickets"))],
+        body: `<div class="irisx-workspace-card">${renderSupportTicketsMarkup(tickets)}${selectedOrder ? `<div class="irisx-actions"><button class="irisx-primary" onclick="openSupportModal('${selectedOrder.id}')">${langText("Apri supporto per ordine attivo", "Open support for active order")}</button></div>` : ""}</div>`
+      });
     }
-    return renderBuyerOrdersMarkup(orders);
+    return renderSectionShell({
+      kicker: langText("Area buyer", "Buyer workspace"),
+      title: langText("I miei ordini", "My orders"),
+      subtitle: langText("Ordini in corso, consegne e stati post-acquisto in un'unica vista.", "Current orders, deliveries, and post-purchase states in one view."),
+      metrics: [
+        renderHeroMetric(orders.length, langText("Totali", "Total")),
+        renderHeroMetric(orders.filter(function (order) { return ["paid", "awaiting_shipment", "shipped", "in_authentication", "dispatched_to_buyer"].includes(order.status); }).length, langText("Attivi", "Active"))
+      ],
+      body: renderBuyerOrdersMarkup(orders)
+    });
   }
 
   function renderSellerArea(listings, sellerOrders) {
@@ -7321,20 +7538,63 @@
         return `<div class="irisx-inline-card"><div><strong>${escapeHtml(brand)}</strong><span>${byBrand[brand]} ${langText("annunci", "listings")}</span></div></div>`;
       }).join("")}</div>`;
     }
-    return `<div class="irisx-summary-grid">
-      <div class="irisx-summary-card"><strong>${published.length}</strong><span>${langText("Active listings", "Active listings")}</span></div>
-      <div class="irisx-summary-card"><strong>${drafts.length}</strong><span>${langText("Drafts", "Drafts")}</span></div>
-      <div class="irisx-summary-card"><strong>${sellerOrders.filter(function (order) { return ["paid", "awaiting_shipment"].includes(order.status); }).length}</strong><span>${langText("Shipping queue", "Shipping queue")}</span></div>
-      <div class="irisx-summary-card"><strong>${sellerOrders.filter(function (order) { return order.payment.payoutStatus === "ready"; }).length}</strong><span>${langText("Payout ready", "Payout ready")}</span></div>
-      <div class="irisx-summary-card"><strong>${sellingConversations.length}</strong><span>${langText("Selling chats", "Selling chats")}</span></div>
-    </div>
-    <div class="irisx-card-stack">
-      <div class="irisx-inline-card"><div><strong>${langText("Active listings", "Active listings")}</strong><span>${langText("Catalogo live seller.", "Seller live catalog.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('active')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Draft listings", "Draft listings")}</strong><span>${langText("Bozze pronte da completare.", "Drafts ready to complete.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('drafts')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Offers received", "Offers received")}</strong><span>${sellerOffers.length} ${langText("offerte", "offers")}</span></div><button class="irisx-secondary" onclick="setSellerSection('offers')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Selling inbox", "Selling inbox")}</strong><span>${sellingConversations.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("selling")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="setSellerSection('messages')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Shipping queue", "Shipping queue")}</strong><span>${langText("Ordini da processare.", "Orders to process.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('shipping')">${langText("Apri", "Open")}</button></div>
-    </div>`;
+    return renderSectionShell({
+      kicker: langText("Cruscotto seller", "Seller cockpit"),
+      title: langText("Dashboard seller", "Seller dashboard"),
+      subtitle: langText("Controlla inventario, offerte, spedizioni e incassi da una vista più ordinata.", "Monitor inventory, offers, shipping, and payouts from a cleaner dashboard."),
+      metrics: [
+        renderHeroMetric(published.length, langText("Attivi", "Live")),
+        renderHeroMetric(drafts.length, langText("Bozze", "Drafts")),
+        renderHeroMetric(sellerOffers.length, langText("Offerte", "Offers")),
+        renderHeroMetric(sellerOrders.filter(function (order) { return order.payment.payoutStatus === "ready"; }).length, langText("Payout pronti", "Payout ready"))
+      ],
+      body: `<div class="irisx-shortcut-grid">
+        ${renderShortcutCard({
+          title: langText("Annunci attivi", "Active listings"),
+          meta: `${published.length} ${langText("attivi", "live")}`,
+          description: langText("Catalogo pubblicato, disponibilità e impostazioni offerte.", "Published catalog, availability, and offer settings."),
+          actionLabel: langText("Apri attivi", "Open active"),
+          action: "setSellerSection('active')",
+          tone: "seller"
+        })}
+        ${renderShortcutCard({
+          title: langText("Bozze", "Drafts"),
+          meta: `${drafts.length} ${langText("bozze", "drafts")}`,
+          description: langText("Annunci pronti da completare e pubblicare.", "Listings ready to be completed and published."),
+          actionLabel: langText("Apri bozze", "Open drafts"),
+          action: "setSellerSection('drafts')"
+        })}
+        ${renderShortcutCard({
+          title: langText("Offerte ricevute", "Offers received"),
+          meta: `${sellerOffers.length} ${langText("offerte", "offers")}`,
+          description: langText("Vedi importo, scadenza e stato autorizzazione prima di accettare.", "Review amount, expiration, and authorization status before accepting."),
+          actionLabel: langText("Apri offerte", "Open offers"),
+          action: "setSellerSection('offers')",
+          tone: "accent"
+        })}
+        ${renderShortcutCard({
+          title: langText("Inbox vendita", "Selling inbox"),
+          meta: `${sellingConversations.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("selling")} ${langText("non lette", "unread")}`,
+          description: langText("Conversazioni con buyer e follow-up su annunci in trattativa.", "Buyer conversations and follow-ups on live negotiations."),
+          actionLabel: langText("Apri chat", "Open chat"),
+          action: "setSellerSection('messages')"
+        })}
+        ${renderShortcutCard({
+          title: langText("Coda spedizioni", "Shipping queue"),
+          meta: `${sellerOrders.filter(function (order) { return ["paid", "awaiting_shipment"].includes(order.status); }).length} ${langText("ordini da processare", "orders to process")}`,
+          description: langText("Etichette, tracking e preparazione ordini seller.", "Labels, tracking, and seller shipment prep."),
+          actionLabel: langText("Apri spedizioni", "Open shipping"),
+          action: "setSellerSection('shipping')"
+        })}
+        ${renderShortcutCard({
+          title: langText("Panoramica payout", "Payout overview"),
+          meta: `${sellerOrders.filter(function (order) { return order.payment.payoutStatus === "ready"; }).length} ${langText("pronti", "ready")}`,
+          description: langText("Storico netto/lordo e stato dei pagamenti al seller.", "Gross/net history and seller payout status."),
+          actionLabel: langText("Apri payout", "Open payouts"),
+          action: "setSellerSection('payouts')"
+        })}
+      </div>`
+    });
   }
 
   function getWorkspaceSections(area) {
@@ -7344,29 +7604,34 @@
       }, []);
     }
     if (area === "buyer") {
-      return [
-        { id: "orders", label: langText("My orders", "My orders") },
-        { id: "order_detail", label: langText("Order detail", "Order detail") },
-        { id: "tracking", label: langText("Tracking", "Tracking") },
-        { id: "offers", label: langText("Sent offers", "Sent offers") },
-        { id: "wishlist", label: langText("Wishlist", "Wishlist") },
-        { id: "messages", label: langText("Chat compro", "Buying chat") },
-        { id: "history", label: langText("Purchase history", "Purchase history") },
-        { id: "reviews", label: langText("Review flow", "Review flow") },
-        { id: "support", label: langText("Support / report issue", "Support / report issue") }
-      ];
+    const sections = [
+      { id: "orders", label: langText("I miei ordini", "My orders") },
+      { id: "offers", label: langText("Offerte inviate", "Sent offers") },
+      { id: "wishlist", label: langText("Wishlist", "Wishlist") },
+      { id: "messages", label: langText("Chat compro", "Buying chat") },
+      { id: "history", label: langText("Storico acquisti", "Purchase history") },
+      { id: "reviews", label: langText("Recensioni", "Review flow") },
+      { id: "support", label: langText("Supporto / segnala problema", "Support / report issue") }
+    ];
+    if (state.buyerSection === "order_detail") {
+      sections.unshift({ id: "order_detail", label: langText("Dettaglio ordine", "Order detail") });
     }
+    if (state.buyerSection === "tracking") {
+      sections.unshift({ id: "tracking", label: langText("Tracking", "Tracking") });
+    }
+    return sections;
+  }
     return [
-      { id: "dashboard", label: langText("Seller dashboard", "Seller dashboard") },
-      { id: "active", label: langText("Active listings", "Active listings") },
-      { id: "drafts", label: langText("Draft listings", "Draft listings") },
-      { id: "sold", label: langText("Sold items", "Sold items") },
-      { id: "offers", label: langText("Offers received", "Offers received") },
+      { id: "dashboard", label: langText("Dashboard seller", "Seller dashboard") },
+      { id: "active", label: langText("Annunci attivi", "Active listings") },
+      { id: "drafts", label: langText("Bozze", "Draft listings") },
+      { id: "sold", label: langText("Venduti", "Sold items") },
+      { id: "offers", label: langText("Offerte ricevute", "Offers received") },
       { id: "messages", label: langText("Chat vendo", "Selling chat") },
-      { id: "shipping", label: langText("Shipping queue", "Shipping queue") },
-      { id: "payouts", label: langText("Payout overview", "Payout overview") },
-      { id: "history", label: langText("Sales history", "Sales history") },
-      { id: "stats", label: langText("Listing stats", "Listing stats") }
+      { id: "shipping", label: langText("Coda spedizioni", "Shipping queue") },
+      { id: "payouts", label: langText("Panoramica payout", "Payout overview") },
+      { id: "history", label: langText("Storico vendite", "Sales history") },
+      { id: "stats", label: langText("Statistiche annunci", "Listing stats") }
     ];
   }
 
@@ -7490,6 +7755,23 @@
       content = renderSellerArea(listings, sellerOrders);
     }
 
+    const unreadNotifications = getVisibleNotifications().filter(function (notification) { return notification.unread; }).length;
+    const workspaceKicker = area === "account"
+      ? langText("Area account", "Account workspace")
+      : area === "buyer"
+        ? langText("Area buyer", "Buyer workspace")
+        : langText("Area seller", "Seller workspace");
+    const workspaceTitle = area === "account"
+      ? langText("Profilo e preferenze", "Profile and preferences")
+      : area === "buyer"
+        ? langText("Acquisti e offerte", "Purchases and offers")
+        : langText("Vendite e operatività", "Sales and operations");
+    const workspaceSubtitle = area === "account"
+      ? langText("Usa la colonna sinistra per cambiare sezione e tieni il focus sulle aree davvero utili.", "Use the left column to change section and keep focus on the areas that matter.")
+      : area === "buyer"
+        ? langText("Ordini, wishlist, chat e supporto buyer in una struttura più pulita.", "Orders, wishlist, chats, and buyer support in a cleaner structure.")
+        : langText("Annunci, offerte, spedizioni e payout seller con una gerarchia più leggibile.", "Listings, offers, shipping, and seller payouts with a clearer hierarchy.");
+
     container.innerHTML = `<div class="irisx-workspace">
       <aside class="irisx-workspace-sidebar">
         <div class="irisx-user-card">
@@ -7500,30 +7782,36 @@
             <em>${langText("Membro dal", "Member since")} ${escapeHtml(user.memberSince || "2026")}</em>
           </div>
         </div>
+        <div class="irisx-sidebar-stat-grid">
+          <div class="irisx-sidebar-stat"><strong>${orders.length}</strong><span>${langText("Ordini", "Orders")}</span></div>
+          <div class="irisx-sidebar-stat"><strong>${listings.length}</strong><span>${langText("Annunci", "Listings")}</span></div>
+          <div class="irisx-sidebar-stat"><strong>${favoritesItems.length}</strong><span>${langText("Preferiti", "Wishlist")}</span></div>
+          <div class="irisx-sidebar-stat"><strong>${unreadNotifications}</strong><span>${langText("Notifiche", "Notifications")}</span></div>
+        </div>
         <div class="irisx-area-nav">
-          <button class="irisx-area-btn${area === "account" ? " on" : ""}" onclick="setProfileArea('account','overview')">${langText("Account area", "Account area")}</button>
-          <button class="irisx-area-btn${area === "buyer" ? " on" : ""}" onclick="setProfileArea('buyer','orders')">${langText("Buyer area", "Buyer area")}</button>
-          <button class="irisx-area-btn${area === "seller" ? " on" : ""}" onclick="setProfileArea('seller','dashboard')">${langText("Seller area", "Seller area")}</button>
+          <button class="irisx-area-btn${area === "account" ? " on" : ""}" onclick="setProfileArea('account','overview')">${langText("Area account", "Account area")}</button>
+          <button class="irisx-area-btn${area === "buyer" ? " on" : ""}" onclick="setProfileArea('buyer','orders')">${langText("Area buyer", "Buyer area")}</button>
+          <button class="irisx-area-btn${area === "seller" ? " on" : ""}" onclick="setProfileArea('seller','dashboard')">${langText("Area seller", "Seller area")}</button>
           ${isCurrentUserAdmin() ? `<button class="irisx-area-btn" onclick="showBuyView('ops')">${langText("Admin dashboard", "Admin dashboard")}</button>` : ""}
         </div>
-        <div class="irisx-card-stack">
-          <div class="irisx-inline-card"><div><strong>${orders.length}</strong><span>${langText("Buyer orders", "Buyer orders")}</span></div></div>
-          <div class="irisx-inline-card"><div><strong>${listings.length}</strong><span>${langText("Listings", "Listings")}</span></div></div>
-          <div class="irisx-inline-card"><div><strong>${favoritesItems.length}</strong><span>${langText("Wishlist", "Wishlist")}</span></div></div>
-          <div class="irisx-inline-card"><div><strong>${getVisibleNotifications().filter(function (notification) { return notification.unread; }).length}</strong><span>${langText("Unread notifications", "Unread notifications")}</span></div></div>
+        <div class="irisx-sidebar-note">
+          <strong>${area === "seller" ? langText("Focus seller", "Seller focus") : area === "buyer" ? langText("Focus buyer", "Buyer focus") : langText("Focus profilo", "Profile focus")}</strong>
+          <span>${workspaceSubtitle}</span>
         </div>
         <div class="irisx-actions irisx-actions--stack"><button class="irisx-secondary" onclick="showPage('sell')">${t("sell")}</button><button class="irisx-danger" onclick="logout()">${t("logout")}</button></div>
       </aside>
       <div class="irisx-workspace-main">
         <div class="irisx-workspace-head">
           <div>
-            <div class="irisx-kicker">${area === "account" ? langText("Account workspace", "Account workspace") : area === "buyer" ? langText("Buyer workspace", "Buyer workspace") : langText("Seller workspace", "Seller workspace")}</div>
-            <div class="irisx-title">${area === "account" ? langText("Account", "Account") : area === "buyer" ? langText("Buyer", "Buyer") : langText("Seller", "Seller")}</div>
-            <div class="irisx-subtitle">${langText("Scheletro completo del marketplace prototipo.", "Complete structural skeleton of the marketplace prototype.")}</div>
+            <div class="irisx-kicker">${workspaceKicker}</div>
+            <div class="irisx-title">${workspaceTitle}</div>
+            <div class="irisx-subtitle">${workspaceSubtitle}</div>
           </div>
         </div>
-        <div class="irisx-section-tabs${area === "account" ? " irisx-section-tabs--account" : ""}">${sectionNav}</div>
-        <div class="irisx-workspace-content">${content}</div>
+        <div class="irisx-section-shell">
+          <div class="irisx-section-panel irisx-section-tabs${area === "account" ? " irisx-section-tabs--account" : ""}">${sectionNav}</div>
+          <div class="irisx-workspace-content">${content}</div>
+        </div>
       </div>
     </div>`;
   };

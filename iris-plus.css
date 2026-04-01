@@ -1386,9 +1386,9 @@ body.light-mode .irisx-home-strip span {
     gap: 1rem !important;
   }
 
-  .prof-stat {
-    text-align: left !important;
-    min-width: 72px;
+.prof-stat {
+  text-align: left !important;
+  min-width: 72px;
   }
 }
 
@@ -1473,4 +1473,736 @@ body.light-mode .irisx-home-strip span {
 .topnav .tn-primary:hover {
   background: linear-gradient(135deg, #9D5CF5, #7C3AED) !important;
   box-shadow: 0 0 24px rgba(124,58,237,.4) !important;
+.irisx-modal-card--wide {
+  width: min(980px, calc(100vw - 2rem));
+}
+
+.irisx-workspace {
+  display: grid;
+  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+  gap: 1.4rem;
+  padding: 1.6rem 0 3rem;
+}
+
+.irisx-workspace--admin {
+  padding-top: 2rem;
+}
+
+.irisx-workspace-sidebar,
+.irisx-workspace-main,
+.irisx-workspace-card {
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  background: rgba(12, 7, 28, 0.62);
+  backdrop-filter: blur(18px);
+}
+
+.irisx-workspace-sidebar,
+.irisx-workspace-main {
+  padding: 1.15rem;
+}
+
+.irisx-workspace-main {
+  display: grid;
+  gap: 1rem;
+}
+
+.irisx-user-card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(167, 139, 250, 0.12);
+}
+
+.irisx-user-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(124, 58, 237, 0.2);
+  color: #fff;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+}
+
+.irisx-user-meta {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.irisx-user-meta strong {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.92rem;
+}
+
+.irisx-user-meta span,
+.irisx-user-meta em {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.48);
+  font-style: normal;
+}
+
+.irisx-area-nav,
+.irisx-section-tabs,
+.irisx-toggle-grid,
+.irisx-summary-grid,
+.irisx-trust-grid,
+.irisx-tracking-grid,
+.irisx-card-stack,
+.irisx-checkout-shell,
+.irisx-checkout-stepper {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.irisx-area-nav {
+  margin: 1rem 0;
+}
+
+.irisx-area-btn,
+.irisx-section-tab,
+.irisx-link-btn,
+.irisx-chat-product-card,
+.irisx-notification-item,
+.irisx-policy-card,
+.irisx-inline-card--button {
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.74);
+  cursor: pointer;
+}
+
+.irisx-area-btn,
+.irisx-section-tab {
+  text-align: left;
+  padding: 0.72rem 0.85rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.irisx-area-btn.on,
+.irisx-section-tab.on {
+  background: rgba(124, 58, 237, 0.16);
+  color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(167, 139, 250, 0.24);
+}
+
+.irisx-section-tabs {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.irisx-section-tabs--account {
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.irisx-nav-group,
+.irisx-nav-group-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.irisx-nav-group-title {
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.irisx-summary-grid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.irisx-summary-card {
+  padding: 1rem;
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  display: grid;
+  gap: 0.3rem;
+}
+
+.irisx-summary-card strong {
+  font-size: 1.25rem;
+  font-family: "Playfair Display", serif;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.irisx-summary-card span {
+  color: rgba(255, 255, 255, 0.46);
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+.irisx-inline-card,
+.irisx-policy-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1rem;
+}
+
+.irisx-inline-card div,
+.irisx-policy-card {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.irisx-inline-card strong,
+.irisx-policy-card strong,
+.irisx-workspace-card h3,
+.irisx-order-panel-title {
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 500;
+}
+
+.irisx-inline-card span,
+.irisx-inline-card em,
+.irisx-policy-card span,
+.irisx-section-head span,
+.irisx-order-panel .irisx-order-items div {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.74rem;
+  line-height: 1.65;
+}
+
+.irisx-inline-card em {
+  font-style: normal;
+}
+
+.irisx-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.irisx-workspace-card {
+  padding: 1.15rem;
+}
+
+.irisx-static-field {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.84rem;
+}
+
+.irisx-actions--stack {
+  flex-direction: column;
+}
+
+.irisx-badge,
+.irisx-chat-unread {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.2);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.irisx-chat-unread {
+  min-width: 18px;
+  margin-top: 0.3rem;
+}
+
+.irisx-order-card--expanded {
+  display: grid;
+  gap: 1rem;
+}
+
+.irisx-order-grid,
+.irisx-tracking-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+}
+
+.irisx-order-panel {
+  padding: 0.95rem;
+  border: 1px solid rgba(167, 139, 250, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  display: grid;
+  gap: 0.65rem;
+}
+
+.irisx-notification-item {
+  width: 100%;
+  padding: 0.85rem 0.95rem;
+  text-align: left;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.irisx-notification-item.unread {
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.irisx-notification-item strong {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.78rem;
+}
+
+.irisx-notification-item span,
+.irisx-notification-item em {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.7rem;
+  font-style: normal;
+}
+
+.irisx-notif-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.7rem;
+}
+
+.irisx-notif-panel-head strong {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.78rem;
+}
+
+.irisx-notif-panel-head button {
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  font-size: 0.66rem;
+}
+
+.irisx-empty-state--compact {
+  padding: 1rem;
+  font-size: 0.72rem;
+}
+
+.irisx-chat-product {
+  margin: 0.4rem 0 0.8rem;
+}
+
+.irisx-chat-role-meta {
+  margin-bottom: 0.55rem;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.7rem;
+}
+
+.irisx-chat-product-card {
+  width: 100%;
+  padding: 0.85rem;
+  text-align: left;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.irisx-chat-product-card strong {
+  font-size: 0.76rem;
+}
+
+.irisx-chat-product-card span,
+.irisx-chat-product-card em,
+.irisx-chat-product-card small,
+.irisx-chat-listing {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.68rem;
+  font-style: normal;
+}
+
+.irisx-chat-scope-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.irisx-chat-scope-tab {
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 0.7rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.62rem;
+}
+
+.irisx-chat-scope-tab em {
+  font-style: normal;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.irisx-chat-scope-tab.on {
+  background: rgba(124, 58, 237, 0.16);
+  color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(167, 139, 250, 0.24);
+}
+
+.irisx-chat-role-line {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.irisx-chat-role-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  padding: 0.18rem 0.42rem;
+  border-radius: 999px;
+  border: 1px solid rgba(167, 139, 250, 0.18);
+  background: rgba(124, 58, 237, 0.12);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.irisx-chat-attach {
+  width: 40px;
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.74);
+  cursor: pointer;
+}
+
+.irisx-chat-attach + input {
+  width: 100%;
+}
+
+.irisx-checkout-stepper {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  margin-bottom: 1rem;
+}
+
+.irisx-checkout-step {
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  display: grid;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.irisx-checkout-step span {
+  font-size: 0.62rem;
+  color: rgba(255, 255, 255, 0.44);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.irisx-checkout-step strong {
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.84);
+  text-transform: capitalize;
+}
+
+.irisx-checkout-step.on,
+.irisx-checkout-step.done {
+  border-color: rgba(167, 139, 250, 0.26);
+  background: rgba(124, 58, 237, 0.12);
+}
+
+.irisx-checkout-shell {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 330px);
+  align-items: start;
+}
+
+.irisx-checkout-main,
+.irisx-checkout-summary,
+.irisx-state-panel {
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1rem;
+}
+
+.irisx-state-panel {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.irisx-state-panel.success {
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+.irisx-state-panel.error {
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+.irisx-detail-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 0.8rem;
+}
+
+.irisx-detail-breadcrumb button,
+.irisx-link-btn {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.irisx-trust-grid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.irisx-policy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+}
+
+.irisx-policy-card {
+  min-height: 130px;
+  text-align: left;
+  align-items: flex-start;
+}
+
+.irisx-policy-card span {
+  line-height: 1.7;
+}
+
+.irisx-guest-shell {
+  display: grid;
+  gap: 1.3rem;
+  padding: 1.4rem 0 2rem;
+}
+
+.irisx-sell-draft {
+  width: 100%;
+  margin-bottom: 0.75rem;
+}
+
+body.light-mode .irisx-workspace-sidebar,
+body.light-mode .irisx-workspace-main,
+body.light-mode .irisx-workspace-card,
+body.light-mode .irisx-order-panel,
+body.light-mode .irisx-summary-card,
+body.light-mode .irisx-checkout-main,
+body.light-mode .irisx-checkout-summary,
+body.light-mode .irisx-state-panel {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(124, 58, 237, 0.12);
+}
+
+body.light-mode .irisx-user-meta strong,
+body.light-mode .irisx-inline-card strong,
+body.light-mode .irisx-policy-card strong,
+body.light-mode .irisx-summary-card strong,
+body.light-mode .irisx-notification-item strong,
+body.light-mode .irisx-checkout-step strong,
+body.light-mode .irisx-order-panel-title,
+body.light-mode .irisx-notif-panel-head strong {
+  color: rgba(26, 10, 53, 0.9);
+}
+
+body.light-mode .irisx-user-meta span,
+body.light-mode .irisx-user-meta em,
+body.light-mode .irisx-inline-card span,
+body.light-mode .irisx-inline-card em,
+body.light-mode .irisx-policy-card span,
+body.light-mode .irisx-summary-card span,
+body.light-mode .irisx-notification-item span,
+body.light-mode .irisx-notification-item em,
+body.light-mode .irisx-checkout-step span,
+body.light-mode .irisx-order-panel .irisx-order-items div,
+body.light-mode .irisx-chat-product-card span,
+body.light-mode .irisx-chat-product-card em,
+body.light-mode .irisx-chat-product-card small,
+body.light-mode .irisx-chat-listing {
+  color: rgba(26, 10, 53, 0.52);
+}
+
+body.light-mode .irisx-area-btn,
+body.light-mode .irisx-section-tab,
+body.light-mode .irisx-chat-product-card,
+body.light-mode .irisx-notification-item,
+body.light-mode .irisx-policy-card,
+body.light-mode .irisx-inline-card--button {
+  background: rgba(124, 58, 237, 0.03);
+  color: rgba(26, 10, 53, 0.75);
+  border-color: rgba(124, 58, 237, 0.12);
+}
+
+body.light-mode .irisx-nav-group-title,
+body.light-mode .irisx-chat-role-meta,
+body.light-mode .irisx-chat-scope-tab em {
+  color: rgba(26, 10, 53, 0.42);
+}
+
+body.light-mode .irisx-chat-scope-tab,
+body.light-mode .irisx-static-field {
+  background: rgba(124, 58, 237, 0.03);
+  color: rgba(26, 10, 53, 0.75);
+  border-color: rgba(124, 58, 237, 0.12);
+}
+
+body.light-mode .irisx-chat-role-badge {
+  border-color: rgba(124, 58, 237, 0.18);
+  background: rgba(124, 58, 237, 0.08);
+  color: rgba(26, 10, 53, 0.76);
+}
+
+@media (max-width: 980px) {
+  .irisx-workspace,
+  .irisx-checkout-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .irisx-section-tabs,
+  .irisx-summary-grid,
+  .irisx-checkout-stepper,
+  .irisx-policy-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .irisx-inline-card,
+  .irisx-policy-card,
+  .irisx-section-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.irisx-offer-settings {
+  padding-top: 0.25rem;
+}
+
+.irisx-offer-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.8rem;
+  color: #1A0A35;
+  margin: 0.2rem 0 1rem;
+}
+
+.irisx-offer-toggle input {
+  accent-color: var(--purple);
+}
+
+.det-offer[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.offer-meta,
+.offer-note {
+  font-size: 0.74rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.72);
+  margin-bottom: 1rem;
+}
+
+.offer-note {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.offer-stack {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.offer-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(167, 139, 250, 0.14);
+  background: rgba(167, 139, 250, 0.04);
+  border-radius: 4px;
+}
+
+.offer-summary strong {
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.64);
+}
+
+.offer-summary span {
+  font-size: 0.78rem;
+  color: var(--white);
+  text-align: right;
+}
+
+.offer-error,
+.offer-success {
+  padding: 0.8rem 1rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.offer-error {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: #fecaca;
+}
+
+.offer-success {
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  color: #bbf7d0;
+}
+
+body.light-mode .offer-meta,
+body.light-mode .offer-note {
+  color: rgba(26, 10, 53, 0.72);
+}
+
+body.light-mode .offer-note {
+  color: #1A0A35;
+}
+
+body.light-mode .offer-summary {
+  background: rgba(124, 58, 237, 0.03);
+  border-color: rgba(124, 58, 237, 0.12);
+}
+
+body.light-mode .offer-summary strong {
+  color: rgba(26, 10, 53, 0.56);
+}
+
+body.light-mode .offer-summary span {
+  color: #1A0A35;
+}
+
+body.light-mode .offer-error {
+  background: rgba(239, 68, 68, 0.07);
+  border-color: rgba(239, 68, 68, 0.16);
+  color: #b91c1c;
+}
+
+body.light-mode .offer-success {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.18);
+  color: #047857;
 }

@@ -51,14 +51,18 @@ button{font-family:inherit}
 @keyframes iGradMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 #intro-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(100,20,220,.22) 0%,rgba(80,10,180,.1) 40%,transparent 70%);animation:iGlow 6s ease-in-out infinite alternate}
 @keyframes iGlow{0%{opacity:.5;transform:scale(.95)}100%{opacity:1;transform:scale(1.05)}}
-/* Floating luxury elements */
+/* Floating luxury elements — centred away from edges, smooth fade */
 .i-floats{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-.i-f{position:absolute;color:rgba(196,160,106,.0);font-style:normal;animation:iFloatUp linear infinite;pointer-events:none;user-select:none}
-@keyframes iFloatUp{0%{opacity:0;transform:translateY(0) rotate(0deg) scale(1)}8%{opacity:1;color:rgba(196,160,106,.14)}85%{opacity:1}100%{opacity:0;transform:translateY(-80px) rotate(25deg) scale(.85)}}
-/* Shine overlay */
-.i-lux{position:absolute;inset:0;z-index:1;overflow:hidden}
-.i-lux-shine{position:absolute;top:-60%;left:-60%;width:220%;height:220%;background:conic-gradient(from 0deg at 50% 50%,transparent 0deg,transparent 320deg,rgba(167,139,250,.04) 340deg,rgba(255,255,255,.07) 350deg,rgba(196,160,106,.05) 355deg,transparent 360deg);animation:introShine 22s linear infinite;pointer-events:none}
-@keyframes introShine{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.i-f{position:absolute;font-style:normal;opacity:0;animation:iFloatUp linear infinite;pointer-events:none;user-select:none}
+@keyframes iFloatUp{
+  0%  {opacity:0;transform:translateY(0) rotate(0deg)}
+  15% {opacity:1}
+  80% {opacity:1}
+  100%{opacity:0;transform:translateY(-70px) rotate(18deg)}
+}
+/* Shine overlay — subtle static radial only, NO rotation */
+.i-lux{position:absolute;inset:0;z-index:1;pointer-events:none}
+.i-lux-shine{display:none}
 .i-ov{position:absolute;inset:0;z-index:2;pointer-events:none}
 .i-ov::before{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(2,0,10,.8) 0%,rgba(2,0,10,.05) 22%,rgba(2,0,10,.0) 50%,rgba(2,0,10,.05) 72%,rgba(2,0,10,.92) 100%),linear-gradient(to right,rgba(2,0,10,.35) 0%,transparent 30%,transparent 70%,rgba(2,0,10,.35) 100%)}
 .i-ov::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 52% at 50% 52%,rgba(90,25,185,.25) 0%,transparent 65%);mix-blend-mode:screen}
@@ -68,13 +72,13 @@ button{font-family:inherit}
 .i-bar-t{top:0;transform:translateY(-100%)}.i-bar-b{bottom:0;transform:translateY(100%)}
 #intro.i-cinema .i-bar-t{transform:translateY(0)}#intro.i-cinema .i-bar-b{transform:translateY(0)}
 .i-t{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
-/* IRIS title — luxury tri-colour cycle: gold → violet → white */
-.i-n{font-family:'Cormorant Garamond',serif;font-size:clamp(5.5rem,15vw,14rem);font-weight:300;font-style:italic;letter-spacing:.1em;line-height:1;opacity:0;transform:translateY(40px) scale(.96);transition:opacity 2.6s cubic-bezier(.22,1,.36,1),transform 2.6s cubic-bezier(.22,1,.36,1);background:linear-gradient(145deg,#C4A06A 0%,#F5EFE0 12%,#C4A06A 22%,#7C3AED 36%,#9D5CF5 48%,#FDFAFF 60%,#E8D5FF 72%,#C9ABFF 82%,#C4A06A 92%,#F5EFE0 100%);background-size:450% 450%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:iNameCycle 11s cubic-bezier(.4,0,.6,1) infinite}
+/* IRIS title — gold base, hue-rotate cycles: yellow → violet → gold */
+.i-n{font-family:'Cormorant Garamond',serif;font-size:clamp(5.5rem,15vw,14rem);font-weight:300;font-style:italic;letter-spacing:.1em;line-height:1;opacity:0;transform:translateY(40px) scale(.96);transition:opacity 2.6s cubic-bezier(.22,1,.36,1),transform 2.6s cubic-bezier(.22,1,.36,1);background:linear-gradient(145deg,#E8C060 0%,#FFE890 30%,#D4A832 55%,#FFD060 80%,#E8C060 100%);background-size:200% 200%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:iNameCycle 10s ease-in-out infinite}
 @keyframes iNameCycle{
-  0%  {background-position:0% 50%;filter:drop-shadow(0 0 55px rgba(196,160,106,.75)) drop-shadow(0 0 140px rgba(196,160,106,.22))}
-  32% {background-position:68% 100%;filter:drop-shadow(0 0 75px rgba(124,58,237,.9)) drop-shadow(0 0 170px rgba(124,58,237,.38))}
-  64% {background-position:100% 50%;filter:drop-shadow(0 0 50px rgba(220,210,255,.55)) drop-shadow(0 0 120px rgba(167,139,250,.28))}
-  100%{background-position:0% 50%;filter:drop-shadow(0 0 55px rgba(196,160,106,.75)) drop-shadow(0 0 140px rgba(196,160,106,.22))}
+  0%  {background-position:0% 50%;filter:hue-rotate(0deg)   drop-shadow(0 0 60px rgba(232,192,96,.85))  drop-shadow(0 0 150px rgba(232,192,96,.3))}
+  30% {background-position:100% 50%;filter:hue-rotate(18deg)  drop-shadow(0 0 80px rgba(255,230,60,.9))  drop-shadow(0 0 180px rgba(255,220,40,.35))}
+  62% {background-position:50% 100%;filter:hue-rotate(-132deg) drop-shadow(0 0 75px rgba(124,58,237,.95)) drop-shadow(0 0 170px rgba(124,58,237,.4))}
+  100%{background-position:0% 50%;filter:hue-rotate(0deg)   drop-shadow(0 0 60px rgba(232,192,96,.85))  drop-shadow(0 0 150px rgba(232,192,96,.3))}
 }
 .i-l{width:0;height:1px;background:linear-gradient(to right,transparent,rgba(196,160,106,.3) 15%,rgba(220,200,255,.55) 50%,rgba(196,160,106,.3) 85%,transparent);margin:2rem auto 1.8rem;transition:width 2.2s cubic-bezier(.22,1,.36,1) .8s}
 .i-s{font-size:.44rem;letter-spacing:.8em;text-transform:uppercase;color:rgba(255,255,255,.0);opacity:0;transition:opacity 1.8s ease 1.2s,color 1.8s ease 1.2s;text-shadow:0 0 20px rgba(196,160,106,.3)}
@@ -733,14 +737,12 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
   <div class="i-lux"><div class="i-lux-shine"></div></div>
   <!-- Floating luxury elements -->
   <div class="i-floats">
-    <span class="i-f" style="left:7%;top:22%;font-size:2.2rem;animation-duration:14s;animation-delay:0s">◆</span>
-    <span class="i-f" style="left:88%;top:15%;font-size:1rem;animation-duration:20s;animation-delay:-7s">◇</span>
-    <span class="i-f" style="left:18%;top:72%;font-size:3rem;animation-duration:11s;animation-delay:-9s">✦</span>
-    <span class="i-f" style="left:76%;top:68%;font-size:1.5rem;animation-duration:17s;animation-delay:-4s">◆</span>
-    <span class="i-f" style="left:52%;top:10%;font-size:.9rem;animation-duration:24s;animation-delay:-13s">◇</span>
-    <span class="i-f" style="left:35%;top:85%;font-size:1.2rem;animation-duration:15s;animation-delay:-2s">✦</span>
-    <span class="i-f" style="left:92%;top:45%;font-size:2rem;animation-duration:18s;animation-delay:-6s">◆</span>
-    <span class="i-f" style="left:3%;top:55%;font-size:1.4rem;animation-duration:22s;animation-delay:-11s">◇</span>
+    <span class="i-f" style="left:14%;top:25%;font-size:2rem;animation-duration:16s;animation-delay:-3s;color:rgba(232,192,96,.12)">◆</span>
+    <span class="i-f" style="left:78%;top:18%;font-size:1rem;animation-duration:22s;animation-delay:-9s;color:rgba(232,192,96,.09)">◇</span>
+    <span class="i-f" style="left:22%;top:68%;font-size:2.4rem;animation-duration:13s;animation-delay:-11s;color:rgba(232,192,96,.08)">✦</span>
+    <span class="i-f" style="left:72%;top:65%;font-size:1.4rem;animation-duration:19s;animation-delay:-5s;color:rgba(232,192,96,.1)">◆</span>
+    <span class="i-f" style="left:50%;top:12%;font-size:.85rem;animation-duration:26s;animation-delay:-15s;color:rgba(232,192,96,.07)">◇</span>
+    <span class="i-f" style="left:38%;top:82%;font-size:1.1rem;animation-duration:17s;animation-delay:-7s;color:rgba(232,192,96,.09)">✦</span>
   </div>
   <div class="i-ov"></div>
   <div class="i-grain"></div>

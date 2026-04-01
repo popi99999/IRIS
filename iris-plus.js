@@ -72,6 +72,8 @@
     checkoutStatus: null,
     sellPhotos: [],
     activeDetailImage: 0,
+    activeDetailProductId: null,
+    activeMeasurementId: null,
     lastNonDetailView: "home",
     activeOrderId: null,
     activeOrderScope: "buyer",
@@ -937,11 +939,139 @@
       });
   }
 
+  const DETAIL_MEASUREMENT_PRESETS = {
+    top: [
+      { id: "chest", it: "Petto", en: "Chest", hintIt: "Misurato in piano da ascella ad ascella.", hintEn: "Measured flat from armpit to armpit.", diagram: "chest" },
+      { id: "length", it: "Lunghezza", en: "Length", hintIt: "Misurata in verticale dalla base del collo al fondo.", hintEn: "Measured vertically from the base of the collar to the hem.", diagram: "length" },
+      { id: "shoulder", it: "Spalle", en: "Shoulders", hintIt: "Misurate nel punto più alto da spalla a spalla.", hintEn: "Measured across the highest point from shoulder to shoulder.", diagram: "shoulder" },
+      { id: "sleeve", it: "Manica", en: "Sleeve", hintIt: "Misurata dalla spalla fino al polsino.", hintEn: "Measured from shoulder seam to cuff.", diagram: "sleeve" }
+    ],
+    bottom: [
+      { id: "waist", it: "Vita", en: "Waist", hintIt: "Misurata in piano da un lato all'altro della cintura.", hintEn: "Measured flat from one side of the waistband to the other.", diagram: "waist" },
+      { id: "legOpening", it: "Fondo gamba", en: "Leg opening", hintIt: "Misurato in piano all'apertura del fondo.", hintEn: "Measured flat across the hem opening.", diagram: "legOpening" }
+    ]
+  };
+
+  function isCurrentUserListingOwner(listing) {
+    if (!state.currentUser || !listing) {
+      return false;
+    }
+    return normalizeEmail(state.currentUser.email) === normalizeEmail(listing.ownerEmail || (listing.seller && listing.seller.email) || "");
+  }
+
+  function inferMeasurementFamily(listing) {
+    const haystack = normalizeSearchText([listing && listing.cat, listing && listing.name, listing && listing.desc].join(" "));
+    if (/(jeans|pants|trouser|pantal|cargo|denim|short)/.test(haystack)) {
+      return "bottom";
+    }
+    if ((listing && listing.cat === "Abbigliamento") || /(hoodie|shirt|coat|jacket|blazer|sweater|felpa|camicia|cappotto|maglia|t-shirt|tee)/.test(haystack)) {
+      return "top";
+    }
+    return "generic";
+  }
+
+  function extractMeasurementValue(source, patterns) {
+    const text = String(source || "");
+    if (!text) {
+      return "";
+    }
+    for (let index = 0; index < patterns.length; index += 1) {
+      const match = text.match(patterns[index]);
+      if (match && match[1]) {
+        return String(match[1]).trim();
+      }
+    }
+    return "";
+  }
+
+  function normalizeMeasurementValue(value) {
+    if (value === null || value === undefined) {
+      return "";
+    }
+    const raw = String(value).trim();
+    if (!raw) {
+      return "";
+    }
+    if (/[a-z]/i.test(raw)) {
+      return raw;
+    }
+    return raw.replace(",", ".").replace(/\s+/g, "");
+  }
+
+  function formatMeasurementValue(value) {
+    const normalized = normalizeMeasurementValue(value);
+    if (!normalized) {
+      return "";
+    }
+    if (/[a-z]/i.test(normalized)) {
+      return normalized;
+    }
+    return `${normalized.replace(".", curLang === "it" ? "," : ".")} cm`;
+  }
+
+  function parseListingMeasurementsFromDimensions(listing) {
+    const family = inferMeasurementFamily(listing);
+    const dimsText = String((listing && listing.dims) || "");
+    if (family === "top") {
+      return {
+        chest: extractMeasurementValue(dimsText, [/petto\s*([0-9]+(?:[.,][0-9]+)?)/i, /chest\s*([0-9]+(?:[.,][0-9]+)?)/i]),
+        length: extractMeasurementValue(dimsText, [/lunghezza\s*([0-9]+(?:[.,][0-9]+)?)/i, /length\s*([0-9]+(?:[.,][0-9]+)?)/i]),
+        shoulder: extractMeasurementValue(dimsText, [/spalle?\s*([0-9]+(?:[.,][0-9]+)?)/i, /shoulders?\s*([0-9]+(?:[.,][0-9]+)?)/i]),
+        sleeve: extractMeasurementValue(dimsText, [/manic(?:a|he)\s*([0-9]+(?:[.,][0-9]+)?)/i, /sleeve\s*([0-9]+(?:[.,][0-9]+)?)/i])
+      };
+    }
+    if (family === "bottom") {
+      return {
+        waist: extractMeasurementValue(dimsText, [/vita\s*([0-9]+(?:[.,][0-9]+)?)/i, /waist\s*([0-9]+(?:[.,][0-9]+)?)/i]),
+        legOpening: extractMeasurementValue(dimsText, [/fondo gamba\s*([0-9]+(?:[.,][0-9]+)?)/i, /leg opening\s*([0-9]+(?:[.,][0-9]+)?)/i, /hem\s*([0-9]+(?:[.,][0-9]+)?)/i])
+      };
+    }
+    return {};
+  }
+
+  function normalizeListingMeasurements(listing) {
+    const parsed = parseListingMeasurementsFromDimensions(listing);
+    const raw = listing && listing.measurements && typeof listing.measurements === "object" && !Array.isArray(listing.measurements)
+      ? listing.measurements
+      : {};
+    const normalized = {};
+    Object.keys(Object.assign({}, parsed, raw)).forEach(function (key) {
+      normalized[key] = normalizeMeasurementValue(raw[key] !== undefined ? raw[key] : parsed[key]);
+    });
+    return normalized;
+  }
+
+  function buildMeasurementsSummary(listing, measurements) {
+    const family = inferMeasurementFamily(listing);
+    const preset = DETAIL_MEASUREMENT_PRESETS[family] || [];
+    const summary = preset.map(function (item) {
+      const value = formatMeasurementValue(measurements[item.id]);
+      return value ? `${langText(item.it, item.en)} ${value}` : "";
+    }).filter(Boolean);
+    return summary.length ? summary.join(" · ") : String((listing && listing.dims) || "");
+  }
+
+  function isListingVerified(listing) {
+    if (listing && typeof listing.verified === "boolean") {
+      return listing.verified;
+    }
+    if (listing && listing.isUserListing) {
+      const source = normalizeSearchText([
+        listing.desc,
+        listing.dims,
+        Array.isArray(listing.chips) ? listing.chips.join(" ") : ""
+      ].join(" "));
+      return /autentic|authentic|verified|certificate|certificat/.test(source);
+    }
+    return true;
+  }
+
   function normalizeListingRecord(listing) {
     const seller = buildListingSeller(listing || {});
     const price = Number((listing && listing.price) || 0);
     const originalPrice = getListingOriginalPrice(listing);
     const chips = getListingChips(listing);
+    const measurements = normalizeListingMeasurements(listing);
 
     return Object.assign(
       {
@@ -961,6 +1091,8 @@
         soldAt: null,
         offersEnabled: true,
         minimumOfferAmount: null,
+        verified: isListingVerified(listing),
+        measurements: measurements,
         ownerEmail: normalizeEmail(((listing && listing.ownerEmail) || seller.email))
       },
       listing,
@@ -974,6 +1106,8 @@
         minimumOfferAmount: listing.minimumOfferAmount === null || listing.minimumOfferAmount === undefined || listing.minimumOfferAmount === ""
           ? null
           : Number(listing.minimumOfferAmount),
+        verified: isListingVerified(listing),
+        measurements: measurements,
         seller: seller
       }
     );
@@ -3064,7 +3198,8 @@
         <div class="offer-note">${escapeHtml(product.brand)} ${escapeHtml(product.name)} · ${escapeHtml(formatCurrency(product.price))}</div>
         <div class="offer-meta">${escapeHtml(minimumText)}</div>
         ${statusBox}
-        <input class="offer-input" type="number" placeholder="${escapeHtml(formatCurrency(product.minimumOfferAmount || 0))}" id="offerInput" value="${escapeHtml(amountValue)}">
+        <input class="offer-input${state.offerError ? " offer-input--error" : ""}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${escapeHtml(String(Math.round(Number(product.minimumOfferAmount || 0))))}" id="offerInput" value="${escapeHtml(amountValue)}" oninput="sanitizeOfferAmountInput(this)">
+        <div class="offer-helper">${langText("Si possono inserire solo numeri.", "Numbers only.")}</div>
         <div class="offer-meta">${langText("Se il seller accetta, il pagamento autorizzato verra' catturato automaticamente.", "If the seller accepts, the authorized payment will be captured automatically.")}</div>
         <button class="offer-send" onclick="sendOffer()">${langText("Continua", "Continue")}</button>
         <button class="offer-cancel" onclick="closeOffer()">${t("cancel")}</button>
@@ -3080,6 +3215,10 @@
         const product = getListingById(id);
         if (!product || !isProductPurchasable(product)) {
           showToast(langText("Questo articolo non e' piu' disponibile.", "This item is no longer available."));
+          return;
+        }
+        if (isCurrentUserListingOwner(product)) {
+          showToast(langText("Questo è il tuo annuncio. Da qui puoi modificarlo, non acquistarlo.", "This is your own listing. You can edit it from here, not buy it."));
           return;
         }
         if (!product.offersEnabled) {
@@ -3155,7 +3294,10 @@
       }
 
       const input = qs("#offerInput");
-      const amount = input ? Number(input.value) : Number(state.offerDraft && state.offerDraft.offerAmount);
+      if (input) {
+        sanitizeOfferAmountInput(input);
+      }
+      const amount = input ? parseLocalizedNumberInput(input.value) : parseLocalizedNumberInput(state.offerDraft && state.offerDraft.offerAmount);
       const draftPayload = {
         listingId: product.id,
         buyerEmail: normalizeEmail(state.currentUser && state.currentUser.email),
@@ -3198,6 +3340,10 @@
     window.backOfferStep = backOfferStep;
     window.renderOfferModal = renderOfferModal;
     window.sendOffer = sendOffer;
+    window.sanitizeOfferAmountInput = sanitizeOfferAmountInput;
+    window.promptListingPriceUpdate = promptListingPriceUpdate;
+    window.openMeasurementBuilder = openMeasurementBuilder;
+    window.setActiveMeasurement = setActiveMeasurement;
   }
 
   function overrideMarketplaceFunctions() {
@@ -3931,8 +4077,11 @@
 
   function detailMediaMarkup(product) {
     const images = Array.isArray(product.images) ? product.images : [];
+    const verifiedBadge = isListingVerified(product)
+      ? `<div class="irisx-verified-badge"><span class="irisx-verified-badge__icon">✦</span><span>${langText("Verified", "Verified")}</span></div>`
+      : "";
     if (!images.length) {
-      return "<div class=\"det-img-main\">" + escapeHtml(product.emoji || "👜") + "</div>";
+      return "<div class=\"det-img-main\">" + verifiedBadge + escapeHtml(product.emoji || "👜") + "</div>";
     }
 
     const thumbs = images
@@ -3954,7 +4103,9 @@
       .join("");
 
     return (
-      "<div><div class=\"irisx-detail-stage\"><img class=\"irisx-detail-image\" id=\"detailMainImage\" src=\"" +
+      "<div><div class=\"irisx-detail-stage\">" +
+      verifiedBadge +
+      "<img class=\"irisx-detail-image\" id=\"detailMainImage\" src=\"" +
       images[state.activeDetailImage] +
       "\" alt=\"" +
       escapeHtml(product.name) +
@@ -5855,7 +6006,13 @@
       return { ok: false, error: langText("Inserisci un importo valido.", "Enter a valid amount.") };
     }
     if (listing.minimumOfferAmount !== null && amount < Number(listing.minimumOfferAmount)) {
-      return { ok: false, error: `${langText("Offerta minima", "Minimum offer")} ${formatCurrency(listing.minimumOfferAmount)}` };
+      return {
+        ok: false,
+        error: langText(
+          `La tua offerta è troppo bassa. Minimo ${formatCurrency(listing.minimumOfferAmount)}.`,
+          `Your offer is too low. Minimum ${formatCurrency(listing.minimumOfferAmount)}.`
+        )
+      };
     }
     if (!state.currentUser || normalizeEmail(payload.buyerEmail) !== normalizeEmail(state.currentUser.email)) {
       return { ok: false, error: langText("Sessione buyer non valida.", "Invalid buyer session.") };
@@ -8406,6 +8563,240 @@
     finalizeCheckout(true);
   };
 
+  function sanitizeOfferAmountInput(field) {
+    if (!field) {
+      return;
+    }
+    field.value = String(field.value || "").replace(/[^\d]/g, "").replace(/^0+(?=\d)/, "");
+  }
+
+  function updateListingWorkspaceRecord(productId, patch) {
+    const current = getListingById(productId);
+    if (!current) {
+      return null;
+    }
+    const updated = syncListingIntoCatalog(Object.assign({}, current, patch));
+    render();
+    renderProfilePanel();
+    renderOpsView();
+    if (qs("#detail-view.active")) {
+      showDetail(updated.id);
+    }
+    return updated;
+  }
+
+  function promptListingPriceUpdate(productId) {
+    const product = getListingById(productId);
+    if (!product || !isCurrentUserListingOwner(product)) {
+      return;
+    }
+    const response = window.prompt(
+      langText("Inserisci il nuovo prezzo in euro. Deve essere più basso di quello attuale.", "Enter the new euro price. It must be lower than the current one."),
+      String(Math.round(Number(product.price || 0)))
+    );
+    if (response === null) {
+      return;
+    }
+    const nextPrice = parseLocalizedNumberInput(response);
+    if (!Number.isFinite(nextPrice) || nextPrice <= 0) {
+      showToast(langText("Inserisci un prezzo valido.", "Enter a valid price."));
+      return;
+    }
+    if (nextPrice >= Number(product.price || 0)) {
+      showToast(langText("Il nuovo prezzo deve essere più basso di quello attuale.", "The new price must be lower than the current one."));
+      return;
+    }
+    updateListingWorkspaceRecord(productId, { price: nextPrice });
+    showToast(langText("Prezzo aggiornato.", "Price updated."));
+  }
+
+  function getMeasurementPresetForListing(listing) {
+    return DETAIL_MEASUREMENT_PRESETS[inferMeasurementFamily(listing)] || [];
+  }
+
+  function getMeasurementDiagramSvg(diagram) {
+    if (diagram === "length") {
+      return `<svg viewBox="0 0 320 360" role="img" aria-label="Length guide">
+        <rect width="320" height="360" fill="#ffffff"></rect>
+        <path d="M112 46h96l22 12 18 32 14 174-18 34h-27l-16-182-25 15v176h-32V131l-25-15-16 182H76L58 264 72 90l18-32 22-12z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
+        <path d="M126 50h68l13 18h-94z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
+        <line x1="160" y1="54" x2="160" y2="294" stroke="#2491ff" stroke-width="4" stroke-dasharray="10 8"></line>
+        <polygon points="160,38 152,54 168,54" fill="#2491ff"></polygon>
+        <polygon points="160,310 152,294 168,294" fill="#2491ff"></polygon>
+      </svg>`;
+    }
+    if (diagram === "shoulder") {
+      return `<svg viewBox="0 0 320 360" role="img" aria-label="Shoulder guide">
+        <rect width="320" height="360" fill="#ffffff"></rect>
+        <path d="M112 46h96l22 12 18 32 14 174-18 34h-27l-16-182-25 15v176h-32V131l-25-15-16 182H76L58 264 72 90l18-32 22-12z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
+        <path d="M126 50h68l13 18h-94z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
+        <line x1="106" y1="77" x2="214" y2="77" stroke="#2491ff" stroke-width="4" stroke-dasharray="10 8"></line>
+        <polygon points="92,77 108,69 108,85" fill="#2491ff"></polygon>
+        <polygon points="228,77 212,69 212,85" fill="#2491ff"></polygon>
+      </svg>`;
+    }
+    if (diagram === "sleeve") {
+      return `<svg viewBox="0 0 320 360" role="img" aria-label="Sleeve guide">
+        <rect width="320" height="360" fill="#ffffff"></rect>
+        <path d="M112 46h96l22 12 18 32 14 174-18 34h-27l-16-182-25 15v176h-32V131l-25-15-16 182H76L58 264 72 90l18-32 22-12z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
+        <path d="M126 50h68l13 18h-94z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
+        <line x1="226" y1="86" x2="260" y2="266" stroke="#2491ff" stroke-width="4" stroke-dasharray="10 8"></line>
+        <polygon points="224,70 218,86 234,83" fill="#2491ff"></polygon>
+        <polygon points="262,282 252,269 267,266" fill="#2491ff"></polygon>
+      </svg>`;
+    }
+    if (diagram === "waist") {
+      return `<svg viewBox="0 0 320 360" role="img" aria-label="Waist guide">
+        <rect width="320" height="360" fill="#ffffff"></rect>
+        <path d="M115 52h90l20 25-10 208h-36l-8-108h-22l-8 108h-36L95 77z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
+        <line x1="110" y1="78" x2="210" y2="78" stroke="#2491ff" stroke-width="4" stroke-dasharray="10 8"></line>
+        <polygon points="94,78 110,70 110,86" fill="#2491ff"></polygon>
+        <polygon points="226,78 210,70 210,86" fill="#2491ff"></polygon>
+      </svg>`;
+    }
+    if (diagram === "legOpening") {
+      return `<svg viewBox="0 0 320 360" role="img" aria-label="Leg opening guide">
+        <rect width="320" height="360" fill="#ffffff"></rect>
+        <path d="M115 52h90l20 25-10 208h-36l-8-108h-22l-8 108h-36L95 77z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
+        <line x1="168" y1="284" x2="210" y2="284" stroke="#2491ff" stroke-width="4" stroke-dasharray="10 8"></line>
+        <polygon points="152,284 168,276 168,292" fill="#2491ff"></polygon>
+        <polygon points="226,284 210,276 210,292" fill="#2491ff"></polygon>
+      </svg>`;
+    }
+    return `<svg viewBox="0 0 320 360" role="img" aria-label="Chest guide">
+      <rect width="320" height="360" fill="#ffffff"></rect>
+      <path d="M112 46h96l22 12 18 32 14 174-18 34h-27l-16-182-25 15v176h-32V131l-25-15-16 182H76L58 264 72 90l18-32 22-12z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
+      <path d="M126 50h68l13 18h-94z" fill="none" stroke="#c7ccd4" stroke-width="2.2"></path>
+      <line x1="102" y1="148" x2="218" y2="148" stroke="#2491ff" stroke-width="4" stroke-dasharray="10 8"></line>
+      <polygon points="88,148 104,140 104,156" fill="#2491ff"></polygon>
+      <polygon points="232,148 216,140 216,156" fill="#2491ff"></polygon>
+    </svg>`;
+  }
+
+  function renderMeasurementsSection(product) {
+    const family = inferMeasurementFamily(product);
+    const preset = getMeasurementPresetForListing(product);
+    const ownedByCurrentUser = isCurrentUserListingOwner(product);
+    const productIdExpr = inlineJsValue(product.id);
+    const measurements = normalizeListingMeasurements(product);
+    const hasMeasurementValues = Object.keys(measurements).some(function (key) { return Boolean(measurements[key]); });
+
+    if (!preset.length) {
+      if (!product.dims && !ownedByCurrentUser) {
+        return "";
+      }
+      return `<div class="det-section" id="irisxMeasurementSection">
+        <div class="det-section-title">${langText("Misure", "Measurements")}</div>
+        <div class="irisx-measure-shell irisx-measure-shell--generic">
+          <div class="irisx-measure-card">
+            <div class="irisx-measure-head">
+              <div>
+                <strong>${langText("Dimensioni dichiarate dal seller", "Seller provided dimensions")}</strong>
+                <span>${langText("Riepilogo rapido dell'articolo. Per accessori e borse non sempre serve il diagramma misure.", "Quick item dimensions. Accessories and bags do not always need a measurement diagram.")}</span>
+              </div>
+              ${ownedByCurrentUser ? `<button class="irisx-secondary" onclick="openMeasurementBuilder(${productIdExpr})">${langText("Aggiorna dimensioni", "Update dimensions")}</button>` : ""}
+            </div>
+            <div class="irisx-measure-summary">${escapeHtml(product.dims || langText("Dimensioni non ancora caricate.", "Dimensions not uploaded yet."))}</div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    const activeId = preset.some(function (item) { return item.id === state.activeMeasurementId; }) ? state.activeMeasurementId : preset[0].id;
+    state.activeMeasurementId = activeId;
+    const activeItem = preset.find(function (item) { return item.id === activeId; }) || preset[0];
+    const activeValue = formatMeasurementValue(measurements[activeItem.id]);
+    const panelValue = activeValue || (ownedByCurrentUser ? langText("Da inserire", "Add value") : langText("Non disponibile", "Not available"));
+    const subtitle = family === "bottom"
+      ? langText("Misure rilevate dal seller con capo steso in piano.", "Measurements taken by the seller with the garment laid flat.")
+      : langText("Misure rilevate dal seller con capo steso in piano.", "Measurements taken by the seller with the garment laid flat.");
+
+    return `<div class="det-section" id="irisxMeasurementSection">
+      <div class="det-section-title">${langText("Misure", "Measurements")}</div>
+      <div class="irisx-measure-shell">
+        <div class="irisx-measure-head">
+          <div>
+            <strong>${langText("Measurements", "Measurements")}</strong>
+            <span>${escapeHtml(subtitle)}</span>
+          </div>
+          ${ownedByCurrentUser ? `<button class="irisx-secondary" onclick="openMeasurementBuilder(${productIdExpr})">${hasMeasurementValues ? langText("Aggiorna misure", "Update measurements") : langText("Carica misure", "Add measurements")}</button>` : ""}
+        </div>
+        <div class="irisx-measure-tabs">
+          ${preset.map(function (item) {
+            const value = formatMeasurementValue(measurements[item.id]);
+            return `<button class="irisx-measure-tab${item.id === activeId ? " on" : ""}" onclick="setActiveMeasurement('${item.id}')">
+              <strong>${escapeHtml(langText(item.it, item.en))} <span class="irisx-measure-tab-info">i</span></strong>
+              <span>${escapeHtml(value || (ownedByCurrentUser ? langText("Da inserire", "Add value") : "—"))}</span>
+            </button>`;
+          }).join("")}
+        </div>
+        <div class="irisx-measure-card">
+          <div class="irisx-measure-panel-head">
+            <div>
+              <strong>${escapeHtml(langText(activeItem.it, activeItem.en))} <span class="irisx-measure-tab-info">i</span></strong>
+              <span>${escapeHtml(panelValue)}</span>
+            </div>
+          </div>
+          <div class="irisx-measure-diagram">${getMeasurementDiagramSvg(activeItem.diagram)}</div>
+          <p class="irisx-measure-copy">${escapeHtml(langText(activeItem.hintIt, activeItem.hintEn))}</p>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function openMeasurementBuilder(productId) {
+    const product = getListingById(productId);
+    if (!product || !isCurrentUserListingOwner(product)) {
+      return;
+    }
+    const preset = getMeasurementPresetForListing(product);
+    const currentMeasurements = normalizeListingMeasurements(product);
+    if (!preset.length) {
+      const dimsValue = window.prompt(
+        langText("Inserisci o aggiorna le dimensioni visibili nella scheda prodotto.", "Enter or update the dimensions shown on the product page."),
+        product.dims || ""
+      );
+      if (dimsValue === null) {
+        return;
+      }
+      updateListingWorkspaceRecord(productId, { dims: dimsValue.trim() });
+      showToast(langText("Dimensioni aggiornate.", "Dimensions updated."));
+      return;
+    }
+    const nextMeasurements = Object.assign({}, currentMeasurements);
+    let changed = false;
+    for (let index = 0; index < preset.length; index += 1) {
+      const item = preset[index];
+      const response = window.prompt(
+        `${langText(item.it, item.en)} (${langText("solo numero in cm", "number in cm only")})`,
+        String(currentMeasurements[item.id] || "").replace(/[^\d.,]/g, "")
+      );
+      if (response === null) {
+        continue;
+      }
+      const parsed = parseLocalizedNumberInput(response);
+      nextMeasurements[item.id] = Number.isFinite(parsed) ? String(parsed).replace(",", ".") : normalizeMeasurementValue(response);
+      changed = true;
+    }
+    if (!changed) {
+      return;
+    }
+    updateListingWorkspaceRecord(productId, {
+      measurements: nextMeasurements,
+      dims: buildMeasurementsSummary(product, nextMeasurements)
+    });
+    showToast(langText("Misure aggiornate.", "Measurements updated."));
+  }
+
+  function setActiveMeasurement(measurementId) {
+    state.activeMeasurementId = measurementId;
+    const product = getListingById(state.activeDetailProductId);
+    const section = qs("#irisxMeasurementSection");
+    if (product && section) {
+      section.outerHTML = renderMeasurementsSection(product);
+    }
+  }
+
   function reportListing(productId) {
     const product = getListingById(productId);
     if (!product) {
@@ -8425,6 +8816,18 @@
     const productIdExpr = inlineJsValue(product.id);
     const seller = buildListingSeller(product);
     const sellerIdExpr = inlineJsValue(seller.id);
+    const ownedByCurrentUser = isCurrentUserListingOwner(product);
+    const productMeasurements = normalizeListingMeasurements(product);
+    const hasMeasurementValues = Object.keys(productMeasurements).some(function (key) { return Boolean(productMeasurements[key]); });
+    if (ownedByCurrentUser) {
+      return `<div class="irisx-note det-owner-note"><strong>${langText("Stai guardando il tuo annuncio.", "You are viewing your own listing.")}</strong> ${langText("Qui ha più senso gestirlo: modifica, riduci il prezzo o completa le misure.", "Manage it from here: edit it, reduce the price, or complete the measurements.")}</div>
+      <div class="irisx-detail-actions irisx-detail-actions--owner">
+        <button class="det-buy" onclick="loadDraftIntoSellForm('${product.id}')">${langText("Modifica annuncio", "Edit listing")}</button>
+        <button class="irisx-secondary" onclick="promptListingPriceUpdate('${product.id}')">${langText("Riduci prezzo", "Reduce price")}</button>
+        <button class="irisx-secondary" onclick="openMeasurementBuilder('${product.id}')">${hasMeasurementValues ? langText("Aggiorna misure", "Update measurements") : langText("Carica misure", "Add measurements")}</button>
+        <button class="det-fav" onclick="showBuyView('profile');setProfileArea('seller','active')">${langText("Apri area seller", "Open seller area")}</button>
+      </div>`;
+    }
     if (!isProductPurchasable(product)) {
       return `<div class="irisx-note">${langText("Questo articolo risulta gia' venduto o non disponibile per nuovi acquisti.", "This item is already sold or unavailable.")}</div><div class="irisx-detail-actions"><button class="det-fav" onclick="toggleFav(${productIdExpr},null)">${liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")}</button><button class="irisx-secondary" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button></div>`;
     }
@@ -8455,6 +8858,8 @@
         view.classList.remove("active", "view-enter");
       }
     });
+    const previousProductId = state.activeDetailProductId;
+    state.activeDetailProductId = product.id;
     state.activeDetailImage = 0;
     const discount = getListingDiscount(product);
     const liked = favorites.has(product.id);
@@ -8464,9 +8869,21 @@
     const originalPrice = getListingOriginalPrice(product);
     const chips = getListingChips(product);
     const seller = buildListingSeller(product);
+    const ownedByCurrentUser = isCurrentUserListingOwner(product);
     const sellerIdExpr = inlineJsValue(seller.id);
     const productIdExpr = inlineJsValue(product.id);
+    const sellerActionLabel = ownedByCurrentUser ? langText("Modifica", "Edit") : t("chat");
+    const sellerAction = ownedByCurrentUser
+      ? `loadDraftIntoSellForm('${product.id}')`
+      : `openChat(${sellerIdExpr},${productIdExpr})`;
+    const sellerMeta = ownedByCurrentUser
+      ? `${langText("Il tuo account seller", "Your seller account")} · ${escapeHtml(seller.city)}`
+      : `★ ${escapeHtml(seller.rating)} ${escapeHtml(seller.sales)} ${t("sales")} · ${escapeHtml(seller.city)}`;
     const similar = prods.filter(function (item) { return !sameEntityId(item.id, product.id) && (item.brand === product.brand || item.cat === product.cat); }).slice(0, 4);
+    if (previousProductId !== product.id) {
+      const preset = getMeasurementPresetForListing(product);
+      state.activeMeasurementId = preset.length ? preset[0].id : null;
+    }
     const detailView = qs("#detail-view");
     detailView.innerHTML = `<div class="det-layout view-enter">
       <div class="det-imgs">${detailMediaMarkup(product)}</div>
@@ -8479,9 +8896,10 @@
         <div class="det-div"></div>
         <div class="det-section"><div class="det-section-title">${t("details")}</div><div class="det-chips">${chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div></div>
         <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(product.sz)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
+        ${renderMeasurementsSection(product)}
         <div class="det-section"><div class="det-section-title">${t("description")}</div><div class="det-desc">${escapeHtml(product.desc)}</div></div>
         <div class="det-section"><div class="det-section-title">${langText("Shipping info", "Shipping info")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Shipping fee", "Shipping fee")}</strong><span>${formatCurrency(SHIPPING_COST)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Method", "Method")}</strong><span>${langText("Insured and tracked", "Insured and tracked")}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Trust", "Trust")}</strong><span>${langText("Authentication queue prepared", "Authentication queue prepared")}</span></div><button class="irisx-secondary" onclick="openStatic('trust-authentication')">${langText("Learn more", "Learn more")}</button></div></div></div>
-        <div class="det-section"><div class="det-section-title">${t("seller")}</div><div class="seller-card" onclick="showSeller('${escapeHtml(seller.id)}')"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta"><span>★ ${escapeHtml(seller.rating)}</span> ${escapeHtml(seller.sales)} ${t("sales")} · ${escapeHtml(seller.city)}</div></div><button class="seller-chat" onclick="event.stopPropagation();openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button></div></div>
+        <div class="det-section"><div class="det-section-title">${t("seller")}</div><div class="seller-card${ownedByCurrentUser ? " seller-card--owner" : ""}" onclick="${ownedByCurrentUser ? `loadDraftIntoSellForm('${product.id}')` : `showSeller('${escapeHtml(seller.id)}')`}"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta">${sellerMeta}</div></div><button class="seller-chat" onclick="event.stopPropagation();${sellerAction}">${sellerActionLabel}</button></div></div>
         ${getDetailActionsMarkup(product, liked)}
         <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Buyer Protection", "Buyer Protection")}</button></li></ul></div>
         ${similar.length ? `<div class="det-similar"><div class="det-similar-title">${t("similar")}</div><div class="det-similar-grid">${similar.map(function (item) { return `<div class="pc" onclick="showDetail(${inlineJsValue(item.id)})" style="min-width:160px">${productVisualMarkup(item, true)}<div class="pinfo" style="padding:.8rem"><div class="p-brand">${escapeHtml(item.brand)}</div><div class="p-name" style="font-size:.78rem">${escapeHtml(item.name)}</div><div class="p-price" style="font-size:.78rem;margin-top:.3rem">${formatCurrency(item.price)}</div></div></div>`; }).join("")}</div></div>` : ""}

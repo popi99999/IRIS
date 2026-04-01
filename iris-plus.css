@@ -2206,3 +2206,200 @@ body.light-mode .offer-success {
   border-color: rgba(16, 185, 129, 0.18);
   color: #047857;
 }
+
+/* ═══════════════════════════════════════
+   LUXURY INTERACTION SYSTEM — v2
+═══════════════════════════════════════ */
+
+/* ── Global button feel ── */
+button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
+.irisx-primary, .irisx-secondary, .irisx-google-btn {
+  transition: color .22s, background .22s, border-color .22s,
+              box-shadow .22s, transform .18s, filter .18s;
+}
+
+/* ── Nav buttons: violet glow on hover ── */
+.tn-btn:hover {
+  color: var(--lavender) !important;
+  text-shadow: 0 0 18px rgba(167,139,250,.45);
+}
+.tn-btn:active {
+  color: var(--gold) !important;
+  transform: scale(.97);
+  text-shadow: 0 0 14px rgba(196,160,106,.5);
+}
+
+/* ── Sell nav button ── */
+.tn-sell:hover {
+  background: rgba(124,58,237,.38) !important;
+  border-color: rgba(167,139,250,.55) !important;
+  box-shadow: 0 0 20px rgba(124,58,237,.28) !important;
+}
+.tn-sell:active {
+  background: rgba(196,160,106,.22) !important;
+  border-color: rgba(196,160,106,.45) !important;
+}
+
+/* ── Home CTA buttons ── */
+.irisx-home-action.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(124,58,237,.45), 0 0 40px rgba(124,58,237,.2) !important;
+}
+.irisx-home-action.primary:active {
+  background: var(--gold) !important;
+  box-shadow: 0 4px 20px rgba(196,160,106,.35) !important;
+  transform: translateY(0);
+}
+.irisx-home-action.secondary:hover {
+  color: var(--gold);
+  border-color: rgba(196,160,106,.35);
+  text-shadow: 0 0 16px rgba(196,160,106,.3);
+  transform: translateY(-1px);
+}
+.irisx-home-action.secondary:active {
+  transform: scale(.97) translateY(0);
+}
+
+/* ── Primary action buttons (buy, checkout, etc.) ── */
+.irisx-primary:hover,
+.det-buy:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(124,58,237,.5), 0 0 50px rgba(124,58,237,.18) !important;
+  filter: brightness(1.08);
+}
+.irisx-primary:active,
+.det-buy:active {
+  background: var(--gold) !important;
+  border-color: var(--gold) !important;
+  box-shadow: 0 4px 18px rgba(196,160,106,.4) !important;
+  transform: scale(.98);
+}
+
+/* ── Secondary/ghost buttons ── */
+.irisx-secondary:hover,
+.det-offer:hover,
+.det-fav:hover {
+  border-color: rgba(167,139,250,.45) !important;
+  color: var(--lavender) !important;
+  box-shadow: 0 0 20px rgba(124,58,237,.15) !important;
+  transform: translateY(-1px);
+}
+.irisx-secondary:active,
+.det-offer:active,
+.det-fav:active {
+  color: var(--gold) !important;
+  border-color: rgba(196,160,106,.4) !important;
+  transform: scale(.97);
+}
+
+/* ── Product heart button ── */
+.pc-heart {
+  transition: color .2s, transform .18s, text-shadow .2s !important;
+}
+.pc-heart:hover {
+  color: rgba(196,160,106,.75) !important;
+  transform: scale(1.2) !important;
+  text-shadow: 0 0 12px rgba(196,160,106,.4) !important;
+}
+.pc-heart:active {
+  transform: scale(1.05) !important;
+}
+.pc-heart.liked {
+  color: var(--gold) !important;
+  text-shadow: 0 0 8px rgba(196,160,106,.35) !important;
+}
+
+/* ── Product cards ── */
+.pc {
+  transition: border-color .3s, box-shadow .3s, transform .25s !important;
+}
+.pc:hover {
+  transform: translateY(-3px) !important;
+  border-color: rgba(196,160,106,.22) !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,.35), 0 0 0 1px rgba(196,160,106,.08) !important;
+}
+
+/* ── Prices — luxury typography ── */
+.p-price {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: 1rem !important;
+  font-weight: 400 !important;
+  letter-spacing: .02em !important;
+  color: rgba(255,255,255,.92) !important;
+}
+.p-orig {
+  font-size: .6rem !important;
+  color: rgba(255,255,255,.22) !important;
+  letter-spacing: .03em !important;
+}
+.p-disc {
+  font-size: .44rem !important;
+  color: rgba(196,160,106,.55) !important;
+  letter-spacing: .1em !important;
+  font-weight: 400 !important;
+}
+.p-brand {
+  font-size: .46rem !important;
+  letter-spacing: .26em !important;
+  color: rgba(167,139,250,.55) !important;
+}
+.p-name {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 300 !important;
+  font-size: .85rem !important;
+  color: rgba(255,255,255,.86) !important;
+}
+
+/* ── Detail page buy button ── */
+.det-buy {
+  font-family: 'Outfit', sans-serif !important;
+  letter-spacing: .18em !important;
+  text-transform: uppercase !important;
+  font-size: .55rem !important;
+}
+.det-buy:hover {
+  letter-spacing: .22em !important;
+}
+
+/* ── Sort buttons ── */
+.sort-btn:hover {
+  border-color: rgba(167,139,250,.3) !important;
+  color: var(--lavender) !important;
+}
+.sort-btn:active {
+  border-color: rgba(196,160,106,.4) !important;
+  color: var(--gold) !important;
+}
+.sort-btn.on {
+  border-color: rgba(196,160,106,.4) !important;
+  color: var(--gold) !important;
+}
+
+/* ── Focus ring — elegant ── */
+*:focus-visible {
+  outline: 1px solid rgba(196,160,106,.4) !important;
+  outline-offset: 3px !important;
+}
+
+/* ── Filter checkboxes ── */
+.f-opt.on .f-check {
+  background: linear-gradient(135deg, #7C3AED, #9D5CF5) !important;
+  border-color: transparent !important;
+  box-shadow: 0 0 10px rgba(124,58,237,.3) !important;
+}
+
+/* ── Auth/modal buttons ── */
+.irisx-google-btn:hover {
+  border-color: rgba(196,160,106,.35) !important;
+  box-shadow: 0 4px 24px rgba(196,160,106,.12) !important;
+  transform: translateY(-1px);
+}
+
+/* ── Notif bell ── */
+.notif-bell:hover {
+  color: var(--gold) !important;
+  text-shadow: 0 0 14px rgba(196,160,106,.4) !important;
+}
+.notif-bell:active {
+  transform: scale(.92) !important;
+}

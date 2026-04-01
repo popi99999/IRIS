@@ -68,9 +68,14 @@ button{font-family:inherit}
 .i-bar-t{top:0;transform:translateY(-100%)}.i-bar-b{bottom:0;transform:translateY(100%)}
 #intro.i-cinema .i-bar-t{transform:translateY(0)}#intro.i-cinema .i-bar-b{transform:translateY(0)}
 .i-t{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
-/* IRIS title — gold shimmer gradient */
-.i-n{font-family:'Cormorant Garamond',serif;font-size:clamp(5.5rem,15vw,14rem);font-weight:300;font-style:italic;letter-spacing:.1em;line-height:1;opacity:0;transform:translateY(40px) scale(.96);transition:opacity 2.6s cubic-bezier(.22,1,.36,1),transform 2.6s cubic-bezier(.22,1,.36,1);background:linear-gradient(145deg,#F5EFE0 0%,#C9ABFF 25%,#FDFAFF 45%,#C4A06A 62%,#FDFAFF 78%,#E8D5FF 100%);background-size:300% 300%;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 55px rgba(138,63,255,.5)) drop-shadow(0 0 120px rgba(196,160,106,.15));animation:iNameShimmer 8s ease infinite}
-@keyframes iNameShimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+/* IRIS title — luxury tri-colour cycle: gold → violet → white */
+.i-n{font-family:'Cormorant Garamond',serif;font-size:clamp(5.5rem,15vw,14rem);font-weight:300;font-style:italic;letter-spacing:.1em;line-height:1;opacity:0;transform:translateY(40px) scale(.96);transition:opacity 2.6s cubic-bezier(.22,1,.36,1),transform 2.6s cubic-bezier(.22,1,.36,1);background:linear-gradient(145deg,#C4A06A 0%,#F5EFE0 12%,#C4A06A 22%,#7C3AED 36%,#9D5CF5 48%,#FDFAFF 60%,#E8D5FF 72%,#C9ABFF 82%,#C4A06A 92%,#F5EFE0 100%);background-size:450% 450%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:iNameCycle 11s cubic-bezier(.4,0,.6,1) infinite}
+@keyframes iNameCycle{
+  0%  {background-position:0% 50%;filter:drop-shadow(0 0 55px rgba(196,160,106,.75)) drop-shadow(0 0 140px rgba(196,160,106,.22))}
+  32% {background-position:68% 100%;filter:drop-shadow(0 0 75px rgba(124,58,237,.9)) drop-shadow(0 0 170px rgba(124,58,237,.38))}
+  64% {background-position:100% 50%;filter:drop-shadow(0 0 50px rgba(220,210,255,.55)) drop-shadow(0 0 120px rgba(167,139,250,.28))}
+  100%{background-position:0% 50%;filter:drop-shadow(0 0 55px rgba(196,160,106,.75)) drop-shadow(0 0 140px rgba(196,160,106,.22))}
+}
 .i-l{width:0;height:1px;background:linear-gradient(to right,transparent,rgba(196,160,106,.3) 15%,rgba(220,200,255,.55) 50%,rgba(196,160,106,.3) 85%,transparent);margin:2rem auto 1.8rem;transition:width 2.2s cubic-bezier(.22,1,.36,1) .8s}
 .i-s{font-size:.44rem;letter-spacing:.8em;text-transform:uppercase;color:rgba(255,255,255,.0);opacity:0;transition:opacity 1.8s ease 1.2s,color 1.8s ease 1.2s;text-shadow:0 0 20px rgba(196,160,106,.3)}
 .i-tag{font-family:'Cormorant Garamond',serif;font-size:clamp(.9rem,1.7vw,1.25rem);font-style:italic;color:rgba(255,255,255,0);letter-spacing:.06em;opacity:0;transition:opacity 1.6s ease 1.6s,color 1.6s ease 1.6s;margin-top:.5rem}
@@ -125,7 +130,7 @@ a:active,button:focus-visible{outline:1px solid rgba(196,160,106,.35);outline-of
 .tn-search input{width:100%;padding:.55rem 1rem .55rem 2.4rem;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.1);border-radius:2px;font-family:inherit;font-size:.82rem;color:var(--white);outline:none;transition:border-color .3s}
 .tn-search input:focus{border-color:rgba(167,139,250,.35)}
 .tn-search input::placeholder{color:rgba(255,255,255,.45)}
-.tn-search::before{content:'🔍';position:absolute;left:.8rem;top:50%;transform:translateY(-50%);font-size:.7rem;opacity:.35}
+.tn-search::before{content:'';position:absolute;left:.75rem;top:50%;transform:translateY(-50%);width:13px;height:13px;opacity:.32;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 16 16'%3E%3Ccircle cx='6.5' cy='6.5' r='4.5' stroke='%23A78BFA' stroke-width='1.4'/%3E%3Cline x1='10.2' y1='10.2' x2='14' y2='14' stroke='%23A78BFA' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");background-size:contain;background-repeat:no-repeat}
 .tn-links{display:flex;gap:.3rem;margin-left:auto;align-items:center}
 .tn-btn{background:none;border:none;color:rgba(255,255,255,.6);font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:.5rem .8rem;transition:color .3s;position:relative;font-family:inherit}
 .tn-btn:hover{color:var(--lavender)}

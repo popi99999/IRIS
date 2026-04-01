@@ -1912,7 +1912,7 @@ function updateMeta(title,desc){
 
 /* ═══════ PWA ═══════ */
 let deferredPrompt=null;
-if('serviceWorker' in navigator){
+if('serviceWorker' in navigator && window.location.protocol !== 'file:'){
   navigator.serviceWorker.register('./sw.js').then((registration)=>{
     registration.update();
   }).catch((error)=>{

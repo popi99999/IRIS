@@ -316,7 +316,7 @@
     }
 
     if (type === "product") {
-      showDetail(Number(value));
+      showDetail(value);
       return;
     }
 
@@ -844,6 +844,66 @@
     return Math.round(Number(subtotal || 0) * PLATFORM_CONFIG.platformFeeRate);
   }
 
+  function sameEntityId(left, right) {
+    return String(left) === String(right);
+  }
+
+  function inlineJsValue(value) {
+    if (typeof value === "number") {
+      return String(value);
+    }
+    return "'" + String(value).replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'";
+  }
+
+  function buildListingSeller(listing) {
+    const seller = Object.assign({}, (listing && listing.seller) || {});
+    if (listing && listing.city && !seller.city) {
+      seller.city = listing.city;
+    }
+    if (!seller.name) {
+      seller.name = (listing && listing.ownerName) || langText("Seller", "Seller");
+    }
+    if (listing && listing.ownerEmail && !seller.email) {
+      seller.email = normalizeEmail(listing.ownerEmail);
+    }
+    if (!seller.id) {
+      seller.id = "seller-" + slugify((seller.email || seller.name || "seller"));
+    }
+    if (!seller.avatar) seller.avatar = "👤";
+    if (!Number.isFinite(Number(seller.rating))) seller.rating = 5;
+    if (!Number.isFinite(Number(seller.sales))) seller.sales = 0;
+    if (!seller.city) seller.city = getWorkspaceDefaultCountry();
+    ensureSellerEmail(seller);
+    seller.email = normalizeEmail(seller.email);
+    return seller;
+  }
+
+  function getListingOriginalPrice(listing) {
+    const price = Number((listing && listing.price) || 0);
+    const rawOriginal = Number((listing && (listing.orig !== undefined ? listing.orig : listing.compareAt)) || 0);
+    if (Number.isFinite(rawOriginal) && rawOriginal > 0) {
+      return rawOriginal >= price ? rawOriginal : price;
+    }
+    return price;
+  }
+
+  function getListingDiscount(listing) {
+    const price = Number((listing && listing.price) || 0);
+    const originalPrice = getListingOriginalPrice(listing);
+    return originalPrice > price && price > 0 ? Math.round((1 - price / originalPrice) * 100) : 0;
+  }
+
+  function getListingChips(listing) {
+    if (Array.isArray(listing && listing.chips) && listing.chips.length) {
+      return listing.chips.filter(Boolean);
+    }
+    return [
+      listing && listing.cond,
+      listing && listing.material,
+      listing && listing.sz
+    ].filter(Boolean);
+  }
+
   function getOrderStatusLabel(orderOrStatus) {
     const status = typeof orderOrStatus === "string" ? orderOrStatus : (orderOrStatus && orderOrStatus.status) || "pending";
     const meta = ORDER_STATUS_META[status] || ORDER_STATUS_META.pending;
@@ -878,22 +938,38 @@
   }
 
   function normalizeListingRecord(listing) {
-    const seller = listing.seller || null;
-    if (seller) {
-      ensureSellerEmail(seller);
-    }
+    const seller = buildListingSeller(listing || {});
+    const price = Number((listing && listing.price) || 0);
+    const originalPrice = getListingOriginalPrice(listing);
+    const chips = getListingChips(listing);
 
     return Object.assign(
       {
+        price: price,
+        orig: originalPrice,
+        compareAt: originalPrice,
+        chips: chips,
+        emoji: (listing && listing.emoji) || "👜",
+        desc: (listing && listing.desc) || "",
+        fit: (listing && listing.fit) || "—",
+        dims: (listing && listing.dims) || "",
+        material: (listing && listing.material) || "",
+        images: Array.isArray(listing && listing.images) ? listing.images.filter(Boolean) : [],
         inventoryStatus: "active",
         listingStatus: "published",
         orderId: null,
         soldAt: null,
         offersEnabled: true,
-        minimumOfferAmount: null
+        minimumOfferAmount: null,
+        ownerEmail: normalizeEmail(((listing && listing.ownerEmail) || seller.email))
       },
       listing,
       {
+        price: price,
+        orig: originalPrice,
+        compareAt: originalPrice,
+        chips: chips,
+        ownerEmail: normalizeEmail(((listing && listing.ownerEmail) || seller.email)),
         offersEnabled: typeof listing.offersEnabled === "boolean" ? listing.offersEnabled : true,
         minimumOfferAmount: listing.minimumOfferAmount === null || listing.minimumOfferAmount === undefined || listing.minimumOfferAmount === ""
           ? null
@@ -1051,32 +1127,58 @@
 
   function normalizeChatThread(thread) {
     const product = getThreadProduct(thread);
-    const productSeller = product && product.seller ? product.seller : {};
-    const fallbackSeller = (thread && thread.with) || {};
-    const sellerEmail = normalizeEmail(
+    const productSeller = product ? buildListingSeller(product) : {};
+    const legacyParticipant = (thread && thread.with) || {};
+    const legacyParticipantEmail = normalizeEmail(legacyParticipant.email || "");
+    const storedSeller = (thread && thread.seller) || {};
+    const storedBuyer = (thread && thread.buyer) || {};
+    const explicitSellerEmail = normalizeEmail(
       (thread && thread.sellerEmail) ||
+      (storedSeller && storedSeller.email) ||
       (product && (product.ownerEmail || (product.seller && product.seller.email))) ||
-      fallbackSeller.email ||
       ""
     );
+    const sellerEmail = explicitSellerEmail || (legacyParticipantEmail && legacyParticipantEmail !== normalizeEmail((thread && thread.buyerEmail) || "") ? legacyParticipantEmail : "");
     const currentUserEmail = normalizeEmail((state.currentUser && state.currentUser.email) || "");
-    const fallbackBuyerEmail = thread && thread.buyerEmail ? normalizeEmail(thread.buyerEmail) : sellerEmail && sellerEmail !== currentUserEmail ? currentUserEmail : "";
+    const explicitBuyerEmail = normalizeEmail((thread && thread.buyerEmail) || (storedBuyer && storedBuyer.email) || "");
+    const fallbackBuyerEmail = explicitBuyerEmail || (legacyParticipantEmail && legacyParticipantEmail !== sellerEmail ? legacyParticipantEmail : (sellerEmail && sellerEmail !== currentUserEmail ? currentUserEmail : ""));
     const messages = Array.isArray(thread && thread.msgs) ? thread.msgs.map(normalizeChatMessageRecord) : [];
     const lastMessage = messages[messages.length - 1];
     const updatedAt = Number((thread && thread.updatedAt) || (lastMessage && lastMessage.at) || Date.now());
-    const sellerName = (thread && thread.sellerName) || productSeller.name || fallbackSeller.name || langText("Seller", "Seller");
-    const buyerName = (thread && thread.buyerName) || ((state.currentUser && fallbackBuyerEmail === currentUserEmail) ? state.currentUser.name : "") || langText("Buyer", "Buyer");
+    const sellerName = (thread && thread.sellerName) || storedSeller.name || productSeller.name || ((legacyParticipantEmail && legacyParticipantEmail === sellerEmail) ? legacyParticipant.name : "") || langText("Seller", "Seller");
+    const buyerName = (thread && thread.buyerName) || storedBuyer.name || ((legacyParticipantEmail && legacyParticipantEmail === fallbackBuyerEmail) ? legacyParticipant.name : "") || ((state.currentUser && fallbackBuyerEmail === currentUserEmail) ? state.currentUser.name : "") || langText("Buyer", "Buyer");
+    const sellerParticipant = normalizeChatParticipant(
+      Object.assign({}, productSeller, storedSeller),
+      sellerName,
+      sellerEmail
+    );
+    const buyerParticipant = normalizeChatParticipant(
+      storedBuyer,
+      buyerName,
+      fallbackBuyerEmail
+    );
+    const scope = !currentUserEmail
+      ? "buying"
+      : sellerEmail && sellerEmail === currentUserEmail
+        ? "selling"
+        : fallbackBuyerEmail && fallbackBuyerEmail === currentUserEmail
+          ? "buying"
+          : sellerEmail && sellerEmail !== currentUserEmail
+            ? "buying"
+            : "selling";
     return Object.assign(
       {
         id: createId("chat"),
-        with: normalizeChatParticipant(fallbackSeller, sellerName, sellerEmail),
+        seller: sellerParticipant,
+        buyer: buyerParticipant,
+        with: scope === "selling" ? buyerParticipant : sellerParticipant,
         product: product,
         listingId: product ? product.id : ((thread && thread.listingId) || (thread && thread.productId) || null),
         productId: product ? product.id : ((thread && thread.productId) || (thread && thread.listingId) || null),
-        sellerId: (thread && thread.sellerId) || productSeller.id || fallbackSeller.id || "",
+        sellerId: (thread && thread.sellerId) || sellerParticipant.id || "",
         sellerEmail: sellerEmail,
         sellerName: sellerName,
-        buyerId: (thread && thread.buyerId) || fallbackBuyerEmail || "",
+        buyerId: (thread && thread.buyerId) || buyerParticipant.id || fallbackBuyerEmail || "",
         buyerEmail: fallbackBuyerEmail,
         buyerName: buyerName,
         msgs: messages,
@@ -1085,12 +1187,16 @@
       },
       thread || {},
       {
-        with: normalizeChatParticipant((thread && thread.with) || fallbackSeller, (thread && thread.with && thread.with.name) || sellerName, (thread && thread.with && thread.with.email) || sellerEmail),
+        seller: sellerParticipant,
+        buyer: buyerParticipant,
+        with: scope === "selling" ? buyerParticipant : sellerParticipant,
         product: product,
         listingId: product ? product.id : ((thread && thread.listingId) || (thread && thread.productId) || null),
         productId: product ? product.id : ((thread && thread.productId) || (thread && thread.listingId) || null),
         sellerEmail: sellerEmail,
+        sellerName: sellerName,
         buyerEmail: fallbackBuyerEmail,
+        buyerName: buyerName,
         msgs: messages,
         unreadCount: Number((thread && thread.unreadCount) || 0),
         updatedAt: updatedAt
@@ -1142,6 +1248,16 @@
     sellers.forEach(function (seller) {
       ensureSellerEmail(seller);
     });
+
+    if (Array.isArray(prods)) {
+      prods.forEach(function (product, index) {
+        const normalizedProduct = normalizeListingRecord(product);
+        prods[index] = normalizedProduct;
+        if (normalizedProduct.seller && !sellers.some(function (seller) { return sameEntityId(seller.id, normalizedProduct.seller.id); })) {
+          sellers.push(normalizedProduct.seller);
+        }
+      });
+    }
 
     state.users = state.users.map(function (user) {
       return normalizeUserWorkspace(Object.assign({}, user, {
@@ -3525,14 +3641,15 @@
       empty.style.display = "none";
       grid.innerHTML = items
         .map((product) => {
+          const productIdExpr = inlineJsValue(product.id);
           const safeName = escapeHtml(product.name);
           const safeBrand = escapeHtml(product.brand);
           return (
             "<div class=\"pc\" onclick=\"showDetail(" +
-            product.id +
+            productIdExpr +
             ")\">" +
             "<button class=\"pc-heart liked\" onclick=\"event.stopPropagation();toggleFav(" +
-            product.id +
+            productIdExpr +
             ",this);renderFavorites()\">♥</button>" +
             productVisualMarkup(product) +
             "<div class=\"pinfo\"><div class=\"p-brand\">" +
@@ -3776,16 +3893,18 @@
   }
 
   function productCardMarkup(product) {
-    const discount = Math.round((1 - product.price / product.orig) * 100);
+    const discount = getListingDiscount(product);
     const liked = favorites.has(product.id);
     const colorLabel = getFacetLabel("colors", product.color);
+    const productIdExpr = inlineJsValue(product.id);
+    const seller = buildListingSeller(product);
     return (
       "<div class=\"pc\" onclick=\"showDetail(" +
-      product.id +
+      productIdExpr +
       ")\"><button class=\"pc-heart" +
       (liked ? " liked" : "") +
       "\" onclick=\"event.stopPropagation();toggleFav(" +
-      product.id +
+      productIdExpr +
       ",this)\">" +
       (liked ? "♥" : "♡") +
       "</button>" +
@@ -3799,11 +3918,11 @@
       " · " +
       escapeHtml(colorLabel) +
       " · " +
-      escapeHtml(product.seller.name) +
+      escapeHtml(seller.name) +
       "</div><div class=\"p-footer\"><div><span class=\"p-price\">" +
       formatCurrency(product.price) +
       "</span><span class=\"p-orig\">" +
-      formatCurrency(product.orig) +
+      formatCurrency(getListingOriginalPrice(product)) +
       "</span></div><span class=\"p-disc\">" +
       escapeHtml(getProductCardMarkupFooter(product, discount)) +
       "</span></div></div></div>"
@@ -4205,9 +4324,7 @@
   }
 
   function addToCart(productId) {
-    const product = prods.find(function (candidate) {
-      return candidate.id === productId;
-    });
+    const product = getListingById(productId);
 
     if (!isProductPurchasable(product)) {
       showToast(langText("Questo articolo non e' piu' disponibile.", "This item is no longer available."));
@@ -4215,13 +4332,13 @@
     }
 
     const existing = state.cart.find(function (item) {
-      return item.productId === productId;
+      return sameEntityId(item.productId, productId);
     });
 
     if (existing) {
       existing.qty += 1;
     } else {
-      state.cart.push({ productId: productId, qty: 1 });
+      state.cart.push({ productId: product.id, qty: 1 });
     }
 
     persistCart();
@@ -4232,7 +4349,7 @@
 
   function removeFromCart(productId) {
     state.cart = state.cart.filter(function (item) {
-      return item.productId !== productId;
+      return !sameEntityId(item.productId, productId);
     });
     persistCart();
     updateCartBadge();
@@ -4246,9 +4363,7 @@
   function getCartDetails() {
     return state.cart
       .map(function (item) {
-        const product = prods.find(function (candidate) {
-          return candidate.id === item.productId;
-        });
+        const product = getListingById(item.productId);
         if (!product) {
           return null;
         }
@@ -4318,7 +4433,7 @@
               "</div><div class=\"irisx-cart-price\">" +
               formatCurrency(product.price * entry.qty) +
               "</div><button class=\"irisx-cta-link\" onclick=\"removeFromCart(" +
-              product.id +
+              inlineJsValue(product.id) +
               ")\">" +
               t("remove") +
               "</button></div></div>"
@@ -4372,9 +4487,7 @@
 
     state.checkoutSource = source || "cart";
     if (state.checkoutSource === "buyNow") {
-      const product = prods.find(function (candidate) {
-        return candidate.id === productId;
-      });
+      const product = getListingById(productId);
       state.checkoutItems = product ? [{ product: product, qty: 1 }] : [];
     } else {
       state.checkoutItems = getCartDetails();
@@ -5432,6 +5545,10 @@
     return getChatThreadsForScope(scope).reduce(function (sum, thread) {
       return sum + Number(thread.unreadCount || 0);
     }, 0);
+  }
+
+  function getChatScopeConversationCount(scope) {
+    return getChatThreadsForScope(scope).length;
   }
 
   function getChatScopeCopy(scope) {
@@ -7091,6 +7208,12 @@
       <div class="irisx-summary-card"><strong>${unreadNotifications}</strong><span>${langText("Unread notifications", "Unread notifications")}</span></div>
     </div>
     <div class="irisx-card-stack">
+      <div class="irisx-inline-card"><div><strong>${langText("I miei ordini", "My orders")}</strong><span>${orders.length} ${langText("ordini buyer", "buyer orders")} · ${orders[0] ? getOrderStatusLabel(orders[0]) : langText("nessun ordine", "no orders")}</span></div><button class="irisx-primary" onclick="setProfileArea('buyer','orders')">${langText("Apri ordini", "Open orders")}</button></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Le mie vendite", "My sales")}</strong><span>${sellerOrders.length} ${langText("vendite", "sales")} · ${sellerOrders.filter(function (order) { return order.payment && order.payment.payoutStatus === 'ready'; }).length} ${langText("payout ready", "payout ready")}</span></div><button class="irisx-primary" onclick="setProfileArea('seller','history')">${langText("Apri vendite", "Open sales")}</button></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Metodi di pagamento", "Payment methods")}</strong><span>${user.paymentMethods.length} ${langText("metodi salvati", "saved methods")} · ${user.paymentMethods.find(function (method) { return method.isDefault; }) ? langText("default presente", "default set") : langText("default mancante", "default missing")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_payment')">${langText("Apri pagamenti", "Open payments")}</button></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Metodi per ricevere i soldi", "Payout methods")}</strong><span>${escapeHtml(user.payoutSettings.method || langText("Da configurare", "Set up needed"))} · ${escapeHtml(user.payoutSettings.status || "setup_required")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_payment')">${langText("Apri payout", "Open payout")}</button></div>
+      <div class="irisx-inline-card"><div><strong>${langText("I miei indirizzi", "My addresses")}</strong><span>${user.addresses.length} ${langText("indirizzi salvati", "saved addresses")} · ${user.addresses.find(function (address) { return address.isDefault; }) ? langText("default attivo", "default active") : langText("nessun default", "no default")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_account')">${langText("Apri indirizzi", "Open addresses")}</button></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Preferenze shopping", "Shopping preferences")}</strong><span>${escapeHtml(user.sizeProfile.tops || "-")} / ${escapeHtml(user.sizeProfile.shoes || "-")} · ${savedSearches.length} ${langText("ricerche salvate", "saved searches")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','shopping_sizes')">${langText("Apri preferenze", "Open preferences")}</button></div>
       <div class="irisx-inline-card"><div><strong>${langText("Chat prodotti che compro", "Products I'm buying")}</strong><span>${buyingThreads.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("buying")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="openMessagingInbox('buying')">${langText("Apri chat compro", "Open buying chat")}</button></div>
       <div class="irisx-inline-card"><div><strong>${langText("Chat prodotti che vendo", "Products I'm selling")}</strong><span>${sellingThreads.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("selling")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="openMessagingInbox('selling')">${langText("Apri chat vendo", "Open selling chat")}</button></div>
       <div class="irisx-inline-card"><div><strong>${langText("Shopping", "Shopping")}</strong><span>${savedSearches.length} ${langText("ricerche salvate", "saved searches")} · ${escapeHtml(user.sizeProfile.tops || "")}/${escapeHtml(user.sizeProfile.shoes || "")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','shopping_preferences')">${langText("Apri", "Open")}</button></div>
@@ -7147,7 +7270,7 @@
     const sellingConversations = getChatThreadsForScope("selling");
     if (section === "active") {
       return published.length ? `<div class="irisx-card-stack">${published.map(function (listing) {
-        return `<div class="irisx-inline-card"><div><strong>${escapeHtml(listing.brand)} ${escapeHtml(listing.name)}</strong><span>${escapeHtml(formatCurrency(listing.price || 0))} · ${listing.offersEnabled ? `${langText("Offerte attive", "Offers active")}${listing.minimumOfferAmount ? ` · ${langText("min", "min")} ${escapeHtml(formatCurrency(listing.minimumOfferAmount))}` : ""}` : langText("Offerte disattivate", "Offers disabled")}</span></div><div class="irisx-actions"><button class="irisx-secondary" onclick="showDetail(${listing.id})">${langText("Apri", "Open")}</button><button class="irisx-secondary" onclick="loadDraftIntoSellForm('${listing.id}')">${langText("Modifica", "Edit")}</button><button class="irisx-danger" onclick="archiveListing('${listing.id}')">${langText("Archivia", "Archive")}</button></div></div>`;
+        return `<div class="irisx-inline-card"><div><strong>${escapeHtml(listing.brand)} ${escapeHtml(listing.name)}</strong><span>${escapeHtml(formatCurrency(listing.price || 0))} · ${listing.offersEnabled ? `${langText("Offerte attive", "Offers active")}${listing.minimumOfferAmount ? ` · ${langText("min", "min")} ${escapeHtml(formatCurrency(listing.minimumOfferAmount))}` : ""}` : langText("Offerte disattivate", "Offers disabled")}</span></div><div class="irisx-actions"><button class="irisx-secondary" onclick="showDetail(${inlineJsValue(listing.id)})">${langText("Apri", "Open")}</button><button class="irisx-secondary" onclick="loadDraftIntoSellForm('${listing.id}')">${langText("Modifica", "Edit")}</button><button class="irisx-danger" onclick="archiveListing('${listing.id}')">${langText("Archivia", "Archive")}</button></div></div>`;
       }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun annuncio attivo.", "No active listings.")}</div>`;
     }
     if (section === "drafts") {
@@ -7608,7 +7731,7 @@
         const active = scopeId === scope;
         return `<button class="irisx-chat-scope-tab${active ? " on" : ""}" onclick="setChatScope('${scopeId}')">
           <span>${escapeHtml(getChatScopeTabLabel(scopeId))}</span>
-          <em>${getChatScopeUnreadCount(scopeId)}</em>
+          <em>${getChatScopeConversationCount(scopeId)}</em>
         </button>`;
       }).join("");
     }
@@ -7687,7 +7810,7 @@
     }
     if (preview) {
       preview.innerHTML = conversation.product
-        ? `<button class="irisx-chat-product-card" onclick="showDetail(${conversation.product.id})"><strong>${escapeHtml(conversation.product.brand)}</strong><span>${escapeHtml(conversation.product.name)}</span><em>${escapeHtml(formatCurrency(conversation.product.price || 0))}</em><small class="irisx-chat-role-line"><span class="irisx-chat-role-badge">${escapeHtml(getChatRoleBadgeLabel(conversation))}</span><span>${escapeHtml(getChatRoleContext(conversation))}</span></small></button>`
+        ? `<button class="irisx-chat-product-card" onclick="showDetail(${inlineJsValue(conversation.product.id)})"><strong>${escapeHtml(conversation.product.brand)}</strong><span>${escapeHtml(conversation.product.name)}</span><em>${escapeHtml(formatCurrency(conversation.product.price || 0))}</em><small class="irisx-chat-role-line"><span class="irisx-chat-role-badge">${escapeHtml(getChatRoleBadgeLabel(conversation))}</span><span>${escapeHtml(getChatRoleContext(conversation))}</span></small></button>`
         : "";
     }
     if (messages) {
@@ -7731,17 +7854,18 @@
     input.value = "";
     persistChats();
     openChatById(curChat);
-    ensureSellerEmail(conversation.with);
+    const counterparty = conversation.with || normalizeChatParticipant(null, langText("Member", "Member"), "");
+    ensureSellerEmail(counterparty);
     createNotification({
       audience: "user",
       kind: "message",
       title: langText("Nuovo messaggio", "New message"),
       body: messageText,
-      recipientEmail: conversation.with.email,
+      recipientEmail: counterparty.email,
       conversationId: conversation.id,
       scope: getChatConversationScope(conversation)
     });
-    enqueueEmail("new-message", conversation.with.email, { preview: messageText });
+    enqueueEmail("new-message", counterparty.email, { preview: messageText });
     renderNotifications();
   };
 
@@ -7854,7 +7978,7 @@
     state.checkoutStatus = null;
     state.checkoutStep = "address";
     if (state.checkoutSource === "buyNow") {
-      const product = prods.find(function (candidate) { return candidate.id === productId; });
+      const product = getListingById(productId);
       state.checkoutItems = product ? [{ product: product, qty: 1 }] : [];
     } else {
       state.checkoutItems = getCartDetails();
@@ -7995,7 +8119,7 @@
   };
 
   function reportListing(productId) {
-    const product = prods.find(function (candidate) { return candidate.id === productId; });
+    const product = getListingById(productId);
     if (!product) {
       return;
     }
@@ -8010,27 +8134,30 @@
   }
 
   getDetailActionsMarkup = function (product, liked) {
+    const productIdExpr = inlineJsValue(product.id);
+    const seller = buildListingSeller(product);
+    const sellerIdExpr = inlineJsValue(seller.id);
     if (!isProductPurchasable(product)) {
-      return `<div class="irisx-note">${langText("Questo articolo risulta gia' venduto o non disponibile per nuovi acquisti.", "This item is already sold or unavailable.")}</div><div class="irisx-detail-actions"><button class="det-fav" onclick="toggleFav(${product.id},null)">${liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")}</button><button class="irisx-secondary" onclick="reportListing(${product.id})">${langText("Segnala", "Report")}</button></div>`;
+      return `<div class="irisx-note">${langText("Questo articolo risulta gia' venduto o non disponibile per nuovi acquisti.", "This item is already sold or unavailable.")}</div><div class="irisx-detail-actions"><button class="det-fav" onclick="toggleFav(${productIdExpr},null)">${liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")}</button><button class="irisx-secondary" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button></div>`;
     }
     const offerButton = product.offersEnabled
-      ? `<button class="det-offer" onclick="openOffer(${product.id})">${t("make_offer")}</button>`
+      ? `<button class="det-offer" onclick="openOffer(${productIdExpr})">${t("make_offer")}</button>`
       : `<button class="det-offer" disabled>${langText("Offerte non disponibili", "Offers unavailable")}</button>`;
     const offerNote = product.offersEnabled
       ? `<div class="irisx-note">${product.minimumOfferAmount !== null && product.minimumOfferAmount !== undefined ? `${langText("Offerta minima", "Minimum offer")}: ${escapeHtml(formatCurrency(product.minimumOfferAmount))}` : langText("Il seller accetta offerte con autorizzazione pagamento.", "Seller accepts offers with payment authorization.")}</div>`
       : `<div class="irisx-note">${langText("Questo seller ha disattivato le offerte su questo articolo.", "This seller has disabled offers for this listing.")}</div>`;
     return `<div class="irisx-detail-actions">
-      <button class="det-buy" onclick="buyNow(${product.id})">${t("buy_now")} · ${formatCurrency(product.price)}</button>
-      <button class="irisx-secondary" onclick="addToCart(${product.id})">${t("add_to_cart")}</button>
+      <button class="det-buy" onclick="buyNow(${productIdExpr})">${t("buy_now")} · ${formatCurrency(product.price)}</button>
+      <button class="irisx-secondary" onclick="addToCart(${productIdExpr})">${t("add_to_cart")}</button>
       ${offerButton}
-      <button class="irisx-secondary" onclick="openChat('${escapeHtml(product.seller.id)}',${product.id})">${t("chat")}</button>
-      <button class="det-fav" onclick="toggleFav(${product.id},null)">${liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")}</button>
-      <button class="irisx-secondary" onclick="reportListing(${product.id})">${langText("Segnala", "Report")}</button>
+      <button class="irisx-secondary" onclick="openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>
+      <button class="det-fav" onclick="toggleFav(${productIdExpr},null)">${liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")}</button>
+      <button class="irisx-secondary" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button>
     </div>${offerNote}`;
   };
 
   showDetail = function (id) {
-    const product = prods.find(function (item) { return item.id === id; });
+    const product = getListingById(id);
     if (!product) {
       return;
     }
@@ -8041,12 +8168,17 @@
       }
     });
     state.activeDetailImage = 0;
-    const discount = Math.round((1 - product.price / product.orig) * 100);
+    const discount = getListingDiscount(product);
     const liked = favorites.has(product.id);
     const fitLabel = getFacetLabel("fits", product.fit === "—" ? "—" : product.fit);
     const colorLabel = getFacetLabel("colors", product.color);
     const conditionLabel = getFacetLabel("conds", product.cond);
-    const similar = prods.filter(function (item) { return item.id !== product.id && (item.brand === product.brand || item.cat === product.cat); }).slice(0, 4);
+    const originalPrice = getListingOriginalPrice(product);
+    const chips = getListingChips(product);
+    const seller = buildListingSeller(product);
+    const sellerIdExpr = inlineJsValue(seller.id);
+    const productIdExpr = inlineJsValue(product.id);
+    const similar = prods.filter(function (item) { return !sameEntityId(item.id, product.id) && (item.brand === product.brand || item.cat === product.cat); }).slice(0, 4);
     const detailView = qs("#detail-view");
     detailView.innerHTML = `<div class="det-layout view-enter">
       <div class="det-imgs">${detailMediaMarkup(product)}</div>
@@ -8055,16 +8187,16 @@
         <button class="det-back" onclick="closeDetail()">${t("back_shop")}</button>
         <div class="det-brand">${escapeHtml(product.brand)}</div>
         <div class="det-name">${escapeHtml(product.name)}</div>
-        <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(product.orig)}</span><span class="det-save">-${discount}%</span></div>
+        <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
         <div class="det-div"></div>
-        <div class="det-section"><div class="det-section-title">${t("details")}</div><div class="det-chips">${product.chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div></div>
+        <div class="det-section"><div class="det-section-title">${t("details")}</div><div class="det-chips">${chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div></div>
         <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(product.sz)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
         <div class="det-section"><div class="det-section-title">${t("description")}</div><div class="det-desc">${escapeHtml(product.desc)}</div></div>
         <div class="det-section"><div class="det-section-title">${langText("Shipping info", "Shipping info")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Shipping fee", "Shipping fee")}</strong><span>${formatCurrency(SHIPPING_COST)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Method", "Method")}</strong><span>${langText("Insured and tracked", "Insured and tracked")}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Trust", "Trust")}</strong><span>${langText("Authentication queue prepared", "Authentication queue prepared")}</span></div><button class="irisx-secondary" onclick="openStatic('trust-authentication')">${langText("Learn more", "Learn more")}</button></div></div></div>
-        <div class="det-section"><div class="det-section-title">${t("seller")}</div><div class="seller-card" onclick="showSeller('${escapeHtml(product.seller.id)}')"><div class="seller-av">${escapeHtml(product.seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(product.seller.name)}</div><div class="seller-meta"><span>★ ${escapeHtml(product.seller.rating)}</span> ${escapeHtml(product.seller.sales)} ${t("sales")} · ${escapeHtml(product.seller.city)}</div></div><button class="seller-chat" onclick="event.stopPropagation();openChat('${escapeHtml(product.seller.id)}',${product.id})">${t("chat")}</button></div></div>
+        <div class="det-section"><div class="det-section-title">${t("seller")}</div><div class="seller-card" onclick="showSeller('${escapeHtml(seller.id)}')"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta"><span>★ ${escapeHtml(seller.rating)}</span> ${escapeHtml(seller.sales)} ${t("sales")} · ${escapeHtml(seller.city)}</div></div><button class="seller-chat" onclick="event.stopPropagation();openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button></div></div>
         ${getDetailActionsMarkup(product, liked)}
         <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Buyer Protection", "Buyer Protection")}</button></li></ul></div>
-        ${similar.length ? `<div class="det-similar"><div class="det-similar-title">${t("similar")}</div><div class="det-similar-grid">${similar.map(function (item) { return `<div class="pc" onclick="showDetail(${item.id})" style="min-width:160px">${productVisualMarkup(item, true)}<div class="pinfo" style="padding:.8rem"><div class="p-brand">${escapeHtml(item.brand)}</div><div class="p-name" style="font-size:.78rem">${escapeHtml(item.name)}</div><div class="p-price" style="font-size:.78rem;margin-top:.3rem">${formatCurrency(item.price)}</div></div></div>`; }).join("")}</div></div>` : ""}
+        ${similar.length ? `<div class="det-similar"><div class="det-similar-title">${t("similar")}</div><div class="det-similar-grid">${similar.map(function (item) { return `<div class="pc" onclick="showDetail(${inlineJsValue(item.id)})" style="min-width:160px">${productVisualMarkup(item, true)}<div class="pinfo" style="padding:.8rem"><div class="p-brand">${escapeHtml(item.brand)}</div><div class="p-name" style="font-size:.78rem">${escapeHtml(item.name)}</div><div class="p-price" style="font-size:.78rem;margin-top:.3rem">${formatCurrency(item.price)}</div></div></div>`; }).join("")}</div></div>` : ""}
       </div>
     </div>`;
     qs("#shop-view").style.display = "none";

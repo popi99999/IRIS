@@ -1391,3 +1391,86 @@ body.light-mode .irisx-home-strip span {
     min-width: 72px;
   }
 }
+
+/* ═══════════════════════════════════════
+   HERO VIDEO BACKGROUND
+═══════════════════════════════════════ */
+.irisx-hero-video {
+  position: absolute;
+  inset: -5%;
+  width: 110%;
+  height: 110%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 4s cubic-bezier(.4,0,.2,1);
+  filter: saturate(.2) brightness(.22);
+  z-index: 0;
+  pointer-events: none;
+}
+.irisx-hero-video.on { opacity: 1; }
+
+/* ═══════════════════════════════════════
+   AMBIENT FLOATING PARTICLES (Home)
+═══════════════════════════════════════ */
+.irisx-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+.irisx-particle {
+  position: absolute;
+  color: rgba(196, 160, 106, 0);
+  font-style: normal;
+  animation: ambientFloat linear infinite;
+  user-select: none;
+}
+@keyframes ambientFloat {
+  0%   { opacity: 0; transform: translateY(0) rotate(0deg); color: rgba(196,160,106,0); }
+  10%  { opacity: 1; color: rgba(196,160,106,.09); }
+  88%  { opacity: 1; color: rgba(196,160,106,.09); }
+  100% { opacity: 0; transform: translateY(-60px) rotate(20deg); color: rgba(196,160,106,0); }
+}
+
+/* ═══════════════════════════════════════
+   GOLD INTERACTION SYSTEM (global)
+═══════════════════════════════════════ */
+.irisx-home-action.primary:hover {
+  background: linear-gradient(135deg, #7C3AED, #9D5CF5);
+  box-shadow: 0 4px 24px rgba(124,58,237,.35);
+}
+.irisx-home-action.secondary:hover {
+  color: var(--gold);
+  border-color: rgba(196,160,106,.3);
+}
+/* Navbar icons gold on hover */
+.topnav .tn-btn:hover,
+.notif-bell:hover {
+  color: var(--gold) !important;
+}
+/* Product cards: gold border on hover */
+.pc:hover {
+  border-color: rgba(196,160,106,.2) !important;
+  box-shadow: 0 8px 32px rgba(196,160,106,.06), 0 2px 8px rgba(0,0,0,.3) !important;
+}
+/* Sort buttons gold active */
+.sort-btn.active {
+  border-color: rgba(196,160,106,.4) !important;
+  color: var(--gold) !important;
+}
+/* Filter accent */
+.fsel:focus, .fi:focus {
+  border-color: rgba(196,160,106,.35) !important;
+  box-shadow: 0 0 0 2px rgba(196,160,106,.08) !important;
+}
+/* Home strip value color */
+.irisx-home-strip strong {
+  color: var(--gold) !important;
+  opacity: .85;
+}
+/* VENDI button gold on hover */
+.topnav .tn-primary:hover {
+  background: linear-gradient(135deg, #9D5CF5, #7C3AED) !important;
+  box-shadow: 0 0 24px rgba(124,58,237,.4) !important;
+}

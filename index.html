@@ -43,36 +43,55 @@ button{font-family:inherit}
 
 /* ═══════ INTRO ═══════ */
 #intro{position:fixed;inset:0;z-index:2000;overflow:hidden;background:#02000A;cursor:pointer}
-#intro-bg{position:absolute;inset:0;z-index:0;background:linear-gradient(135deg,#02000A 0%,#0D0428 30%,#180840 50%,#0A0222 70%,#02000A 100%);background-size:400% 400%;animation:iGradMove 10s ease infinite}
+/* Video background */
+#i-vid{position:absolute;inset:-5%;width:110%;height:110%;object-fit:cover;opacity:0;transition:opacity 4s cubic-bezier(.4,0,.2,1);filter:saturate(.25) brightness(.28);z-index:0}
+#i-vid.on{opacity:1}
+/* Animated gradient fallback */
+#intro-bg{position:absolute;inset:0;z-index:0;background:linear-gradient(135deg,#02000A 0%,#0D0428 30%,#180840 50%,#0A0222 70%,#02000A 100%);background-size:400% 400%;animation:iGradMove 12s ease infinite}
 @keyframes iGradMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-#intro-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(100,20,220,.28) 0%,rgba(80,10,180,.12) 40%,transparent 70%);animation:iGlow 5s ease-in-out infinite alternate}
-@keyframes iGlow{0%{opacity:.6;transform:scale(.95)}100%{opacity:1;transform:scale(1.05)}}
+#intro-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(100,20,220,.22) 0%,rgba(80,10,180,.1) 40%,transparent 70%);animation:iGlow 6s ease-in-out infinite alternate}
+@keyframes iGlow{0%{opacity:.5;transform:scale(.95)}100%{opacity:1;transform:scale(1.05)}}
+/* Floating luxury elements */
+.i-floats{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.i-f{position:absolute;color:rgba(196,160,106,.0);font-style:normal;animation:iFloatUp linear infinite;pointer-events:none;user-select:none}
+@keyframes iFloatUp{0%{opacity:0;transform:translateY(0) rotate(0deg) scale(1)}8%{opacity:1;color:rgba(196,160,106,.14)}85%{opacity:1}100%{opacity:0;transform:translateY(-80px) rotate(25deg) scale(.85)}}
+/* Shine overlay */
 .i-lux{position:absolute;inset:0;z-index:1;overflow:hidden}
-.i-lux-shine{position:absolute;top:-60%;left:-60%;width:220%;height:220%;background:conic-gradient(from 0deg at 50% 50%,transparent 0deg,transparent 320deg,rgba(167,139,250,.06) 340deg,rgba(255,255,255,.08) 350deg,rgba(196,160,106,.06) 355deg,transparent 360deg);animation:introShine 20s linear infinite;pointer-events:none}
+.i-lux-shine{position:absolute;top:-60%;left:-60%;width:220%;height:220%;background:conic-gradient(from 0deg at 50% 50%,transparent 0deg,transparent 320deg,rgba(167,139,250,.04) 340deg,rgba(255,255,255,.07) 350deg,rgba(196,160,106,.05) 355deg,transparent 360deg);animation:introShine 22s linear infinite;pointer-events:none}
 @keyframes introShine{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .i-ov{position:absolute;inset:0;z-index:2;pointer-events:none}
-.i-ov::before{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(2,0,10,.75) 0%,rgba(2,0,10,.05) 25%,rgba(2,0,10,.0) 50%,rgba(2,0,10,.05) 70%,rgba(2,0,10,.9) 100%),linear-gradient(to right,rgba(2,0,10,.3) 0%,transparent 35%,transparent 65%,rgba(2,0,10,.3) 100%)}
-.i-ov::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 75% 55% at 50% 52%,rgba(100,35,200,.32) 0%,transparent 68%);mix-blend-mode:screen}
-.i-grain{position:absolute;inset:0;z-index:2;opacity:.035;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px 200px;animation:igrain .35s steps(1) infinite}
+.i-ov::before{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(2,0,10,.8) 0%,rgba(2,0,10,.05) 22%,rgba(2,0,10,.0) 50%,rgba(2,0,10,.05) 72%,rgba(2,0,10,.92) 100%),linear-gradient(to right,rgba(2,0,10,.35) 0%,transparent 30%,transparent 70%,rgba(2,0,10,.35) 100%)}
+.i-ov::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 52% at 50% 52%,rgba(90,25,185,.25) 0%,transparent 65%);mix-blend-mode:screen}
+.i-grain{position:absolute;inset:0;z-index:2;opacity:.04;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px 200px;animation:igrain .35s steps(1) infinite}
 @keyframes igrain{0%{transform:translate(0,0)}25%{transform:translate(-4%,3%)}50%{transform:translate(3%,-4%)}75%{transform:translate(-3%,-3%)}100%{transform:translate(4%,2%)}}
 .i-bar-t,.i-bar-b{position:absolute;left:0;right:0;height:clamp(36px,6.5vh,72px);background:#02000A;z-index:3;transition:transform 1.1s cubic-bezier(.77,0,.18,1)}
 .i-bar-t{top:0;transform:translateY(-100%)}.i-bar-b{bottom:0;transform:translateY(100%)}
 #intro.i-cinema .i-bar-t{transform:translateY(0)}#intro.i-cinema .i-bar-b{transform:translateY(0)}
 .i-t{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
-.i-n{font-family:'Cormorant Garamond',serif;font-size:clamp(5.5rem,14vw,13rem);font-weight:300;font-style:italic;letter-spacing:.12em;line-height:1;opacity:0;transform:translateY(36px) scale(.97);transition:opacity 2.4s cubic-bezier(.22,1,.36,1),transform 2.4s cubic-bezier(.22,1,.36,1);background:linear-gradient(140deg,#FDFAFF 0%,#C9ABFF 40%,#FDFAFF 65%,#E8D5FF 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 60px rgba(138,63,255,.55)) drop-shadow(0 0 140px rgba(138,63,255,.2))}
-.i-l{width:0;height:1px;background:linear-gradient(to right,transparent,rgba(167,139,250,.45) 20%,rgba(220,200,255,.6) 50%,rgba(167,139,250,.45) 80%,transparent);margin:1.8rem auto 1.6rem;transition:width 2s cubic-bezier(.22,1,.36,1) .6s}
-.i-s{font-size:.46rem;letter-spacing:.75em;text-transform:uppercase;color:rgba(255,255,255,.0);opacity:0;transition:opacity 1.8s ease 1s,color 1.8s ease 1s;text-shadow:0 0 24px rgba(167,139,250,.35)}
-.i-tag{font-family:'Cormorant Garamond',serif;font-size:clamp(.85rem,1.6vw,1.2rem);font-style:italic;color:rgba(255,255,255,0);letter-spacing:.05em;opacity:0;transition:opacity 1.5s ease 1.4s,color 1.5s ease 1.4s;margin-top:.4rem}
-.i-tap{font-size:.42rem;letter-spacing:.5em;text-transform:uppercase;color:rgba(255,255,255,0);margin-top:2.8rem;opacity:0;transition:opacity 1.2s ease 2.1s,color 1.2s ease 2.1s;border:1px solid rgba(167,139,250,0);padding:.6rem 2.2rem;border-radius:1px;transition:opacity 1.2s ease 2.1s,color 1.2s ease 2.1s,border-color 1.2s ease 2.1s,box-shadow 3s ease 3.5s;animation:none}
+/* IRIS title — gold shimmer gradient */
+.i-n{font-family:'Cormorant Garamond',serif;font-size:clamp(5.5rem,15vw,14rem);font-weight:300;font-style:italic;letter-spacing:.1em;line-height:1;opacity:0;transform:translateY(40px) scale(.96);transition:opacity 2.6s cubic-bezier(.22,1,.36,1),transform 2.6s cubic-bezier(.22,1,.36,1);background:linear-gradient(145deg,#F5EFE0 0%,#C9ABFF 25%,#FDFAFF 45%,#C4A06A 62%,#FDFAFF 78%,#E8D5FF 100%);background-size:300% 300%;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 55px rgba(138,63,255,.5)) drop-shadow(0 0 120px rgba(196,160,106,.15));animation:iNameShimmer 8s ease infinite}
+@keyframes iNameShimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.i-l{width:0;height:1px;background:linear-gradient(to right,transparent,rgba(196,160,106,.3) 15%,rgba(220,200,255,.55) 50%,rgba(196,160,106,.3) 85%,transparent);margin:2rem auto 1.8rem;transition:width 2.2s cubic-bezier(.22,1,.36,1) .8s}
+.i-s{font-size:.44rem;letter-spacing:.8em;text-transform:uppercase;color:rgba(255,255,255,.0);opacity:0;transition:opacity 1.8s ease 1.2s,color 1.8s ease 1.2s;text-shadow:0 0 20px rgba(196,160,106,.3)}
+.i-tag{font-family:'Cormorant Garamond',serif;font-size:clamp(.9rem,1.7vw,1.25rem);font-style:italic;color:rgba(255,255,255,0);letter-spacing:.06em;opacity:0;transition:opacity 1.6s ease 1.6s,color 1.6s ease 1.6s;margin-top:.5rem}
+.i-tap{font-size:.4rem;letter-spacing:.55em;text-transform:uppercase;color:rgba(255,255,255,0);margin-top:3rem;opacity:0;border:1px solid rgba(196,160,106,0);padding:.65rem 2.5rem;border-radius:1px;transition:opacity 1.3s ease 2.3s,color 1.3s ease 2.3s,border-color 1.3s ease 2.3s,box-shadow 3s ease 3.8s;animation:none}
 .i-t.v .i-n{opacity:1;transform:translateY(0) scale(1)}
-.i-t.v .i-l{width:clamp(100px,16vw,220px)}
-.i-t.v .i-s{opacity:1;color:rgba(255,255,255,.22)}
-.i-t.v .i-tag{opacity:1;color:rgba(255,255,255,.75)}
-.i-t.v .i-tap{opacity:1;color:rgba(255,255,255,.28);border-color:rgba(167,139,250,.2);animation:pulse-enter 3.5s ease 3.5s infinite}
-@keyframes pulse-enter{0%,100%{border-color:rgba(167,139,250,.2);box-shadow:none}50%{border-color:rgba(167,139,250,.5);box-shadow:0 0 22px rgba(124,58,237,.18)}}
-.i-t.out .i-n{opacity:0;transform:translateY(-22px) scale(.97);transition:opacity .65s,transform .65s}
+.i-t.v .i-l{width:clamp(110px,18vw,240px)}
+.i-t.v .i-s{opacity:1;color:rgba(255,255,255,.2)}
+.i-t.v .i-tag{opacity:1;color:rgba(255,255,255,.7)}
+.i-t.v .i-tap{opacity:1;color:rgba(196,160,106,.45);border-color:rgba(196,160,106,.18);animation:pulse-enter 3.5s ease 4s infinite}
+@keyframes pulse-enter{0%,100%{border-color:rgba(196,160,106,.18);box-shadow:none}50%{border-color:rgba(196,160,106,.45);box-shadow:0 0 28px rgba(196,160,106,.12)}}
+.i-t.out .i-n{opacity:0;transform:translateY(-24px) scale(.97);transition:opacity .7s,transform .7s}
 .i-t.out .i-s,.i-t.out .i-tag,.i-t.out .i-tap{opacity:0;transition:opacity .35s}
 #intro.out{opacity:0;pointer-events:none;transition:opacity 1.1s ease .05s}
+/* ═══ GOLD INTERACTION SYSTEM ═══ */
+button:active{filter:brightness(1.15)}
+.tn-btn:active,.notif-bell:active{color:var(--gold)!important;transition:color .05s}
+.irisx-home-action.primary:active{background:var(--gold)!important}
+.irisx-home-action.secondary:active{color:var(--gold)!important;border-color:rgba(196,160,106,.4)!important}
+.pc:active .pc-img{filter:brightness(1.1) saturate(1.2)}
+.irisx-primary:active{background:var(--gold)!important;border-color:var(--gold)!important}
+a:active,button:focus-visible{outline:1px solid rgba(196,160,106,.35);outline-offset:2px}
 
 /* ═══════ CHOICE ═══════ */
 #choice{position:fixed;inset:0;z-index:1500;display:flex;opacity:0;pointer-events:none;transition:opacity .7s}
@@ -700,8 +719,24 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
 
 <!-- ═══════ INTRO ═══════ -->
 <div id="intro" onclick="skipIntro()">
+  <!-- 4K luxury video background -->
+  <video id="i-vid" autoplay muted loop playsinline preload="auto">
+    <source src="https://videos.pexels.com/video-files/6649983/6649983-hd_2048_1080_25fps.mp4" type="video/mp4">
+    <source src="https://videos.pexels.com/video-files/7677253/7677253-hd_1920_1080_25fps.mp4" type="video/mp4">
+  </video>
   <div id="intro-bg"></div>
   <div class="i-lux"><div class="i-lux-shine"></div></div>
+  <!-- Floating luxury elements -->
+  <div class="i-floats">
+    <span class="i-f" style="left:7%;top:22%;font-size:2.2rem;animation-duration:14s;animation-delay:0s">◆</span>
+    <span class="i-f" style="left:88%;top:15%;font-size:1rem;animation-duration:20s;animation-delay:-7s">◇</span>
+    <span class="i-f" style="left:18%;top:72%;font-size:3rem;animation-duration:11s;animation-delay:-9s">✦</span>
+    <span class="i-f" style="left:76%;top:68%;font-size:1.5rem;animation-duration:17s;animation-delay:-4s">◆</span>
+    <span class="i-f" style="left:52%;top:10%;font-size:.9rem;animation-duration:24s;animation-delay:-13s">◇</span>
+    <span class="i-f" style="left:35%;top:85%;font-size:1.2rem;animation-duration:15s;animation-delay:-2s">✦</span>
+    <span class="i-f" style="left:92%;top:45%;font-size:2rem;animation-duration:18s;animation-delay:-6s">◆</span>
+    <span class="i-f" style="left:3%;top:55%;font-size:1.4rem;animation-duration:22s;animation-delay:-11s">◇</span>
+  </div>
   <div class="i-ov"></div>
   <div class="i-grain"></div>
   <div class="i-bar-t"></div>
@@ -1178,14 +1213,22 @@ const chats=[
 /* ═══════ INTRO ═══════ */
 const itext=document.getElementById('itext');
 const introEl=document.getElementById('intro');
+const introVid=document.getElementById('i-vid');
 let introDone=false;
 document.body.style.overflow='hidden';
-// Activate cinematic bars immediately
+// Cinematic bars immediately
 introEl.classList.add('i-cinema');
-// Show text with slight delay for dramatic effect
-setTimeout(()=>{if(!introDone)itext.classList.add('v')},600);
-// Auto-skip after 7s
-setTimeout(()=>{if(!introDone)skipIntro()},7200);
+// Start video — fade in when ready
+if(introVid){
+  introVid.load();
+  introVid.addEventListener('canplay',()=>{introVid.classList.add('on');},{ once:true });
+  // Also try after 1.5s as fallback if canplay never fires
+  setTimeout(()=>{ if(introVid && !introVid.classList.contains('on')) introVid.classList.add('on'); }, 1500);
+}
+// Show text
+setTimeout(()=>{if(!introDone)itext.classList.add('v')},700);
+// Auto-skip after 9s (longer for cinematic feel)
+setTimeout(()=>{if(!introDone)skipIntro()},9000);
 function skipIntro(){
   if(introDone)return;introDone=true;
   itext.classList.add('out');

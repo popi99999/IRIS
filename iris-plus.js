@@ -1062,8 +1062,18 @@
 
     container.innerHTML =
       "<div class=\"irisx-home-shell\"><section class=\"irisx-home-hero\">" +
+      "<video class=\"irisx-hero-video\" id=\"heroVid\" autoplay muted loop playsinline preload=\"auto\">" +
+      "<source src=\"https://videos.pexels.com/video-files/6649983/6649983-hd_2048_1080_25fps.mp4\" type=\"video/mp4\">" +
+      "<source src=\"https://videos.pexels.com/video-files/7677253/7677253-hd_1920_1080_25fps.mp4\" type=\"video/mp4\">" +
+      "</video>" +
       "<div class=\"irisx-hero-lux\"><div class=\"irisx-hero-shine\"></div></div>" +
       "<div class=\"irisx-hero-grain\"></div>" +
+      "<div class=\"irisx-ambient\">" +
+      "<span class=\"irisx-particle\" style=\"left:5%;top:30%;font-size:1.6rem;animation-duration:16s\">◆</span>" +
+      "<span class=\"irisx-particle\" style=\"left:90%;top:20%;font-size:.9rem;animation-duration:22s;animation-delay:-8s\">◇</span>" +
+      "<span class=\"irisx-particle\" style=\"left:60%;top:75%;font-size:2rem;animation-duration:14s;animation-delay:-5s\">✦</span>" +
+      "<span class=\"irisx-particle\" style=\"left:25%;top:80%;font-size:1.1rem;animation-duration:19s;animation-delay:-11s\">◆</span>" +
+      "</div>" +
       "<div class=\"irisx-home-copy\"><div class=\"irisx-home-kicker\">" +
       escapeHtml(copy.kicker) +
       "</div><h1 class=\"irisx-home-title\">" +
@@ -1107,6 +1117,14 @@
       "</p><ul>" +
       copy.sellPoints.map(function (point) { return "<li>" + escapeHtml(point) + "</li>"; }).join("") +
       "</ul></article></div></section></div>";
+
+    // Fade in hero video when ready
+    var hv = document.getElementById("heroVid");
+    if (hv) {
+      hv.load();
+      hv.addEventListener("canplay", function() { hv.classList.add("on"); }, { once: true });
+      setTimeout(function() { if (hv && !hv.classList.contains("on")) hv.classList.add("on"); }, 2000);
+    }
   }
 
   function setActiveNav(view) {

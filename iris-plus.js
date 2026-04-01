@@ -9055,18 +9055,7 @@
         <button class="det-back" onclick="closeDetail()">${t("back_shop")}</button>
         <div class="det-brand">${escapeHtml(product.brand)}</div>
         <div class="det-name">${escapeHtml(product.name)}</div>
-        <div class="irisx-detail-subline">${escapeHtml(product.sz)} · ${escapeHtml(conditionLabel)} · ${escapeHtml(seller.city)}</div>
         <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
-        <div class="irisx-product-help-card">
-          <div>
-            <strong>${langText("Assistenza IRIS", "IRIS Help")}</strong>
-            <span>${langText(`Autenticazione, offerte, spedizione e commissioni ${Math.round(PLATFORM_CONFIG.selfServeFeeRate * 100)}% / ${Math.round(PLATFORM_CONFIG.conciergeFeeRate * 100)}% spiegate in modo chiaro.`, `Authentication, offers, shipping, and ${Math.round(PLATFORM_CONFIG.selfServeFeeRate * 100)}% / ${Math.round(PLATFORM_CONFIG.conciergeFeeRate * 100)}% fees explained clearly.`)}</span>
-          </div>
-          <div class="irisx-actions">
-            <button class="irisx-secondary" onclick="openStatic('marketplace-overview')">${langText("Come funziona", "How it works")}</button>
-            <button class="irisx-secondary" onclick="showBuyView('profile');setProfileArea('account','help_contact')">${langText("Assistenza", "Support")}</button>
-          </div>
-        </div>
         <div class="det-div"></div>
         <div class="det-section"><div class="det-section-title">${t("details")}</div><div class="det-chips">${chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div></div>
         <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(product.sz)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
@@ -9075,6 +9064,16 @@
         <div class="det-section"><div class="det-section-title">${langText("Shipping info", "Shipping info")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Shipping fee", "Shipping fee")}</strong><span>${formatCurrency(SHIPPING_COST)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Method", "Method")}</strong><span>${langText("Insured and tracked", "Insured and tracked")}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Trust", "Trust")}</strong><span>${langText("Authentication queue prepared", "Authentication queue prepared")}</span></div><button class="irisx-secondary" onclick="openStatic('trust-authentication')">${langText("Learn more", "Learn more")}</button></div></div></div>
         <div class="det-section"><div class="det-section-title">${t("seller")}</div><div class="seller-card${ownedByCurrentUser ? " seller-card--owner" : ""}" onclick="${ownedByCurrentUser ? `loadDraftIntoSellForm('${product.id}')` : `showSeller('${escapeHtml(seller.id)}')`}"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta">${sellerMeta}</div></div><button class="seller-chat" onclick="event.stopPropagation();${sellerAction}">${sellerActionLabel}</button></div></div>
         ${getDetailActionsMarkup(product, liked)}
+        <div class="irisx-product-help-card irisx-product-help-card--compact">
+          <div>
+            <strong>${langText("Assistenza IRIS", "IRIS Help")}</strong>
+            <span>${langText("Autenticazione, offerte e commissioni spiegate in modo chiaro.", "Authentication, offers, and fees explained clearly.")}</span>
+          </div>
+          <div class="irisx-actions">
+            <button class="irisx-secondary" onclick="openStatic('marketplace-overview')">${langText("Come funziona", "How it works")}</button>
+            <button class="irisx-secondary" onclick="showBuyView('profile');setProfileArea('account','help_contact')">${langText("Assistenza", "Support")}</button>
+          </div>
+        </div>
         <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Buyer Protection", "Buyer Protection")}</button></li></ul></div>
         ${similar.length ? `<div class="det-similar"><div class="det-similar-title">${t("similar")}</div><div class="det-similar-grid">${similar.map(function (item) { return `<div class="pc" onclick="showDetail(${inlineJsValue(item.id)})" style="min-width:160px">${productVisualMarkup(item, true)}<div class="pinfo" style="padding:.8rem"><div class="p-brand">${escapeHtml(item.brand)}</div><div class="p-name" style="font-size:.78rem">${escapeHtml(item.name)}</div><div class="p-price" style="font-size:.78rem;margin-top:.3rem">${formatCurrency(item.price)}</div></div></div>`; }).join("")}</div></div>` : ""}
       </div>

@@ -3545,3 +3545,191 @@ body.light-mode #detail-view .det-auth {
     left: 1rem;
   }
 }
+
+/* ── Detail rollback: keep support, restore the previous darker product sheet feel ── */
+#detail-view .det-layout {
+  grid-template-columns: 1fr 1fr !important;
+  gap: 0 !important;
+  min-height: calc(100vh - 70px) !important;
+  align-items: stretch !important;
+  padding: 0 !important;
+}
+
+#detail-view .det-imgs {
+  background: linear-gradient(135deg, #0D0520, #160830) !important;
+  min-height: 70vh !important;
+  padding: 3rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: sticky !important;
+  top: 54px !important;
+}
+
+#detail-view .det-body {
+  padding: 2.5rem 2.5rem 4rem !important;
+  max-height: calc(100vh - 54px) !important;
+}
+
+.irisx-detail-gallery,
+.irisx-detail-gallery--empty {
+  display: block !important;
+  width: 100% !important;
+}
+
+.irisx-detail-thumbs {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: .6rem !important;
+  margin-top: 1rem !important;
+  overflow-x: auto !important;
+}
+
+.irisx-detail-thumb {
+  width: 70px !important;
+  height: 88px !important;
+  border-radius: 2px !important;
+}
+
+.irisx-detail-stage {
+  max-width: 560px !important;
+  width: 100% !important;
+  aspect-ratio: 4 / 5 !important;
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(167,139,250,.08) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.irisx-detail-stage--empty {
+  min-height: 0 !important;
+}
+
+.irisx-detail-image {
+  object-fit: cover !important;
+  padding: 0 !important;
+}
+
+.det-img-main {
+  min-height: 100% !important;
+  font-size: 12rem !important;
+  opacity: .08 !important;
+  color: inherit !important;
+}
+
+.det-back {
+  font-size: .55rem !important;
+  margin-bottom: 1.8rem !important;
+}
+
+.det-brand {
+  font-size: .5rem !important;
+  opacity: .5 !important;
+}
+
+.det-name {
+  font-size: 1.7rem !important;
+  line-height: 1.2 !important;
+  margin-bottom: 1.2rem !important;
+}
+
+.det-price {
+  font-size: 1.5rem !important;
+  font-family: inherit !important;
+}
+
+#detail-view .det-section {
+  margin-bottom: 1.5rem !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+
+#detail-view .det-auth {
+  background: rgba(124,58,237,.04) !important;
+  border: 1px solid rgba(167,139,250,.08) !important;
+  padding: 1rem !important;
+  border-radius: 2px !important;
+  margin-top: 1rem !important;
+}
+
+#detail-view .det-section-title {
+  font-size: .5rem !important;
+  color: rgba(255,255,255,.5) !important;
+  margin-bottom: .8rem !important;
+}
+
+.irisx-product-help-card {
+  border-radius: 2px !important;
+  padding: 1rem !important;
+  margin-top: 1rem !important;
+  margin-bottom: 0 !important;
+  border: 1px solid rgba(167,139,250,.1) !important;
+  background: rgba(124,58,237,.04) !important;
+}
+
+.irisx-product-help-card strong {
+  font-size: .88rem !important;
+  margin-bottom: .25rem !important;
+}
+
+.irisx-product-help-card span {
+  font-size: .74rem !important;
+  line-height: 1.8 !important;
+}
+
+.irisx-product-help-card .irisx-actions {
+  margin-top: .7rem !important;
+}
+
+.irisx-product-help-card .irisx-secondary {
+  padding: .68rem .9rem !important;
+  font-size: .58rem !important;
+}
+
+.irisx-product-help-card--compact {
+  margin-top: 1rem !important;
+}
+
+body.light-mode #detail-view .det-layout {
+  padding: 0 !important;
+}
+
+body.light-mode #detail-view .det-imgs {
+  background: linear-gradient(135deg, #F5F0FF, #EDE8F5) !important;
+}
+
+body.light-mode #detail-view .det-body {
+  background: #FAFAFA !important;
+}
+
+body.light-mode .irisx-detail-stage {
+  background: rgba(255,255,255,.32) !important;
+  border-color: rgba(124,58,237,.08) !important;
+}
+
+body.light-mode #detail-view .det-section-title {
+  color: rgba(26,10,53,.35) !important;
+}
+
+body.light-mode .irisx-product-help-card {
+  background: rgba(124,58,237,.03) !important;
+  border-color: rgba(124,58,237,.1) !important;
+}
+
+@media (max-width: 960px) {
+  #detail-view .det-layout {
+    grid-template-columns: 1fr !important;
+    padding: 0 !important;
+  }
+
+  #detail-view .det-imgs {
+    position: relative !important;
+    min-height: 50vh !important;
+  }
+
+  #detail-view .det-body {
+    max-height: none !important;
+    padding: 2rem 1.5rem 3rem !important;
+  }
+}

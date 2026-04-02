@@ -2446,3 +2446,50 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 .notif-bell:active {
   transform: scale(.92) !important;
 }
+
+/* ── Vacation mode ── */
+.irisx-vacation-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .9rem 1.1rem;
+  background: rgba(245,158,11,.07);
+  border: 1px solid rgba(245,158,11,.22);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+.irisx-vacation-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  margin-top: .05rem;
+}
+.irisx-vacation-banner strong {
+  display: block;
+  color: #d97706;
+  font-size: .85rem;
+  font-weight: 600;
+  margin-bottom: .25rem;
+}
+.irisx-vacation-banner span {
+  color: rgba(255,255,255,.58);
+  font-size: .8rem;
+  line-height: 1.45;
+}
+
+/* vacation badge on product card */
+.pc-vacation-badge {
+  position: absolute;
+  top: .55rem;
+  left: .55rem;
+  background: rgba(0,0,0,.72);
+  color: #f59e0b;
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  padding: .22rem .5rem;
+  border-radius: 4px;
+  z-index: 3;
+  pointer-events: none;
+  border: 1px solid rgba(245,158,11,.3);
+  backdrop-filter: blur(6px);
+}

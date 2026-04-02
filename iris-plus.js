@@ -1900,6 +1900,32 @@
     return langText("Venduto", "Sold");
   }
 
+  /* ── Vacation mode helpers ── */
+  function getProductSellerUser(product) {
+    if (!product) return null;
+    const email = normalizeEmail(
+      product.ownerEmail || (product.seller && product.seller.email) || ""
+    );
+    if (!email) return null;
+    return state.users.find(function (u) { return normalizeEmail(u.email) === email; }) || null;
+  }
+
+  function isSellerOnVacation(product) {
+    const u = getProductSellerUser(product);
+    return Boolean(u && u.vacationMode && u.vacationMode.enabled);
+  }
+
+  function getSellerVacationMessage(product) {
+    const u = getProductSellerUser(product);
+    if (!u || !u.vacationMode || !u.vacationMode.enabled) return "";
+    const note = u.vacationMode.note ||
+      langText("Il seller è momentaneamente in pausa.", "The seller is temporarily on pause.");
+    const ret = u.vacationMode.returnDate
+      ? " · " + langText("Ritorno previsto", "Expected return") + ": " + u.vacationMode.returnDate
+      : "";
+    return note + ret;
+  }
+
   function appendOrderEvent(order, type, label, meta) {
     order.timeline = Array.isArray(order.timeline) ? order.timeline : [];
     order.timeline.unshift({
@@ -3093,6 +3119,10 @@
           showToast(langText("Il seller non accetta offerte per questo articolo.", "The seller does not accept offers on this listing."));
           return;
         }
+        if (isSellerOnVacation(product)) {
+          showToast(langText("Il seller è in vacanza e non accetta offerte al momento.", "The seller is on vacation and not accepting offers right now."));
+          return;
+        }
         offerProdId = id;
         state.offerDraft = {
           listingId: product.id,
@@ -3856,38 +3886,45 @@
   }
 
   function getDetailActionsMarkup(product, liked) {
-    if (!isProductPurchasable(product)) {
-      return (
-        "<div class=\"irisx-note\">" +
-        langText("Questo articolo risulta gia' venduto o non disponibile per nuovi acquisti.", "This item is already sold or unavailable.") +
-        "</div><div class=\"irisx-detail-actions\"><button class=\"det-fav\" onclick=\"toggleFav(" +
-        product.id +
-        ",null)\">" +
-        (liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")) +
-        "</button></div>"
-      );
-    }
-
-    return (
-      "<div class=\"irisx-detail-actions\"><button class=\"det-buy\" onclick=\"buyNow(" +
-      product.id +
-      ")\">" +
-      t("buy_now") +
-      " · " +
-      formatCurrency(product.price) +
-      "</button><button class=\"irisx-secondary\" onclick=\"addToCart(" +
-      product.id +
-      ")\">" +
-      t("add_to_cart") +
-      "</button><button class=\"det-offer\" onclick=\"openOffer(" +
-      product.id +
-      ")\">" +
-      t("make_offer") +
-      "</button><button class=\"det-fav\" onclick=\"toggleFav(" +
+    const favBtn =
+      "<button class=\"det-fav\" onclick=\"toggleFav(" +
       product.id +
       ",null)\">" +
       (liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")) +
-      "</button></div>"
+      "</button>";
+
+    if (!isProductPurchasable(product)) {
+      return (
+        "<div class=\"irisx-note\">" +
+        langText("Questo articolo risulta già venduto o non disponibile per nuovi acquisti.", "This item is already sold or unavailable.") +
+        "</div><div class=\"irisx-detail-actions\">" + favBtn + "</div>"
+      );
+    }
+
+    if (isSellerOnVacation(product)) {
+      const msg = getSellerVacationMessage(product);
+      return (
+        "<div class=\"irisx-vacation-banner\">" +
+        "<span class=\"irisx-vacation-icon\">🏖</span>" +
+        "<div><strong>" + langText("Seller in vacanza", "Seller on vacation") + "</strong>" +
+        "<span>" + escapeHtml(msg) + "</span></div>" +
+        "</div>" +
+        "<div class=\"irisx-detail-actions\">" + favBtn + "</div>"
+      );
+    }
+
+    const offerBtn = product.offersEnabled !== false
+      ? "<button class=\"det-offer\" onclick=\"openOffer(" + product.id + ")\">" + t("make_offer") + "</button>"
+      : "";
+
+    return (
+      "<div class=\"irisx-detail-actions\"><button class=\"det-buy\" onclick=\"buyNow(" +
+      product.id + ")\">" +
+      t("buy_now") + " · " + formatCurrency(product.price) +
+      "</button><button class=\"irisx-secondary\" onclick=\"addToCart(" +
+      product.id + ")\">" +
+      t("add_to_cart") +
+      "</button>" + offerBtn + favBtn + "</div>"
     );
   }
 
@@ -3905,6 +3942,9 @@
     const colorLabel = getFacetLabel("colors", product.color);
     const productIdExpr = inlineJsValue(product.id);
     const seller = buildListingSeller(product);
+    const vacationBadge = isSellerOnVacation(product)
+      ? "<span class=\"pc-vacation-badge\">🏖 " + langText("In vacanza", "On vacation") + "</span>"
+      : "";
     return (
       "<div class=\"pc\" onclick=\"showDetail(" +
       productIdExpr +
@@ -3915,6 +3955,7 @@
       ",this)\">" +
       (liked ? "♥" : "♡") +
       "</button>" +
+      vacationBadge +
       productVisualMarkup(product) +
       "<div class=\"pinfo\"><div class=\"p-brand\">" +
       escapeHtml(product.brand) +
@@ -4334,7 +4375,12 @@
     const product = getListingById(productId);
 
     if (!isProductPurchasable(product)) {
-      showToast(langText("Questo articolo non e' piu' disponibile.", "This item is no longer available."));
+      showToast(langText("Questo articolo non è più disponibile.", "This item is no longer available."));
+      return;
+    }
+
+    if (isSellerOnVacation(product)) {
+      showToast(langText("Il seller è in vacanza e non accetta ordini al momento.", "The seller is on vacation and not accepting orders right now."));
       return;
     }
 
@@ -4507,8 +4553,14 @@
     }
 
     if (state.checkoutItems.some(function (entry) { return !isProductPurchasable(entry.product); })) {
-      showToast(langText("Uno o piu' articoli non sono piu' acquistabili.", "One or more items are no longer available."));
+      showToast(langText("Uno o più articoli non sono più acquistabili.", "One or more items are no longer available."));
       state.checkoutItems = state.checkoutItems.filter(function (entry) { return isProductPurchasable(entry.product); });
+      return;
+    }
+
+    if (state.checkoutItems.some(function (entry) { return isSellerOnVacation(entry.product); })) {
+      showToast(langText("Uno o più seller sono in vacanza e non accettano ordini al momento.", "One or more sellers are on vacation and not accepting orders right now."));
+      state.checkoutItems = state.checkoutItems.filter(function (entry) { return !isSellerOnVacation(entry.product); });
       return;
     }
 
@@ -6713,6 +6765,20 @@
     renderProfilePanel();
   }
 
+  function toggleListingOffers(listingId) {
+    state.listings = state.listings.map(function (listing) {
+      if (String(listing.id) !== String(listingId)) {
+        return listing;
+      }
+      const nowEnabled = listing.offersEnabled !== false;
+      return Object.assign({}, listing, { offersEnabled: !nowEnabled });
+    });
+    saveJson(STORAGE_KEYS.listings, state.listings);
+    hydrateLocalListings();
+    renderProfilePanel();
+    showToast(langText("Impostazione offerte aggiornata.", "Offer setting updated."));
+  }
+
   function setProfileArea(area, section) {
     ensureStructuredSkeletonState();
     state.profileArea = area;
@@ -7277,7 +7343,13 @@
     const sellingConversations = getChatThreadsForScope("selling");
     if (section === "active") {
       return published.length ? `<div class="irisx-card-stack">${published.map(function (listing) {
-        return `<div class="irisx-inline-card"><div><strong>${escapeHtml(listing.brand)} ${escapeHtml(listing.name)}</strong><span>${escapeHtml(formatCurrency(listing.price || 0))} · ${listing.offersEnabled ? `${langText("Offerte attive", "Offers active")}${listing.minimumOfferAmount ? ` · ${langText("min", "min")} ${escapeHtml(formatCurrency(listing.minimumOfferAmount))}` : ""}` : langText("Offerte disattivate", "Offers disabled")}</span></div><div class="irisx-actions"><button class="irisx-secondary" onclick="showDetail(${inlineJsValue(listing.id)})">${langText("Apri", "Open")}</button><button class="irisx-secondary" onclick="loadDraftIntoSellForm('${listing.id}')">${langText("Modifica", "Edit")}</button><button class="irisx-danger" onclick="archiveListing('${listing.id}')">${langText("Archivia", "Archive")}</button></div></div>`;
+        const offerLabel = listing.offersEnabled !== false
+          ? `${langText("Offerte attive", "Offers active")}${listing.minimumOfferAmount ? ` · ${langText("min", "min")} ${escapeHtml(formatCurrency(listing.minimumOfferAmount))}` : ""}`
+          : langText("Offerte disattivate", "Offers disabled");
+        const toggleLabel = listing.offersEnabled !== false
+          ? langText("Disattiva offerte", "Disable offers")
+          : langText("Attiva offerte", "Enable offers");
+        return `<div class="irisx-inline-card"><div><strong>${escapeHtml(listing.brand)} ${escapeHtml(listing.name)}</strong><span>${escapeHtml(formatCurrency(listing.price || 0))} · ${offerLabel}</span></div><div class="irisx-actions"><button class="irisx-secondary" onclick="showDetail(${inlineJsValue(listing.id)})">${langText("Apri", "Open")}</button><button class="irisx-secondary" onclick="toggleListingOffers('${listing.id}')">${toggleLabel}</button><button class="irisx-secondary" onclick="loadDraftIntoSellForm('${listing.id}')">${langText("Modifica", "Edit")}</button><button class="irisx-danger" onclick="archiveListing('${listing.id}')">${langText("Archivia", "Archive")}</button></div></div>`;
       }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun annuncio attivo.", "No active listings.")}</div>`;
     }
     if (section === "drafts") {
@@ -8350,6 +8422,7 @@
   window.saveListingDraft = saveListingDraft;
   window.publishDraftListing = publishDraftListing;
   window.loadDraftIntoSellForm = loadDraftIntoSellForm;
+  window.toggleListingOffers = toggleListingOffers;
   window.archiveListing = archiveListing;
   window.generateShippingLabel = generateShippingLabel;
   window.respondToOffer = respondToOffer;

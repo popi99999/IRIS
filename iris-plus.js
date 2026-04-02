@@ -1353,11 +1353,31 @@
       });
   }
 
+  function isListingVerified(listing) {
+    if (!listing) {
+      return false;
+    }
+    if (typeof listing.verified === "boolean") {
+      return listing.verified;
+    }
+    if (typeof listing.isVerified === "boolean") {
+      return listing.isVerified;
+    }
+    if (typeof listing.authenticated === "boolean") {
+      return listing.authenticated;
+    }
+    const authStatus = String(listing.authenticationStatus || listing.authStatus || "").toLowerCase();
+    return ["verified", "authenticated", "approved"].includes(authStatus);
+  }
+
   function normalizeListingRecord(listing) {
     const seller = buildListingSeller(listing || {});
     const price = Number((listing && listing.price) || 0);
     const originalPrice = getListingOriginalPrice(listing);
     const chips = getListingChips(listing);
+    const measurements = listing && listing.measurements && typeof listing.measurements === "object"
+      ? listing.measurements
+      : null;
 
     return Object.assign(
       {
@@ -8934,6 +8954,26 @@
       <button class="irisx-secondary" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button>
     </div>${offerNote}`;
   };
+
+  function renderMeasurementsSection(product) {
+    const measurements = product && product.measurements && typeof product.measurements === "object"
+      ? Object.entries(product.measurements).filter(function (entry) {
+          return entry[1] !== null && entry[1] !== undefined && String(entry[1]).trim() !== "";
+        })
+      : [];
+
+    if (!measurements.length) {
+      return "";
+    }
+
+    return `<div class="det-section">
+      <div class="det-section-title">${langText("Misure", "Measurements")}</div>
+      <div class="det-fit">${measurements.map(function (entry) {
+        const label = entry[0].replace(/_/g, " ");
+        return `<div class="det-fit-item"><div class="det-fit-label">${escapeHtml(label)}</div><div class="det-fit-value">${escapeHtml(String(entry[1]))}</div></div>`;
+      }).join("")}</div>
+    </div>`;
+  }
 
   showDetail = function (id) {
     const product = getListingById(id);

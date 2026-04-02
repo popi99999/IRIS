@@ -48,6 +48,253 @@
   const HOME_COPY = window.IRIS_HOME_COPY || {};
   const FACET_TRANSLATIONS = window.IRIS_FACET_TRANSLATIONS || {};
   const I18N_PACKS = window.IRIS_I18N_PACKS || {};
+  const SELL_TAXONOMY = {
+    clothing: {
+      it: "Abbigliamento",
+      en: "Clothing",
+      sizeMode: "alpha",
+      fitEnabled: true,
+      dimensionsLabel: { it: "Misure / lunghezze", en: "Measurements / lengths" },
+      dimensionsPlaceholder: {
+        it: "es. spalla 45, torace 54, lunghezza 68 cm",
+        en: "e.g. shoulder 45, chest 54, length 68 cm"
+      },
+      hint: {
+        it: "Scegli il tipo di capo: cosi blocchiamo taglia, fit e campi coerenti.",
+        en: "Choose the garment type so size, fit, and related fields stay coherent."
+      },
+      subcategories: {
+        tshirt: {
+          it: "T-shirt",
+          en: "T-shirt",
+          types: [
+            { id: "short_sleeve", it: "Manica corta", en: "Short sleeve" },
+            { id: "long_sleeve", it: "Manica lunga", en: "Long sleeve" }
+          ]
+        },
+        polo: {
+          it: "Polo",
+          en: "Polo",
+          types: [
+            { id: "short_sleeve", it: "Manica corta", en: "Short sleeve" },
+            { id: "long_sleeve", it: "Manica lunga", en: "Long sleeve" }
+          ]
+        },
+        shirt: {
+          it: "Camicia",
+          en: "Shirt",
+          types: [
+            { id: "classic", it: "Classica", en: "Classic" },
+            { id: "overshirt", it: "Overshirt", en: "Overshirt" },
+            { id: "denim", it: "Denim", en: "Denim" }
+          ]
+        },
+        sweatshirt: {
+          it: "Felpa",
+          en: "Sweatshirt",
+          types: [
+            { id: "crewneck", it: "Girocollo", en: "Crewneck" },
+            { id: "hoodie", it: "Hoodie", en: "Hoodie" },
+            { id: "zip", it: "Zip", en: "Zip-up" }
+          ]
+        },
+        knitwear: {
+          it: "Maglieria",
+          en: "Knitwear",
+          types: [
+            { id: "crewneck", it: "Girocollo", en: "Crewneck" },
+            { id: "turtleneck", it: "Dolcevita", en: "Turtleneck" },
+            { id: "cardigan", it: "Cardigan", en: "Cardigan" }
+          ]
+        },
+        jacket: {
+          it: "Giacca",
+          en: "Jacket",
+          types: [
+            { id: "bomber", it: "Bomber", en: "Bomber" },
+            { id: "blazer", it: "Blazer", en: "Blazer" },
+            { id: "denim", it: "Denim", en: "Denim" },
+            { id: "leather", it: "Pelle", en: "Leather" },
+            { id: "puffer", it: "Piumino", en: "Puffer" }
+          ]
+        },
+        coat: {
+          it: "Cappotto",
+          en: "Coat",
+          types: [
+            { id: "single_breasted", it: "Monopetto", en: "Single-breasted" },
+            { id: "double_breasted", it: "Doppiopetto", en: "Double-breasted" },
+            { id: "trench", it: "Trench", en: "Trench" }
+          ]
+        },
+        pants: {
+          it: "Pantaloni",
+          en: "Pants",
+          types: [
+            { id: "tailored", it: "Sartoriale", en: "Tailored" },
+            { id: "cargo", it: "Cargo", en: "Cargo" },
+            { id: "jogger", it: "Jogger", en: "Jogger" },
+            { id: "chino", it: "Chino", en: "Chino" }
+          ]
+        },
+        jeans: {
+          it: "Jeans",
+          en: "Jeans",
+          types: [
+            { id: "straight", it: "Straight", en: "Straight" },
+            { id: "slim", it: "Slim", en: "Slim" },
+            { id: "wide", it: "Wide", en: "Wide" },
+            { id: "skinny", it: "Skinny", en: "Skinny" }
+          ]
+        },
+        shorts: {
+          it: "Shorts",
+          en: "Shorts",
+          types: [
+            { id: "tailored", it: "Sartoriali", en: "Tailored" },
+            { id: "denim", it: "Denim", en: "Denim" },
+            { id: "sport", it: "Sportivi", en: "Sport" }
+          ]
+        },
+        dress: {
+          it: "Vestito",
+          en: "Dress",
+          types: [
+            { id: "mini", it: "Mini", en: "Mini" },
+            { id: "midi", it: "Midi", en: "Midi" },
+            { id: "maxi", it: "Maxi", en: "Maxi" }
+          ]
+        },
+        skirt: {
+          it: "Gonna",
+          en: "Skirt",
+          types: [
+            { id: "mini", it: "Mini", en: "Mini" },
+            { id: "midi", it: "Midi", en: "Midi" },
+            { id: "maxi", it: "Maxi", en: "Maxi" }
+          ]
+        }
+      }
+    },
+    shoes: {
+      it: "Scarpe",
+      en: "Shoes",
+      sizeMode: "eu_shoes",
+      fitEnabled: false,
+      dimensionsLabel: { it: "Dettagli scarpa", en: "Shoe details" },
+      dimensionsPlaceholder: {
+        it: "es. soletta 27 cm, heel 9 cm, box inclusa",
+        en: "e.g. insole 27 cm, heel 9 cm, box included"
+      },
+      hint: {
+        it: "Per le scarpe usiamo sempre una taglia EU standard. Se l'etichetta e' US o UK, scrivila nel campo originale.",
+        en: "Shoes always use a standard EU size. If the label is US or UK, add it as the original size."
+      },
+      subcategories: {
+        sneakers: { it: "Sneakers", en: "Sneakers" },
+        loafers: { it: "Loafers", en: "Loafers" },
+        boots: { it: "Stivali / Boots", en: "Boots" },
+        sandals: { it: "Sandali", en: "Sandals" },
+        heels: { it: "Decollete", en: "Heels" },
+        flats: { it: "Ballerine / Flats", en: "Flats" },
+        mules: { it: "Mules", en: "Mules" }
+      }
+    },
+    bags: {
+      it: "Borse",
+      en: "Bags",
+      sizeMode: "one_size",
+      fitEnabled: false,
+      dimensionsLabel: { it: "Dimensioni borsa", en: "Bag dimensions" },
+      dimensionsPlaceholder: {
+        it: "es. 30 x 22 x 16 cm",
+        en: "e.g. 30 x 22 x 16 cm"
+      },
+      hint: {
+        it: "Per le borse non usiamo la taglia classica: scegli la sottocategoria giusta e inserisci le dimensioni.",
+        en: "Bags do not use classic sizing: choose the right subcategory and add dimensions."
+      },
+      subcategories: {
+        shoulder: { it: "Shoulder bag", en: "Shoulder bag" },
+        crossbody: { it: "Tracolla", en: "Crossbody" },
+        tote: { it: "Tote", en: "Tote" },
+        shopper: { it: "Shopper", en: "Shopper" },
+        pochette: { it: "Pochette", en: "Pochette" },
+        clutch: { it: "Clutch", en: "Clutch" },
+        top_handle: { it: "Top handle", en: "Top handle" },
+        backpack: { it: "Backpack", en: "Backpack" },
+        hobo: { it: "Hobo", en: "Hobo" },
+        bucket: { it: "Bucket bag", en: "Bucket bag" },
+        mini: { it: "Mini bag", en: "Mini bag" },
+        travel: { it: "Travel bag", en: "Travel bag" }
+      }
+    },
+    accessories: {
+      it: "Accessori",
+      en: "Accessories",
+      sizeMode: "one_size",
+      fitEnabled: false,
+      dimensionsLabel: { it: "Dimensioni / dettagli", en: "Dimensions / details" },
+      dimensionsPlaceholder: {
+        it: "es. lunghezza 90 cm, custodia inclusa",
+        en: "e.g. 90 cm length, case included"
+      },
+      hint: {
+        it: "Gli accessori hanno campi diversi a seconda del tipo. Le cinture usano una taglia dedicata, gli altri articoli restano taglia unica.",
+        en: "Accessories use different fields depending on type. Belts use a dedicated size, while others remain one size."
+      },
+      subcategories: {
+        belt: { it: "Cintura", en: "Belt", sizeMode: "belt" },
+        wallet: { it: "Portafoglio", en: "Wallet" },
+        cardholder: { it: "Portacarte", en: "Cardholder" },
+        eyewear: { it: "Occhiali", en: "Eyewear" },
+        hat: { it: "Cappello", en: "Hat" },
+        scarf: { it: "Sciarpa", en: "Scarf" },
+        gloves: { it: "Guanti", en: "Gloves" }
+      }
+    },
+    jewelry: {
+      it: "Gioielli",
+      en: "Jewelry",
+      sizeMode: "one_size",
+      fitEnabled: false,
+      dimensionsLabel: { it: "Dimensioni / dettagli", en: "Dimensions / details" },
+      dimensionsPlaceholder: {
+        it: "es. lunghezza 18 cm, diametro 2 cm",
+        en: "e.g. 18 cm length, 2 cm diameter"
+      },
+      hint: {
+        it: "Per i gioielli lavoriamo con sottocategorie e dimensioni, non con una taglia standard rigida.",
+        en: "Jewelry relies on subcategories and measurements rather than a rigid standard size."
+      },
+      subcategories: {
+        ring: { it: "Anello", en: "Ring" },
+        bracelet: { it: "Bracciale", en: "Bracelet" },
+        necklace: { it: "Collana", en: "Necklace" },
+        earrings: { it: "Orecchini", en: "Earrings" },
+        brooch: { it: "Spilla", en: "Brooch" }
+      }
+    },
+    watches: {
+      it: "Orologi",
+      en: "Watches",
+      sizeMode: "one_size",
+      fitEnabled: false,
+      dimensionsLabel: { it: "Dettagli orologio", en: "Watch details" },
+      dimensionsPlaceholder: {
+        it: "es. cassa 36 mm, strap 18 cm",
+        en: "e.g. 36 mm case, 18 cm strap"
+      },
+      hint: {
+        it: "Gli orologi usano dettagli tecnici e misure di cassa/cinturino, non una taglia moda classica.",
+        en: "Watches rely on technical details and case/strap measurements, not classic fashion sizing."
+      },
+      subcategories: {
+        watch: { it: "Orologio", en: "Watch" },
+        strap: { it: "Cinturino", en: "Strap" }
+      }
+    }
+  };
 
   const SHIPPING_COST = PLATFORM_CONFIG.shippingCost;
   const state = {
@@ -119,6 +366,165 @@
 
   function qsa(selector, root) {
     return Array.from((root || document).querySelectorAll(selector));
+  }
+
+  function getTaxonomyLabel(entry) {
+    if (!entry) {
+      return "";
+    }
+    return langText(entry.it || "", entry.en || entry.it || "");
+  }
+
+  function getSellCategoryDefinition(categoryKey) {
+    return categoryKey ? SELL_TAXONOMY[categoryKey] || null : null;
+  }
+
+  function getSellSubcategoryDefinition(categoryKey, subcategoryKey) {
+    const category = getSellCategoryDefinition(categoryKey);
+    return category && subcategoryKey ? category.subcategories[subcategoryKey] || null : null;
+  }
+
+  function buildOptionList(entries) {
+    return entries.map(function (entry) {
+      return {
+        id: entry.id,
+        label: getTaxonomyLabel(entry)
+      };
+    });
+  }
+
+  function buildRangeOptions(start, end, step) {
+    const options = [];
+    for (let value = start; value <= end + 0.0001; value += step) {
+      const label = Number.isInteger(value) ? String(value) : value.toFixed(1);
+      options.push({ id: label, label: label });
+    }
+    return options;
+  }
+
+  function getSellSizeOptions(sizeMode) {
+    if (sizeMode === "alpha") {
+      return ["XXS", "XS", "S", "M", "L", "XL", "XXL"].map(function (value) {
+        return { id: value, label: value };
+      });
+    }
+    if (sizeMode === "eu_shoes") {
+      return buildRangeOptions(34, 48, 0.5);
+    }
+    if (sizeMode === "belt") {
+      return buildRangeOptions(65, 110, 5);
+    }
+    if (sizeMode === "one_size") {
+      return [{ id: "one_size", label: langText("Taglia unica", "One size") }];
+    }
+    return [];
+  }
+
+  function syncSelectOptions(select, options, placeholder, selectedValue) {
+    if (!select) {
+      return;
+    }
+    const current = selectedValue !== undefined ? selectedValue : select.value;
+    select.innerHTML = "";
+    select.appendChild(new Option(placeholder, ""));
+    options.forEach(function (option) {
+      select.appendChild(new Option(option.label, option.id));
+    });
+    if (current !== undefined && current !== null && String(current) !== "") {
+      if (!options.some(function (option) { return String(option.id) === String(current); })) {
+        select.appendChild(new Option(String(current), String(current)));
+      }
+      select.value = String(current);
+    } else {
+      select.value = "";
+    }
+    select.disabled = options.length === 0;
+  }
+
+  function setSellFieldVisibility(selector, visible) {
+    const element = qs(selector);
+    if (!element) {
+      return;
+    }
+    element.style.display = visible ? "" : "none";
+  }
+
+  function getSelectedOptionLabel(selector) {
+    const field = qs(selector);
+    if (!field || !field.options || field.selectedIndex < 0) {
+      return "";
+    }
+    return String(field.options[field.selectedIndex].textContent || "").trim();
+  }
+
+  function getResolvedSellSizeMode(categoryKey, subcategoryKey) {
+    const category = getSellCategoryDefinition(categoryKey);
+    const subcategory = getSellSubcategoryDefinition(categoryKey, subcategoryKey);
+    return (subcategory && subcategory.sizeMode) || (category && category.sizeMode) || "one_size";
+  }
+
+  function getSellEmojiForTaxonomy(categoryKey, subcategoryKey) {
+    if (categoryKey === "bags") return "👜";
+    if (categoryKey === "shoes") return "👟";
+    if (categoryKey === "accessories") return subcategoryKey === "belt" ? "🪢" : "🎀";
+    if (categoryKey === "jewelry") return "💍";
+    if (categoryKey === "watches") return "⌚";
+    return "👕";
+  }
+
+  function inferSellCategoryKey(listing) {
+    if (listing && listing.categoryKey && SELL_TAXONOMY[listing.categoryKey]) {
+      return listing.categoryKey;
+    }
+    const haystack = normalizeSearchText([
+      listing && listing.cat,
+      listing && listing.subcategory,
+      listing && listing.name,
+      listing && listing.productType
+    ].join(" "));
+    if (/scarp|sneaker|loafer|boot|sandali|heels|mules/.test(haystack)) return "shoes";
+    if (/bors|bag|pochette|clutch|tote|shopper|hobo|crossbody|tracolla/.test(haystack)) return "bags";
+    if (/orolog|watch|strap/.test(haystack)) return "watches";
+    if (/gioiell|ring|bracelet|necklace|orecchin|brooch/.test(haystack)) return "jewelry";
+    if (/cintur|wallet|portaf|occhial|sciarp|guanti|hat/.test(haystack)) return "accessories";
+    if (/abbigliament|shirt|polo|felpa|maglier|giacca|cappott|pantalon|jeans|dress|gonna/.test(haystack)) return "clothing";
+    return "";
+  }
+
+  function inferSellSizeSchema(listing) {
+    if (listing && listing.sizeSchema) {
+      return listing.sizeSchema;
+    }
+    const categoryKey = inferSellCategoryKey(listing);
+    const subcategoryKey = (listing && listing.subcategoryKey) || "";
+    if (categoryKey === "shoes") return "eu_shoes";
+    if (categoryKey === "bags" || categoryKey === "jewelry" || categoryKey === "watches") return "one_size";
+    if (categoryKey === "accessories" && subcategoryKey === "belt") return "belt";
+    if (categoryKey === "accessories") return "one_size";
+    if (categoryKey === "clothing") return "alpha";
+    const normalizedSize = normalizeSearchText((listing && listing.sz) || "");
+    if (normalizedSize === "one size" || normalizedSize === "taglia unica") return "one_size";
+    if (/^(eu\s*)?\d+([.,]\d+)?$/.test(String((listing && listing.sz) || "").trim().toLowerCase())) return "eu_shoes";
+    return "alpha";
+  }
+
+  function getListingDisplaySize(listing) {
+    if (inferSellSizeSchema(listing) === "one_size" || normalizeSearchText((listing && listing.sz) || "") === "one size" || normalizeSearchText((listing && listing.sz) || "") === "taglia unica") {
+      return listing && listing.subcategory ? listing.subcategory : langText("Taglia unica", "One size");
+    }
+    return (listing && listing.sz) || langText("N/A", "N/A");
+  }
+
+  function getProductMetaSummary(listing) {
+    const seller = buildListingSeller(listing || {});
+    const colorLabel = getFacetLabel("colors", (listing && listing.color) || "");
+    return [
+      getListingDisplaySize(listing),
+      colorLabel,
+      seller.name
+    ].filter(function (value) {
+      return value && value !== langText("Non indicato", "Not specified");
+    }).join(" · ");
   }
 
   function loadJson(key, fallback) {
@@ -902,13 +1308,16 @@
 
   function getListingChips(listing) {
     if (Array.isArray(listing && listing.chips) && listing.chips.length) {
-      return listing.chips.filter(Boolean);
+      return Array.from(new Set(listing.chips.filter(Boolean)));
     }
-    return [
+    return Array.from(new Set([
       listing && listing.cond,
       listing && listing.material,
+      listing && listing.cat,
+      listing && listing.subcategory,
+      listing && listing.productType,
       listing && listing.sz
-    ].filter(Boolean);
+    ].filter(Boolean)));
   }
 
   function getOrderStatusLabel(orderOrStatus) {
@@ -961,6 +1370,13 @@
         fit: (listing && listing.fit) || "—",
         dims: (listing && listing.dims) || "",
         material: (listing && listing.material) || "",
+        categoryKey: (listing && listing.categoryKey) || "",
+        subcategory: (listing && listing.subcategory) || "",
+        subcategoryKey: (listing && listing.subcategoryKey) || "",
+        productType: (listing && listing.productType) || "",
+        productTypeKey: (listing && listing.productTypeKey) || "",
+        sizeOriginal: (listing && listing.sizeOriginal) || "",
+        sizeSchema: inferSellSizeSchema(listing),
         images: Array.isArray(listing && listing.images) ? listing.images.filter(Boolean) : [],
         inventoryStatus: "active",
         listingStatus: "published",
@@ -981,6 +1397,15 @@
         minimumOfferAmount: listing.minimumOfferAmount === null || listing.minimumOfferAmount === undefined || listing.minimumOfferAmount === ""
           ? null
           : Number(listing.minimumOfferAmount),
+        categoryKey: (listing && listing.categoryKey) || inferSellCategoryKey(listing),
+        subcategory: (listing && listing.subcategory) || "",
+        subcategoryKey: (listing && listing.subcategoryKey) || "",
+        productType: (listing && listing.productType) || "",
+        productTypeKey: (listing && listing.productTypeKey) || "",
+        sizeOriginal: (listing && listing.sizeOriginal) || "",
+        sizeSchema: inferSellSizeSchema(listing),
+        verified: isListingVerified(listing),
+        measurements: measurements,
         seller: seller
       }
     );
@@ -1572,6 +1997,204 @@
     }
   }
 
+  function ensureSellTaxonomyUi(preservedValues) {
+    const categorySelect = qs("#sf-cat");
+    const subcategorySelect = qs("#sf-subcat");
+    const typeSelect = qs("#sf-type");
+    const sizeSelect = qs("#sf-size");
+    const sizeOriginalField = qs("#sf-size-original");
+    const sizeLabel = qs("#sf-size-label");
+    const sizeOriginalLabel = qs("#sf-size-original-label");
+    const sizeHint = qs("#irisxSizeHint");
+    const taxonomyHint = qs("#irisxSellTaxonomyHint");
+    const subcategoryLabel = qs("#sf-subcat-label");
+    const typeLabel = qs("#sf-type-label");
+    const dimensionsLabel = qs("#sf-dims-label");
+    const dimensionsField = qs("#sf-dims");
+    const fitSelect = qs("#sf-fit");
+    if (!categorySelect || !subcategorySelect || !typeSelect || !sizeSelect) {
+      return;
+    }
+
+    const categoryValue = preservedValues && preservedValues.categoryKey !== undefined ? preservedValues.categoryKey : categorySelect.value;
+    syncSelectOptions(
+      categorySelect,
+      buildOptionList(Object.keys(SELL_TAXONOMY).map(function (key) {
+        return Object.assign({ id: key }, SELL_TAXONOMY[key]);
+      })),
+      langText("Seleziona categoria", "Select category"),
+      categoryValue
+    );
+
+    const categoryKey = categorySelect.value;
+    const category = getSellCategoryDefinition(categoryKey);
+    const subcategoryValue = preservedValues && preservedValues.subcategoryKey !== undefined ? preservedValues.subcategoryKey : subcategorySelect.value;
+    const subcategoryOptions = category
+      ? buildOptionList(Object.keys(category.subcategories).map(function (key) {
+          return Object.assign({ id: key }, category.subcategories[key]);
+        }))
+      : [];
+    syncSelectOptions(subcategorySelect, subcategoryOptions, langText("Seleziona sottocategoria", "Select subcategory"), subcategoryValue);
+
+    const subcategoryKey = subcategorySelect.value;
+    const subcategory = getSellSubcategoryDefinition(categoryKey, subcategoryKey);
+    const typeValue = preservedValues && preservedValues.typeKey !== undefined ? preservedValues.typeKey : typeSelect.value;
+    const typeOptions = subcategory && Array.isArray(subcategory.types) ? buildOptionList(subcategory.types) : [];
+    syncSelectOptions(typeSelect, typeOptions, langText("Seleziona tipo", "Select type"), typeValue);
+
+    const sizeMode = getResolvedSellSizeMode(categoryKey, subcategoryKey);
+    const sizeValue = preservedValues && preservedValues.size !== undefined ? preservedValues.size : sizeSelect.value;
+    syncSelectOptions(sizeSelect, getSellSizeOptions(sizeMode), langText("Seleziona taglia", "Select size"), sizeValue);
+
+    if (subcategoryLabel) subcategoryLabel.textContent = `${langText("Sottocategoria", "Subcategory")} *`;
+    if (typeLabel) typeLabel.textContent = langText("Tipo", "Type");
+    if (taxonomyHint) {
+      taxonomyHint.textContent = category
+        ? getTaxonomyLabel(category.hint)
+        : langText("Scegli prima la categoria: da li il form vincola sottocategoria, taglia e campi compatibili.", "Pick a category first: then the form constrains subcategory, size, and compatible fields.");
+    }
+
+    if (sizeLabel) {
+      if (sizeMode === "eu_shoes") {
+        sizeLabel.textContent = `${langText("Taglia EU", "EU size")} *`;
+      } else if (sizeMode === "belt") {
+        sizeLabel.textContent = `${langText("Taglia cintura", "Belt size")} *`;
+      } else if (sizeMode === "alpha") {
+        sizeLabel.textContent = `${langText("Taglia standard", "Standard size")} *`;
+      } else {
+        sizeLabel.textContent = langText("Taglia", "Size");
+      }
+    }
+
+    if (sizeOriginalLabel) {
+      sizeOriginalLabel.textContent = langText("Taglia etichetta originale", "Original label size");
+    }
+    if (sizeOriginalField) {
+      sizeOriginalField.placeholder = sizeMode === "eu_shoes"
+        ? langText("es. US 9 / UK 8", "e.g. US 9 / UK 8")
+        : sizeMode === "belt"
+          ? langText("es. 90 / 95", "e.g. 90 / 95")
+          : langText("es. 2, 48, L", "e.g. 2, 48, L");
+    }
+
+    if (sizeHint) {
+      if (sizeMode === "eu_shoes") {
+        sizeHint.textContent = langText("Seleziona una taglia EU per i filtri. Se l'etichetta riporta US o UK, scrivila nel campo originale.", "Pick an EU size for filters. If the label says US or UK, add it in the original size field.");
+      } else if (sizeMode === "belt") {
+        sizeHint.textContent = langText("Per le cinture usiamo una misura standard in cm. Eventuali codici brand restano nel campo originale.", "Belts use a standard measurement in cm. Brand-specific codes can stay in the original size field.");
+      } else if (sizeMode === "alpha") {
+        sizeHint.textContent = langText("Usa una taglia standard per il catalogo. Se il brand usa 1/2/3 o altre sigle, scrivile nel campo originale.", "Use a standard catalog size. If the brand uses 1/2/3 or other codes, add them in the original size field.");
+      } else {
+        sizeHint.textContent = langText("Per questa categoria lavoriamo senza una taglia moda classica.", "This category does not use a classic fashion size.");
+      }
+    }
+
+    if (dimensionsLabel) {
+      dimensionsLabel.textContent = category ? getTaxonomyLabel(category.dimensionsLabel) : t("dimensions");
+    }
+    if (dimensionsField) {
+      dimensionsField.placeholder = category
+        ? getTaxonomyLabel(category.dimensionsPlaceholder)
+        : t("size_placeholder");
+    }
+
+    setSellFieldVisibility("#irisxTypeGroup", typeOptions.length > 0);
+    setSellFieldVisibility("#irisxFitGroup", Boolean(category && category.fitEnabled));
+    setSellFieldVisibility("#irisxSizeGroup", sizeMode !== "one_size");
+    setSellFieldVisibility("#irisxSizeOriginalGroup", ["alpha", "eu_shoes", "belt"].includes(sizeMode));
+
+    if (fitSelect && !(category && category.fitEnabled)) {
+      fitSelect.value = "—";
+    }
+    if (sizeOriginalField && !["alpha", "eu_shoes", "belt"].includes(sizeMode)) {
+      sizeOriginalField.value = "";
+    }
+    if (sizeMode === "one_size") {
+      sizeSelect.value = "one_size";
+    }
+  }
+
+  function handleSellTaxonomyChange(scope) {
+    const nextValues = {
+      categoryKey: qs("#sf-cat") ? qs("#sf-cat").value : "",
+      subcategoryKey: qs("#sf-subcat") ? qs("#sf-subcat").value : "",
+      typeKey: qs("#sf-type") ? qs("#sf-type").value : "",
+      size: qs("#sf-size") ? qs("#sf-size").value : ""
+    };
+    if (scope === "category") {
+      nextValues.subcategoryKey = "";
+      nextValues.typeKey = "";
+      nextValues.size = "";
+      if (qs("#sf-size-original")) qs("#sf-size-original").value = "";
+    }
+    if (scope === "subcategory") {
+      nextValues.typeKey = "";
+      nextValues.size = "";
+      if (qs("#sf-size-original")) qs("#sf-size-original").value = "";
+    }
+    ensureSellTaxonomyUi(nextValues);
+  }
+
+  function collectSellTaxonomySelection() {
+    const categoryKey = readSellField("#sf-cat");
+    const category = getSellCategoryDefinition(categoryKey);
+    if (!category) {
+      return {
+        ok: false,
+        error: langText("Scegli una categoria valida.", "Choose a valid category.")
+      };
+    }
+
+    const subcategoryKey = readSellField("#sf-subcat");
+    const subcategory = getSellSubcategoryDefinition(categoryKey, subcategoryKey);
+    if (!subcategory) {
+      return {
+        ok: false,
+        error: langText("Scegli una sottocategoria coerente.", "Choose a matching subcategory.")
+      };
+    }
+
+    const typeOptions = subcategory && Array.isArray(subcategory.types) ? subcategory.types : [];
+    const typeKey = readSellField("#sf-type");
+    const type = typeOptions.find(function (item) { return item.id === typeKey; }) || null;
+    if (typeOptions.length && !type) {
+      return {
+        ok: false,
+        error: langText("Seleziona il tipo di articolo.", "Select the item type.")
+      };
+    }
+
+    const sizeMode = getResolvedSellSizeMode(categoryKey, subcategoryKey);
+    const sizeValue = readSellField("#sf-size");
+    if (["alpha", "eu_shoes", "belt"].includes(sizeMode) && !sizeValue) {
+      return {
+        ok: false,
+        error: sizeMode === "eu_shoes"
+          ? langText("Inserisci una taglia EU valida.", "Choose a valid EU size.")
+          : langText("Inserisci una taglia valida.", "Choose a valid size.")
+      };
+    }
+
+    return {
+      ok: true,
+      categoryKey: categoryKey,
+      categoryLabel: getSelectedOptionLabel("#sf-cat") || getTaxonomyLabel(category),
+      subcategoryKey: subcategoryKey,
+      subcategoryLabel: getSelectedOptionLabel("#sf-subcat") || getTaxonomyLabel(subcategory),
+      typeKey: type ? type.id : "",
+      typeLabel: type ? (getSelectedOptionLabel("#sf-type") || getTaxonomyLabel(type)) : "",
+      sizeMode: sizeMode,
+      sizeDisplay: sizeMode === "one_size"
+        ? langText("Taglia unica", "One size")
+        : sizeMode === "eu_shoes" && sizeValue
+          ? `EU ${sizeValue}`
+          : sizeValue,
+      sizeOriginal: readSellField("#sf-size-original"),
+      fit: category.fitEnabled ? (readSellField("#sf-fit") || "Regular") : "—",
+      emoji: getSellEmojiForTaxonomy(categoryKey, subcategoryKey)
+    };
+  }
+
   function injectSellHelpers() {
     const fileInput = qs("#fileIn");
     if (fileInput && !qs("#sellPreviewGrid")) {
@@ -1580,6 +2203,7 @@
         "<div class=\"irisx-photo-grid\" id=\"sellPreviewGrid\"></div><div class=\"irisx-status\" id=\"sellStatus\"></div>"
       );
     }
+    ensureSellTaxonomyUi();
     ensureOfferSellerControls();
 
     const profileContainer = qs("#profile-view .container");
@@ -3056,7 +3680,7 @@
       const statusBox = state.offerError
         ? `<div class="offer-error">${escapeHtml(state.offerError)}</div>`
         : state.offerStatus && state.offerStep === "success"
-          ? `<div class="offer-success">${escapeHtml(langText("Offerta autorizzata correttamente.", "Offer authorized successfully."))}</div>`
+          ? `<div class="offer-success">${escapeHtml(langText("Offerta vincolante registrata. Nessun addebito finale ora.", "Binding offer recorded. No final charge yet."))}</div>`
           : "";
 
       if (state.offerStep === "success" && state.offerStatus) {
@@ -3078,15 +3702,15 @@
 
       if (state.offerStep === "authorization") {
         box.innerHTML = `
-          <div class="offer-title">${langText("Conferma autorizzazione", "Confirm authorization")}</div>
+          <div class="offer-title">${langText("Conferma offerta vincolante", "Confirm binding offer")}</div>
           <div class="offer-note">${escapeHtml(product.brand)} ${escapeHtml(product.name)} · ${escapeHtml(formatCurrency(state.offerDraft && state.offerDraft.offerAmount || 0))}</div>
           ${statusBox}
           <div class="offer-stack">
             <div class="offer-summary"><strong>${langText("Metodo di pagamento", "Payment method")}</strong><span>${escapeHtml((state.offerDraft && state.offerDraft.paymentMethodSnapshot && state.offerDraft.paymentMethodSnapshot.label) || defaults.paymentMethodSnapshot.label)}</span></div>
             <div class="offer-summary"><strong>${langText("Spedizione buyer", "Buyer shipping")}</strong><span>${escapeHtml(((state.offerDraft && state.offerDraft.shippingSnapshot && state.offerDraft.shippingSnapshot.address) || defaults.shippingSnapshot.address || langText("Da completare", "To be completed")) + " · " + ((state.offerDraft && state.offerDraft.shippingSnapshot && state.offerDraft.shippingSnapshot.city) || defaults.shippingSnapshot.city || ""))}</span></div>
-            <div class="offer-summary"><strong>${langText("Logica pagamento", "Payment logic")}</strong><span>${langText("Autorizzazione ora, cattura automatica solo se il seller accetta entro 24h.", "Authorize now, capture automatically only if the seller accepts within 24h.")}</span></div>
+            <div class="offer-summary"><strong>${langText("Logica pagamento", "Payment logic")}</strong><span>${langText("Blocchiamo solo una pre-autorizzazione. Se il seller accetta entro 24h, catturiamo automaticamente; se rifiuta o scade, rilasciamo tutto.", "We only place a pre-authorization. If the seller accepts within 24h, we automatically capture it; if they decline or it expires, we release everything.")}</span></div>
           </div>
-          <button class="offer-send" onclick="sendOffer()">${langText("Autorizza e invia offerta", "Authorize and submit offer")}</button>
+          <button class="offer-send" onclick="sendOffer()">${langText("Conferma offerta vincolante", "Confirm binding offer")}</button>
           <button class="offer-cancel" onclick="backOfferStep()">${langText("Indietro", "Back")}</button>
         `;
         return;
@@ -3097,8 +3721,9 @@
         <div class="offer-note">${escapeHtml(product.brand)} ${escapeHtml(product.name)} · ${escapeHtml(formatCurrency(product.price))}</div>
         <div class="offer-meta">${escapeHtml(minimumText)}</div>
         ${statusBox}
-        <input class="offer-input" type="number" placeholder="${escapeHtml(formatCurrency(product.minimumOfferAmount || 0))}" id="offerInput" value="${escapeHtml(amountValue)}">
-        <div class="offer-meta">${langText("Se il seller accetta, il pagamento autorizzato verra' catturato automaticamente.", "If the seller accepts, the authorized payment will be captured automatically.")}</div>
+        <input class="offer-input${state.offerError ? " offer-input--error" : ""}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${escapeHtml(String(Math.round(Number(product.minimumOfferAmount || 0))))}" id="offerInput" value="${escapeHtml(amountValue)}" oninput="sanitizeOfferAmountInput(this)">
+        <div class="offer-helper">${langText("Si possono inserire solo numeri.", "Numbers only.")}</div>
+        <div class="offer-meta">${langText("Non stai pagando subito: stai confermando un'offerta vincolante. Se il seller accetta, il pagamento parte in automatico.", "You are not paying immediately: you are confirming a binding offer. If the seller accepts, payment is captured automatically.")}</div>
         <button class="offer-send" onclick="sendOffer()">${langText("Continua", "Continue")}</button>
         <button class="offer-cancel" onclick="closeOffer()">${t("cancel")}</button>
       `;
@@ -3939,7 +4564,6 @@
   function productCardMarkup(product) {
     const discount = getListingDiscount(product);
     const liked = favorites.has(product.id);
-    const colorLabel = getFacetLabel("colors", product.color);
     const productIdExpr = inlineJsValue(product.id);
     const seller = buildListingSeller(product);
     const vacationBadge = isSellerOnVacation(product)
@@ -3962,11 +4586,7 @@
       "</div><div class=\"p-name\">" +
       escapeHtml(product.name) +
       "</div><div class=\"p-meta\">" +
-      escapeHtml(product.sz) +
-      " · " +
-      escapeHtml(colorLabel) +
-      " · " +
-      escapeHtml(seller.name) +
+      escapeHtml(getProductMetaSummary(product)) +
       "</div><div class=\"p-footer\"><div><span class=\"p-price\">" +
       formatCurrency(product.price) +
       "</span><span class=\"p-orig\">" +
@@ -4799,12 +5419,10 @@
   }
 
   function publishListing() {
-    const category = readSellField("#sf-cat");
+    const taxonomy = collectSellTaxonomySelection();
     const brand = readSellField("#sf-brand");
     const name = readSellField("#sf-name");
-    const size = readSellField("#sf-size");
     const color = readSellField("#sf-color");
-    const fit = readSellField("#sf-fit") || "Regular";
     const material = readSellField("#sf-material");
     const dimensions = readSellField("#sf-dims");
     const description = readSellField("#sf-desc");
@@ -4814,8 +5432,12 @@
     const offerPolicy = getListingOfferPolicyFromForm();
     const offerValidation = validateListingOfferPolicy(offerPolicy, price);
 
-    if (!category || !brand || !name || !condition || !description || !price || !state.sellPhotos.length) {
+    if (!brand || !name || !condition || !description || !price || !state.sellPhotos.length) {
       updateSellStatus(t("publish_error"), true);
+      return;
+    }
+    if (!taxonomy.ok) {
+      updateSellStatus(taxonomy.error, true);
       return;
     }
     if (!offerValidation.ok) {
@@ -4841,18 +5463,25 @@
       ownerEmail: state.currentUser.email,
       name: name,
       brand: brand,
-      cat: category,
-      sz: size || "One size",
+      cat: taxonomy.categoryLabel,
+      categoryKey: taxonomy.categoryKey,
+      subcategory: taxonomy.subcategoryLabel,
+      subcategoryKey: taxonomy.subcategoryKey,
+      productType: taxonomy.typeLabel,
+      productTypeKey: taxonomy.typeKey,
+      sz: taxonomy.sizeDisplay,
+      sizeOriginal: taxonomy.sizeOriginal,
+      sizeSchema: taxonomy.sizeMode,
       cond: condition,
-      fit: fit || "Regular",
+      fit: taxonomy.fit,
       dims: dimensions || "N/A",
       price: price,
       orig: Math.round(price * 1.35),
       color: color || (curLang === "it" ? "Non indicato" : "Not specified"),
       material: material || (curLang === "it" ? "Non indicato" : "Not specified"),
-      emoji: existingListing && existingListing.emoji ? existingListing.emoji : "👜",
+      emoji: existingListing && existingListing.emoji ? existingListing.emoji : taxonomy.emoji,
       desc: description,
-      chips: [condition, material || "Material", category].filter(Boolean),
+      chips: [condition, material || "Material", taxonomy.categoryLabel, taxonomy.subcategoryLabel, taxonomy.typeLabel].filter(Boolean),
       seller: seller,
       date: Date.now(),
       images: state.sellPhotos.map(function (photo) { return photo.src; }),
@@ -4901,6 +5530,12 @@
     });
     state.sellPhotos = [];
     state.editingListingId = null;
+    ensureSellTaxonomyUi({
+      categoryKey: "",
+      subcategoryKey: "",
+      typeKey: "",
+      size: ""
+    });
     renderSellPhotoPreview();
     updateFee();
     applyListingOfferPolicyToForm({
@@ -6647,11 +7282,15 @@
       const draftPrice = Number(readSellField("#sf-price") || 0);
       const offerPolicy = getListingOfferPolicyFromForm();
       const offerValidation = validateListingOfferPolicy(offerPolicy, draftPrice);
+      const taxonomy = collectSellTaxonomySelection();
       if (!offerValidation.ok) {
         updateSellStatus(offerValidation.error, true);
         return;
       }
-      const category = readSellField("#sf-cat") || langText("Da definire", "To define");
+      if (!taxonomy.ok && readSellField("#sf-cat")) {
+        updateSellStatus(taxonomy.error, true);
+        return;
+      }
       const brand = readSellField("#sf-brand") || "IRIS";
       const name = readSellField("#sf-name") || langText("Bozza annuncio", "Draft listing");
       const existingListing = state.editingListingId
@@ -6663,18 +7302,25 @@
         ownerEmail: state.currentUser.email,
         name: name,
         brand: brand,
-        cat: category,
-        sz: readSellField("#sf-size") || "One size",
+        cat: taxonomy.ok ? taxonomy.categoryLabel : langText("Da definire", "To define"),
+        categoryKey: taxonomy.ok ? taxonomy.categoryKey : "",
+        subcategory: taxonomy.ok ? taxonomy.subcategoryLabel : "",
+        subcategoryKey: taxonomy.ok ? taxonomy.subcategoryKey : "",
+        productType: taxonomy.ok ? taxonomy.typeLabel : "",
+        productTypeKey: taxonomy.ok ? taxonomy.typeKey : "",
+        sz: taxonomy.ok ? taxonomy.sizeDisplay : langText("Taglia unica", "One size"),
+        sizeOriginal: taxonomy.ok ? taxonomy.sizeOriginal : "",
+        sizeSchema: taxonomy.ok ? taxonomy.sizeMode : "one_size",
         cond: qsa(".cond-btn.sel").map(function (button) { return button.textContent.trim(); })[0] || langText("Da definire", "To define"),
-        fit: readSellField("#sf-fit") || "Regular",
+        fit: taxonomy.ok ? taxonomy.fit : "—",
         dims: readSellField("#sf-dims") || "",
         price: Number(readSellField("#sf-price") || 0),
         orig: Math.round(Number(readSellField("#sf-price") || 0) * 1.35),
         color: readSellField("#sf-color") || "",
         material: readSellField("#sf-material") || "",
-        emoji: "👜",
+        emoji: taxonomy.ok ? taxonomy.emoji : "👜",
         desc: readSellField("#sf-desc") || "",
-        chips: [category, brand].filter(Boolean),
+        chips: [taxonomy.ok ? taxonomy.categoryLabel : "", taxonomy.ok ? taxonomy.subcategoryLabel : "", brand].filter(Boolean),
         seller: seller,
         date: Date.now(),
         images: state.sellPhotos.map(function (photo) { return photo.src; }),
@@ -6718,11 +7364,21 @@
       return;
     }
     showPage("sell");
+    const categoryKey = listing.categoryKey || inferSellCategoryKey(listing);
+    ensureSellTaxonomyUi({
+      categoryKey: categoryKey,
+      subcategoryKey: listing.subcategoryKey || "",
+      typeKey: listing.productTypeKey || "",
+      size: listing.sizeSchema === "one_size" ? "one_size" : ((listing.sz || "").replace(/^EU\s+/i, ""))
+    });
     const fieldMap = {
-      "#sf-cat": listing.cat,
+      "#sf-cat": categoryKey,
       "#sf-brand": listing.brand,
       "#sf-name": listing.name,
-      "#sf-size": listing.sz,
+      "#sf-subcat": listing.subcategoryKey || "",
+      "#sf-type": listing.productTypeKey || "",
+      "#sf-size": listing.sizeSchema === "one_size" ? "one_size" : ((listing.sz || "").replace(/^EU\s+/i, "")),
+      "#sf-size-original": listing.sizeOriginal,
       "#sf-color": listing.color,
       "#sf-fit": listing.fit,
       "#sf-material": listing.material,
@@ -6737,6 +7393,12 @@
       }
     });
     state.editingListingId = listing.id;
+    ensureSellTaxonomyUi({
+      categoryKey: qs("#sf-cat") ? qs("#sf-cat").value : "",
+      subcategoryKey: qs("#sf-subcat") ? qs("#sf-subcat").value : "",
+      typeKey: qs("#sf-type") ? qs("#sf-type").value : "",
+      size: qs("#sf-size") ? qs("#sf-size").value : ""
+    });
     qsa(".cond-btn").forEach(function (button) {
       button.classList.toggle("sel", button.textContent.trim() === listing.cond);
     });
@@ -6896,16 +7558,43 @@
     }).join("");
   }
 
+  function getOfferStateCopy(offer, scope, expired) {
+    if (expired) {
+      return langText("La finestra dell'offerta è chiusa e l'autorizzazione non è più utilizzabile.", "The offer window is closed and the authorization can no longer be used.");
+    }
+    if (scope === "seller" && offer.status === "pending") {
+      return langText("Il buyer ha già confermato un'offerta vincolante con pre-autorizzazione. Se accetti, catturiamo il pagamento e generiamo l'ordine.", "The buyer already confirmed a binding offer with a pre-authorization. If you accept, we capture payment and create the order.");
+    }
+    if (scope === "buyer" && offer.status === "pending") {
+      return langText("L'offerta è vincolante: non addebitiamo subito, ma teniamo pronta la pre-autorizzazione finché il seller non risponde.", "The offer is binding: we do not charge immediately, but the pre-authorization stays ready until the seller responds.");
+    }
+    if (offer.orderId) {
+      return langText("L'offerta è collegata a un ordine già creato.", "This offer is already linked to a created order.");
+    }
+    if (offer.status === "declined") {
+      return langText("Il seller ha rifiutato l'offerta e l'autorizzazione è stata rilasciata.", "The seller declined the offer and the authorization was released.");
+    }
+    return langText("Flusso offerta predisposto per autorizzazione, capture o rilascio.", "Offer flow prepared for authorization, capture, or release.");
+  }
+
   function renderOffersMarkup(offers, scope) {
     syncOfferStates();
     if (!offers.length) {
-      return `<div class="irisx-empty-state">${langText("Nessuna offerta presente.", "No offers available.")}</div>`;
+      return `<div class="irisx-workspace-card">
+        <div class="irisx-empty-state irisx-empty-state--expanded">
+          <strong>${scope === "seller" ? langText("Nessuna offerta ricevuta.", "No offers received yet.") : langText("Nessuna offerta inviata.", "No offers sent yet.")}</strong>
+          <span>${scope === "seller"
+            ? langText("Quando un buyer invia un'offerta valida la troverai qui con importo, scadenza e stato della pre-autorizzazione.", "When a buyer sends a valid offer you'll see amount, expiry, and pre-authorization status here.")
+            : langText("Le offerte vincolanti che invii compariranno qui finché il seller non accetta, rifiuta o la finestra non scade.", "The binding offers you send will appear here until the seller accepts, declines, or the time window expires.")}</span>
+          <div class="irisx-actions"><button class="irisx-secondary" onclick="${scope === "seller" ? "setSellerSection('active')" : "showBuyView('shop')"}">${scope === "seller" ? langText("Apri annunci attivi", "Open active listings") : langText("Vai allo shop", "Go to shop")}</button></div>
+        </div>
+      </div>`;
     }
     return `<div class="irisx-order-list">${offers.map(function (offer) {
       const expired = offer.status === "expired" || isOfferExpired(offer);
       const sellerActions = scope === "seller" && offer.status === "pending" && !expired
         ? `<div class="irisx-actions">
-            <button class="irisx-primary" onclick="respondToOffer('${offer.id}','accepted')">${langText("Accetta e cattura pagamento", "Accept and capture payment")}</button>
+            <button class="irisx-primary" onclick="respondToOffer('${offer.id}','accepted')">${langText("Accetta e completa vendita", "Accept and complete sale")}</button>
             <button class="irisx-secondary" onclick="respondToOffer('${offer.id}','declined')">${langText("Rifiuta", "Decline")}</button>
           </div>`
         : offer.orderId
@@ -6918,12 +7607,15 @@
         </div>
         <div class="irisx-order-items">
           <div>${escapeHtml(formatCurrency(offer.offerAmount || offer.amount))}</div>
-          <div>${scope === "seller" ? escapeHtml(offer.buyerName || offer.buyerEmail) : escapeHtml(offer.sellerName || offer.sellerEmail)}</div>
+          <div>${scope === "seller"
+            ? `${langText("Buyer", "Buyer")}: ${escapeHtml(offer.buyerName || offer.buyerEmail)}`
+            : `${langText("Seller", "Seller")}: ${escapeHtml(offer.sellerName || offer.sellerEmail)}`}</div>
           <div>${langText("Scade", "Expires")}: ${escapeHtml(formatDateTime(offer.expiresAt))}</div>
           <div>${langText("Autorizzazione", "Authorization")}: ${escapeHtml(getOfferAuthorizationLabel(offer))}</div>
           ${offer.minimumOfferAmount !== null && offer.minimumOfferAmount !== undefined ? `<div>${langText("Minimo seller", "Seller minimum")}: ${escapeHtml(formatCurrency(offer.minimumOfferAmount))}</div>` : ""}
           <div>${expired ? langText("Offerta scaduta", "Offer expired") : langText("Creata", "Created")}: ${escapeHtml(formatDateTime(expired ? offer.expiresAt : offer.createdAt))}</div>
         </div>
+        <div class="irisx-note">${escapeHtml(getOfferStateCopy(offer, scope, expired))}</div>
         ${sellerActions}
       </div>`;
     }).join("")}</div>`;
@@ -8231,7 +8923,7 @@
       ? `<button class="det-offer" onclick="openOffer(${productIdExpr})">${t("make_offer")}</button>`
       : `<button class="det-offer" disabled>${langText("Offerte non disponibili", "Offers unavailable")}</button>`;
     const offerNote = product.offersEnabled
-      ? `<div class="irisx-note">${product.minimumOfferAmount !== null && product.minimumOfferAmount !== undefined ? `${langText("Offerta minima", "Minimum offer")}: ${escapeHtml(formatCurrency(product.minimumOfferAmount))}` : langText("Il seller accetta offerte con autorizzazione pagamento.", "Seller accepts offers with payment authorization.")}</div>`
+      ? `<div class="irisx-note">${product.minimumOfferAmount !== null && product.minimumOfferAmount !== undefined ? `${langText("Offerta minima", "Minimum offer")}: ${escapeHtml(formatCurrency(product.minimumOfferAmount))}` : langText("Il seller accetta offerte vincolanti con pre-autorizzazione pagamento.", "The seller accepts binding offers with payment pre-authorization.")}</div>`
       : `<div class="irisx-note">${langText("Questo seller ha disattivato le offerte su questo articolo.", "This seller has disabled offers for this listing.")}</div>`;
     return `<div class="irisx-detail-actions">
       <button class="det-buy" onclick="buyNow(${productIdExpr})">${t("buy_now")} · ${formatCurrency(product.price)}</button>
@@ -8261,6 +8953,10 @@
     const colorLabel = getFacetLabel("colors", product.color);
     const conditionLabel = getFacetLabel("conds", product.cond);
     const originalPrice = getListingOriginalPrice(product);
+    const sizeDisplay = getListingDisplaySize(product);
+    const sizeOriginalMarkup = product.sizeOriginal
+      ? `<div class="det-fit-item"><div class="det-fit-label">${langText("Etichetta originale", "Original label")}</div><div class="det-fit-value">${escapeHtml(product.sizeOriginal)}</div></div>`
+      : "";
     const chips = getListingChips(product);
     const seller = buildListingSeller(product);
     const sellerIdExpr = inlineJsValue(seller.id);
@@ -8277,7 +8973,8 @@
         <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
         <div class="det-div"></div>
         <div class="det-section"><div class="det-section-title">${t("details")}</div><div class="det-chips">${chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div></div>
-        <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(product.sz)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
+        <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(sizeDisplay)}</div></div>${sizeOriginalMarkup}<div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
+        ${renderMeasurementsSection(product)}
         <div class="det-section"><div class="det-section-title">${t("description")}</div><div class="det-desc">${escapeHtml(product.desc)}</div></div>
         <div class="det-section"><div class="det-section-title">${langText("Shipping info", "Shipping info")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Shipping fee", "Shipping fee")}</strong><span>${formatCurrency(SHIPPING_COST)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Method", "Method")}</strong><span>${langText("Insured and tracked", "Insured and tracked")}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Trust", "Trust")}</strong><span>${langText("Authentication queue prepared", "Authentication queue prepared")}</span></div><button class="irisx-secondary" onclick="openStatic('trust-authentication')">${langText("Learn more", "Learn more")}</button></div></div></div>
         <div class="det-section"><div class="det-section-title">${t("seller")}</div><div class="seller-card" onclick="showSeller('${escapeHtml(seller.id)}')"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta"><span>★ ${escapeHtml(seller.rating)}</span> ${escapeHtml(seller.sales)} ${t("sales")} · ${escapeHtml(seller.city)}</div></div><button class="seller-chat" onclick="event.stopPropagation();openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button></div></div>
@@ -8383,6 +9080,7 @@
     previousApplyLang();
     ensurePolicyModals();
     ensureSellDraftButton();
+    ensureSellTaxonomyUi();
     ensureOfferSellerControls();
     ensureChatUiEnhancements();
     syncFeeCopy();
@@ -8418,6 +9116,7 @@
   window.removeSavedSearch = removeSavedSearch;
   window.saveSellingWorkspace = saveSellingWorkspace;
   window.savePrivacyWorkspace = savePrivacyWorkspace;
+  window.handleSellTaxonomyChange = handleSellTaxonomyChange;
   window.toggleOfferSettings = toggleOfferSettings;
   window.saveListingDraft = saveListingDraft;
   window.publishDraftListing = publishDraftListing;
@@ -8440,6 +9139,7 @@
   ensureStructuredSkeletonState();
   ensureSellDraftButton();
   ensurePolicyModals();
+  ensureSellTaxonomyUi();
   ensureOfferSellerControls();
   ensureChatUiEnhancements();
   syncFeeCopy();

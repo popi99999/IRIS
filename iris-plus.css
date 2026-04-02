@@ -2135,6 +2135,23 @@ body.light-mode .irisx-chat-role-badge {
   padding-top: 0.25rem;
 }
 
+.sell-form .irisx-note,
+.sell-form .irisx-status {
+  background: #fff;
+  border-color: rgba(124, 58, 237, 0.12);
+  color: #6f618a;
+}
+
+#irisxSellTaxonomyHint,
+#irisxSizeHint {
+  margin-top: 0.15rem;
+}
+
+.sell-form .fsel:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .irisx-offer-toggle {
   display: flex;
   align-items: center;

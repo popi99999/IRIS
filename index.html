@@ -1063,18 +1063,26 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
           </div>
           <input type="file" id="fileIn" multiple accept="image/*" style="display:none">
           <div class="form-fields">
-            <div class="fg"><label class="fl">Categoria *</label><select class="fsel" id="sf-cat" onchange="updateFee()"><option value="">Seleziona</option><option>Borse</option><option>Scarpe</option><option>Abbigliamento donna</option><option>Abbigliamento uomo</option><option>Accessori</option><option>Gioielli</option><option>Orologi</option></select></div>
+            <div class="fg"><label class="fl">Categoria *</label><select class="fsel" id="sf-cat" onchange="handleSellTaxonomyChange('category');updateFee()"><option value="">Seleziona</option></select></div>
             <div class="fg"><label class="fl">Brand / Designer *</label><select class="fsel"><option value="">Seleziona brand</option><optgroup label="Ultra Lusso"><option>Hermès</option><option>Chanel</option><option>Louis Vuitton</option><option>Dior</option><option>Bottega Veneta</option></optgroup><optgroup label="Lusso"><option>Gucci</option><option>Prada</option><option>Valentino</option><option>Versace</option><option>Fendi</option><option>Burberry</option><option>Moncler</option><option>Stone Island</option></optgroup><optgroup label="Contemporary"><option>Balenciaga</option><option>Off-White</option><option>Jacquemus</option><option>Amiri</option><option>Rick Owens</option><option>Maison Margiela</option></optgroup><option>Altro</option></select></div>
             <div class="fg"><label class="fl">Nome articolo *</label><input class="fi" placeholder="es. Gucci GG Marmont Shoulder Bag"></div>
             <div class="fr">
-              <div class="fg"><label class="fl">Taglia</label><input class="fi" placeholder="es. 42, M"></div>
-              <div class="fg"><label class="fl">Colore</label><input class="fi" placeholder="es. Nero"></div>
+              <div class="fg" id="irisxSubcategoryGroup"><label class="fl" id="sf-subcat-label">Sottocategoria *</label><select class="fsel" id="sf-subcat" onchange="handleSellTaxonomyChange('subcategory')"><option value="">Seleziona</option></select></div>
+              <div class="fg" id="irisxTypeGroup"><label class="fl" id="sf-type-label">Tipo</label><select class="fsel" id="sf-type" onchange="handleSellTaxonomyChange('type')"><option value="">Seleziona</option></select></div>
+            </div>
+            <div class="irisx-note" id="irisxSellTaxonomyHint">Scegli prima il tipo di articolo: cosi il form ti mostra solo taglie e campi coerenti.</div>
+            <div class="fr">
+              <div class="fg" id="irisxSizeGroup"><label class="fl" id="sf-size-label">Taglia</label><select class="fsel" id="sf-size"><option value="">Seleziona</option></select><div class="irisx-note" id="irisxSizeHint">La taglia si adatta alla categoria che scegli.</div></div>
+              <div class="fg" id="irisxSizeOriginalGroup"><label class="fl" id="sf-size-original-label">Taglia etichetta originale</label><input class="fi" id="sf-size-original" placeholder="es. 2, US 9, 30"></div>
             </div>
             <div class="fr">
-              <div class="fg"><label class="fl">Vestibilità</label><select class="fsel"><option>Regular</option><option>Slim</option><option>Oversize</option></select></div>
-              <div class="fg"><label class="fl">Materiale</label><input class="fi" placeholder="es. Pelle, Cotone"></div>
+              <div class="fg"><label class="fl">Colore</label><input class="fi" placeholder="es. Nero"></div>
+              <div class="fg" id="irisxFitGroup"><label class="fl">Vestibilità</label><select class="fsel"><option>Regular</option><option>Slim</option><option>Oversize</option></select></div>
             </div>
-            <div class="fg"><label class="fl">Dimensioni</label><input class="fi" placeholder="es. 30 x 22 x 16 cm"></div>
+            <div class="fr">
+              <div class="fg"><label class="fl">Materiale</label><input class="fi" placeholder="es. Pelle, Cotone"></div>
+              <div class="fg" id="irisxDimensionsGroup"><label class="fl" id="sf-dims-label">Dimensioni</label><input class="fi" id="sf-dims" placeholder="es. 30 x 22 x 16 cm"></div>
+            </div>
             <div class="fg"><label class="fl">Condizione *</label><div class="cond-grid"><button class="cond-btn" onclick="selCond(this)">Nuovo con tag</button><button class="cond-btn" onclick="selCond(this)">Nuovo senza tag</button><button class="cond-btn" onclick="selCond(this)">Molto buono</button><button class="cond-btn" onclick="selCond(this)">Buono</button><button class="cond-btn" onclick="selCond(this)">Accettabile</button><button class="cond-btn" onclick="selCond(this)">Da restauro</button></div></div>
             <div class="fg"><label class="fl">Descrizione *</label><textarea class="fta" placeholder="Materiale, colore, hardware, segni di usura, cosa è incluso..."></textarea></div>
             <div class="fg"><label class="fl">Il tuo prezzo (€) *</label><input class="fi" type="number" id="sf-price" placeholder="es. 450" oninput="updateFee()"></div>

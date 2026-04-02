@@ -262,6 +262,13 @@
 
     if (current.tagName === "SELECT") {
       current.value = LOCALE_SETTINGS[curLang] ? curLang : "en";
+      // Attach change handler if not already attached
+      if (!current.dataset.irisxLangBound) {
+        current.dataset.irisxLangBound = "1";
+        current.addEventListener("change", function () {
+          setLanguage(this.value);
+        });
+      }
       return;
     }
 
@@ -4459,7 +4466,7 @@
 
     drawer.innerHTML =
       "<div class=\"irisx-drawer-backdrop\"></div><div class=\"irisx-drawer-panel\"><div class=\"irisx-drawer-head\"><div><div class=\"irisx-kicker\">" +
-      t("prototype_mode") +
+      langText("Il tuo carrello · IRIS", "Your cart · IRIS") +
       "</div><div class=\"irisx-title\">" +
       t("cart") +
       "</div><div class=\"irisx-subtitle\">" +
@@ -7519,7 +7526,7 @@
           <div>
             <div class="irisx-kicker">${area === "account" ? langText("Account workspace", "Account workspace") : area === "buyer" ? langText("Buyer workspace", "Buyer workspace") : langText("Seller workspace", "Seller workspace")}</div>
             <div class="irisx-title">${area === "account" ? langText("Account", "Account") : area === "buyer" ? langText("Buyer", "Buyer") : langText("Seller", "Seller")}</div>
-            <div class="irisx-subtitle">${langText("Scheletro completo del marketplace prototipo.", "Complete structural skeleton of the marketplace prototype.")}</div>
+            <div class="irisx-subtitle">${langText("Il tuo spazio personale IRIS.", "Your personal IRIS space.")}</div>
           </div>
         </div>
         <div class="irisx-section-tabs${area === "account" ? " irisx-section-tabs--account" : ""}">${sectionNav}</div>
@@ -7625,7 +7632,7 @@
           <div>
             <div class="irisx-kicker">${langText("Operations", "Operations")}</div>
             <div class="irisx-title">OPS</div>
-            <div class="irisx-subtitle">${langText("Ordini, utenti, payout, contenuti e policy del prototipo.", "Orders, users, payouts, content, and prototype policies.")}</div>
+            <div class="irisx-subtitle">${langText("Gestione ordini, utenti, payout e contenuti.", "Order, user, payout and content management.")}</div>
           </div>
         </div>
         <div class="irisx-section-tabs">${tabHtml}</div>
@@ -8013,10 +8020,18 @@
     const subtotal = getCartSubtotal(items);
     const shippingFee = Number(draft.shippingFee || SHIPPING_COST);
     const total = subtotal + shippingFee;
+    const stepLabels = {
+      address: langText("Indirizzo", "Address"),
+      shipping: langText("Spedizione", "Shipping"),
+      payment: langText("Pagamento", "Payment"),
+      review: langText("Riepilogo", "Review"),
+      confirmation: langText("Conferma", "Confirm")
+    };
     const stepsHtml = CHECKOUT_STEPS.map(function (step, index) {
       const active = step === state.checkoutStep;
       const completed = CHECKOUT_STEPS.indexOf(state.checkoutStep) > index;
-      return `<div class="irisx-checkout-step${active ? " on" : ""}${completed ? " done" : ""}"><span>${index + 1}</span><strong>${escapeHtml(step.replace("_", " "))}</strong></div>`;
+      const label = stepLabels[step] || step;
+      return `<div class="irisx-checkout-step${active ? " on" : ""}${completed ? " done" : ""}"><span>${index + 1}</span><strong>${escapeHtml(label)}</strong></div>`;
     }).join("");
     const summary = items.map(function (entry) {
       return `<div class="irisx-summary-item"><span><strong>${escapeHtml(entry.product.name)}</strong><br>${escapeHtml(entry.product.brand)} · ${t("qty")}: ${entry.qty}</span><span>${escapeHtml(formatCurrency(entry.product.price * entry.qty))}</span></div>`;
@@ -8087,9 +8102,9 @@
     modal.innerHTML = `<div class="irisx-modal-backdrop"></div><div class="irisx-modal-card irisx-modal-card--wide">
       <div class="irisx-card-head">
         <div>
-          <div class="irisx-kicker">${t("prototype_mode")}</div>
+          <div class="irisx-kicker">${langText("Acquisto sicuro · IRIS", "Secure checkout · IRIS")}</div>
           <div class="irisx-title">${t("checkout_title")}</div>
-          <div class="irisx-subtitle">${langText("Address, shipping, payment, review, confirmation, success and failed states.", "Address, shipping, payment, review, confirmation, success and failed states.")}</div>
+          <div class="irisx-subtitle">${langText("Inserisci i tuoi dati per completare l'acquisto in sicurezza.", "Enter your details to complete the purchase securely.")}</div>
         </div>
         <button class="irisx-close" onclick="closeCheckout()">✕</button>
       </div>

@@ -1350,10 +1350,16 @@ body.light-mode .irisx-home-strip span {
 
   .tn-fav,
   .tn-chat,
-  .notif-wrap,
   #authBtn,
   .mode-toggle {
     display: none !important;
+  }
+
+  /* Notif bell sempre visibile — nel grid mobile */
+  .notif-wrap {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
   }
 
   .tn-links .irisx-lang-select {
@@ -1889,16 +1895,45 @@ body.light-mode .irisx-home-strip span {
 }
 
 .irisx-checkout-stepper {
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  margin-bottom: 1rem;
+  display: grid !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+  margin-bottom: 1.2rem;
+  gap: 0.5rem;
 }
 
 .irisx-checkout-step {
-  padding: 0.8rem 0.9rem;
-  border: 1px solid rgba(167, 139, 250, 0.12);
-  display: grid;
-  gap: 0.25rem;
-  background: rgba(255, 255, 255, 0.02);
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(167, 139, 250, 0.15);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(124, 58, 237, 0.04);
+}
+
+.irisx-checkout-step span {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(167, 139, 250, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.irisx-checkout-step.on {
+  border-color: rgba(167, 139, 250, 0.5);
+  background: rgba(124, 58, 237, 0.14);
+}
+
+.irisx-checkout-step.on span {
+  background: var(--purple);
+  color: #fff;
+}
+
+.irisx-checkout-step.done span {
+  background: rgba(80, 220, 140, 0.3);
 }
 
 .irisx-checkout-step span {
@@ -2075,9 +2110,17 @@ body.light-mode .irisx-chat-role-badge {
 @media (max-width: 720px) {
   .irisx-section-tabs,
   .irisx-summary-grid,
-  .irisx-checkout-stepper,
   .irisx-policy-grid {
     grid-template-columns: 1fr;
+  }
+
+  .irisx-checkout-stepper {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.25rem;
+  }
+
+  .irisx-checkout-step strong {
+    display: none;
   }
 
   .irisx-inline-card,

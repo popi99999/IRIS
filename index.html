@@ -1083,6 +1083,11 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
               <div class="fg"><label class="fl">Materiale</label><input class="fi" placeholder="es. Pelle, Cotone"></div>
               <div class="fg" id="irisxDimensionsGroup"><label class="fl" id="sf-dims-label">Dimensioni</label><input class="fi" id="sf-dims" placeholder="es. 30 x 22 x 16 cm"></div>
             </div>
+            <div class="fg irisx-measurement-block" id="irisxMeasurementsGroup">
+              <label class="fl" id="irisxMeasurementsTitle">Misure principali</label>
+              <div class="irisx-note" id="irisxMeasurementsHint">Inserisci le misure seller piu importanti. Le immagini guida le aggiungeremo dopo.</div>
+              <div class="irisx-measurement-grid" id="irisxMeasurementsFields"></div>
+            </div>
             <div class="fg"><label class="fl">Condizione *</label><div class="cond-grid"><button class="cond-btn" onclick="selCond(this)">Nuovo con tag</button><button class="cond-btn" onclick="selCond(this)">Nuovo senza tag</button><button class="cond-btn" onclick="selCond(this)">Molto buono</button><button class="cond-btn" onclick="selCond(this)">Buono</button><button class="cond-btn" onclick="selCond(this)">Accettabile</button><button class="cond-btn" onclick="selCond(this)">Da restauro</button></div></div>
             <div class="fg"><label class="fl">Descrizione *</label><textarea class="fta" placeholder="Materiale, colore, hardware, segni di usura, cosa è incluso..."></textarea></div>
             <div class="fg"><label class="fl">Il tuo prezzo (€) *</label><input class="fi" type="number" id="sf-price" placeholder="es. 450" oninput="updateFee()"></div>

@@ -296,6 +296,121 @@
     }
   };
 
+  const MEASUREMENT_SCHEMAS = {
+    upper: {
+      title: { it: "Misure capo", en: "Garment measurements" },
+      hint: {
+        it: "Perfetto per t-shirt, felpe, camicie e giacche. Inserisci i valori in cm.",
+        en: "Perfect for tees, sweatshirts, shirts, and jackets. Enter values in cm."
+      },
+      fields: [
+        { id: "chest", it: "Torace", en: "Chest", placeholder: "54" },
+        { id: "length", it: "Lunghezza", en: "Length", placeholder: "70" },
+        { id: "shoulders", it: "Spalle", en: "Shoulders", placeholder: "46" },
+        { id: "sleeve", it: "Manica", en: "Sleeve", placeholder: "64" }
+      ]
+    },
+    bottom: {
+      title: { it: "Misure pantalone", en: "Bottom measurements" },
+      hint: {
+        it: "Usa cm per vita, cavallo e fondo gamba.",
+        en: "Use cm for waist, rise, inseam, and leg opening."
+      },
+      fields: [
+        { id: "waist", it: "Vita", en: "Waist", placeholder: "42" },
+        { id: "rise", it: "Cavallo", en: "Rise", placeholder: "31" },
+        { id: "inseam", it: "Interno gamba", en: "Inseam", placeholder: "78" },
+        { id: "leg_opening", it: "Fondo gamba", en: "Leg opening", placeholder: "18" }
+      ]
+    },
+    dress: {
+      title: { it: "Misure vestito", en: "Dress measurements" },
+      hint: {
+        it: "Aggiungi busto, vita, fianchi e lunghezza.",
+        en: "Add bust, waist, hips, and length."
+      },
+      fields: [
+        { id: "chest", it: "Torace", en: "Chest", placeholder: "44" },
+        { id: "waist", it: "Vita", en: "Waist", placeholder: "36" },
+        { id: "hips", it: "Fianchi", en: "Hips", placeholder: "48" },
+        { id: "length", it: "Lunghezza", en: "Length", placeholder: "124" }
+      ]
+    },
+    skirt: {
+      title: { it: "Misure gonna", en: "Skirt measurements" },
+      hint: {
+        it: "Vita, fianchi e lunghezza aiutano molto il buyer.",
+        en: "Waist, hips, and length help the buyer a lot."
+      },
+      fields: [
+        { id: "waist", it: "Vita", en: "Waist", placeholder: "35" },
+        { id: "hips", it: "Fianchi", en: "Hips", placeholder: "47" },
+        { id: "length", it: "Lunghezza", en: "Length", placeholder: "68" }
+      ]
+    },
+    bag: {
+      title: { it: "Dimensioni borsa", en: "Bag measurements" },
+      hint: {
+        it: "Larghezza, altezza e profondita sono fondamentali. Aggiungi la luce tracolla se serve.",
+        en: "Width, height, and depth are essential. Add strap drop when relevant."
+      },
+      fields: [
+        { id: "width", it: "Larghezza", en: "Width", placeholder: "30" },
+        { id: "height", it: "Altezza", en: "Height", placeholder: "22" },
+        { id: "depth", it: "Profondita", en: "Depth", placeholder: "16" },
+        { id: "strap_drop", it: "Luce tracolla", en: "Strap drop", placeholder: "48" }
+      ]
+    },
+    shoes: {
+      title: { it: "Dettagli scarpa", en: "Shoe measurements" },
+      hint: {
+        it: "Usa cm per soletta e base suola, oppure mm per il tacco se ti aiuta.",
+        en: "Use cm for insole and sole width, or mm for heel height if useful."
+      },
+      fields: [
+        { id: "insole", it: "Soletta", en: "Insole", placeholder: "27.5" },
+        { id: "sole_width", it: "Base suola", en: "Sole width", placeholder: "10" },
+        { id: "heel_height", it: "Altezza tacco", en: "Heel height", placeholder: "9" }
+      ]
+    },
+    belt: {
+      title: { it: "Misure cintura", en: "Belt measurements" },
+      hint: {
+        it: "Aggiungi lunghezza totale e foro centrale.",
+        en: "Add total length and middle hole distance."
+      },
+      fields: [
+        { id: "full_length", it: "Lunghezza totale", en: "Full length", placeholder: "102" },
+        { id: "buckle_to_middle", it: "Fibbia a foro centrale", en: "Buckle to middle hole", placeholder: "85" },
+        { id: "width", it: "Altezza cintura", en: "Belt width", placeholder: "4" }
+      ]
+    },
+    jewelry: {
+      title: { it: "Dimensioni gioiello", en: "Jewelry measurements" },
+      hint: {
+        it: "Usa le misure piu utili per il pezzo: lunghezza, diametro o pendente.",
+        en: "Use the most relevant measurements: length, diameter, or drop."
+      },
+      fields: [
+        { id: "length", it: "Lunghezza", en: "Length", placeholder: "18" },
+        { id: "diameter", it: "Diametro", en: "Diameter", placeholder: "2.2" },
+        { id: "drop", it: "Drop", en: "Drop", placeholder: "4" }
+      ]
+    },
+    watch: {
+      title: { it: "Misure orologio", en: "Watch measurements" },
+      hint: {
+        it: "Cassa, lug e cinturino rendono l'annuncio molto piu chiaro.",
+        en: "Case, lug width, and strap length make the listing much clearer."
+      },
+      fields: [
+        { id: "case_diameter", it: "Diametro cassa", en: "Case diameter", placeholder: "36" },
+        { id: "lug_width", it: "Larghezza lug", en: "Lug width", placeholder: "20" },
+        { id: "strap_length", it: "Lunghezza cinturino", en: "Strap length", placeholder: "18" }
+      ]
+    }
+  };
+
   const SHIPPING_COST = PLATFORM_CONFIG.shippingCost;
   const state = {
     users: loadJson(STORAGE_KEYS.users, []),
@@ -446,6 +561,7 @@
     if (!element) {
       return;
     }
+    element.hidden = !visible;
     element.style.display = visible ? "" : "none";
   }
 
@@ -461,6 +577,101 @@
     const category = getSellCategoryDefinition(categoryKey);
     const subcategory = getSellSubcategoryDefinition(categoryKey, subcategoryKey);
     return (subcategory && subcategory.sizeMode) || (category && category.sizeMode) || "one_size";
+  }
+
+  function getMeasurementSchemaKey(categoryKey, subcategoryKey) {
+    if (categoryKey === "clothing") {
+      if (["pants", "jeans", "shorts"].includes(subcategoryKey)) {
+        return "bottom";
+      }
+      if (subcategoryKey === "dress") {
+        return "dress";
+      }
+      if (subcategoryKey === "skirt") {
+        return "skirt";
+      }
+      return "upper";
+    }
+    if (categoryKey === "bags") {
+      return "bag";
+    }
+    if (categoryKey === "shoes") {
+      return "shoes";
+    }
+    if (categoryKey === "accessories" && subcategoryKey === "belt") {
+      return "belt";
+    }
+    if (categoryKey === "jewelry") {
+      return "jewelry";
+    }
+    if (categoryKey === "watches") {
+      return "watch";
+    }
+    return null;
+  }
+
+  function getMeasurementSchema(categoryKey, subcategoryKey) {
+    const schemaKey = getMeasurementSchemaKey(categoryKey, subcategoryKey);
+    return schemaKey ? MEASUREMENT_SCHEMAS[schemaKey] || null : null;
+  }
+
+  function collectVisibleMeasurements() {
+    const container = qs("#irisxMeasurementsFields");
+    if (!container) {
+      return {};
+    }
+    return qsa("[data-measurement-key]", container).reduce(function (accumulator, input) {
+      const key = input.getAttribute("data-measurement-key");
+      const value = input.value.trim();
+      if (key && value) {
+        accumulator[key] = value;
+      }
+      return accumulator;
+    }, {});
+  }
+
+  function renderSellMeasurementFields(categoryKey, subcategoryKey, preservedValues) {
+    const schema = getMeasurementSchema(categoryKey, subcategoryKey);
+    const group = qs("#irisxMeasurementsGroup");
+    const title = qs("#irisxMeasurementsTitle");
+    const hint = qs("#irisxMeasurementsHint");
+    const grid = qs("#irisxMeasurementsFields");
+    if (!group || !title || !hint || !grid) {
+      return;
+    }
+
+    const values = preservedValues && typeof preservedValues === "object" ? preservedValues : collectVisibleMeasurements();
+    setSellFieldVisibility("#irisxMeasurementsGroup", Boolean(schema));
+    if (!schema) {
+      grid.innerHTML = "";
+      return;
+    }
+
+    title.textContent = getTaxonomyLabel(schema.title);
+    hint.textContent = getTaxonomyLabel(schema.hint);
+    grid.innerHTML = schema.fields.map(function (field) {
+      const value = values[field.id] || "";
+      return `<label class="irisx-measurement-field">
+        <span>${escapeHtml(getTaxonomyLabel(field))}</span>
+        <input class="fi" type="text" inputmode="decimal" data-measurement-key="${escapeHtml(field.id)}" placeholder="${escapeHtml(field.placeholder || "")}" value="${escapeHtml(value)}">
+      </label>`;
+    }).join("");
+  }
+
+  function collectSellMeasurements() {
+    const values = collectVisibleMeasurements();
+    return Object.keys(values).length ? values : null;
+  }
+
+  function getMeasurementFieldDefinition(fieldId, categoryKey, subcategoryKey) {
+    const schema = getMeasurementSchema(categoryKey, subcategoryKey);
+    if (schema) {
+      const match = schema.fields.find(function (field) { return field.id === fieldId; });
+      if (match) {
+        return match;
+      }
+    }
+    return null;
   }
 
   function getSellEmojiForTaxonomy(categoryKey, subcategoryKey) {
@@ -2032,6 +2243,9 @@
     const dimensionsLabel = qs("#sf-dims-label");
     const dimensionsField = qs("#sf-dims");
     const fitSelect = qs("#sf-fit");
+    const measurementValues = preservedValues && preservedValues.measurements !== undefined
+      ? preservedValues.measurements
+      : collectVisibleMeasurements();
     if (!categorySelect || !subcategorySelect || !typeSelect || !sizeSelect) {
       return;
     }
@@ -2122,6 +2336,7 @@
     setSellFieldVisibility("#irisxFitGroup", Boolean(category && category.fitEnabled));
     setSellFieldVisibility("#irisxSizeGroup", sizeMode !== "one_size");
     setSellFieldVisibility("#irisxSizeOriginalGroup", ["alpha", "eu_shoes", "belt"].includes(sizeMode));
+    renderSellMeasurementFields(categoryKey, subcategoryKey, measurementValues);
 
     if (fitSelect && !(category && category.fitEnabled)) {
       fitSelect.value = "—";
@@ -5440,6 +5655,7 @@
 
   function publishListing() {
     const taxonomy = collectSellTaxonomySelection();
+    const measurements = collectSellMeasurements();
     const brand = readSellField("#sf-brand");
     const name = readSellField("#sf-name");
     const color = readSellField("#sf-color");
@@ -5495,6 +5711,7 @@
       cond: condition,
       fit: taxonomy.fit,
       dims: dimensions || "N/A",
+      measurements: measurements,
       price: price,
       orig: Math.round(price * 1.35),
       color: color || (curLang === "it" ? "Non indicato" : "Not specified"),
@@ -5554,7 +5771,8 @@
       categoryKey: "",
       subcategoryKey: "",
       typeKey: "",
-      size: ""
+      size: "",
+      measurements: {}
     });
     renderSellPhotoPreview();
     updateFee();
@@ -7303,6 +7521,7 @@
       const offerPolicy = getListingOfferPolicyFromForm();
       const offerValidation = validateListingOfferPolicy(offerPolicy, draftPrice);
       const taxonomy = collectSellTaxonomySelection();
+      const measurements = collectSellMeasurements();
       if (!offerValidation.ok) {
         updateSellStatus(offerValidation.error, true);
         return;
@@ -7334,6 +7553,7 @@
         cond: qsa(".cond-btn.sel").map(function (button) { return button.textContent.trim(); })[0] || langText("Da definire", "To define"),
         fit: taxonomy.ok ? taxonomy.fit : "—",
         dims: readSellField("#sf-dims") || "",
+        measurements: measurements,
         price: Number(readSellField("#sf-price") || 0),
         orig: Math.round(Number(readSellField("#sf-price") || 0) * 1.35),
         color: readSellField("#sf-color") || "",
@@ -7389,7 +7609,8 @@
       categoryKey: categoryKey,
       subcategoryKey: listing.subcategoryKey || "",
       typeKey: listing.productTypeKey || "",
-      size: listing.sizeSchema === "one_size" ? "one_size" : ((listing.sz || "").replace(/^EU\s+/i, ""))
+      size: listing.sizeSchema === "one_size" ? "one_size" : ((listing.sz || "").replace(/^EU\s+/i, "")),
+      measurements: listing.measurements || {}
     });
     const fieldMap = {
       "#sf-cat": categoryKey,
@@ -7417,7 +7638,8 @@
       categoryKey: qs("#sf-cat") ? qs("#sf-cat").value : "",
       subcategoryKey: qs("#sf-subcat") ? qs("#sf-subcat").value : "",
       typeKey: qs("#sf-type") ? qs("#sf-type").value : "",
-      size: qs("#sf-size") ? qs("#sf-size").value : ""
+      size: qs("#sf-size") ? qs("#sf-size").value : "",
+      measurements: listing.measurements || {}
     });
     qsa(".cond-btn").forEach(function (button) {
       button.classList.toggle("sel", button.textContent.trim() === listing.cond);
@@ -8956,22 +9178,28 @@
   };
 
   function renderMeasurementsSection(product) {
+    const categoryKey = product.categoryKey || inferSellCategoryKey(product);
+    const subcategoryKey = product.subcategoryKey || "";
     const measurements = product && product.measurements && typeof product.measurements === "object"
       ? Object.entries(product.measurements).filter(function (entry) {
           return entry[1] !== null && entry[1] !== undefined && String(entry[1]).trim() !== "";
         })
       : [];
+    const dimensionsNote = product && product.dims && product.dims !== "N/A" ? product.dims : "";
 
-    if (!measurements.length) {
+    if (!measurements.length && !dimensionsNote) {
       return "";
     }
 
-    return `<div class="det-section">
+    return `<div class="det-section det-measurements-section">
       <div class="det-section-title">${langText("Misure", "Measurements")}</div>
-      <div class="det-fit">${measurements.map(function (entry) {
-        const label = entry[0].replace(/_/g, " ");
-        return `<div class="det-fit-item"><div class="det-fit-label">${escapeHtml(label)}</div><div class="det-fit-value">${escapeHtml(String(entry[1]))}</div></div>`;
-      }).join("")}</div>
+      <div class="det-measurements-copy">${langText("Misure dichiarate dal seller per aiutare fit e confronto. Le immagini guida misure possono essere aggiunte dopo.", "Seller-provided measurements to help with fit and comparison. Measurement guide images can be added later.")}</div>
+      ${dimensionsNote ? `<div class="det-measurements-note"><strong>${langText("Nota dimensioni", "Dimensions note")}</strong><span>${escapeHtml(dimensionsNote)}</span></div>` : ""}
+      ${measurements.length ? `<div class="det-measure-grid">${measurements.map(function (entry) {
+        const definition = getMeasurementFieldDefinition(entry[0], categoryKey, subcategoryKey);
+        const label = definition ? getTaxonomyLabel(definition) : entry[0].replace(/_/g, " ");
+        return `<div class="det-measure-item"><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(entry[1]))}</strong></div>`;
+      }).join("")}</div>` : ""}
     </div>`;
   }
 

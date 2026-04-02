@@ -3896,6 +3896,242 @@
       renderNotifications();
     };
 
+    function getOfferCurrencySymbol() {
+      const locale = getLocaleConfig();
+      const parts = new Intl.NumberFormat(locale.locale, {
+        style: "currency",
+        currency: locale.currency,
+        maximumFractionDigits: locale.currency === "JPY" ? 0 : 2
+      }).formatToParts(0);
+      const currencyPart = parts.find(function (part) { return part.type === "currency"; });
+      return currencyPart ? currencyPart.value : "€";
+    }
+
+    function getOfferDraftAmountValue() {
+      if (!state.offerDraft || state.offerDraft.offerAmount === undefined || state.offerDraft.offerAmount === null) {
+        return "";
+      }
+      return String(state.offerDraft.offerAmount);
+    }
+
+    function getOfferAmountValidation(product, rawValue) {
+      const sanitized = String(rawValue || "").replace(/[^\d]/g, "").replace(/^0+(?=\d)/, "");
+      const amount = sanitized ? Number(sanitized) : NaN;
+      const minimum = product.minimumOfferAmount !== null && product.minimumOfferAmount !== undefined
+        ? Number(product.minimumOfferAmount)
+        : null;
+      const minimumText = minimum !== null
+        ? `${langText("Offerta minima", "Minimum offer")} ${formatCurrency(minimum)}`
+        : langText("Nessuna soglia minima impostata dal seller.", "No minimum threshold set by the seller.");
+      if (!sanitized) {
+        return {
+          rawValue: "",
+          amount: NaN,
+          canContinue: false,
+          errorMessage: "",
+          minimumText: minimumText
+        };
+      }
+      if (!Number.isFinite(amount) || amount <= 0) {
+        return {
+          rawValue: sanitized,
+          amount: NaN,
+          canContinue: false,
+          errorMessage: langText("Inserisci un importo valido.", "Enter a valid amount."),
+          minimumText: minimumText
+        };
+      }
+      if (minimum !== null && amount < minimum) {
+        return {
+          rawValue: sanitized,
+          amount: amount,
+          canContinue: false,
+          errorMessage: langText(`La tua offerta e' troppo bassa. Minimo ${formatCurrency(minimum)}.`, `Your offer is too low. Minimum ${formatCurrency(minimum)}.`),
+          minimumText: minimumText
+        };
+      }
+      return {
+        rawValue: sanitized,
+        amount: amount,
+        canContinue: true,
+        errorMessage: "",
+        minimumText: minimumText
+      };
+    }
+
+    function getOfferProductMediaMarkup(product) {
+      const image = Array.isArray(product.images) && product.images[0] ? product.images[0] : "";
+      if (image) {
+        return `<img src="${escapeHtml(image)}" alt="${escapeHtml(product.brand + " " + product.name)}">`;
+      }
+      return `<div class="offer-product-thumb__emoji">${escapeHtml(product.emoji || "👜")}</div>`;
+    }
+
+    function getOfferPaymentOptions() {
+      const buyer = normalizeUserWorkspace(state.currentUser || {});
+      const methods = buyer.paymentMethods.length
+        ? buyer.paymentMethods.map(function (method) {
+            return {
+              id: method.id,
+              kind: langText("Carta", "Card"),
+              label: `${method.brand} •••• ${method.last4}`,
+              meta: method.status === "placeholder"
+                ? langText("Autorizzazione prototipo", "Prototype authorization")
+                : langText("Metodo salvato", "Saved method"),
+              snapshot: {
+                id: method.id,
+                label: `${method.brand} •••• ${method.last4}`
+              }
+            };
+          })
+        : [{
+            id: "prototype-offer-auth",
+            kind: langText("Carta", "Card"),
+            label: langText("Visa •••• 4242", "Visa •••• 4242"),
+            meta: langText("Autorizzazione prototipo", "Prototype authorization"),
+            snapshot: {
+              id: "prototype-offer-auth",
+              label: langText("Visa •••• 4242", "Visa •••• 4242")
+            }
+          }];
+
+      methods.push({
+        id: "apple-pay",
+        kind: "Apple Pay",
+        label: langText("Wallet autorizzato", "Authorized wallet"),
+        meta: langText("Conferma rapida in app", "Fast in-app confirmation"),
+        snapshot: {
+          id: "apple-pay",
+          label: "Apple Pay"
+        }
+      });
+
+      return methods;
+    }
+
+    function getSelectedOfferPaymentOption() {
+      const selectedId = state.offerDraft && state.offerDraft.paymentMethodSnapshot && state.offerDraft.paymentMethodSnapshot.id;
+      const options = getOfferPaymentOptions();
+      return options.find(function (option) { return option.id === selectedId; }) || options[0];
+    }
+
+    function getOfferReviewReadiness(product, draft) {
+      const defaults = getBuyerOfferDefaults();
+      const shipping = Object.assign({}, defaults.shippingSnapshot, draft && draft.shippingSnapshot ? draft.shippingSnapshot : {});
+      const payment = draft && draft.paymentMethodSnapshot ? draft.paymentMethodSnapshot : defaults.paymentMethodSnapshot;
+      const phone = normalizePhoneNumber((shipping && shipping.phone) || (state.currentUser && state.currentUser.phone) || "");
+      const amountState = getOfferAmountValidation(product, draft && draft.offerAmount);
+      if (!amountState.canContinue) {
+        return {
+          ok: false,
+          error: amountState.errorMessage || langText("Completa l'importo offerta.", "Complete the offer amount."),
+          shipping: shipping,
+          payment: payment,
+          phone: phone,
+          amount: amountState.amount
+        };
+      }
+      if (!shipping.address || !shipping.city || !shipping.country) {
+        return {
+          ok: false,
+          error: langText("Completa il tuo indirizzo di spedizione nel profilo prima di inviare l'offerta.", "Complete your shipping address in your profile before submitting the offer."),
+          shipping: shipping,
+          payment: payment,
+          phone: phone,
+          amount: amountState.amount
+        };
+      }
+      if (!phone || !isValidPhoneNumber(phone)) {
+        return {
+          ok: false,
+          error: langText("Aggiungi un numero di telefono valido nel profilo prima di inviare l'offerta.", "Add a valid phone number in your profile before submitting the offer."),
+          shipping: shipping,
+          payment: payment,
+          phone: phone,
+          amount: amountState.amount
+        };
+      }
+      if (!payment || !payment.label) {
+        return {
+          ok: false,
+          error: langText("Seleziona un metodo per autorizzare l'offerta.", "Select a method to authorize the offer."),
+          shipping: shipping,
+          payment: payment,
+          phone: phone,
+          amount: amountState.amount
+        };
+      }
+      return {
+        ok: true,
+        shipping: shipping,
+        payment: payment,
+        phone: phone,
+        amount: amountState.amount
+      };
+    }
+
+    function refreshOfferAmountUi() {
+      if (state.offerStep !== "amount") {
+        return;
+      }
+      const product = getListingById(offerProdId);
+      if (!product) {
+        return;
+      }
+      const validation = getOfferAmountValidation(product, getOfferDraftAmountValue());
+      const errorNode = qs("#offerAmountError");
+      const button = qs("#offerContinueButton");
+      const minimumNode = qs("#offerMinimumCopy");
+      if (errorNode) {
+        errorNode.textContent = validation.errorMessage || "";
+        errorNode.classList.toggle("is-visible", Boolean(validation.errorMessage));
+      }
+      if (button) {
+        button.disabled = !validation.canContinue;
+      }
+      if (minimumNode) {
+        minimumNode.textContent = validation.minimumText;
+      }
+    }
+
+    sanitizeOfferAmountInput = function (input) {
+      const sanitized = String(input && input.value || "").replace(/[^\d]/g, "").replace(/^0+(?=\d)/, "");
+      if (input && input.value !== sanitized) {
+        input.value = sanitized;
+      }
+      state.offerDraft = Object.assign({}, state.offerDraft || {}, {
+        offerAmount: sanitized
+      });
+      state.offerError = "";
+      refreshOfferAmountUi();
+    };
+
+    selectOfferPaymentMethod = function (paymentId) {
+      const option = getOfferPaymentOptions().find(function (entry) { return entry.id === paymentId; });
+      if (!option) {
+        return;
+      }
+      state.offerDraft = Object.assign({}, state.offerDraft || {}, {
+        paymentMethodSnapshot: Object.assign({}, option.snapshot)
+      });
+      state.offerError = "";
+      renderOfferModal();
+    };
+
+    toggleOfferTermsAccepted = function () {
+      state.offerDraft = Object.assign({}, state.offerDraft || {}, {
+        termsAccepted: !(state.offerDraft && state.offerDraft.termsAccepted)
+      });
+      state.offerError = "";
+      renderOfferModal();
+    };
+
+    openOfferProfileSection = function (section) {
+      closeOffer();
+      showBuyView("profile");
+      setProfileArea("account", section || "settings_account");
+    };
+
     function renderOfferModal() {
       const modal = qs("#offerModal");
       const box = modal ? modal.querySelector(".offer-box") : null;
@@ -3908,10 +4144,31 @@
         return;
       }
       const defaults = getBuyerOfferDefaults();
-      const amountValue = state.offerDraft && state.offerDraft.offerAmount ? String(state.offerDraft.offerAmount) : "";
-      const minimumText = product.minimumOfferAmount !== null && product.minimumOfferAmount !== undefined
-        ? `${langText("Offerta minima", "Minimum offer")} ${formatCurrency(product.minimumOfferAmount)}`
-        : langText("Nessuna soglia minima impostata.", "No minimum threshold set.");
+      const amountValue = getOfferDraftAmountValue();
+      const amountValidation = getOfferAmountValidation(product, amountValue);
+      const paymentOptions = getOfferPaymentOptions();
+      const selectedPayment = getSelectedOfferPaymentOption();
+      const reviewState = getOfferReviewReadiness(product, state.offerDraft || {});
+      const shippingSnapshot = Object.assign({}, defaults.shippingSnapshot, state.offerDraft && state.offerDraft.shippingSnapshot ? state.offerDraft.shippingSnapshot : {});
+      const phoneSnapshot = normalizePhoneNumber((shippingSnapshot && shippingSnapshot.phone) || (state.currentUser && state.currentUser.phone) || "");
+      const termsAccepted = Boolean(state.offerDraft && state.offerDraft.termsAccepted);
+      const canSubmitReview = reviewState.ok && termsAccepted;
+      const stepLabel = state.offerStep === "authorization"
+        ? langText("Step 2 di 2: Rivedi offerta", "Step 2 of 2: Review offer")
+        : state.offerStep === "success"
+          ? langText("Offerta registrata", "Offer recorded")
+          : langText("Step 1 di 2: Fai un'offerta", "Step 1 of 2: Make an offer");
+      const productSummary = `
+        <div class="offer-product-strip">
+          <div class="offer-product-thumb">${getOfferProductMediaMarkup(product)}</div>
+          <div class="offer-product-strip__info">
+            <strong>${escapeHtml(product.brand)}</strong>
+            <div class="offer-product-strip__name">${escapeHtml(product.name)}</div>
+            <div class="offer-product-strip__meta">${escapeHtml(getProductMetaSummary(product) || getListingDisplaySize(product))}</div>
+          </div>
+          <div class="offer-product-strip__price">${escapeHtml(formatCurrency(product.price))}</div>
+        </div>
+      `;
       const statusBox = state.offerError
         ? `<div class="offer-error">${escapeHtml(state.offerError)}</div>`
         : state.offerStatus && state.offerStep === "success"
@@ -3920,51 +4177,149 @@
 
       if (state.offerStep === "success" && state.offerStatus) {
         box.innerHTML = `
-          <div class="offer-title">${langText("Offerta inviata", "Offer submitted")}</div>
-          <div class="offer-note">${escapeHtml(product.brand)} ${escapeHtml(product.name)}</div>
-          ${statusBox}
-          <div class="offer-stack">
-            <div class="offer-summary"><strong>${langText("Importo autorizzato", "Authorized amount")}</strong><span>${escapeHtml(formatCurrency(state.offerStatus.offerAmount))}</span></div>
-            <div class="offer-summary"><strong>${langText("Stato", "Status")}</strong><span>${escapeHtml(getOfferStatusLabel(state.offerStatus))}</span></div>
-            <div class="offer-summary"><strong>${langText("Autorizzazione", "Authorization")}</strong><span>${escapeHtml(getOfferAuthorizationLabel(state.offerStatus))}</span></div>
-            <div class="offer-summary"><strong>${langText("Scadenza", "Expiration")}</strong><span>${escapeHtml(formatDateTime(state.offerStatus.expiresAt))}</span></div>
+          <div class="offer-shell offer-shell--success">
+            <div class="offer-shell__header">
+              <div class="offer-step-indicator">${escapeHtml(stepLabel)}</div>
+              <button class="offer-shell__icon" onclick="closeOffer()" aria-label="${escapeHtml(langText("Chiudi", "Close"))}">×</button>
+            </div>
+            ${productSummary}
+            <div class="offer-success-screen">
+              <div class="offer-success-pill">${escapeHtml(langText("Offerta vincolante autorizzata", "Binding offer authorized"))}</div>
+              ${statusBox}
+              <div class="offer-success-amount">${escapeHtml(formatCurrency(state.offerStatus.offerAmount))}</div>
+              <div class="offer-success-copy">${escapeHtml(langText("Il seller ha 24 ore per accettare. Se accetta, catturiamo automaticamente il pagamento autorizzato. Se rifiuta o scade, l'autorizzazione viene rilasciata.", "The seller has 24 hours to accept. If accepted, we automatically capture the authorized payment. If declined or expired, the authorization is released."))}</div>
+              <div class="offer-stack offer-stack--success">
+                <div class="offer-summary"><strong>${langText("Stato", "Status")}</strong><span>${escapeHtml(getOfferStatusLabel(state.offerStatus))}</span></div>
+                <div class="offer-summary"><strong>${langText("Autorizzazione", "Authorization")}</strong><span>${escapeHtml(getOfferAuthorizationLabel(state.offerStatus))}</span></div>
+                <div class="offer-summary"><strong>${langText("Scadenza", "Expiration")}</strong><span>${escapeHtml(formatDateTime(state.offerStatus.expiresAt))}</span></div>
+              </div>
+              <div class="offer-stage-actions offer-stage-actions--success">
+                <button class="offer-send" onclick="closeOffer()">${langText("Chiudi", "Close")}</button>
+                <button class="offer-cancel" onclick="showBuyView('profile');setProfileArea('buyer','offers');closeOffer()">${langText("Vai alle mie offerte", "Go to my offers")}</button>
+              </div>
+            </div>
           </div>
-          <button class="offer-send" onclick="closeOffer()">${langText("Chiudi", "Close")}</button>
-          <button class="offer-cancel" onclick="showBuyView('profile');setBuyerSection('offers');closeOffer()">${langText("Vai alle mie offerte", "Go to my offers")}</button>
         `;
         return;
       }
 
       if (state.offerStep === "authorization") {
         box.innerHTML = `
-          <div class="offer-title">${langText("Conferma offerta vincolante", "Confirm binding offer")}</div>
-          <div class="offer-note">${escapeHtml(product.brand)} ${escapeHtml(product.name)} · ${escapeHtml(formatCurrency(state.offerDraft && state.offerDraft.offerAmount || 0))}</div>
-          ${statusBox}
-          <div class="offer-stack">
-            <div class="offer-summary"><strong>${langText("Metodo di pagamento", "Payment method")}</strong><span>${escapeHtml((state.offerDraft && state.offerDraft.paymentMethodSnapshot && state.offerDraft.paymentMethodSnapshot.label) || defaults.paymentMethodSnapshot.label)}</span></div>
-            <div class="offer-summary"><strong>${langText("Spedizione buyer", "Buyer shipping")}</strong><span>${escapeHtml(((state.offerDraft && state.offerDraft.shippingSnapshot && state.offerDraft.shippingSnapshot.address) || defaults.shippingSnapshot.address || langText("Da completare", "To be completed")) + " · " + ((state.offerDraft && state.offerDraft.shippingSnapshot && state.offerDraft.shippingSnapshot.city) || defaults.shippingSnapshot.city || ""))}</span></div>
-            <div class="offer-summary"><strong>${langText("Logica pagamento", "Payment logic")}</strong><span>${langText("Blocchiamo solo una pre-autorizzazione. Se il seller accetta entro 24h, catturiamo automaticamente; se rifiuta o scade, rilasciamo tutto.", "We only place a pre-authorization. If the seller accepts within 24h, we automatically capture it; if they decline or it expires, we release everything.")}</span></div>
+          <div class="offer-shell">
+            <div class="offer-shell__header">
+              <button class="offer-shell__icon offer-shell__icon--back" onclick="backOfferStep()" aria-label="${escapeHtml(langText("Indietro", "Back"))}">←</button>
+              <div class="offer-step-indicator">${escapeHtml(stepLabel)}</div>
+              <button class="offer-shell__icon" onclick="closeOffer()" aria-label="${escapeHtml(langText("Chiudi", "Close"))}">×</button>
+            </div>
+            <div class="offer-review-grid">
+              <div class="offer-review-main">
+                <section class="offer-review-section">
+                  <div class="offer-review-section__head">
+                    <h3>${langText("Indirizzo di spedizione", "Shipping address")}</h3>
+                    <button class="offer-inline-link" onclick="openOfferProfileSection('settings_account')">${langText("Aggiorna", "Update")}</button>
+                  </div>
+                  <div class="offer-detail-card">
+                    <div>
+                      <strong>${escapeHtml(shippingSnapshot.name || langText("Cliente IRIS", "IRIS customer"))}</strong>
+                      <span>${escapeHtml(shippingSnapshot.address || langText("Aggiungi via e numero civico", "Add street and number"))}</span>
+                      <span>${escapeHtml([shippingSnapshot.city || langText("Citta da completare", "City missing"), shippingSnapshot.country || ""].filter(Boolean).join(" · "))}</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="offer-review-section">
+                  <div class="offer-review-section__head">
+                    <h3>${langText("Telefono", "Phone")}</h3>
+                    <button class="offer-inline-link" onclick="openOfferProfileSection('settings_profile')">${langText("Aggiorna", "Update")}</button>
+                  </div>
+                  <div class="offer-detail-card">
+                    <div>
+                      <strong>${escapeHtml(phoneSnapshot || langText("Numero mancante", "Phone missing"))}</strong>
+                      <span>${escapeHtml(langText("Usato solo per aggiornamenti consegna e problemi spedizione.", "Used only for delivery updates and shipping issues."))}</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="offer-review-section">
+                  <div class="offer-review-section__head">
+                    <h3>${langText("Seleziona il metodo di autorizzazione", "Select your authorization method")}</h3>
+                    <button class="offer-inline-link" onclick="openOfferProfileSection('settings_payment')">${langText("Apri pagamenti", "Open payments")}</button>
+                  </div>
+                  <div class="offer-payment-grid">
+                    ${paymentOptions.map(function (option) {
+                      const isSelected = selectedPayment && selectedPayment.id === option.id;
+                      return `<button class="offer-payment-choice${isSelected ? " on" : ""}" onclick="selectOfferPaymentMethod('${escapeHtml(option.id)}')">
+                        <span class="offer-payment-choice__kind">${escapeHtml(option.kind)}</span>
+                        <strong>${escapeHtml(option.label)}</strong>
+                        <em>${escapeHtml(option.meta)}</em>
+                      </button>`;
+                    }).join("")}
+                  </div>
+                </section>
+              </div>
+
+              <aside class="offer-review-side">
+                <div class="offer-review-card offer-review-card--product">
+                  ${productSummary}
+                </div>
+                <div class="offer-review-card">
+                  <h3>${langText("Dettagli offerta", "Offer details")}</h3>
+                  <div class="offer-summary-row"><span>${langText("Prezzo offerta", "Offer price")}</span><strong>${escapeHtml(formatCurrency(reviewState.amount || 0))}</strong></div>
+                  <div class="offer-summary-row"><span>${langText("Spedizione", "Shipping")}</span><strong>${escapeHtml(formatCurrency(SHIPPING_COST))}</strong></div>
+                  <div class="offer-summary-row"><span>${langText("Tasse stimate", "Estimated tax")}</span><strong>${escapeHtml(formatCurrency(0))}</strong></div>
+                  <div class="offer-summary-row offer-summary-row--total"><span>${langText("Totale autorizzato", "Authorized total")}</span><strong>${escapeHtml(formatCurrency((reviewState.amount || 0) + SHIPPING_COST))}</strong></div>
+                </div>
+                <label class="offer-terms">
+                  <input type="checkbox" ${termsAccepted ? "checked" : ""} onchange="toggleOfferTermsAccepted()">
+                  <span>${langText("Accetto termini, buyer protection e il fatto che questa offerta sia vincolante per 24 ore. Se il seller accetta, il pagamento autorizzato viene catturato in automatico.", "I accept the terms, buyer protection, and that this offer is binding for 24 hours. If the seller accepts, the authorized payment is automatically captured.")}</span>
+                </label>
+                ${!reviewState.ok ? `<div class="offer-review-error">${escapeHtml(reviewState.error)}</div>` : ""}
+                ${statusBox}
+                <button class="offer-send" ${canSubmitReview ? "" : "disabled"} onclick="sendOffer()">${langText("Invia offerta vincolante", "Submit binding offer")}</button>
+                <div class="offer-protection">
+                  <strong>${langText("Protezione acquisto IRIS", "IRIS purchase protection")}</strong>
+                  <span>${escapeHtml(langText("L'offerta scade dopo 24 ore. Se il seller rifiuta o non risponde, l'autorizzazione viene rilasciata e non finalizziamo alcun addebito.", "The offer expires after 24 hours. If the seller declines or does not respond, the authorization is released and we do not finalize any charge."))}</span>
+                </div>
+              </aside>
+            </div>
           </div>
-          <button class="offer-send" onclick="sendOffer()">${langText("Conferma offerta vincolante", "Confirm binding offer")}</button>
-          <button class="offer-cancel" onclick="backOfferStep()">${langText("Indietro", "Back")}</button>
         `;
         return;
       }
 
       box.innerHTML = `
-        <div class="offer-title">${langText("Fai un'offerta", "Make an offer")}</div>
-        <div class="offer-note">${escapeHtml(product.brand)} ${escapeHtml(product.name)} · ${escapeHtml(formatCurrency(product.price))}</div>
-        <div class="offer-meta">${escapeHtml(minimumText)}</div>
-        ${statusBox}
-        <input class="offer-input${state.offerError ? " offer-input--error" : ""}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${escapeHtml(String(Math.round(Number(product.minimumOfferAmount || 0))))}" id="offerInput" value="${escapeHtml(amountValue)}" oninput="sanitizeOfferAmountInput(this)">
-        <div class="offer-helper">${langText("Si possono inserire solo numeri.", "Numbers only.")}</div>
-        <div class="offer-meta">${langText("Non stai pagando subito: stai confermando un'offerta vincolante. Se il seller accetta, il pagamento parte in automatico.", "You are not paying immediately: you are confirming a binding offer. If the seller accepts, payment is captured automatically.")}</div>
-        <button class="offer-send" onclick="sendOffer()">${langText("Continua", "Continue")}</button>
-        <button class="offer-cancel" onclick="closeOffer()">${t("cancel")}</button>
+        <div class="offer-shell">
+          <div class="offer-shell__header">
+            <div class="offer-shell__spacer"></div>
+            <div class="offer-step-indicator">${escapeHtml(stepLabel)}</div>
+            <button class="offer-shell__icon" onclick="closeOffer()" aria-label="${escapeHtml(langText("Chiudi", "Close"))}">×</button>
+          </div>
+          ${productSummary}
+          <div class="offer-step-panel offer-step-panel--center">
+            <div class="offer-amount-label">${langText("Prezzo offerta", "Offer price")}</div>
+            <div class="offer-amount-field${amountValidation.errorMessage ? " is-error" : ""}">
+              <span class="offer-amount-currency">${escapeHtml(getOfferCurrencySymbol())}</span>
+              <input class="offer-input${state.offerError ? " offer-input--error" : ""}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${escapeHtml(String(Math.round(Number(product.minimumOfferAmount || 0))))}" id="offerInput" value="${escapeHtml(amountValue)}" oninput="sanitizeOfferAmountInput(this)">
+            </div>
+            <div class="offer-inline-error${amountValidation.errorMessage ? " is-visible" : ""}" id="offerAmountError">${escapeHtml(amountValidation.errorMessage || "")}</div>
+            ${statusBox}
+            <div class="offer-inline-note">${escapeHtml(langText("Il seller ha 24 ore per accettare questa offerta.", "The seller has 24 hours to accept this offer."))}</div>
+            <div class="offer-inline-meta" id="offerMinimumCopy">${escapeHtml(amountValidation.minimumText)}</div>
+            <div class="offer-inline-meta">${escapeHtml(langText("Autorizzi solo il metodo di pagamento. Se il seller accetta, il pagamento viene completato in automatico.", "You only authorize the payment method. If the seller accepts, the payment is completed automatically."))}</div>
+            <div class="offer-stage-actions">
+              <button class="offer-send" id="offerContinueButton" ${amountValidation.canContinue ? "" : "disabled"} onclick="sendOffer()">${langText("Rivedi offerta", "Review offer")}</button>
+              <button class="offer-cancel" onclick="closeOffer()">${t("cancel")}</button>
+            </div>
+          </div>
+        </div>
       `;
       const input = qs("#offerInput");
       if (input) {
         input.focus();
+        const length = input.value.length;
+        if (typeof input.setSelectionRange === "function") {
+          input.setSelectionRange(length, length);
+        }
       }
     }
 
@@ -3988,7 +4343,8 @@
           listingId: product.id,
           offerAmount: product.minimumOfferAmount || "",
           shippingSnapshot: getBuyerOfferDefaults().shippingSnapshot,
-          paymentMethodSnapshot: getBuyerOfferDefaults().paymentMethodSnapshot
+          paymentMethodSnapshot: getBuyerOfferDefaults().paymentMethodSnapshot,
+          termsAccepted: false
         };
         state.offerStatus = null;
         state.offerError = "";
@@ -4026,14 +4382,25 @@
       }
 
       if (state.offerStep === "authorization") {
+        const readiness = getOfferReviewReadiness(product, state.offerDraft || {});
+        if (!readiness.ok) {
+          state.offerError = readiness.error;
+          renderOfferModal();
+          return;
+        }
+        if (!(state.offerDraft && state.offerDraft.termsAccepted)) {
+          state.offerError = langText("Devi accettare termini e protezione acquisto prima di inviare l'offerta.", "You need to accept the terms and purchase protection before submitting the offer.");
+          renderOfferModal();
+          return;
+        }
         const payload = Object.assign({}, state.offerDraft, {
           listingId: product.id,
           buyerEmail: normalizeEmail(state.currentUser && state.currentUser.email),
           buyerName: state.currentUser && state.currentUser.name,
           sellerEmail: normalizeEmail(product.seller && product.seller.email),
           sellerName: product.seller && product.seller.name,
-          shippingSnapshot: state.offerDraft.shippingSnapshot || getBuyerOfferDefaults().shippingSnapshot,
-          paymentMethodSnapshot: state.offerDraft.paymentMethodSnapshot || getBuyerOfferDefaults().paymentMethodSnapshot
+          shippingSnapshot: readiness.shipping,
+          paymentMethodSnapshot: readiness.payment
         });
         const result = offerApiCreate(payload);
         if (!result.ok) {
@@ -4093,6 +4460,10 @@
     window.openOffer = openOffer;
     window.closeOffer = closeOffer;
     window.backOfferStep = backOfferStep;
+    window.sanitizeOfferAmountInput = sanitizeOfferAmountInput;
+    window.selectOfferPaymentMethod = selectOfferPaymentMethod;
+    window.toggleOfferTermsAccepted = toggleOfferTermsAccepted;
+    window.openOfferProfileSection = openOfferProfileSection;
     window.renderOfferModal = renderOfferModal;
     window.sendOffer = sendOffer;
   }
@@ -6753,13 +7124,15 @@
             name: defaultAddress.name || buyer.name || "",
             address: defaultAddress.address || buyer.address || "",
             city: defaultAddress.city || buyer.city || "",
-            country: defaultAddress.country || buyer.country || getWorkspaceDefaultCountry()
+            country: defaultAddress.country || buyer.country || getWorkspaceDefaultCountry(),
+            phone: defaultAddress.phone || buyer.phone || ""
           }
         : {
             name: buyer.name || "",
             address: buyer.address || "",
             city: buyer.city || "",
-            country: buyer.country || getWorkspaceDefaultCountry()
+            country: buyer.country || getWorkspaceDefaultCountry(),
+            phone: buyer.phone || ""
           },
       paymentMethodSnapshot: defaultPaymentMethod
         ? {
@@ -6787,7 +7160,10 @@
       return { ok: false, error: langText("Inserisci un importo valido.", "Enter a valid amount.") };
     }
     if (listing.minimumOfferAmount !== null && amount < Number(listing.minimumOfferAmount)) {
-      return { ok: false, error: `${langText("Offerta minima", "Minimum offer")} ${formatCurrency(listing.minimumOfferAmount)}` };
+      return {
+        ok: false,
+        error: langText(`La tua offerta e' troppo bassa. Minimo ${formatCurrency(listing.minimumOfferAmount)}.`, `Your offer is too low. Minimum ${formatCurrency(listing.minimumOfferAmount)}.`)
+      };
     }
     if (!state.currentUser || normalizeEmail(payload.buyerEmail) !== normalizeEmail(state.currentUser.email)) {
       return { ok: false, error: langText("Sessione buyer non valida.", "Invalid buyer session.") };

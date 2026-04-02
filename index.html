@@ -450,13 +450,12 @@ a:active,button:focus-visible{outline:1px solid rgba(196,160,106,.35);outline-of
 .st-l em{font-style:italic;color:var(--purple)}
 
 /* Offer modal */
-.offer-modal{position:fixed;inset:0;background:rgba(6,3,16,.88);backdrop-filter:blur(20px);z-index:700;display:none;align-items:center;justify-content:center;padding:1rem}
+.offer-modal{position:fixed;inset:0;background:rgba(6,3,16,.88);backdrop-filter:blur(20px);z-index:700;display:none;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto}
 .offer-modal.open{display:flex}
-.offer-box{background:var(--bg-card);border:1px solid var(--border);padding:2.5rem;max-width:400px;width:100%;text-align:center}
-.offer-title{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--white);margin-bottom:1.5rem}
-.offer-input{width:100%;padding:.8rem;background:rgba(167,139,250,.05);border:1px solid rgba(167,139,250,.15);font-family:inherit;font-size:1.1rem;color:var(--white);text-align:center;outline:none;margin-bottom:1rem;border-radius:2px}
-.offer-send{width:100%;padding:.9rem;background:var(--purple);color:#fff;border:none;font-family:inherit;font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;border-radius:2px}
-.offer-cancel{background:none;border:none;color:rgba(255,255,255,.55);font-family:inherit;font-size:.7rem;cursor:pointer;margin-top:.8rem}
+.offer-box{background:transparent;border:none;padding:0;max-width:min(1120px,calc(100vw - 2rem));width:100%;text-align:left;margin:auto}
+.offer-title{margin:0}
+.offer-input{margin:0}
+.offer-send,.offer-cancel{margin:0}
 
 /* ═══════ DARK/LIGHT MODE ═══════ */
 body{transition:background .4s,color .4s}

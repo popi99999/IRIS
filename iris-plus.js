@@ -2745,72 +2745,145 @@
 
     const copy = getHomeCopy();
     const featured = getVisibleCatalogProducts().slice(0, 4);
+    const editorialProduct = featured.find(function (product) {
+      return Array.isArray(product.images) && product.images.length;
+    }) || featured[0] || null;
+    const proofText = (copy.buyPoints && copy.buyPoints[0]) || copy.featuredNote || copy.text;
+    const trustItems = [
+      {
+        glyph: "auth",
+        label: (copy.buyPoints && copy.buyPoints[0]) || langText("100% Autenticato", "100% Authenticated")
+      },
+      {
+        glyph: "shipping",
+        label: (copy.buyPoints && copy.buyPoints[1]) || langText("Spedizione protetta", "Protected shipping")
+      },
+      {
+        glyph: "payment",
+        label: (copy.buyPoints && copy.buyPoints[2]) || langText("Pagamento garantito", "Guaranteed payment")
+      }
+    ];
 
-    container.innerHTML =
-      "<div class=\"irisx-home-shell\"><section class=\"irisx-home-hero\">" +
-      "<video class=\"irisx-hero-video\" id=\"heroVid\" autoplay muted loop playsinline preload=\"auto\">" +
-      "<source src=\"https://videos.pexels.com/video-files/6649983/6649983-hd_2048_1080_25fps.mp4\" type=\"video/mp4\">" +
-      "<source src=\"https://videos.pexels.com/video-files/7677253/7677253-hd_1920_1080_25fps.mp4\" type=\"video/mp4\">" +
-      "</video>" +
-      "<div class=\"irisx-hero-lux\"><div class=\"irisx-hero-shine\"></div></div>" +
-      "<div class=\"irisx-hero-grain\"></div>" +
-      "<div class=\"irisx-ambient\">" +
-      "<span class=\"irisx-particle\" style=\"left:5%;top:30%;font-size:1.6rem;animation-duration:16s\">◆</span>" +
-      "<span class=\"irisx-particle\" style=\"left:90%;top:20%;font-size:.9rem;animation-duration:22s;animation-delay:-8s\">◇</span>" +
-      "<span class=\"irisx-particle\" style=\"left:60%;top:75%;font-size:2rem;animation-duration:14s;animation-delay:-5s\">✦</span>" +
-      "<span class=\"irisx-particle\" style=\"left:25%;top:80%;font-size:1.1rem;animation-duration:19s;animation-delay:-11s\">◆</span>" +
-      "</div>" +
-      "<div class=\"irisx-home-copy\"><div class=\"irisx-home-kicker\">" +
-      escapeHtml(copy.kicker) +
-      "</div><h1 class=\"irisx-home-title\">" +
-      escapeHtml(copy.title) +
-      "</h1><p class=\"irisx-home-text\">" +
-      escapeHtml(copy.text) +
-      "</p><div class=\"irisx-home-actions\"><button class=\"irisx-home-action primary\" onclick=\"showBuyView('shop')\">" +
-      escapeHtml(copy.primaryCta) +
-      "</button><button class=\"irisx-home-action secondary\" onclick=\"showPage('sell')\">" +
-      escapeHtml(copy.secondaryCta) +
-      "</button></div><div class=\"irisx-home-strip\">" +
-      copy.strip
-        .map(function (item) {
-          return "<div><strong>" + escapeHtml(item.value) + "</strong><span>" + escapeHtml(item.label) + "</span></div>";
-        })
-        .join("") +
-      "</div></div><aside class=\"irisx-home-side\"><div class=\"irisx-home-side-grid\">" +
-      copy.sideCards
-        .map(function (card) {
-          return "<div class=\"irisx-home-card\"><strong>" + escapeHtml(card.title) + "</strong><span>" + escapeHtml(card.text) + "</span><em>" + escapeHtml(card.tag) + "</em></div>";
-        })
-        .join("") +
-      "</div></aside></section><section class=\"irisx-home-story\"><div class=\"irisx-home-section-head\"><div><div class=\"irisx-home-section-kicker\">" +
-      escapeHtml(copy.sectionKicker || "IRIS edit") +
-      "</div><div class=\"irisx-home-section-title\">" +
-      escapeHtml(copy.featuredTitle) +
-      "</div></div><div class=\"irisx-home-section-note\">" +
-      escapeHtml(copy.featuredNote) +
-      "</div></div><div class=\"irisx-home-grid\">" +
-      featured.map(function (product) { return productCardMarkup(product); }).join("") +
-      "</div><div class=\"irisx-home-columns\"><article class=\"irisx-home-column\"><h3>" +
-      escapeHtml(copy.buyTitle) +
-      "</h3><p>" +
-      escapeHtml(copy.buyText) +
-      "</p><ul>" +
-      copy.buyPoints.map(function (point) { return "<li>" + escapeHtml(point) + "</li>"; }).join("") +
-      "</ul></article><article class=\"irisx-home-column\"><h3>" +
-      escapeHtml(copy.sellTitle) +
-      "</h3><p>" +
-      escapeHtml(copy.sellText) +
-      "</p><ul>" +
-      copy.sellPoints.map(function (point) { return "<li>" + escapeHtml(point) + "</li>"; }).join("") +
-      "</ul></article></div></section></div>";
+    container.innerHTML = `
+      <div class="irisx-home-shell">
+        <section class="irisx-home-hero irisx-reveal-section">
+          <video class="irisx-hero-video" id="heroVid" autoplay muted loop playsinline preload="auto">
+            <source src="https://videos.pexels.com/video-files/6649983/6649983-hd_2048_1080_25fps.mp4" type="video/mp4">
+            <source src="https://videos.pexels.com/video-files/7677253/7677253-hd_1920_1080_25fps.mp4" type="video/mp4">
+          </video>
+          <div class="irisx-hero-lux"><div class="irisx-hero-shine"></div></div>
+          <div class="irisx-home-copy">
+            <div class="irisx-home-kicker">${escapeHtml(copy.kicker || "IRIS")}</div>
+            <div class="irisx-home-rule"></div>
+            <h1 class="irisx-home-title">${escapeHtml(copy.title).replace(/\n/g, "<br>")}</h1>
+            <div class="irisx-home-proof">${escapeHtml(proofText)}</div>
+            <div class="irisx-home-actions">
+              <button class="irisx-home-action primary" onclick="showBuyView('shop')">${escapeHtml(copy.primaryCta)}</button>
+              <button class="irisx-home-action secondary" onclick="showPage('sell')">${escapeHtml(copy.secondaryCta)}</button>
+            </div>
+          </div>
+          <button class="irisx-home-scroll" aria-label="${escapeHtml(langText("Scorri", "Scroll"))}" onclick="document.getElementById('irisTrustBar') && document.getElementById('irisTrustBar').scrollIntoView({behavior:'smooth',block:'start'})"></button>
+        </section>
+
+        <section class="irisx-home-trust irisx-reveal-section" id="irisTrustBar">
+          ${trustItems.map(function (item) {
+            return `<div class="irisx-home-trust-item">
+              <span class="irisx-home-trust-glyph irisx-home-trust-glyph--${escapeHtml(item.glyph)}" aria-hidden="true"></span>
+              <strong>${escapeHtml(item.label)}</strong>
+            </div>`;
+          }).join("")}
+        </section>
+
+        <section class="irisx-home-manifesto irisx-reveal-section" id="irisManifesto">
+          <figure class="irisx-home-editorial">
+            ${editorialProduct && Array.isArray(editorialProduct.images) && editorialProduct.images[0]
+              ? `<img src="${editorialProduct.images[0]}" alt="${escapeHtml(editorialProduct.brand + " " + editorialProduct.name)}">`
+              : `<div class="irisx-home-editorial-fallback"><span>IRIS</span></div>`}
+          </figure>
+          <article class="irisx-home-manifesto-copy">
+            <div class="irisx-home-section-kicker">${escapeHtml(copy.sectionKicker || "IRIS edit")}</div>
+            <div class="irisx-home-section-title">${escapeHtml(copy.featuredTitle)}</div>
+            <p>${escapeHtml(copy.text)}</p>
+            <button class="irisx-home-link" onclick="openStatic('about')">${escapeHtml(langText("Scopri chi siamo", "Discover who we are"))}</button>
+          </article>
+        </section>
+
+        <section class="irisx-home-process irisx-reveal-section">
+          <div class="irisx-home-section-kicker">${escapeHtml(copy.sectionKicker || "IRIS edit")}</div>
+          <div class="irisx-home-section-title">${escapeHtml(langText("Come funziona", "How it works"))}</div>
+          <div class="irisx-home-process-grid">
+            <article class="irisx-home-process-card">
+              <h3>${escapeHtml(copy.buyTitle)}</h3>
+              <p>${escapeHtml(copy.buyText)}</p>
+              <ul>${(copy.buyPoints || []).map(function (point) { return `<li>${escapeHtml(point)}</li>`; }).join("")}</ul>
+              <button class="irisx-home-link" onclick="showBuyView('shop')">${escapeHtml(langText("Esplora", "Explore"))}</button>
+            </article>
+            <article class="irisx-home-process-card">
+              <h3>${escapeHtml(copy.sellTitle)}</h3>
+              <p>${escapeHtml(copy.sellText)}</p>
+              <ul>${(copy.sellPoints || []).map(function (point) { return `<li>${escapeHtml(point)}</li>`; }).join("")}</ul>
+              <button class="irisx-home-link" onclick="showPage('sell')">${escapeHtml(langText("Scopri il servizio", "Discover the service"))}</button>
+            </article>
+          </div>
+        </section>
+
+        <section class="irisx-home-featured irisx-reveal-section">
+          <div class="irisx-home-featured-head">
+            <div>
+              <div class="irisx-home-section-kicker">${escapeHtml(copy.sectionKicker || "IRIS edit")}</div>
+              <div class="irisx-home-section-title">${escapeHtml(copy.featuredTitle)}</div>
+            </div>
+            <div class="irisx-home-section-note">${escapeHtml(copy.featuredNote)}</div>
+          </div>
+          <div class="irisx-home-grid">
+            ${featured.map(function (product) { return productCardMarkup(product); }).join("")}
+          </div>
+        </section>
+      </div>`;
 
     // Fade in hero video when ready
     var hv = document.getElementById("heroVid");
     if (hv) {
       hv.load();
+      hv.playbackRate = 0.78;
       hv.addEventListener("canplay", function() { hv.classList.add("on"); }, { once: true });
       setTimeout(function() { if (hv && !hv.classList.contains("on")) hv.classList.add("on"); }, 2000);
     }
+    bindLuxuryReveal();
+  }
+
+  var luxuryRevealObserver = null;
+
+  function bindLuxuryReveal() {
+    const sections = qsa(".irisx-reveal-section");
+    if (!sections.length) {
+      return;
+    }
+
+    if (typeof IntersectionObserver === "undefined") {
+      sections.forEach(function (section) {
+        section.classList.add("is-visible");
+      });
+      return;
+    }
+
+    if (!luxuryRevealObserver) {
+      luxuryRevealObserver = new IntersectionObserver(function (entries, observer) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+    }
+
+    sections.forEach(function (section) {
+      if (section.classList.contains("is-visible")) {
+        return;
+      }
+      luxuryRevealObserver.observe(section);
+    });
   }
 
   function setActiveNav(view) {
@@ -2845,9 +2918,11 @@
 
     const intro = qs("#intro");
     const choice = qs("#choice");
+    const luxuryModeActive = document.body.classList.contains("irisx-luxury");
+    const introHiddenByCss = intro ? window.getComputedStyle(intro).display === "none" : false;
 
-    // Keep intro visible — it's the cinematic entry point
-    if (intro && intro.style.display === "none") {
+    // Keep intro visible only when the luxury redesign is not intentionally hiding it.
+    if (!luxuryModeActive && intro && intro.style.display === "none") {
       intro.style.display = "";
     }
     // Hide old choice screen — we go straight to buy after intro
@@ -2856,8 +2931,8 @@
       choice.classList.remove("show");
     }
 
-    // If intro exists and is visible, keep body locked until user clicks
-    if (intro && intro.style.display !== "none") {
+    // If intro exists and is visually active, keep body locked until user clicks.
+    if (intro && !luxuryModeActive && !introHiddenByCss && intro.style.display !== "none") {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -10064,14 +10139,18 @@
   };
 
   footerHTML = function () {
-    return `<footer class="site-footer">
-      <div class="footer-grid">
-        <div><div class="footer-brand">IRIS</div><div class="footer-desc">${langText("Marketplace prototype strutturato per buyer, seller e owner.", "Structured marketplace prototype for buyers, sellers, and owners.")}</div></div>
-        <div><div class="footer-col-title">${langText("Marketplace", "Marketplace")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();showBuyView('shop')">${langText("Shop", "Shop")}</a></li><li><a href="#" onclick="event.preventDefault();showPage('sell')">${langText("Sell", "Sell")}</a></li><li><a href="#" onclick="event.preventDefault();showBuyView('profile');setProfileArea('buyer','orders')">${langText("Buyer area", "Buyer area")}</a></li><li><a href="#" onclick="event.preventDefault();showBuyView('profile');setProfileArea('seller','dashboard')">${langText("Seller area", "Seller area")}</a></li></ul></div>
-        <div><div class="footer-col-title">${langText("Trust", "Trust")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();openStatic('trust-authentication')">${langText("Trust / Authentication", "Trust / Authentication")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('buyer-protection')">${langText("Buyer Protection", "Buyer Protection")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('seller-protection')">${langText("Seller Protection", "Seller Protection")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('community-guidelines')">${langText("Community Guidelines", "Community Guidelines")}</a></li></ul></div>
-        <div><div class="footer-col-title">${langText("Policies", "Policies")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();openStatic('shipping-policy')">${langText("Shipping Policy", "Shipping Policy")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('refund-policy')">${langText("Refund / Return Policy", "Refund / Return Policy")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('prohibited-items')">${langText("Prohibited Items", "Prohibited Items")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a></li></ul></div>
+    return `<footer class="site-footer irisx-reveal-section">
+      <div class="irisx-footer-minimal">
+        <div class="irisx-footer-brand">IRIS</div>
+        <div class="irisx-footer-links">
+          <a href="#" onclick="event.preventDefault();openStatic('about')">${langText("Chi siamo", "About")}</a>
+          <a href="#" onclick="event.preventDefault();openStatic('faq')">${t("footer_faq")}</a>
+          <a href="#" onclick="event.preventDefault();openStatic('terms')">${t("footer_terms")}</a>
+          <a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a>
+          <a href="#" onclick="event.preventDefault();openStatic('trust-authentication')">${langText("Autenticazione", "Authentication")}</a>
+        </div>
+        <div class="irisx-footer-copy">© 2026 IRIS S.r.l. · Milano, Italia</div>
       </div>
-      <div class="footer-bottom"><div class="footer-copy">© 2026 IRIS S.r.l.</div><div class="footer-legal"><a href="#" onclick="event.preventDefault();openStatic('terms')">${t("footer_terms")}</a><a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a><a href="#" onclick="event.preventDefault();openStatic('community-guidelines')">${langText("Community Guidelines", "Community Guidelines")}</a></div></div>
     </footer>`;
   };
 
@@ -10157,6 +10236,10 @@
     ensureOfferSellerControls();
     ensureChatUiEnhancements();
     syncFeeCopy();
+    const aboutButton = qs("#tnAboutBtn");
+    if (aboutButton) {
+      aboutButton.textContent = langText("Chi siamo", "About");
+    }
     if (typeof renderFooters === "function") {
       renderFooters();
     }
@@ -10167,6 +10250,7 @@
     renderProfilePanel();
     renderOpsView();
     renderChats();
+    bindLuxuryReveal();
   };
 
   window.setProfileArea = setProfileArea;

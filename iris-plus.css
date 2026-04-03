@@ -1748,6 +1748,28 @@ body.light-mode .irisx-home-strip span {
   gap: 0.65rem;
 }
 
+.irisx-relist-block {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 0.2rem;
+  padding: 1rem;
+  border: 1px solid rgba(196, 160, 106, 0.16);
+  background: linear-gradient(180deg, rgba(196, 160, 106, 0.06), rgba(255, 255, 255, 0.02));
+}
+
+.irisx-relist-block--compact {
+  margin-top: 0.8rem;
+}
+
+.irisx-inline-card--relist {
+  align-items: flex-start;
+}
+
+.irisx-inline-card--relist .irisx-actions {
+  min-width: 180px;
+  justify-content: flex-end;
+}
+
 .irisx-notification-item {
   width: 100%;
   padding: 0.85rem 0.95rem;
@@ -2087,6 +2109,11 @@ body.light-mode .irisx-nav-group-title,
 body.light-mode .irisx-chat-role-meta,
 body.light-mode .irisx-chat-scope-tab em {
   color: rgba(26, 10, 53, 0.42);
+}
+
+body.light-mode .irisx-relist-block {
+  background: linear-gradient(180deg, rgba(196, 160, 106, 0.08), rgba(124, 58, 237, 0.02));
+  border-color: rgba(196, 160, 106, 0.24);
 }
 
 body.light-mode .irisx-chat-scope-tab,

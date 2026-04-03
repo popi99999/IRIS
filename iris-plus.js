@@ -683,23 +683,216 @@
     return "👕";
   }
 
+  function getSellTaxonomyHaystack(listing) {
+    return normalizeSearchText([
+      listing && listing.cat,
+      listing && listing.subcategory,
+      listing && listing.productType,
+      listing && listing.name,
+      listing && listing.desc,
+      listing && listing.dims,
+      listing && listing.material
+    ].join(" "));
+  }
+
   function inferSellCategoryKey(listing) {
     if (listing && listing.categoryKey && SELL_TAXONOMY[listing.categoryKey]) {
       return listing.categoryKey;
     }
-    const haystack = normalizeSearchText([
-      listing && listing.cat,
-      listing && listing.subcategory,
-      listing && listing.name,
-      listing && listing.productType
-    ].join(" "));
+    const haystack = getSellTaxonomyHaystack(listing);
     if (/scarp|sneaker|loafer|boot|sandali|heels|mules/.test(haystack)) return "shoes";
     if (/bors|bag|pochette|clutch|tote|shopper|hobo|crossbody|tracolla/.test(haystack)) return "bags";
     if (/orolog|watch|strap/.test(haystack)) return "watches";
     if (/gioiell|ring|bracelet|necklace|orecchin|brooch/.test(haystack)) return "jewelry";
-    if (/cintur|wallet|portaf|occhial|sciarp|guanti|hat/.test(haystack)) return "accessories";
+    if (/cintur|belt|wallet|portaf|cardholder|portacarte|occhial|eyewear|sciarp|guanti|hat|cappell/.test(haystack)) return "accessories";
     if (/abbigliament|shirt|polo|felpa|maglier|giacca|cappott|pantalon|jeans|dress|gonna/.test(haystack)) return "clothing";
     return "";
+  }
+
+  function inferSellSubcategoryKey(listing, explicitCategoryKey) {
+    const categoryKey = explicitCategoryKey || inferSellCategoryKey(listing);
+    const category = getSellCategoryDefinition(categoryKey);
+    if (!category) {
+      return "";
+    }
+    if (listing && listing.subcategoryKey && category.subcategories[listing.subcategoryKey]) {
+      return listing.subcategoryKey;
+    }
+
+    const haystack = getSellTaxonomyHaystack(listing);
+    const matcherMap = {
+      clothing: [
+        ["polo", /(^|\s)polo(\s|$)/],
+        ["shirt", /camici|overshirt|shirt/],
+        ["sweatshirt", /felpa|hoodie|crewneck|zip[\s-]?up/],
+        ["knitwear", /maglier|knit|sweater|cardigan|dolcevita|turtleneck/],
+        ["jacket", /giacca|bomber|blazer|piumin|puffer|denim jacket|leather jacket/],
+        ["coat", /cappott|trench|overcoat/],
+        ["jeans", /jeans|denim pants|selvedge/],
+        ["pants", /pantalon|trouser|chino|cargo|jogger/],
+        ["shorts", /shorts|bermuda/],
+        ["dress", /vestit|dress|gown/],
+        ["skirt", /gonna|skirt/],
+        ["tshirt", /t[\s-]?shirt|tee|magliett/]
+      ],
+      shoes: [
+        ["sneakers", /sneaker|trainer/],
+        ["loafers", /loafer|mocassin/],
+        ["boots", /boot|stival/],
+        ["sandals", /sandal/],
+        ["heels", /heel|decollete|pump/],
+        ["flats", /flat|ballerin/],
+        ["mules", /mule/]
+      ],
+      bags: [
+        ["crossbody", /crossbody|tracolla/],
+        ["shoulder", /shoulder bag/],
+        ["tote", /tote/],
+        ["shopper", /shopper/],
+        ["pochette", /pochette/],
+        ["clutch", /clutch/],
+        ["top_handle", /top handle|top-handle/],
+        ["backpack", /backpack|zaino/],
+        ["hobo", /hobo/],
+        ["bucket", /bucket/],
+        ["mini", /mini bag|mini/],
+        ["travel", /travel|weekend|duffle/]
+      ],
+      accessories: [
+        ["belt", /belt|cintur/],
+        ["wallet", /wallet|portafog/],
+        ["cardholder", /cardholder|portacart/],
+        ["eyewear", /eyewear|occhial|sunglass/],
+        ["hat", /hat|cappell|beanie|cap\b/],
+        ["scarf", /scarf|sciarp/],
+        ["gloves", /glove|guant/]
+      ],
+      jewelry: [
+        ["ring", /ring|anell/],
+        ["bracelet", /bracelet|braccial/],
+        ["necklace", /necklace|collan/],
+        ["earrings", /earring|orecchin/],
+        ["brooch", /brooch|spilla/]
+      ],
+      watches: [
+        ["strap", /strap|cinturin/],
+        ["watch", /watch|orolog/]
+      ]
+    };
+
+    const matchers = matcherMap[categoryKey] || [];
+    const match = matchers.find(function (entry) {
+      return entry[1].test(haystack);
+    });
+    if (match) {
+      return match[0];
+    }
+    return Object.keys(category.subcategories)[0] || "";
+  }
+
+  function inferSellTypeKey(listing, explicitCategoryKey, explicitSubcategoryKey) {
+    const categoryKey = explicitCategoryKey || inferSellCategoryKey(listing);
+    const subcategoryKey = explicitSubcategoryKey || inferSellSubcategoryKey(listing, categoryKey);
+    const subcategory = getSellSubcategoryDefinition(categoryKey, subcategoryKey);
+    if (!subcategory || !Array.isArray(subcategory.types) || !subcategory.types.length) {
+      return "";
+    }
+    if (listing && listing.productTypeKey && subcategory.types.some(function (entry) { return entry.id === listing.productTypeKey; })) {
+      return listing.productTypeKey;
+    }
+
+    const haystack = getSellTaxonomyHaystack(listing);
+    const matcherMap = {
+      tshirt: [
+        ["long_sleeve", /long sleeve|manica lunga|ls tee/],
+        ["short_sleeve", /short sleeve|manica corta|tee/]
+      ],
+      polo: [
+        ["long_sleeve", /long sleeve|manica lunga/],
+        ["short_sleeve", /short sleeve|manica corta|polo/]
+      ],
+      shirt: [
+        ["overshirt", /overshirt/],
+        ["denim", /denim/],
+        ["classic", /camicia|shirt/]
+      ],
+      sweatshirt: [
+        ["hoodie", /hoodie|hooded|cappucc/],
+        ["zip", /zip[\s-]?up|zip hoodie|full zip/],
+        ["crewneck", /crewneck|girocollo|sweatshirt|felpa/]
+      ],
+      knitwear: [
+        ["cardigan", /cardigan/],
+        ["turtleneck", /turtleneck|dolcevita/],
+        ["crewneck", /crewneck|girocollo|sweater|knit/]
+      ],
+      jacket: [
+        ["bomber", /bomber/],
+        ["blazer", /blazer/],
+        ["denim", /denim/],
+        ["leather", /leather|pelle/],
+        ["puffer", /puffer|down|piumin/]
+      ],
+      coat: [
+        ["trench", /trench/],
+        ["double_breasted", /double breasted|doppiopetto/],
+        ["single_breasted", /single breasted|monopetto/]
+      ],
+      pants: [
+        ["cargo", /cargo/],
+        ["jogger", /jogger/],
+        ["chino", /chino/],
+        ["tailored", /tailored|sartorial/]
+      ],
+      jeans: [
+        ["skinny", /skinny/],
+        ["wide", /wide|baggy|loose/],
+        ["slim", /slim/],
+        ["straight", /straight/]
+      ],
+      shorts: [
+        ["sport", /sport|running|mesh/],
+        ["denim", /denim/],
+        ["tailored", /tailored|sartorial/]
+      ],
+      dress: [
+        ["maxi", /maxi/],
+        ["midi", /midi/],
+        ["mini", /mini/]
+      ],
+      skirt: [
+        ["maxi", /maxi/],
+        ["midi", /midi/],
+        ["mini", /mini/]
+      ]
+    };
+
+    const matchers = matcherMap[subcategoryKey] || [];
+    const match = matchers.find(function (entry) {
+      return entry[1].test(haystack);
+    });
+    if (match) {
+      return match[0];
+    }
+    return subcategory.types[0].id;
+  }
+
+  function getSellCategoryLabel(categoryKey) {
+    return getTaxonomyLabel(getSellCategoryDefinition(categoryKey));
+  }
+
+  function getSellSubcategoryLabel(categoryKey, subcategoryKey) {
+    return getTaxonomyLabel(getSellSubcategoryDefinition(categoryKey, subcategoryKey));
+  }
+
+  function getSellTypeLabel(categoryKey, subcategoryKey, typeKey) {
+    const subcategory = getSellSubcategoryDefinition(categoryKey, subcategoryKey);
+    if (!subcategory || !Array.isArray(subcategory.types)) {
+      return "";
+    }
+    return getTaxonomyLabel(subcategory.types.find(function (entry) {
+      return entry.id === typeKey;
+    }) || null);
   }
 
   function inferSellSizeSchema(listing) {
@@ -707,7 +900,7 @@
       return listing.sizeSchema;
     }
     const categoryKey = inferSellCategoryKey(listing);
-    const subcategoryKey = (listing && listing.subcategoryKey) || "";
+    const subcategoryKey = (listing && listing.subcategoryKey) || inferSellSubcategoryKey(listing, categoryKey);
     if (categoryKey === "shoes") return "eu_shoes";
     if (categoryKey === "bags" || categoryKey === "jewelry" || categoryKey === "watches") return "one_size";
     if (categoryKey === "accessories" && subcategoryKey === "belt") return "belt";
@@ -717,6 +910,24 @@
     if (normalizedSize === "one size" || normalizedSize === "taglia unica") return "one_size";
     if (/^(eu\s*)?\d+([.,]\d+)?$/.test(String((listing && listing.sz) || "").trim().toLowerCase())) return "eu_shoes";
     return "alpha";
+  }
+
+  function getSellFormSizeValue(listing, explicitCategoryKey, explicitSubcategoryKey) {
+    const categoryKey = explicitCategoryKey || inferSellCategoryKey(listing);
+    const subcategoryKey = explicitSubcategoryKey || inferSellSubcategoryKey(listing, categoryKey);
+    const sizeMode = (listing && listing.sizeSchema) || getResolvedSellSizeMode(categoryKey, subcategoryKey);
+    const rawSize = String((listing && listing.sz) || "").trim();
+    if (sizeMode === "one_size") {
+      return "one_size";
+    }
+    if (sizeMode === "eu_shoes") {
+      return rawSize.replace(/^EU\s+/i, "").trim();
+    }
+    if (sizeMode === "belt") {
+      const match = rawSize.match(/\d+([.,]\d+)?/);
+      return match ? match[0].replace(",", ".") : rawSize;
+    }
+    return rawSize;
   }
 
   function getListingDisplaySize(listing) {
@@ -1537,6 +1748,69 @@
     return langText(meta.it, meta.en);
   }
 
+  function isIrisNativeOrder(order) {
+    if (!order) {
+      return false;
+    }
+    return /^IRIS-/.test(String(order.number || "")) || /^RCPT-/.test(String(order.payment && order.payment.receiptNumber || ""));
+  }
+
+  function hasOpenOrderIssue(orderId) {
+    return state.supportTickets.some(function (ticket) {
+      return String(ticket.orderId || "") === String(orderId) && ticket.status !== "resolved";
+    });
+  }
+
+  function getRelistableOrderItems(order) {
+    if (!order || !state.currentUser) {
+      return [];
+    }
+    if (normalizeEmail(order.buyerEmail) !== normalizeEmail(state.currentUser.email)) {
+      return [];
+    }
+    if (!["delivered", "completed"].includes(order.status)) {
+      return [];
+    }
+    if (!isIrisNativeOrder(order)) {
+      return [];
+    }
+    if (["requested", "completed"].includes(String(order.payment && order.payment.refundStatus || "none"))) {
+      return [];
+    }
+    if (["refund_requested", "refunded", "cancelled"].includes(order.status)) {
+      return [];
+    }
+    if (hasOpenOrderIssue(order.id)) {
+      return [];
+    }
+    return (order.items || []).filter(function (item) {
+      return Boolean(item && item.productId);
+    });
+  }
+
+  function getRelistSourceListing(orderItem) {
+    if (!orderItem) {
+      return null;
+    }
+    return getListingById(orderItem.productId) ||
+      state.listings.find(function (candidate) { return String(candidate.id) === String(orderItem.productId); }) ||
+      prods.find(function (candidate) { return String(candidate.id) === String(orderItem.productId); }) ||
+      null;
+  }
+
+  function getExistingRelistListing(orderId, productId) {
+    if (!state.currentUser) {
+      return null;
+    }
+    return state.listings.find(function (listing) {
+      return normalizeEmail(listing.ownerEmail) === normalizeEmail(state.currentUser.email) &&
+        String(listing.relistSourceOrderId || "") === String(orderId) &&
+        String(listing.relistSourceProductId || "") === String(productId) &&
+        !["archived"].includes(String(listing.listingStatus || "")) &&
+        !["archived", "sold"].includes(String(listing.inventoryStatus || ""));
+    }) || null;
+  }
+
   function inferOrderTimeline(createdAt, status) {
     const sequence = [
       { type: "order_created", label: langText("Ordine creato", "Order created"), states: ["pending", "paid", "awaiting_shipment", "shipped", "in_authentication", "dispatched_to_buyer", "delivered", "completed", "cancelled", "refund_requested", "refunded"] },
@@ -1586,6 +1860,9 @@
     const price = Number((listing && listing.price) || 0);
     const originalPrice = getListingOriginalPrice(listing);
     const chips = getListingChips(listing);
+    const categoryKey = (listing && listing.categoryKey) || inferSellCategoryKey(listing);
+    const subcategoryKey = (listing && listing.subcategoryKey) || inferSellSubcategoryKey(listing, categoryKey);
+    const productTypeKey = (listing && listing.productTypeKey) || inferSellTypeKey(listing, categoryKey, subcategoryKey);
     const measurements = listing && listing.measurements && typeof listing.measurements === "object"
       ? listing.measurements
       : null;
@@ -1601,11 +1878,11 @@
         fit: (listing && listing.fit) || "—",
         dims: (listing && listing.dims) || "",
         material: (listing && listing.material) || "",
-        categoryKey: (listing && listing.categoryKey) || "",
-        subcategory: (listing && listing.subcategory) || "",
-        subcategoryKey: (listing && listing.subcategoryKey) || "",
-        productType: (listing && listing.productType) || "",
-        productTypeKey: (listing && listing.productTypeKey) || "",
+        categoryKey: categoryKey,
+        subcategory: (listing && listing.subcategory) || getSellSubcategoryLabel(categoryKey, subcategoryKey),
+        subcategoryKey: subcategoryKey,
+        productType: (listing && listing.productType) || getSellTypeLabel(categoryKey, subcategoryKey, productTypeKey),
+        productTypeKey: productTypeKey,
         sizeOriginal: (listing && listing.sizeOriginal) || "",
         sizeSchema: inferSellSizeSchema(listing),
         images: Array.isArray(listing && listing.images) ? listing.images.filter(Boolean) : [],
@@ -1615,7 +1892,14 @@
         soldAt: null,
         offersEnabled: true,
         minimumOfferAmount: null,
-        ownerEmail: normalizeEmail(((listing && listing.ownerEmail) || seller.email))
+        ownerEmail: normalizeEmail(((listing && listing.ownerEmail) || seller.email)),
+        relistSourceOrderId: null,
+        relistSourceProductId: null,
+        relistSourceListingId: null,
+        relistSourceReceiptNumber: "",
+        relistSourcePurchasedAt: null,
+        relistSourceCertified: false,
+        relistSourcePlatform: ""
       },
       listing,
       {
@@ -1628,11 +1912,12 @@
         minimumOfferAmount: listing.minimumOfferAmount === null || listing.minimumOfferAmount === undefined || listing.minimumOfferAmount === ""
           ? null
           : Number(listing.minimumOfferAmount),
-        categoryKey: (listing && listing.categoryKey) || inferSellCategoryKey(listing),
-        subcategory: (listing && listing.subcategory) || "",
-        subcategoryKey: (listing && listing.subcategoryKey) || "",
-        productType: (listing && listing.productType) || "",
-        productTypeKey: (listing && listing.productTypeKey) || "",
+        categoryKey: categoryKey,
+        cat: (listing && listing.cat) || getSellCategoryLabel(categoryKey),
+        subcategory: (listing && listing.subcategory) || getSellSubcategoryLabel(categoryKey, subcategoryKey),
+        subcategoryKey: subcategoryKey,
+        productType: (listing && listing.productType) || getSellTypeLabel(categoryKey, subcategoryKey, productTypeKey),
+        productTypeKey: productTypeKey,
         sizeOriginal: (listing && listing.sizeOriginal) || "",
         sizeSchema: inferSellSizeSchema(listing),
         verified: isListingVerified(listing),
@@ -7506,6 +7791,144 @@
     return actions;
   }
 
+  function renderOrderRelistBlock(order, variant) {
+    const relistableItems = getRelistableOrderItems(order);
+    if (!relistableItems.length) {
+      return "";
+    }
+    const compact = variant === "compact";
+    return `<div class="irisx-relist-block${compact ? " irisx-relist-block--compact" : ""}">
+      <div class="irisx-section-head">
+        <div>
+          <h3>${langText("Vuoi rimetterlo in vendita?", "Want to resell it?")}</h3>
+          <span>${langText("Questo articolo è stato acquistato su IRIS: puoi riaprire una bozza con foto, misure, storico e dati già pronti.", "This item was purchased on IRIS: reopen a draft with photos, measurements, history, and product data already filled in.")}</span>
+        </div>
+      </div>
+      <div class="irisx-card-stack">${relistableItems.map(function (item) {
+        const existingRelist = getExistingRelistListing(order.id, item.productId);
+        const sourceListing = getRelistSourceListing(item);
+        const certified = sourceListing ? isListingVerified(sourceListing) : true;
+        const helperText = existingRelist
+          ? langText("Hai già una rivendita aperta da questo acquisto. Puoi riaprire e modificarla.", "You already have an open resale from this purchase. You can reopen and edit it.")
+          : langText("Creiamo una bozza nuova con certificato IRIS, foto, misure e storico acquisto già agganciati.", "We create a fresh draft with IRIS certificate, photos, measurements, and purchase history already attached.");
+        const buttonLabel = existingRelist
+          ? (existingRelist.listingStatus === "draft" ? langText("Apri bozza", "Open draft") : langText("Apri rivendita", "Open resale"))
+          : langText("Rimetti in vendita", "Relist item");
+        return `<div class="irisx-inline-card irisx-inline-card--relist">
+          <div>
+            <strong>${escapeHtml(item.brand)} ${escapeHtml(item.name)}</strong>
+            <span>${escapeHtml(helperText)}</span>
+            <em>${escapeHtml(langText("Acquisto IRIS", "IRIS purchase"))} · ${escapeHtml(order.number)}${certified ? ` · ${escapeHtml(langText("Certificato IRIS disponibile", "IRIS certificate available"))}` : ""}</em>
+          </div>
+          <div class="irisx-actions irisx-actions--stack">
+            <span class="irisx-badge">${escapeHtml(certified ? langText("IRIS verified", "IRIS verified") : langText("IRIS archive", "IRIS archive"))}</span>
+            <button class="irisx-primary" onclick="startRelistFromOrderItem('${order.id}','${item.productId}')">${buttonLabel}</button>
+          </div>
+        </div>`;
+      }).join("")}</div>
+    </div>`;
+  }
+
+  function startRelistFromOrderItem(orderId, productId) {
+    requireAuth(function () {
+      const order = getOrderById(orderId);
+      if (!order) {
+        showToast(langText("Ordine non trovato.", "Order not found."));
+        return;
+      }
+      const relistableItems = getRelistableOrderItems(order);
+      const item = relistableItems.find(function (entry) {
+        return String(entry.productId) === String(productId);
+      });
+      if (!item) {
+        showToast(langText("Questo articolo non è disponibile per la rivendita assistita.", "This item is not available for assisted resale."));
+        return;
+      }
+
+      const existingRelist = getExistingRelistListing(order.id, item.productId);
+      if (existingRelist) {
+        closeOrderDetail();
+        loadDraftIntoSellForm(existingRelist.id);
+        showToast(langText("Bozza di rivendita già pronta. Aggiornala e ripubblicala.", "Resale draft already ready. Update it and republish."));
+        return;
+      }
+
+      const seller = getCurrentUserSeller();
+      if (!seller) {
+        showToast(langText("Accedi come seller per creare la rivendita.", "Sign in as a seller to create the resale."));
+        return;
+      }
+
+      const user = normalizeUserWorkspace(state.currentUser || {});
+      const sourceListing = getRelistSourceListing(item);
+      const sourceChips = sourceListing ? getListingChips(sourceListing) : [];
+      const relistSeed = Object.assign({}, sourceListing || {}, item || {});
+      const categoryKey = (sourceListing && sourceListing.categoryKey) || inferSellCategoryKey(relistSeed);
+      const subcategoryKey = (sourceListing && sourceListing.subcategoryKey) || inferSellSubcategoryKey(relistSeed, categoryKey);
+      const productTypeKey = (sourceListing && sourceListing.productTypeKey) || inferSellTypeKey(relistSeed, categoryKey, subcategoryKey);
+      const sizeSchema = (sourceListing && sourceListing.sizeSchema) || inferSellSizeSchema(Object.assign({}, relistSeed, {
+        categoryKey: categoryKey,
+        subcategoryKey: subcategoryKey
+      }));
+      const relistDraft = syncListingIntoCatalog({
+        id: createId("relist"),
+        ownerEmail: user.email,
+        seller: seller,
+        name: (sourceListing && sourceListing.name) || item.name || langText("Articolo IRIS", "IRIS item"),
+        brand: (sourceListing && sourceListing.brand) || item.brand || "IRIS",
+        cat: (sourceListing && sourceListing.cat) || getSellCategoryLabel(categoryKey) || langText("Da definire", "To define"),
+        categoryKey: categoryKey,
+        subcategory: (sourceListing && sourceListing.subcategory) || getSellSubcategoryLabel(categoryKey, subcategoryKey),
+        subcategoryKey: subcategoryKey,
+        productType: (sourceListing && sourceListing.productType) || getSellTypeLabel(categoryKey, subcategoryKey, productTypeKey),
+        productTypeKey: productTypeKey,
+        sz: (sourceListing && sourceListing.sz) || langText("Taglia unica", "One size"),
+        sizeOriginal: (sourceListing && sourceListing.sizeOriginal) || "",
+        sizeSchema: sizeSchema,
+        cond: (sourceListing && sourceListing.cond) || langText("Ottime condizioni", "Very good"),
+        fit: (sourceListing && sourceListing.fit) || "—",
+        dims: (sourceListing && sourceListing.dims) || "",
+        measurements: sourceListing && sourceListing.measurements ? sourceListing.measurements : {},
+        material: (sourceListing && sourceListing.material) || "",
+        color: (sourceListing && sourceListing.color) || "",
+        emoji: (sourceListing && sourceListing.emoji) || "👜",
+        desc: (sourceListing && sourceListing.desc) || "",
+        chips: Array.from(new Set(sourceChips.concat([langText("Archivio IRIS", "IRIS archive")]).filter(Boolean))),
+        images: Array.isArray(sourceListing && sourceListing.images) ? sourceListing.images.slice() : [],
+        price: Number(item.price || (sourceListing && sourceListing.price) || 0),
+        orig: Number((sourceListing && getListingOriginalPrice(sourceListing)) || item.price || 0),
+        compareAt: Number((sourceListing && getListingOriginalPrice(sourceListing)) || item.price || 0),
+        inventoryStatus: "draft",
+        listingStatus: "draft",
+        isUserListing: true,
+        orderId: null,
+        soldAt: null,
+        offersEnabled: Boolean(user.listingPreferences && user.listingPreferences.offersDefault),
+        minimumOfferAmount: null,
+        verified: sourceListing ? isListingVerified(sourceListing) : true,
+        authenticationStatus: sourceListing && sourceListing.authenticationStatus ? sourceListing.authenticationStatus : "verified",
+        relistSourceOrderId: order.id,
+        relistSourceProductId: item.productId,
+        relistSourceListingId: sourceListing ? sourceListing.id : null,
+        relistSourceReceiptNumber: order.payment && order.payment.receiptNumber ? order.payment.receiptNumber : "",
+        relistSourcePurchasedAt: order.createdAt,
+        relistSourceCertified: sourceListing ? isListingVerified(sourceListing) : true,
+        relistSourcePlatform: "IRIS"
+      });
+
+      recordAuditEvent("relist_draft_created", `${relistDraft.brand} ${relistDraft.name}`, {
+        orderId: order.id,
+        sourceProductId: item.productId,
+        ownerEmail: user.email
+      });
+
+      closeOrderDetail();
+      loadDraftIntoSellForm(relistDraft.id);
+      updateSellStatus(langText("Bozza di rivendita pronta. Aggiorna condizione, foto e prezzo prima di pubblicare.", "Resale draft ready. Update condition, photos, and price before publishing."));
+      showToast(langText("Rivendita precompilata creata da acquisto IRIS.", "Prefilled resale draft created from your IRIS purchase."));
+    });
+  }
+
   function renderOrderSummaryCard(order, scope) {
     if (!order) {
       return `<div class="irisx-empty-state">${langText("Nessun ordine selezionato.", "No order selected.")}</div>`;
@@ -7543,6 +7966,7 @@
         </div>
       </div>
       ${renderOrderTimeline(order)}
+      ${scope === "buyer" ? renderOrderRelistBlock(order, "full") : ""}
       ${actions ? `<div class="irisx-actions">${actions}</div>` : ""}
     </div>`;
   }
@@ -7981,21 +8405,25 @@
     }
     showPage("sell");
     const categoryKey = listing.categoryKey || inferSellCategoryKey(listing);
+    const subcategoryKey = listing.subcategoryKey || inferSellSubcategoryKey(listing, categoryKey);
+    const productTypeKey = listing.productTypeKey || inferSellTypeKey(listing, categoryKey, subcategoryKey);
+    const sizeValue = getSellFormSizeValue(listing, categoryKey, subcategoryKey);
+    const sizeMode = (listing && listing.sizeSchema) || getResolvedSellSizeMode(categoryKey, subcategoryKey);
     ensureSellTaxonomyUi({
       categoryKey: categoryKey,
-      subcategoryKey: listing.subcategoryKey || "",
-      typeKey: listing.productTypeKey || "",
-      size: listing.sizeSchema === "one_size" ? "one_size" : ((listing.sz || "").replace(/^EU\s+/i, "")),
+      subcategoryKey: subcategoryKey,
+      typeKey: productTypeKey,
+      size: sizeValue,
       measurements: listing.measurements || {}
     });
     const fieldMap = {
       "#sf-cat": categoryKey,
       "#sf-brand": listing.brand,
       "#sf-name": listing.name,
-      "#sf-subcat": listing.subcategoryKey || "",
-      "#sf-type": listing.productTypeKey || "",
-      "#sf-size": listing.sizeSchema === "one_size" ? "one_size" : ((listing.sz || "").replace(/^EU\s+/i, "")),
-      "#sf-size-original": listing.sizeOriginal,
+      "#sf-subcat": subcategoryKey,
+      "#sf-type": productTypeKey,
+      "#sf-size": sizeValue,
+      "#sf-size-original": listing.sizeOriginal || (sizeMode === "belt" && listing.sz && listing.sz !== sizeValue ? listing.sz : ""),
       "#sf-color": listing.color,
       "#sf-fit": listing.fit,
       "#sf-material": listing.material,
@@ -8772,6 +9200,7 @@
           <div>${escapeHtml(order.shipping.carrier || langText("Carrier pending", "Carrier pending"))}${order.shipping.trackingNumber ? " · " + escapeHtml(order.shipping.trackingNumber) : ""}</div>
         </div>
         ${renderOrderTimeline(order)}
+        ${renderOrderRelistBlock(order, "compact")}
         <div class="irisx-actions">${getOrderLifecycleActions(order, "buyer").join("")}</div>
       </div>`;
     }).join("")}</div>`;
@@ -9765,6 +10194,7 @@
   window.saveListingDraft = saveListingDraft;
   window.publishDraftListing = publishDraftListing;
   window.loadDraftIntoSellForm = loadDraftIntoSellForm;
+  window.startRelistFromOrderItem = startRelistFromOrderItem;
   window.toggleListingOffers = toggleListingOffers;
   window.archiveListing = archiveListing;
   window.generateShippingLabel = generateShippingLabel;

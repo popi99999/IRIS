@@ -1487,9 +1487,9 @@ body.light-mode .irisx-home-strip span {
 
 .irisx-workspace {
   display: grid;
-  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
-  gap: 1.4rem;
-  padding: 1.6rem 0 3rem;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 1.6rem;
+  padding: 1.8rem 0 3rem;
 }
 
 .irisx-workspace--admin {
@@ -1506,12 +1506,12 @@ body.light-mode .irisx-home-strip span {
 
 .irisx-workspace-sidebar,
 .irisx-workspace-main {
-  padding: 1.15rem;
+  padding: 1.2rem;
 }
 
 .irisx-workspace-main {
   display: grid;
-  gap: 1rem;
+  gap: 1.15rem;
 }
 
 .irisx-user-card {
@@ -1566,6 +1566,7 @@ body.light-mode .irisx-home-strip span {
 
 .irisx-area-nav {
   margin: 1rem 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .irisx-area-btn,
@@ -1584,9 +1585,9 @@ body.light-mode .irisx-home-strip span {
 .irisx-area-btn,
 .irisx-section-tab {
   text-align: left;
-  padding: 0.72rem 0.85rem;
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
+  padding: 0.85rem 0.95rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -1595,6 +1596,134 @@ body.light-mode .irisx-home-strip span {
   background: rgba(124, 58, 237, 0.16);
   color: rgba(255, 255, 255, 0.92);
   border-color: rgba(167, 139, 250, 0.24);
+}
+
+.irisx-sidebar-menu,
+.irisx-sidebar-group,
+.irisx-sidebar-group-list,
+.irisx-profile-quick-grid,
+.irisx-overview-shell,
+.irisx-overview-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.irisx-overview-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.irisx-sidebar-menu {
+  margin-bottom: 1rem;
+}
+
+.irisx-sidebar-group-title {
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.irisx-sidebar-link {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+  width: 100%;
+  padding: 0.95rem 1rem;
+  text-align: left;
+  border: 1px solid rgba(167, 139, 250, 0.1);
+  background: rgba(255, 255, 255, 0.025);
+  color: rgba(255, 255, 255, 0.74);
+  cursor: pointer;
+}
+
+.irisx-sidebar-link__main {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.irisx-sidebar-link strong {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 0.86rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.irisx-sidebar-link small {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.irisx-sidebar-link em {
+  min-width: 24px;
+  padding: 0.18rem 0.45rem;
+  border: 1px solid rgba(167, 139, 250, 0.16);
+  background: rgba(124, 58, 237, 0.16);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.62rem;
+  font-style: normal;
+  text-align: center;
+}
+
+.irisx-sidebar-link.on {
+  border-color: rgba(196, 160, 106, 0.28);
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.16), rgba(255, 255, 255, 0.03));
+  box-shadow: 0 0 24px rgba(123, 47, 190, 0.12);
+}
+
+.irisx-sidebar-link.on small {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.irisx-profile-quick-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.irisx-profile-quick-card {
+  position: relative;
+  display: grid;
+  gap: 0.45rem;
+  min-height: 132px;
+  padding: 1.15rem 1rem 1rem;
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
+  text-align: left;
+  cursor: pointer;
+}
+
+.irisx-profile-quick-card strong {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.irisx-profile-quick-card span {
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.irisx-profile-quick-card__badge {
+  justify-self: start;
+  min-width: 28px;
+  padding: 0.18rem 0.5rem !important;
+  border: 1px solid rgba(196, 160, 106, 0.22);
+  color: rgba(255, 255, 255, 0.88) !important;
+  background: rgba(196, 160, 106, 0.08);
+  font-size: 0.62rem !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.irisx-profile-quick-card:hover,
+.irisx-sidebar-link:hover {
+  border-color: rgba(196, 160, 106, 0.28);
+  box-shadow: 0 0 24px rgba(123, 47, 190, 0.12);
+}
+
+.irisx-summary-grid--sidebar {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .irisx-section-tabs {
@@ -2292,6 +2421,7 @@ body.light-mode .irisx-chat-role-badge {
   display: flex;
   flex-direction: column;
   min-height: min(780px, calc(100vh - 4rem));
+  background: linear-gradient(180deg, rgba(10, 10, 10, 0.98), rgba(16, 16, 16, 0.98));
 }
 
 .offer-shell--success {
@@ -2304,8 +2434,8 @@ body.light-mode .irisx-chat-role-badge {
   align-items: center;
   gap: 1rem;
   padding: 1.2rem 1.5rem;
-  border-bottom: 1px solid rgba(20, 9, 31, 0.08);
-  background: rgba(255, 255, 255, 0.78);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .offer-shell__spacer {
@@ -2315,9 +2445,9 @@ body.light-mode .irisx-chat-role-badge {
 
 .offer-step-indicator {
   text-align: center;
-  font-size: clamp(1.1rem, 2vw, 1.5rem);
-  font-weight: 600;
-  color: #12081d;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.94);
 }
 
 .offer-shell__icon {
@@ -2325,11 +2455,11 @@ body.light-mode .irisx-chat-role-badge {
   height: 48px;
   border: none;
   background: transparent;
-  color: #14091f;
-  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 1.8rem;
   line-height: 1;
   cursor: pointer;
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 .offer-shell__icon--back {
@@ -2341,16 +2471,16 @@ body.light-mode .irisx-chat-role-badge {
   grid-template-columns: 84px minmax(0, 1fr) auto;
   gap: 1rem;
   padding: 1.25rem 1.6rem;
-  border-bottom: 1px solid rgba(20, 9, 31, 0.08);
-  background: rgba(255, 255, 255, 0.62);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .offer-product-thumb {
   width: 84px;
   height: 84px;
-  border-radius: 18px;
+  border-radius: 0;
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(20, 9, 31, 0.06), rgba(20, 9, 31, 0.1));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.08));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2374,30 +2504,30 @@ body.light-mode .irisx-chat-role-badge {
 
 .offer-product-strip__info strong {
   font-size: 1.05rem;
-  color: #10071b;
+  color: rgba(255, 255, 255, 0.94);
 }
 
 .offer-product-strip__name {
   font-size: 0.98rem;
   line-height: 1.4;
-  color: rgba(20, 9, 31, 0.9);
+  color: rgba(255, 255, 255, 0.84);
 }
 
 .offer-product-strip__meta {
   font-size: 0.85rem;
-  color: rgba(20, 9, 31, 0.56);
+  color: rgba(255, 255, 255, 0.48);
 }
 
 .offer-product-strip__price {
   align-self: start;
-  font-size: 1.7rem;
-  font-weight: 600;
-  color: #10071b;
+  font-size: 1.45rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.94);
   white-space: nowrap;
 }
 
 .offer-step-panel {
-  padding: 2.5rem 2rem 2rem;
+  padding: 2.6rem 2rem 2rem;
 }
 
 .offer-step-panel--center {
@@ -2405,13 +2535,22 @@ body.light-mode .irisx-chat-role-badge {
   display: grid;
   align-content: center;
   justify-items: center;
+  text-align: center;
 }
 
 .offer-amount-label {
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: 1.18rem;
+  font-weight: 500;
   margin-bottom: 1.5rem;
-  color: #14091f;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.offer-panel-kicker {
+  margin-bottom: 0.9rem;
+  color: rgba(201, 169, 110, 0.74);
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
 .offer-amount-field {
@@ -2420,20 +2559,24 @@ body.light-mode .irisx-chat-role-badge {
   justify-content: center;
   gap: 0.15rem;
   padding: 0 0.35rem 0.5rem;
-  border-bottom: 2px solid rgba(20, 9, 31, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
   min-width: min(420px, 92vw);
 }
 
 .offer-amount-field.is-error {
-  border-bottom-color: rgba(191, 47, 47, 0.6);
+  border-bottom-color: rgba(191, 47, 47, 0.8);
 }
 
 .offer-amount-currency {
   font-size: clamp(2.75rem, 5vw, 4rem);
-  font-weight: 600;
-  color: #c72f2f;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
   line-height: 1;
   padding-bottom: 0.3rem;
+}
+
+.offer-amount-field.is-error .offer-amount-currency {
+  color: #d44949;
 }
 
 .offer-shell .offer-input {
@@ -2445,15 +2588,19 @@ body.light-mode .irisx-chat-role-badge {
   text-align: center;
   font-size: clamp(4rem, 9vw, 6rem);
   line-height: 1;
-  font-weight: 600;
-  color: #c72f2f;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
   outline: none;
   box-shadow: none;
   border-radius: 0;
 }
 
+.offer-amount-field.is-error .offer-input {
+  color: #d44949;
+}
+
 .offer-shell .offer-input::placeholder {
-  color: rgba(20, 9, 31, 0.18);
+  color: rgba(255, 255, 255, 0.18);
 }
 
 .offer-shell .offer-input::-webkit-outer-spin-button,
@@ -2470,7 +2617,7 @@ body.light-mode .irisx-chat-role-badge {
   border-top: 1.5px solid transparent;
   font-size: 0.98rem;
   text-align: center;
-  color: #c72f2f;
+  color: #d44949;
   visibility: hidden;
 }
 
@@ -2483,7 +2630,7 @@ body.light-mode .irisx-chat-role-badge {
 .offer-inline-meta {
   width: min(720px, 100%);
   text-align: center;
-  color: rgba(20, 9, 31, 0.58);
+  color: rgba(255, 255, 255, 0.58);
   line-height: 1.7;
 }
 
@@ -2497,8 +2644,22 @@ body.light-mode .irisx-chat-role-badge {
   font-size: 0.9rem;
 }
 
+.offer-minimum-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid rgba(201, 169, 110, 0.18);
+  background: rgba(201, 169, 110, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
 .offer-stage-actions {
-  width: min(420px, 100%);
+  width: min(460px, 100%);
   display: grid;
   gap: 0.8rem;
   margin-top: 2rem;
@@ -2522,10 +2683,28 @@ body.light-mode .irisx-chat-role-badge {
 
 .offer-review-section,
 .offer-review-card {
-  background: rgba(255, 255, 255, 0.84);
-  border: 1px solid rgba(20, 9, 31, 0.08);
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0;
   padding: 1.3rem;
+}
+
+.offer-review-intro {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.2rem 0 0.5rem;
+}
+
+.offer-review-intro h3 {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 1.24rem;
+  font-weight: 500;
+}
+
+.offer-review-intro p {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.92rem;
+  line-height: 1.7;
 }
 
 .offer-review-card--product {
@@ -2550,31 +2729,30 @@ body.light-mode .irisx-chat-role-badge {
 .offer-review-section h3,
 .offer-review-card h3 {
   font-size: 1rem;
-  font-weight: 600;
-  color: #10071b;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .offer-inline-link {
   border: none;
   background: transparent;
-  color: rgba(20, 9, 31, 0.55);
+  color: rgba(201, 169, 110, 0.72);
   font-size: 0.85rem;
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 0.2rem;
+  text-decoration: none;
 }
 
 .offer-detail-card {
-  border: 1px solid rgba(20, 9, 31, 0.08);
-  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0;
   padding: 1rem 1.1rem;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .offer-detail-card strong {
   display: block;
   font-size: 1.1rem;
-  color: #10071b;
+  color: rgba(255, 255, 255, 0.94);
 }
 
 .offer-detail-card span {
@@ -2582,7 +2760,7 @@ body.light-mode .irisx-chat-role-badge {
   margin-top: 0.35rem;
   font-size: 0.95rem;
   line-height: 1.6;
-  color: rgba(20, 9, 31, 0.62);
+  color: rgba(255, 255, 255, 0.54);
 }
 
 .offer-payment-grid {
@@ -2592,9 +2770,9 @@ body.light-mode .irisx-chat-role-badge {
 }
 
 .offer-payment-choice {
-  border: 1px solid rgba(20, 9, 31, 0.12);
-  background: #fff;
-  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0;
   padding: 1rem;
   text-align: left;
   cursor: pointer;
@@ -2606,23 +2784,23 @@ body.light-mode .irisx-chat-role-badge {
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(20, 9, 31, 0.45);
+  color: rgba(255, 255, 255, 0.44);
 }
 
 .offer-payment-choice strong {
   font-size: 1rem;
-  color: #10071b;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .offer-payment-choice em {
   font-style: normal;
   font-size: 0.83rem;
-  color: rgba(20, 9, 31, 0.52);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .offer-payment-choice.on {
-  border-color: rgba(20, 9, 31, 0.82);
-  box-shadow: 0 0 0 1px rgba(20, 9, 31, 0.82);
+  border-color: rgba(196, 160, 106, 0.32);
+  box-shadow: 0 0 0 1px rgba(196, 160, 106, 0.18);
 }
 
 .offer-review-side {
@@ -2636,12 +2814,12 @@ body.light-mode .irisx-chat-role-badge {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(20, 9, 31, 0.08);
-  color: rgba(20, 9, 31, 0.68);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.64);
 }
 
 .offer-summary-row strong {
-  color: #10071b;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .offer-summary-row--total {
@@ -2657,63 +2835,63 @@ body.light-mode .irisx-chat-role-badge {
   gap: 0.8rem;
   font-size: 0.92rem;
   line-height: 1.7;
-  color: rgba(20, 9, 31, 0.72);
+  color: rgba(255, 255, 255, 0.68);
 }
 
 .offer-terms input {
   width: 20px;
   height: 20px;
   margin-top: 0.15rem;
-  accent-color: #14091f;
+  accent-color: #c9a96e;
 }
 
 .offer-review-error {
   padding: 0.9rem 1rem;
-  border-radius: 14px;
+  border-radius: 0;
   background: rgba(199, 47, 47, 0.08);
-  border: 1px solid rgba(199, 47, 47, 0.16);
-  color: #b42323;
+  border: 1px solid rgba(199, 47, 47, 0.22);
+  color: #e06b6b;
   line-height: 1.6;
 }
 
 .offer-error,
 .offer-success {
   padding: 0.95rem 1rem;
-  border-radius: 14px;
+  border-radius: 0;
   font-size: 0.85rem;
   line-height: 1.6;
 }
 
 .offer-error {
   background: rgba(199, 47, 47, 0.08);
-  border: 1px solid rgba(199, 47, 47, 0.16);
-  color: #b42323;
+  border: 1px solid rgba(199, 47, 47, 0.2);
+  color: #e06b6b;
 }
 
 .offer-success {
   background: rgba(24, 144, 91, 0.08);
-  border: 1px solid rgba(24, 144, 91, 0.16);
-  color: #0f7c4d;
+  border: 1px solid rgba(24, 144, 91, 0.18);
+  color: #8fe0b6;
 }
 
 .offer-protection {
   display: grid;
   gap: 0.45rem;
   padding: 1rem 1.05rem;
-  border-radius: 16px;
-  background: rgba(20, 9, 31, 0.03);
-  border: 1px dashed rgba(20, 9, 31, 0.14);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.14);
 }
 
 .offer-protection strong {
   font-size: 1rem;
-  color: #10071b;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .offer-protection span {
   font-size: 0.9rem;
   line-height: 1.6;
-  color: rgba(20, 9, 31, 0.62);
+  color: rgba(255, 255, 255, 0.56);
 }
 
 .offer-success-screen {
@@ -2726,19 +2904,19 @@ body.light-mode .irisx-chat-role-badge {
 .offer-success-pill {
   justify-self: center;
   padding: 0.45rem 0.8rem;
-  border-radius: 999px;
+  border-radius: 0;
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  background: rgba(20, 9, 31, 0.08);
-  color: rgba(20, 9, 31, 0.74);
+  background: rgba(201, 169, 110, 0.08);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .offer-success-amount {
   font-size: clamp(2.5rem, 6vw, 4rem);
   line-height: 1;
-  font-weight: 600;
-  color: #10071b;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.94);
 }
 
 .offer-success-copy {
@@ -2746,7 +2924,7 @@ body.light-mode .irisx-chat-role-badge {
   margin: 0 auto;
   font-size: 1rem;
   line-height: 1.7;
-  color: rgba(20, 9, 31, 0.62);
+  color: rgba(255, 255, 255, 0.56);
 }
 
 .offer-stack {
@@ -2762,21 +2940,21 @@ body.light-mode .irisx-chat-role-badge {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.95rem 1rem;
-  border: 1px solid rgba(20, 9, 31, 0.08);
-  background: rgba(255, 255, 255, 0.84);
-  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0;
 }
 
 .offer-summary strong {
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(20, 9, 31, 0.46);
+  color: rgba(255, 255, 255, 0.42);
 }
 
 .offer-summary span {
   font-size: 0.9rem;
-  color: #10071b;
+  color: rgba(255, 255, 255, 0.9);
   text-align: right;
 }
 
@@ -2784,13 +2962,13 @@ body.light-mode .irisx-chat-role-badge {
 .offer-shell .offer-cancel {
   width: 100%;
   padding: 1.05rem 1.2rem;
-  border-radius: 14px;
-  border: 1px solid rgba(20, 9, 31, 0.12);
+  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   cursor: pointer;
 }
 
 .offer-shell .offer-send {
-  background: #10071b;
+  background: linear-gradient(135deg, rgba(45, 27, 78, 0.94), rgba(123, 47, 190, 0.64));
   color: #fff;
   font-size: 0.92rem;
   letter-spacing: 0.12em;
@@ -2798,16 +2976,16 @@ body.light-mode .irisx-chat-role-badge {
 }
 
 .offer-shell .offer-send[disabled] {
-  background: rgba(20, 9, 31, 0.08);
-  border-color: rgba(20, 9, 31, 0.08);
-  color: rgba(20, 9, 31, 0.38);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.34);
   cursor: not-allowed;
   box-shadow: none !important;
 }
 
 .offer-shell .offer-cancel {
   background: transparent;
-  color: rgba(20, 9, 31, 0.62);
+  color: rgba(255, 255, 255, 0.62);
   font-size: 0.92rem;
 }
 
@@ -2823,7 +3001,7 @@ body.light-mode .irisx-chat-role-badge {
 
 @media (max-width: 720px) {
   .offer-modal .offer-box {
-    border-radius: 20px;
+    border-radius: 0;
   }
 
   .offer-shell {
@@ -2868,6 +3046,19 @@ body.light-mode .irisx-chat-role-badge {
 
   .offer-stage-actions {
     width: 100%;
+  }
+
+  .irisx-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .irisx-area-nav,
+  .irisx-summary-grid--sidebar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .irisx-profile-quick-grid {
+    grid-template-columns: 1fr;
   }
 }
 

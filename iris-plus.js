@@ -1,6 +1,7 @@
 (function () {
   const STORAGE_KEYS = {
     users: "iris-users",
+    banRegistry: "iris-ban-registry",
     session: "iris-user-session",
     cart: "iris-cart",
     listings: "iris-local-listings",
@@ -414,6 +415,7 @@
   const SHIPPING_COST = PLATFORM_CONFIG.shippingCost;
   const state = {
     users: loadJson(STORAGE_KEYS.users, []),
+    banRegistry: loadJson(STORAGE_KEYS.banRegistry, { emails: [], phones: [], entries: [] }),
     currentUser: loadJson(STORAGE_KEYS.session, null),
     cart: loadJson(STORAGE_KEYS.cart, []),
     listings: loadJson(STORAGE_KEYS.listings, []),
@@ -1389,6 +1391,102 @@
     return normalized;
   }
 
+  function normalizeVerificationRecord(verification, user) {
+    const normalizedEmail = normalizeEmail(user && user.email);
+    const normalizedPhone = normalizePhoneNumber(user && user.phone);
+    const normalized = Object.assign(
+      {
+        emailVerified: false,
+        phoneVerified: false,
+        emailVerifiedAt: null,
+        phoneVerifiedAt: null,
+        verifiedEmail: "",
+        verifiedPhone: "",
+        pendingEmailCode: "",
+        pendingPhoneCode: "",
+        pendingEmailCodeExpiresAt: null,
+        pendingPhoneCodeExpiresAt: null,
+        lastEmailVerificationSentAt: null,
+        lastPhoneVerificationSentAt: null
+      },
+      verification || {}
+    );
+
+    if (normalized.verifiedEmail && normalized.verifiedEmail !== normalizedEmail) {
+      normalized.emailVerified = false;
+      normalized.emailVerifiedAt = null;
+      normalized.verifiedEmail = "";
+      normalized.pendingEmailCode = "";
+      normalized.pendingEmailCodeExpiresAt = null;
+    }
+
+    if (normalized.verifiedPhone && normalized.verifiedPhone !== normalizedPhone) {
+      normalized.phoneVerified = false;
+      normalized.phoneVerifiedAt = null;
+      normalized.verifiedPhone = "";
+      normalized.pendingPhoneCode = "";
+      normalized.pendingPhoneCodeExpiresAt = null;
+    }
+
+    if (normalized.emailVerified) {
+      normalized.verifiedEmail = normalizedEmail;
+    }
+
+    if (normalized.phoneVerified) {
+      normalized.verifiedPhone = normalizedPhone;
+    }
+
+    return normalized;
+  }
+
+  function normalizeBanRegistry(registry) {
+    const source = Object.assign(
+      {
+        emails: [],
+        phones: [],
+        entries: []
+      },
+      registry || {}
+    );
+    const entries = Array.isArray(source.entries) ? source.entries.map(function (entry) {
+      const type = entry && entry.type === "phone" ? "phone" : "email";
+      const rawValue = entry && entry.value;
+      const normalizedValue = type === "phone" ? normalizePhoneNumber(rawValue) : normalizeEmail(rawValue);
+      return Object.assign(
+        {
+          id: createId("ban"),
+          type: type,
+          value: normalizedValue,
+          reason: "",
+          active: true,
+          createdAt: Date.now()
+        },
+        entry || {},
+        {
+          type: type,
+          value: normalizedValue
+        }
+      );
+    }).filter(function (entry) {
+      return entry.value;
+    }) : [];
+
+    const emails = Array.from(new Set(
+      entries.filter(function (entry) { return entry.type === "email" && entry.active !== false; }).map(function (entry) { return entry.value; })
+        .concat((Array.isArray(source.emails) ? source.emails : []).map(normalizeEmail).filter(Boolean))
+    ));
+    const phones = Array.from(new Set(
+      entries.filter(function (entry) { return entry.type === "phone" && entry.active !== false; }).map(function (entry) { return entry.value; })
+        .concat((Array.isArray(source.phones) ? source.phones : []).map(normalizePhoneNumber).filter(Boolean))
+    ));
+
+    return {
+      emails: emails,
+      phones: phones,
+      entries: entries
+    };
+  }
+
   function normalizeNotificationSettings(settings) {
     return Object.assign(
       {
@@ -1530,6 +1628,7 @@
 
   function normalizeUserWorkspace(user) {
     const normalizedUser = Object.assign({}, user || {});
+    normalizedUser.email = normalizeEmail(normalizedUser.email || "");
     normalizedUser.phone = normalizePhoneNumber(normalizedUser.phone || "");
     normalizedUser.addresses = Array.isArray(normalizedUser.addresses) ? normalizedUser.addresses : [];
     normalizedUser.paymentMethods = Array.isArray(normalizedUser.paymentMethods) ? normalizedUser.paymentMethods : [];
@@ -1554,6 +1653,7 @@
 
     normalizedUser.payoutSettings = normalizePayoutSettings(normalizedUser.payoutSettings, normalizedUser);
     normalizedUser.security = normalizeSecurityRecord(normalizedUser.security);
+    normalizedUser.verification = normalizeVerificationRecord(normalizedUser.verification, normalizedUser);
     normalizedUser.notificationSettings = normalizeNotificationSettings(normalizedUser.notificationSettings);
     normalizedUser.shoppingPreferences = normalizeShoppingPreferences(normalizedUser.shoppingPreferences);
     normalizedUser.sizeProfile = normalizeSizeProfile(normalizedUser.sizeProfile);
@@ -1562,6 +1662,9 @@
     normalizedUser.vacationMode = normalizeVacationModeRecord(normalizedUser.vacationMode);
     normalizedUser.listingPreferences = normalizeListingPreferences(normalizedUser.listingPreferences);
     normalizedUser.privacySettings = normalizePrivacySettings(normalizedUser.privacySettings);
+    normalizedUser.accountStatus = normalizedUser.accountStatus || "active";
+    normalizedUser.banReason = normalizedUser.banReason || "";
+    normalizedUser.bannedAt = normalizedUser.bannedAt || null;
     return normalizedUser;
   }
 
@@ -2214,6 +2317,8 @@
       }));
     });
     saveJson(STORAGE_KEYS.users, state.users);
+    state.banRegistry = normalizeBanRegistry(state.banRegistry);
+    persistBanRegistry();
 
     state.listings = state.listings.map(normalizeListingRecord);
     state.orders = state.orders.map(normalizeOrderRecord);
@@ -2229,6 +2334,9 @@
         email: normalizeEmail(state.currentUser.email),
         role: state.currentUser.role || deriveUserRole(state.currentUser.email)
       }));
+      if (state.currentUser.accountStatus === "banned" || getBlockedIdentityMessage(state.currentUser.email, state.currentUser.phone)) {
+        state.currentUser = null;
+      }
       saveJson(STORAGE_KEYS.session, state.currentUser);
     }
 
@@ -3087,6 +3195,11 @@
     saveJson(STORAGE_KEYS.notifications, state.notifications);
   }
 
+  function persistBanRegistry() {
+    state.banRegistry = normalizeBanRegistry(state.banRegistry);
+    saveJson(STORAGE_KEYS.banRegistry, state.banRegistry);
+  }
+
   function persistEmailOutbox() {
     saveJson(STORAGE_KEYS.emailOutbox, state.emailOutbox);
   }
@@ -3097,6 +3210,73 @@
 
   function persistAuditLog() {
     saveJson(STORAGE_KEYS.auditLog, state.auditLog);
+  }
+
+  function getBanEntry(type, value) {
+    const normalizedValue = type === "phone" ? normalizePhoneNumber(value) : normalizeEmail(value);
+    if (!normalizedValue) {
+      return null;
+    }
+    return state.banRegistry.entries.find(function (entry) {
+      return entry.active !== false && entry.type === type && entry.value === normalizedValue;
+    }) || null;
+  }
+
+  function isEmailBanned(email) {
+    const normalized = normalizeEmail(email);
+    return Boolean(normalized && (state.banRegistry.emails.indexOf(normalized) >= 0 || getBanEntry("email", normalized)));
+  }
+
+  function isPhoneBanned(phone) {
+    const normalized = normalizePhoneNumber(phone);
+    return Boolean(normalized && (state.banRegistry.phones.indexOf(normalized) >= 0 || getBanEntry("phone", normalized)));
+  }
+
+  function getBlockedIdentityMessage(email, phone) {
+    const emailEntry = getBanEntry("email", email);
+    const phoneEntry = getBanEntry("phone", phone);
+    if (!emailEntry && !phoneEntry) {
+      return "";
+    }
+    const reason = (emailEntry && emailEntry.reason) || (phoneEntry && phoneEntry.reason) || "";
+    return langText(
+      "Questo account e' bloccato. Contatta " + PLATFORM_CONFIG.supportEmail + (reason ? " · Motivo: " + reason : "") + ".",
+      "This account is blocked. Contact " + PLATFORM_CONFIG.supportEmail + (reason ? " · Reason: " + reason : "") + "."
+    );
+  }
+
+  function generateVerificationCode() {
+    return String(Math.floor(100000 + Math.random() * 900000));
+  }
+
+  function banIdentityIdentifiers(email, phone, reason) {
+    const normalizedEmail = normalizeEmail(email);
+    const normalizedPhone = normalizePhoneNumber(phone);
+    const nextEntries = state.banRegistry.entries.slice();
+    if (normalizedEmail && !getBanEntry("email", normalizedEmail)) {
+      nextEntries.push({
+        id: createId("ban"),
+        type: "email",
+        value: normalizedEmail,
+        reason: reason || "",
+        active: true,
+        createdAt: Date.now()
+      });
+    }
+    if (normalizedPhone && !getBanEntry("phone", normalizedPhone)) {
+      nextEntries.push({
+        id: createId("ban"),
+        type: "phone",
+        value: normalizedPhone,
+        reason: reason || "",
+        active: true,
+        createdAt: Date.now()
+      });
+    }
+    state.banRegistry = normalizeBanRegistry({
+      entries: nextEntries
+    });
+    persistBanRegistry();
   }
 
   function persistReviews() {
@@ -3216,8 +3396,8 @@
       return {
         subject: langText("Verifica il tuo account IRIS", "Verify your IRIS account"),
         body: langText(
-          "Attiva il tuo account confermando l'indirizzo email " + payload.email + ".",
-          "Activate your account by confirming the email address " + payload.email + "."
+          "Attiva il tuo account confermando l'indirizzo email " + payload.email + (payload.code ? ". Codice demo: " + payload.code + "." : "."),
+          "Activate your account by confirming the email address " + payload.email + (payload.code ? ". Demo code: " + payload.code + "." : ".")
         )
       };
     }
@@ -4282,7 +4462,7 @@
         : null;
       const minimumText = minimum !== null
         ? `${langText("Offerta minima", "Minimum offer")} ${formatCurrency(minimum)}`
-        : langText("Nessuna soglia minima impostata dal seller.", "No minimum threshold set by the seller.");
+        : "";
       if (!sanitized) {
         return {
           rawValue: "",
@@ -4564,15 +4744,21 @@
       }
 
       if (state.offerStep === "authorization") {
-        box.innerHTML = `
-          <div class="offer-shell">
-            <div class="offer-shell__header">
-              <button class="offer-shell__icon offer-shell__icon--back" onclick="backOfferStep()" aria-label="${escapeHtml(langText("Indietro", "Back"))}">←</button>
-              <div class="offer-step-indicator">${escapeHtml(stepLabel)}</div>
-              <button class="offer-shell__icon" onclick="closeOffer()" aria-label="${escapeHtml(langText("Chiudi", "Close"))}">×</button>
-            </div>
+      box.innerHTML = `
+        <div class="offer-shell">
+          <div class="offer-shell__header">
+            <button class="offer-shell__icon offer-shell__icon--back" onclick="backOfferStep()" aria-label="${escapeHtml(langText("Indietro", "Back"))}">←</button>
+            <div class="offer-step-indicator">${escapeHtml(stepLabel)}</div>
+            <button class="offer-shell__icon" onclick="closeOffer()" aria-label="${escapeHtml(langText("Chiudi", "Close"))}">×</button>
+          </div>
             <div class="offer-review-grid">
               <div class="offer-review-main">
+                <section class="offer-review-intro">
+                  <div class="offer-panel-kicker">${langText("Conferma finale", "Final review")}</div>
+                  <h3>${langText("Controlla i dati prima di inviare", "Check the details before sending")}</h3>
+                  <p>${langText("L'offerta resta attiva per 24 ore. Se il seller accetta, completiamo automaticamente il pagamento autorizzato.", "The offer stays active for 24 hours. If the seller accepts, we automatically complete the authorized payment.")}</p>
+                </section>
+
                 <section class="offer-review-section">
                   <div class="offer-review-section__head">
                     <h3>${langText("Indirizzo di spedizione", "Shipping address")}</h3>
@@ -4631,7 +4817,7 @@
                 </div>
                 <label class="offer-terms">
                   <input type="checkbox" ${termsAccepted ? "checked" : ""} onchange="toggleOfferTermsAccepted()">
-                  <span>${langText("Accetto termini, buyer protection e il fatto che questa offerta sia vincolante per 24 ore. Se il seller accetta, il pagamento autorizzato viene catturato in automatico.", "I accept the terms, buyer protection, and that this offer is binding for 24 hours. If the seller accepts, the authorized payment is automatically captured.")}</span>
+                  <span>${langText("Accetto termini e buyer protection. Se il seller accetta, completiamo automaticamente il pagamento autorizzato.", "I accept the terms and buyer protection. If the seller accepts, we automatically complete the authorized payment.")}</span>
                 </label>
                 ${!reviewState.ok ? `<div class="offer-review-error">${escapeHtml(reviewState.error)}</div>` : ""}
                 ${statusBox}
@@ -4656,18 +4842,18 @@
           </div>
           ${productSummary}
           <div class="offer-step-panel offer-step-panel--center">
+            <div class="offer-panel-kicker">${langText("Offerta vincolante", "Binding offer")}</div>
             <div class="offer-amount-label">${langText("Prezzo offerta", "Offer price")}</div>
             <div class="offer-amount-field${amountValidation.errorMessage ? " is-error" : ""}">
               <span class="offer-amount-currency">${escapeHtml(getOfferCurrencySymbol())}</span>
               <input class="offer-input${state.offerError ? " offer-input--error" : ""}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${escapeHtml(String(Math.round(Number(product.minimumOfferAmount || 0))))}" id="offerInput" value="${escapeHtml(amountValue)}" oninput="sanitizeOfferAmountInput(this)">
             </div>
             <div class="offer-inline-error${amountValidation.errorMessage ? " is-visible" : ""}" id="offerAmountError">${escapeHtml(amountValidation.errorMessage || "")}</div>
+            ${amountValidation.minimumText ? `<div class="offer-minimum-chip">${escapeHtml(amountValidation.minimumText)}</div>` : ""}
             ${statusBox}
-            <div class="offer-inline-note">${escapeHtml(langText("Il seller ha 24 ore per accettare questa offerta.", "The seller has 24 hours to accept this offer."))}</div>
-            <div class="offer-inline-meta" id="offerMinimumCopy">${escapeHtml(amountValidation.minimumText)}</div>
-            <div class="offer-inline-meta">${escapeHtml(langText("Autorizzi solo il metodo di pagamento. Se il seller accetta, il pagamento viene completato in automatico.", "You only authorize the payment method. If the seller accepts, the payment is completed automatically."))}</div>
+            <div class="offer-inline-note">${escapeHtml(langText("Il seller ha 24 ore per rispondere. Blocchiamo solo l'importo autorizzato e lo finalizziamo solo se accetta.", "The seller has 24 hours to respond. We only hold the authorized amount and finalize it only if the seller accepts."))}</div>
             <div class="offer-stage-actions">
-              <button class="offer-send" id="offerContinueButton" ${amountValidation.canContinue ? "" : "disabled"} onclick="sendOffer()">${langText("Rivedi offerta", "Review offer")}</button>
+              <button class="offer-send" id="offerContinueButton" ${amountValidation.canContinue ? "" : "disabled"} onclick="sendOffer()">${langText("Continua", "Continue")}</button>
               <button class="offer-cancel" onclick="closeOffer()">${t("cancel")}</button>
             </div>
           </div>
@@ -5695,21 +5881,48 @@
       var provider = new firebase.auth.GoogleAuthProvider();
       firebase.auth().signInWithPopup(provider).then(function(result) {
         var u = result.user;
-        state.currentUser = normalizeUserWorkspace({
-          id: u.uid,
-          name: u.displayName || "Utente Google",
-          email: u.email,
-          role: deriveUserRole(u.email),
-          city: "",
-          country: "Italia",
-          bio: "",
-          memberSince: new Date().toISOString().slice(0, 10),
-          avatar: u.photoURL || ""
+        var normalizedEmail = normalizeEmail(u.email);
+        var existingGoogleUser = state.users.find(function (user) {
+          return normalizeEmail(user.email) === normalizedEmail;
         });
-        if (!state.users.some(function (user) { return normalizeEmail(user.email) === normalizeEmail(u.email); })) {
+        var blockedGoogleMessage = getBlockedIdentityMessage(normalizedEmail, existingGoogleUser && existingGoogleUser.phone);
+        if ((existingGoogleUser && existingGoogleUser.accountStatus === "banned") || blockedGoogleMessage) {
+          var blockedStatus = qs("#irisxAuthStatus");
+          if (blockedStatus) {
+            setInlineStatus(blockedStatus, blockedGoogleMessage || langText("Account bloccato.", "Account blocked."), true);
+          } else {
+            showToast(blockedGoogleMessage || langText("Account bloccato.", "Account blocked."));
+          }
+          return;
+        }
+        state.currentUser = normalizeUserWorkspace({
+          id: (existingGoogleUser && existingGoogleUser.id) || u.uid,
+          name: (existingGoogleUser && existingGoogleUser.name) || u.displayName || "Utente Google",
+          email: normalizedEmail,
+          phone: (existingGoogleUser && existingGoogleUser.phone) || "",
+          role: deriveUserRole(normalizedEmail),
+          city: (existingGoogleUser && existingGoogleUser.city) || "",
+          country: (existingGoogleUser && existingGoogleUser.country) || "Italia",
+          bio: (existingGoogleUser && existingGoogleUser.bio) || "",
+          memberSince: (existingGoogleUser && existingGoogleUser.memberSince) || new Date().toISOString().slice(0, 10),
+          avatar: u.photoURL || (existingGoogleUser && existingGoogleUser.avatar) || "",
+          verification: Object.assign({}, existingGoogleUser && existingGoogleUser.verification ? existingGoogleUser.verification : {}, {
+            emailVerified: true,
+            emailVerifiedAt: Date.now(),
+            verifiedEmail: normalizedEmail
+          })
+        });
+        if (!state.users.some(function (user) { return normalizeEmail(user.email) === normalizedEmail; })) {
           state.users.push(Object.assign({}, state.currentUser, { password: "" }));
           saveJson(STORAGE_KEYS.users, state.users);
           notifyNewUser(state.currentUser);
+        } else {
+          state.users = state.users.map(function (user) {
+            return normalizeEmail(user.email) === normalizedEmail
+              ? Object.assign({}, user, state.currentUser, { password: user.password || "" })
+              : user;
+          });
+          saveJson(STORAGE_KEYS.users, state.users);
         }
         saveJson(STORAGE_KEYS.session, state.currentUser);
         syncCurrentUserSeller();
@@ -5731,23 +5944,46 @@
     // Fallback: simulated Google sign-in for prototype
     var mockName = "Utente IRIS";
     var mockEmail = "utente@iris-marketplace.it";
+    var existing = state.users.find(function(u) { return normalizeEmail(u.email) === normalizeEmail(mockEmail); });
+    var blockedMessage = getBlockedIdentityMessage(mockEmail, existing && existing.phone);
+    if ((existing && existing.accountStatus === "banned") || blockedMessage) {
+      var blockedGoogleStatus = qs("#irisxAuthStatus");
+      if (blockedGoogleStatus) {
+        setInlineStatus(blockedGoogleStatus, blockedMessage || (curLang === "it" ? "Account bloccato." : "Account blocked."), true);
+      } else {
+        showToast(blockedMessage || (curLang === "it" ? "Account bloccato." : "Account blocked."));
+      }
+      return;
+    }
     state.currentUser = normalizeUserWorkspace({
-      id: "google_" + Date.now(),
-      name: mockName,
+      id: existing && existing.id ? existing.id : "google_" + Date.now(),
+      name: existing && existing.name ? existing.name : mockName,
       email: mockEmail,
+      phone: existing && existing.phone ? existing.phone : "",
       role: deriveUserRole(mockEmail),
-      city: "Milano",
-      country: "Italia",
-      bio: "",
-      memberSince: new Date().toISOString().slice(0, 10),
-      avatar: ""
+      city: existing && existing.city ? existing.city : "Milano",
+      country: existing && existing.country ? existing.country : "Italia",
+      bio: existing && existing.bio ? existing.bio : "",
+      memberSince: existing && existing.memberSince ? existing.memberSince : new Date().toISOString().slice(0, 10),
+      avatar: existing && existing.avatar ? existing.avatar : "",
+      verification: Object.assign({}, existing && existing.verification ? existing.verification : {}, {
+        emailVerified: true,
+        emailVerifiedAt: Date.now(),
+        verifiedEmail: normalizeEmail(mockEmail)
+      })
     });
     // Save new user
-    var existing = state.users.find(function(u) { return u.email === mockEmail; });
     if (!existing) {
       state.users.push(Object.assign({}, state.currentUser, { password: "" }));
       saveJson(STORAGE_KEYS.users, state.users);
       notifyNewUser(state.currentUser);
+    } else {
+      state.users = state.users.map(function (user) {
+        return normalizeEmail(user.email) === normalizeEmail(mockEmail)
+          ? Object.assign({}, user, state.currentUser, { password: user.password || "" })
+          : user;
+      });
+      saveJson(STORAGE_KEYS.users, state.users);
     }
     saveJson(STORAGE_KEYS.session, state.currentUser);
     syncCurrentUserSeller();
@@ -5761,6 +5997,107 @@
     showBuyView("home");
   }
   window.signInWithGoogle = signInWithGoogle;
+
+  function requestVerificationCode(kind) {
+    if (!state.currentUser) {
+      return;
+    }
+    const user = normalizeUserWorkspace(state.currentUser);
+    const isEmail = kind === "email";
+    const target = isEmail ? normalizeEmail(user.email) : normalizePhoneNumber(user.phone);
+    if (!target) {
+      showToast(isEmail
+        ? langText("Aggiungi prima un'email valida.", "Add a valid email first.")
+        : langText("Aggiungi prima un numero di telefono valido.", "Add a valid phone number first."));
+      return;
+    }
+    const blockedMessage = getBlockedIdentityMessage(isEmail ? target : user.email, isEmail ? user.phone : target);
+    if (user.accountStatus === "banned" || blockedMessage) {
+      showToast(blockedMessage || langText("Account bloccato.", "Account blocked."));
+      return;
+    }
+    const code = generateVerificationCode();
+    const expiresAt = Date.now() + (15 * 60 * 1000);
+    const nextVerification = Object.assign({}, user.verification, isEmail ? {
+      pendingEmailCode: code,
+      pendingEmailCodeExpiresAt: expiresAt,
+      lastEmailVerificationSentAt: Date.now()
+    } : {
+      pendingPhoneCode: code,
+      pendingPhoneCodeExpiresAt: expiresAt,
+      lastPhoneVerificationSentAt: Date.now()
+    });
+    syncCurrentUserWorkspace({ verification: nextVerification });
+    if (isEmail) {
+      enqueueEmail("verify-account", target, {
+        email: target,
+        code: code
+      });
+    } else {
+      createNotification({
+        audience: "user",
+        kind: "verification",
+        title: langText("Codice telefono generato", "Phone code generated"),
+        body: langText("Codice demo: ", "Demo code: ") + code,
+        recipientEmail: user.email
+      });
+    }
+    recordAuditEvent(isEmail ? "email_verification_requested" : "phone_verification_requested", target);
+    renderNotifications();
+    renderProfilePanel();
+    showToast((isEmail
+      ? langText("Codice email inviato", "Email code sent")
+      : langText("Codice telefono inviato", "Phone code sent")) + " · demo: " + code);
+  }
+
+  function confirmVerificationCode(kind) {
+    if (!state.currentUser) {
+      return;
+    }
+    const user = normalizeUserWorkspace(state.currentUser);
+    const isEmail = kind === "email";
+    const input = qs(isEmail ? "#securityEmailCode" : "#securityPhoneCode");
+    const rawCode = String(input && input.value ? input.value : "").replace(/\D/g, "").trim();
+    const expectedCode = isEmail ? user.verification.pendingEmailCode : user.verification.pendingPhoneCode;
+    const expiresAt = isEmail ? Number(user.verification.pendingEmailCodeExpiresAt || 0) : Number(user.verification.pendingPhoneCodeExpiresAt || 0);
+    if (!rawCode) {
+      showToast(isEmail
+        ? langText("Inserisci il codice email.", "Enter the email code.")
+        : langText("Inserisci il codice telefono.", "Enter the phone code."));
+      return;
+    }
+    if (!expectedCode || !expiresAt || Date.now() > expiresAt) {
+      showToast(isEmail
+        ? langText("Il codice email è scaduto. Richiedine uno nuovo.", "The email code expired. Request a new one.")
+        : langText("Il codice telefono è scaduto. Richiedine uno nuovo.", "The phone code expired. Request a new one."));
+      return;
+    }
+    if (rawCode !== String(expectedCode)) {
+      showToast(isEmail
+        ? langText("Codice email non corretto.", "Incorrect email code.")
+        : langText("Codice telefono non corretto.", "Incorrect phone code."));
+      return;
+    }
+    const nextVerification = Object.assign({}, user.verification, isEmail ? {
+      emailVerified: true,
+      emailVerifiedAt: Date.now(),
+      verifiedEmail: normalizeEmail(user.email),
+      pendingEmailCode: "",
+      pendingEmailCodeExpiresAt: null
+    } : {
+      phoneVerified: true,
+      phoneVerifiedAt: Date.now(),
+      verifiedPhone: normalizePhoneNumber(user.phone),
+      pendingPhoneCode: "",
+      pendingPhoneCodeExpiresAt: null
+    });
+    syncCurrentUserWorkspace({ verification: nextVerification });
+    recordAuditEvent(isEmail ? "email_verified" : "phone_verified", isEmail ? user.email : user.phone);
+    renderProfilePanel();
+    showToast(isEmail
+      ? langText("Email verificata.", "Email verified.")
+      : langText("Telefono verificato.", "Phone verified."));
+  }
 
   function submitAuth() {
     const isLogin = state.authMode === "login";
@@ -5785,6 +6122,12 @@
       return;
     }
 
+    const blockedIdentityMessage = getBlockedIdentityMessage(email, phone);
+    if (blockedIdentityMessage) {
+      setInlineStatus(status, blockedIdentityMessage, true);
+      return;
+    }
+
     if (isLogin) {
       const existingUser = state.users.find(function (user) {
         return user.email === email && user.password === password;
@@ -5798,6 +6141,11 @@
       const storedPhone = normalizePhoneNumber(existingUser.phone || "");
       if (storedPhone && storedPhone !== phone) {
         setInlineStatus(status, curLang === "it" ? "Numero di telefono non corretto." : "Incorrect phone number.", true);
+        return;
+      }
+
+      if (existingUser.accountStatus === "banned") {
+        setInlineStatus(status, getBlockedIdentityMessage(existingUser.email, existingUser.phone) || (curLang === "it" ? "Account bloccato." : "Account blocked."), true);
         return;
       }
 
@@ -5859,7 +6207,11 @@
       country: curLang === "it" ? "Italia" : "Italy",
       bio: "",
       memberSince: String(new Date().getFullYear()),
-      avatar: "👤"
+      avatar: "👤",
+      verification: {
+        emailVerified: false,
+        phoneVerified: false
+      }
     });
 
     state.users.push(newUser);
@@ -7080,8 +7432,12 @@
     if (!state.offerStep) state.offerStep = "amount";
     if (!state.editingListingId) state.editingListingId = null;
     if (!state.chatScope) state.chatScope = "buying";
+    state.banRegistry = normalizeBanRegistry(state.banRegistry);
     if (state.currentUser) {
       state.currentUser = normalizeUserWorkspace(state.currentUser);
+      if (state.currentUser.accountStatus === "banned" || getBlockedIdentityMessage(state.currentUser.email, state.currentUser.phone)) {
+        state.currentUser = null;
+      }
       saveJson(STORAGE_KEYS.session, state.currentUser);
     }
     chats.forEach(function (thread, index) {
@@ -7096,6 +7452,7 @@
     });
     state.listings = state.listings.map(normalizeListingRecord);
     state.offers = state.offers.map(normalizeOfferRecord);
+    persistBanRegistry();
     saveJson(STORAGE_KEYS.listings, state.listings);
     saveJson(STORAGE_KEYS.offers, state.offers);
     persistChats();
@@ -8243,13 +8600,28 @@
       showToast(langText("Inserisci un numero di telefono valido.", "Please enter a valid phone number."));
       return;
     }
+    const normalizedNextPhone = nextPhone ? normalizePhoneNumber(nextPhone) : state.currentUser.phone;
+    if (normalizedNextPhone && isPhoneBanned(normalizedNextPhone)) {
+      showToast(getBlockedIdentityMessage(state.currentUser.email, normalizedNextPhone) || langText("Numero di telefono bloccato.", "Blocked phone number."));
+      return;
+    }
+    const phoneChanged = normalizedNextPhone !== normalizePhoneNumber(state.currentUser.phone);
     syncCurrentUserWorkspace({
       name: nextName,
-      phone: nextPhone ? normalizePhoneNumber(nextPhone) : state.currentUser.phone,
+      phone: normalizedNextPhone,
       city: readProfileField("#profileCityInput") || state.currentUser.city,
       country: readProfileField("#profileCountryInput") || state.currentUser.country,
       bio: readProfileField("#profileBioInput"),
-      avatar: readProfileField("#profileAvatarInput") || state.currentUser.avatar
+      avatar: readProfileField("#profileAvatarInput") || state.currentUser.avatar,
+      verification: phoneChanged
+        ? Object.assign({}, state.currentUser.verification, {
+            phoneVerified: false,
+            phoneVerifiedAt: null,
+            verifiedPhone: "",
+            pendingPhoneCode: "",
+            pendingPhoneCodeExpiresAt: null
+          })
+        : state.currentUser.verification
     });
     render();
     renderProfilePanel();
@@ -8892,6 +9264,8 @@
           <div class="irisx-summary-grid">
             <div class="irisx-summary-card"><strong>${escapeHtml(user.email || "")}</strong><span>${langText("Account email", "Account email")}</span></div>
             <div class="irisx-summary-card"><strong>${escapeHtml(user.phone || langText("Da aggiungere", "Add phone"))}</strong><span>${langText("Telefono obbligatorio", "Required phone number")}</span></div>
+            <div class="irisx-summary-card"><strong>${user.verification.emailVerified ? langText("Verificata", "Verified") : langText("Da verificare", "Verify now")}</strong><span>${langText("Email status", "Email status")}</span></div>
+            <div class="irisx-summary-card"><strong>${user.verification.phoneVerified ? langText("Verificato", "Verified") : langText("Da verificare", "Verify now")}</strong><span>${langText("Phone status", "Phone status")}</span></div>
             <div class="irisx-summary-card"><strong>${escapeHtml(user.memberSince || "2026")}</strong><span>${langText("Member since", "Member since")}</span></div>
             <div class="irisx-summary-card"><strong>${user.addresses.length}</strong><span>${langText("Saved addresses", "Saved addresses")}</span></div>
             <div class="irisx-summary-card"><strong>${user.security.twoFactor ? "2FA on" : "2FA off"}</strong><span>${langText("Security baseline", "Security baseline")}</span></div>
@@ -8999,7 +9373,46 @@
 
     if (section === "settings_security") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Security", "Security")}</h3><span>${langText("2FA, login alerts e sessioni attive mock.", "2FA, login alerts, and mock active sessions.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Security", "Security")}</h3><span>${langText("2FA, login alerts, verifica contatti e blocco identità bannate.", "2FA, login alerts, contact verification, and banned identity blocking.")}</span></div>
+        <div class="irisx-card-stack">
+          <div class="irisx-inline-card">
+            <div>
+              <strong>${langText("Email verificata", "Verified email")}</strong>
+              <span>${user.verification.emailVerified
+                ? langText("L'indirizzo email è verificato e pronto per enforcement futuro.", "The email address is verified and ready for future enforcement.")
+                : langText("Verifica l'email per poter bloccare davvero account bannati e flussi sensibili.", "Verify the email to support real banned-account enforcement and sensitive flows.")}</span>
+            </div>
+            <span class="irisx-badge">${user.verification.emailVerified ? langText("Verificata", "Verified") : langText("Pending", "Pending")}</span>
+          </div>
+          <div class="irisx-inline-card">
+            <div>
+              <strong>${langText("Telefono verificato", "Verified phone")}</strong>
+              <span>${user.verification.phoneVerified
+                ? langText("Il telefono è verificato e può essere usato per blocchi futuri.", "The phone number is verified and can be used for future enforcement.")
+                : langText("Verifica il numero per impedire rientri con telefoni bannati.", "Verify the number to prevent re-entry with banned phones.")}</span>
+            </div>
+            <span class="irisx-badge">${user.verification.phoneVerified ? langText("Verificato", "Verified") : langText("Pending", "Pending")}</span>
+          </div>
+        </div>
+        <div class="irisx-form-grid">
+          <div class="irisx-account-row">
+            <div class="irisx-field">
+              <label for="securityEmailCode">${langText("Codice email", "Email code")}</label>
+              <input id="securityEmailCode" type="text" inputmode="numeric" placeholder="123456">
+            </div>
+            <div class="irisx-field">
+              <label for="securityPhoneCode">${langText("Codice telefono", "Phone code")}</label>
+              <input id="securityPhoneCode" type="text" inputmode="numeric" placeholder="123456">
+            </div>
+          </div>
+          <div class="irisx-actions">
+            <button class="irisx-secondary" onclick="requestVerificationCode('email')">${langText("Invia codice email", "Send email code")}</button>
+            <button class="irisx-secondary" onclick="confirmVerificationCode('email')">${langText("Verifica email", "Verify email")}</button>
+            <button class="irisx-secondary" onclick="requestVerificationCode('phone')">${langText("Invia codice telefono", "Send phone code")}</button>
+            <button class="irisx-secondary" onclick="confirmVerificationCode('phone')">${langText("Verifica telefono", "Verify phone")}</button>
+          </div>
+          <div class="irisx-note">${langText("Nel prototipo i codici sono demo e vengono mostrati via toast / outbox. Nel live andranno collegati a provider email e SMS.", "In the prototype codes are demo and shown via toast / outbox. Live mode will connect them to email and SMS providers.")}</div>
+        </div>
         <div class="irisx-toggle-grid">
           <label><input id="securityTwoFactor" type="checkbox" ${user.security.twoFactor ? "checked" : ""}> ${langText("Two-factor authentication", "Two-factor authentication")}</label>
           <label><input id="securityLoginAlerts" type="checkbox" ${user.security.loginAlerts ? "checked" : ""}> ${langText("Login alerts", "Login alerts")}</label>
@@ -9087,25 +9500,37 @@
       </div>`;
     }
 
-    return `<div class="irisx-summary-grid">
-      <div class="irisx-summary-card"><strong>${orders.length}</strong><span>${langText("Buyer orders", "Buyer orders")}</span></div>
-      <div class="irisx-summary-card"><strong>${sellerOrders.length}</strong><span>${langText("Seller workflow", "Seller workflow")}</span></div>
-      <div class="irisx-summary-card"><strong>${favoritesItems.length}</strong><span>${t("favorites_section")}</span></div>
-      <div class="irisx-summary-card"><strong>${unreadNotifications}</strong><span>${langText("Unread notifications", "Unread notifications")}</span></div>
-    </div>
-    <div class="irisx-card-stack">
-      <div class="irisx-inline-card"><div><strong>${langText("I miei ordini", "My orders")}</strong><span>${orders.length} ${langText("ordini buyer", "buyer orders")} · ${orders[0] ? getOrderStatusLabel(orders[0]) : langText("nessun ordine", "no orders")}</span></div><button class="irisx-primary" onclick="setProfileArea('buyer','orders')">${langText("Apri ordini", "Open orders")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Le mie vendite", "My sales")}</strong><span>${sellerOrders.length} ${langText("vendite", "sales")} · ${sellerOrders.filter(function (order) { return order.payment && order.payment.payoutStatus === 'ready'; }).length} ${langText("payout ready", "payout ready")}</span></div><button class="irisx-primary" onclick="setProfileArea('seller','history')">${langText("Apri vendite", "Open sales")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Metodi di pagamento", "Payment methods")}</strong><span>${user.paymentMethods.length} ${langText("metodi salvati", "saved methods")} · ${user.paymentMethods.find(function (method) { return method.isDefault; }) ? langText("default presente", "default set") : langText("default mancante", "default missing")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_payment')">${langText("Apri pagamenti", "Open payments")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Metodi per ricevere i soldi", "Payout methods")}</strong><span>${escapeHtml(user.payoutSettings.method || langText("Da configurare", "Set up needed"))} · ${escapeHtml(user.payoutSettings.status || "setup_required")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_payment')">${langText("Apri payout", "Open payout")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("I miei indirizzi", "My addresses")}</strong><span>${user.addresses.length} ${langText("indirizzi salvati", "saved addresses")} · ${user.addresses.find(function (address) { return address.isDefault; }) ? langText("default attivo", "default active") : langText("nessun default", "no default")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_account')">${langText("Apri indirizzi", "Open addresses")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Preferenze shopping", "Shopping preferences")}</strong><span>${escapeHtml(user.sizeProfile.tops || "-")} / ${escapeHtml(user.sizeProfile.shoes || "-")} · ${savedSearches.length} ${langText("ricerche salvate", "saved searches")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','shopping_sizes')">${langText("Apri preferenze", "Open preferences")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Chat prodotti che compro", "Products I'm buying")}</strong><span>${buyingThreads.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("buying")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="openMessagingInbox('buying')">${langText("Apri chat compro", "Open buying chat")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Chat prodotti che vendo", "Products I'm selling")}</strong><span>${sellingThreads.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("selling")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="openMessagingInbox('selling')">${langText("Apri chat vendo", "Open selling chat")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Shopping", "Shopping")}</strong><span>${savedSearches.length} ${langText("ricerche salvate", "saved searches")} · ${escapeHtml(user.sizeProfile.tops || "")}/${escapeHtml(user.sizeProfile.shoes || "")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','shopping_preferences')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Selling", "Selling")}</strong><span>${user.vacationMode.enabled ? langText("Vacation mode attivo", "Vacation mode enabled") : langText("Seller operativo", "Seller active")} · ${reviewsReceived.length} ${langText("reviews", "reviews")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','selling_preferences')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Settings", "Settings")}</strong><span>${user.paymentMethods.length} ${langText("metodi pagamento", "payment methods")} · ${user.addresses.length} ${langText("indirizzi", "addresses")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_account')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Help / Trust", "Help / Trust")}</strong><span>${tickets.length} ${langText("ticket aperti", "open tickets")} · ${langText("policy e supporto", "policies and support")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','help_help')">${langText("Apri", "Open")}</button></div>
+    return `<div class="irisx-overview-shell">
+      <div class="irisx-summary-grid">
+        <div class="irisx-summary-card"><strong>${orders.length}</strong><span>${langText("Buyer orders", "Buyer orders")}</span></div>
+        <div class="irisx-summary-card"><strong>${sellerOrders.length}</strong><span>${langText("Seller workflow", "Seller workflow")}</span></div>
+        <div class="irisx-summary-card"><strong>${favoritesItems.length}</strong><span>${t("favorites_section")}</span></div>
+        <div class="irisx-summary-card"><strong>${unreadNotifications}</strong><span>${langText("Unread notifications", "Unread notifications")}</span></div>
+      </div>
+      <div class="irisx-overview-grid">
+        <section class="irisx-workspace-card">
+          <div class="irisx-section-head">
+            <h3>${langText("Configurazione account", "Account setup")}</h3>
+            <span>${langText("Le cose essenziali da completare o controllare.", "The essential things to complete or check.")}</span>
+          </div>
+          <div class="irisx-card-stack">
+            <div class="irisx-inline-card"><div><strong>${langText("Metodo di pagamento", "Payment method")}</strong><span>${user.paymentMethods.find(function (method) { return method.isDefault; }) ? langText("Default gia impostato", "Default already set") : langText("Aggiungi una carta predefinita", "Add a default card")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_payment')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Indirizzo di spedizione", "Shipping address")}</strong><span>${user.addresses.find(function (address) { return address.isDefault; }) ? langText("Default attivo", "Default active") : langText("Imposta un indirizzo principale", "Set a main address")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_account')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Payout seller", "Seller payout")}</strong><span>${escapeHtml(user.payoutSettings.status || langText("Da configurare", "Setup needed"))}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_payment')">${langText("Apri", "Open")}</button></div>
+          </div>
+        </section>
+        <section class="irisx-workspace-card">
+          <div class="irisx-section-head">
+            <h3>${langText("Attività e comunicazione", "Activity and communication")}</h3>
+            <span>${langText("Le aree dove torni più spesso durante la giornata.", "The areas you return to most during the day.")}</span>
+          </div>
+          <div class="irisx-card-stack">
+            <div class="irisx-inline-card"><div><strong>${langText("Chat compro", "Buying chat")}</strong><span>${buyingThreads.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("buying")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="openMessagingInbox('buying')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Chat vendo", "Selling chat")}</strong><span>${sellingThreads.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("selling")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="openMessagingInbox('selling')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Supporto e notifiche", "Support and notifications")}</strong><span>${tickets.length} ${langText("ticket", "tickets")} · ${unreadNotifications} ${langText("notifiche non lette", "unread notifications")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_notifications')">${langText("Apri", "Open")}</button></div>
+          </div>
+        </section>
+      </div>
     </div>`;
   }
 
@@ -9262,6 +9687,193 @@
     ];
   }
 
+  function getProfileAreaCopy(area) {
+    if (area === "buyer") {
+      return {
+        kicker: langText("Buyer workspace", "Buyer workspace"),
+        title: langText("Acquisti", "Buying"),
+        subtitle: langText("Ordini, offerte, wishlist e chat degli articoli che stai comprando.", "Orders, offers, wishlist, and chats for the items you are buying.")
+      };
+    }
+    if (area === "seller") {
+      return {
+        kicker: langText("Seller workspace", "Seller workspace"),
+        title: langText("Vendite", "Selling"),
+        subtitle: langText("Annunci, offerte ricevute, chat e spedizioni in un unico spazio.", "Listings, received offers, chats, and shipping in one place.")
+      };
+    }
+    return {
+      kicker: langText("Account workspace", "Account workspace"),
+      title: langText("Account", "Account"),
+      subtitle: langText("Le impostazioni importanti in uno spazio più semplice e leggibile.", "Important settings in a simpler, easier-to-read space.")
+    };
+  }
+
+  function getProfileSidebarGroups(area, context) {
+    if (area === "account") {
+      const descriptions = {
+        overview: langText("Panoramica generale del tuo account.", "High-level view of your account."),
+        shopping_preferences: langText("Alert, preferenze catalogo e salvataggi.", "Alerts, catalog preferences, and saves."),
+        shopping_sizes: langText("Taglie e fit da ricordare.", "Sizes and fit to remember."),
+        shopping_saved_searches: langText("Ricerche e notifiche salvate.", "Saved searches and alerts."),
+        selling_preferences: langText("Regole seller e gestione offerte.", "Seller rules and offer handling."),
+        selling_location: langText("Da dove spedisci.", "Where you ship from."),
+        selling_vacation: langText("Pausa vendite e messaggio buyer.", "Selling pause and buyer message."),
+        selling_listing_preferences: langText("Default per nuovi annunci.", "Defaults for new listings."),
+        settings_account: langText("Email, telefono e indirizzi.", "Email, phone, and addresses."),
+        settings_profile: langText("Nome, bio e profilo pubblico.", "Name, bio, and public profile."),
+        settings_privacy: langText("Visibilità e richieste messaggi.", "Visibility and message requests."),
+        settings_payment: langText("Carte e payout.", "Cards and payouts."),
+        settings_notifications: langText("Badge e notifiche.", "Badges and notifications."),
+        settings_security: langText("2FA e sessioni attive.", "2FA and active sessions."),
+        help_help: langText("Centro assistenza rapido.", "Quick help center."),
+        help_listings: langText("Bozze, attivi e pubblicazione.", "Drafts, live listings, and publishing."),
+        help_verification: langText("Autenticazione e trust.", "Authentication and trust."),
+        help_shipping: langText("Tracking, resi e protezione.", "Tracking, returns, and protection."),
+        help_accessibility: langText("Supporto accessibilità.", "Accessibility support."),
+        help_contact: langText("Apri ticket e supporto.", "Open tickets and support."),
+        help_about: langText("Brand e community.", "Brand and community."),
+        help_sell: langText("Guida seller sintetica.", "Concise seller guide.")
+      };
+      return getAccountSectionGroups().map(function (group) {
+        return {
+          title: group.title,
+          entries: group.entries.map(function (entry) {
+            return {
+              id: entry.id,
+              label: entry.label,
+              description: descriptions[entry.id] || "",
+              badge: ""
+            };
+          })
+        };
+      });
+    }
+
+    if (area === "buyer") {
+      return [
+        {
+          title: langText("Compra", "Buying"),
+          entries: [
+            { id: "orders", label: langText("I miei ordini", "My orders"), description: langText("Stato, tracking e dettaglio ordine.", "Status, tracking, and order detail."), badge: String(context.orders.length) },
+            { id: "offers", label: langText("Offerte inviate", "Sent offers"), description: langText("Segui risposta seller e scadenza.", "Track seller response and expiry."), badge: String(getBuyerOffers().length) },
+            { id: "messages", label: langText("Chat compro", "Buying chat"), description: langText("Conversazioni sugli articoli che vuoi comprare.", "Conversations for the items you want to buy."), badge: String(getChatScopeUnreadCount("buying")) },
+            { id: "wishlist", label: langText("Preferiti", "Wishlist"), description: langText("Articoli salvati da tenere d'occhio.", "Saved items to keep an eye on."), badge: String(context.favoritesItems.length) }
+          ]
+        },
+        {
+          title: langText("Storico e supporto", "History and support"),
+          entries: [
+            { id: "history", label: langText("Storico acquisti", "Purchase history"), description: langText("Ordini consegnati, chiusi o rimborsati.", "Delivered, closed, or refunded orders."), badge: "" },
+            { id: "reviews", label: langText("Recensioni", "Reviews"), description: langText("Lascia feedback sugli ordini conclusi.", "Leave feedback on completed orders."), badge: "" },
+            { id: "support", label: langText("Supporto", "Support"), description: langText("Ticket, problemi e assistenza.", "Tickets, issues, and support."), badge: String(context.tickets.length) }
+          ]
+        }
+      ];
+    }
+
+    const publishedCount = context.listings.filter(function (listing) {
+      return listing.listingStatus === "published" && listing.inventoryStatus === "active";
+    }).length;
+    const payoutReadyCount = context.sellerOrders.filter(function (order) {
+      return order.payment && order.payment.payoutStatus === "ready";
+    }).length;
+    return [
+      {
+        title: langText("Gestione vendite", "Sales management"),
+        entries: [
+          { id: "dashboard", label: langText("Dashboard", "Dashboard"), description: langText("Panoramica seller immediata.", "Quick seller overview."), badge: "" },
+          { id: "active", label: langText("Annunci attivi", "Active listings"), description: langText("I prodotti live che stai vendendo.", "Live products you are selling."), badge: String(publishedCount) },
+          { id: "drafts", label: langText("Bozze", "Drafts"), description: langText("Annunci da completare o pubblicare.", "Listings to finish or publish."), badge: String(context.listings.filter(function (listing) { return listing.listingStatus === "draft" || listing.inventoryStatus === "draft"; }).length) },
+          { id: "offers", label: langText("Offerte ricevute", "Offers received"), description: langText("Rispondi alle offerte dei buyer.", "Respond to buyer offers."), badge: String(getSellerOffers().length) }
+        ]
+      },
+      {
+        title: langText("Operatività", "Operations"),
+        entries: [
+          { id: "messages", label: langText("Chat vendo", "Selling chat"), description: langText("Messaggi sugli articoli che stai vendendo.", "Messages for the items you are selling."), badge: String(getChatScopeUnreadCount("selling")) },
+          { id: "shipping", label: langText("Spedizioni", "Shipping"), description: langText("Ordini da preparare e spedire.", "Orders to prepare and ship."), badge: String(context.sellerOrders.filter(function (order) { return ["paid", "awaiting_shipment"].includes(order.status); }).length) },
+          { id: "payouts", label: langText("Payout", "Payouts"), description: langText("Pagamenti in uscita e stato saldo.", "Outgoing payouts and balance status."), badge: String(payoutReadyCount) },
+          { id: "history", label: langText("Storico vendite", "Sales history"), description: langText("Ordini seller conclusi.", "Completed seller orders."), badge: "" }
+        ]
+      }
+    ];
+  }
+
+  function getProfileSectionHandler(area, sectionId) {
+    if (area === "buyer") {
+      return `setBuyerSection('${sectionId}')`;
+    }
+    if (area === "seller") {
+      return `setSellerSection('${sectionId}')`;
+    }
+    return `setProfileArea('account','${sectionId}')`;
+  }
+
+  function renderProfileSidebarMenu(area, activeSection, context) {
+    const groups = getProfileSidebarGroups(area, context);
+    return `<div class="irisx-sidebar-menu">
+      ${groups.map(function (group) {
+        return `<div class="irisx-sidebar-group">
+          <div class="irisx-sidebar-group-title">${escapeHtml(group.title)}</div>
+          <div class="irisx-sidebar-group-list">
+            ${group.entries.map(function (entry) {
+              return `<button class="irisx-sidebar-link${entry.id === activeSection ? " on" : ""}" onclick="${getProfileSectionHandler(area, entry.id)}">
+                <span class="irisx-sidebar-link__main">
+                  <strong>${escapeHtml(entry.label)}</strong>
+                  <small>${escapeHtml(entry.description || "")}</small>
+                </span>
+                ${entry.badge ? `<em>${escapeHtml(entry.badge)}</em>` : ""}
+              </button>`;
+            }).join("")}
+          </div>
+        </div>`;
+      }).join("")}
+    </div>`;
+  }
+
+  function renderProfileQuickActions(area, context) {
+    let cards = [];
+    if (area === "buyer") {
+      cards = [
+        { title: langText("I miei ordini", "My orders"), copy: langText("Apri ordini e tracking.", "Open orders and tracking."), badge: String(context.orders.length), action: "setBuyerSection('orders')" },
+        { title: langText("Offerte inviate", "Sent offers"), copy: langText("Controlla risposta e scadenza.", "Check response and expiry."), badge: String(getBuyerOffers().length), action: "setBuyerSection('offers')" },
+        { title: langText("Chat compro", "Buying chat"), copy: langText("Messaggi sugli articoli che vuoi comprare.", "Messages about items you want to buy."), badge: String(getChatScopeUnreadCount('buying')), action: "setBuyerSection('messages')" },
+        { title: langText("Supporto", "Support"), copy: langText("Apri ticket o segnala un problema.", "Open a ticket or report an issue."), badge: String(context.tickets.length), action: "setBuyerSection('support')" }
+      ];
+    } else if (area === "seller") {
+      const activeListings = context.listings.filter(function (listing) {
+        return listing.listingStatus === "published" && listing.inventoryStatus === "active";
+      }).length;
+      const shippingQueue = context.sellerOrders.filter(function (order) {
+        return ["paid", "awaiting_shipment"].includes(order.status);
+      }).length;
+      cards = [
+        { title: langText("Annunci attivi", "Active listings"), copy: langText("Modifica o controlla i prodotti live.", "Edit or check live products."), badge: String(activeListings), action: "setSellerSection('active')" },
+        { title: langText("Offerte ricevute", "Offers received"), copy: langText("Accetta o rifiuta le offerte buyer.", "Accept or decline buyer offers."), badge: String(getSellerOffers().length), action: "setSellerSection('offers')" },
+        { title: langText("Chat vendo", "Selling chat"), copy: langText("Conversazioni sui prodotti che vendi.", "Conversations for items you sell."), badge: String(getChatScopeUnreadCount('selling')), action: "setSellerSection('messages')" },
+        { title: langText("Spedizioni", "Shipping"), copy: langText("Gestisci ordini da preparare.", "Manage orders to prepare."), badge: String(shippingQueue), action: "setSellerSection('shipping')" }
+      ];
+    } else {
+      cards = [
+        { title: langText("Ordini", "Orders"), copy: langText("Vai agli ordini buyer.", "Go to buyer orders."), badge: String(context.orders.length), action: "setProfileArea('buyer','orders')" },
+        { title: langText("Pagamenti", "Payments"), copy: langText("Carte, metodi salvati e payout.", "Cards, saved methods, and payouts."), badge: String(context.user.paymentMethods.length), action: "setProfileArea('account','settings_payment')" },
+        { title: langText("Indirizzi", "Addresses"), copy: langText("Aggiorna rubrica e default shipping.", "Update address book and default shipping."), badge: String(context.user.addresses.length), action: "setProfileArea('account','settings_account')" },
+        { title: langText("Supporto", "Support"), copy: langText("Apri ticket o controlla policy.", "Open tickets or check policies."), badge: String(context.tickets.length), action: "setProfileArea('account','help_contact')" }
+      ];
+    }
+
+    return `<div class="irisx-profile-quick-grid">
+      ${cards.map(function (card) {
+        return `<button class="irisx-profile-quick-card" onclick="${card.action}">
+          <span class="irisx-profile-quick-card__badge">${escapeHtml(card.badge)}</span>
+          <strong>${escapeHtml(card.title)}</strong>
+          <span>${escapeHtml(card.copy)}</span>
+        </button>`;
+      }).join("")}
+    </div>`;
+  }
+
   renderBuyerOrdersMarkup = function (orders) {
     if (!orders.length) {
       return `<div class="irisx-empty-state">${t("no_orders_yet")}</div>`;
@@ -9361,18 +9973,23 @@
     const orders = getBuyerOrders();
     const sellerOrders = getSellerOrdersForCurrentUser();
     const tickets = getTicketsForCurrentUser();
+    const buyingThreads = getChatThreadsForScope("buying");
+    const sellingThreads = getChatThreadsForScope("selling");
+    const unreadNotifications = getVisibleNotifications().filter(function (notification) { return notification.unread; }).length;
     const area = state.profileArea || "account";
     const activeSection = area === "account" ? resolveAccountSectionId(state.profileSection) : area === "buyer" ? state.buyerSection : state.sellerSection;
-    const sections = getWorkspaceSections(area);
-    const sectionNav = area === "account"
-      ? renderAccountSectionNav(activeSection)
-      : sections.map(function (entry) {
-          const active = entry.id === activeSection;
-          const handler = area === "buyer"
-            ? `setBuyerSection('${entry.id}')`
-            : `setSellerSection('${entry.id}')`;
-          return `<button class="irisx-section-tab${active ? " on" : ""}" onclick="${handler}">${escapeHtml(entry.label)}</button>`;
-        }).join("");
+    const areaCopy = getProfileAreaCopy(area);
+    const profileContext = {
+      user: user,
+      listings: listings,
+      orders: orders,
+      sellerOrders: sellerOrders,
+      tickets: tickets,
+      favoritesItems: favoritesItems,
+      buyingThreads: buyingThreads,
+      sellingThreads: sellingThreads,
+      unreadNotifications: unreadNotifications
+    };
 
     let content = "";
     if (area === "account") {
@@ -9382,6 +9999,27 @@
     } else {
       content = renderSellerArea(listings, sellerOrders);
     }
+
+    const summaryCards = area === "buyer"
+      ? [
+          { value: orders.length, label: langText("Ordini", "Orders") },
+          { value: getBuyerOffers().length, label: langText("Offerte", "Offers") },
+          { value: getChatScopeUnreadCount("buying"), label: langText("Chat non lette", "Unread chats") },
+          { value: favoritesItems.length, label: langText("Preferiti", "Wishlist") }
+        ]
+      : area === "seller"
+        ? [
+            { value: listings.filter(function (listing) { return listing.listingStatus === "published" && listing.inventoryStatus === "active"; }).length, label: langText("Attivi", "Live") },
+            { value: getSellerOffers().length, label: langText("Offerte", "Offers") },
+            { value: sellerOrders.filter(function (order) { return ["paid", "awaiting_shipment"].includes(order.status); }).length, label: langText("Spedizioni", "Shipping") },
+            { value: getChatScopeUnreadCount("selling"), label: langText("Chat non lette", "Unread chats") }
+          ]
+        : [
+            { value: orders.length, label: langText("Ordini", "Orders") },
+            { value: listings.length, label: langText("Annunci", "Listings") },
+            { value: favoritesItems.length, label: langText("Preferiti", "Wishlist") },
+            { value: unreadNotifications, label: langText("Notifiche", "Notifications") }
+          ];
 
     container.innerHTML = `<div class="irisx-workspace">
       <aside class="irisx-workspace-sidebar">
@@ -9399,23 +10037,23 @@
           <button class="irisx-area-btn${area === "seller" ? " on" : ""}" onclick="setProfileArea('seller','dashboard')">${langText("Seller area", "Seller area")}</button>
           ${isCurrentUserAdmin() ? `<button class="irisx-area-btn" onclick="showBuyView('ops')">${langText("Admin dashboard", "Admin dashboard")}</button>` : ""}
         </div>
-        <div class="irisx-card-stack">
-          <div class="irisx-inline-card"><div><strong>${orders.length}</strong><span>${langText("Buyer orders", "Buyer orders")}</span></div></div>
-          <div class="irisx-inline-card"><div><strong>${listings.length}</strong><span>${langText("Listings", "Listings")}</span></div></div>
-          <div class="irisx-inline-card"><div><strong>${favoritesItems.length}</strong><span>${langText("Wishlist", "Wishlist")}</span></div></div>
-          <div class="irisx-inline-card"><div><strong>${getVisibleNotifications().filter(function (notification) { return notification.unread; }).length}</strong><span>${langText("Unread notifications", "Unread notifications")}</span></div></div>
+        ${renderProfileSidebarMenu(area, activeSection, profileContext)}
+        <div class="irisx-summary-grid irisx-summary-grid--sidebar">
+          ${summaryCards.map(function (card) {
+            return `<div class="irisx-summary-card"><strong>${escapeHtml(String(card.value))}</strong><span>${escapeHtml(card.label)}</span></div>`;
+          }).join("")}
         </div>
         <div class="irisx-actions irisx-actions--stack"><button class="irisx-secondary" onclick="showPage('sell')">${t("sell")}</button><button class="irisx-danger" onclick="logout()">${t("logout")}</button></div>
       </aside>
       <div class="irisx-workspace-main">
         <div class="irisx-workspace-head">
           <div>
-            <div class="irisx-kicker">${area === "account" ? langText("Account workspace", "Account workspace") : area === "buyer" ? langText("Buyer workspace", "Buyer workspace") : langText("Seller workspace", "Seller workspace")}</div>
-            <div class="irisx-title">${area === "account" ? langText("Account", "Account") : area === "buyer" ? langText("Buyer", "Buyer") : langText("Seller", "Seller")}</div>
-            <div class="irisx-subtitle">${langText("Il tuo spazio personale IRIS.", "Your personal IRIS space.")}</div>
+            <div class="irisx-kicker">${escapeHtml(areaCopy.kicker)}</div>
+            <div class="irisx-title">${escapeHtml(areaCopy.title)}</div>
+            <div class="irisx-subtitle">${escapeHtml(areaCopy.subtitle)}</div>
           </div>
         </div>
-        <div class="irisx-section-tabs${area === "account" ? " irisx-section-tabs--account" : ""}">${sectionNav}</div>
+        ${renderProfileQuickActions(area, profileContext)}
         <div class="irisx-workspace-content">${content}</div>
       </div>
     </div>`;
@@ -9450,7 +10088,7 @@
     let content = "";
     if (state.adminSection === "users") {
       content = `<div class="irisx-card-stack">${getRecentAdminUsers().map(function (user) {
-        return `<div class="irisx-inline-card"><div><strong>${escapeHtml(user.name || user.email)}</strong><span>${escapeHtml(user.email)} · ${escapeHtml(user.role || "member")}</span></div><em>${escapeHtml(user.memberSince || "2026")}</em></div>`;
+        return `<div class="irisx-inline-card"><div><strong>${escapeHtml(user.name || user.email)}</strong><span>${escapeHtml(user.email)} · ${escapeHtml(user.role || "member")} · ${user.verification && user.verification.emailVerified ? langText("email verificata", "email verified") : langText("email pending", "email pending")} · ${user.verification && user.verification.phoneVerified ? langText("telefono verificato", "phone verified") : langText("telefono pending", "phone pending")}</span></div><em>${escapeHtml(user.accountStatus || "active")}</em></div>`;
       }).join("")}</div>`;
     } else if (state.adminSection === "listings") {
       content = `<div class="irisx-card-stack">${state.listings.map(function (listing) {
@@ -10267,6 +10905,9 @@
   window.saveNotificationPreferences = saveNotificationPreferences;
   window.saveSecurityWorkspace = saveSecurityWorkspace;
   window.saveAccountSettings = saveAccountSettings;
+  window.requestVerificationCode = requestVerificationCode;
+  window.confirmVerificationCode = confirmVerificationCode;
+  window.banIdentityIdentifiers = banIdentityIdentifiers;
   window.saveShoppingPreferences = saveShoppingPreferences;
   window.saveSizeProfile = saveSizeProfile;
   window.addSavedSearch = addSavedSearch;

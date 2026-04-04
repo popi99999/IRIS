@@ -3151,6 +3151,7 @@
     qsa("[data-nav-view]").forEach(function (button) {
       button.classList.toggle("active", button.getAttribute("data-nav-view") === view);
     });
+    syncProfileMenuState(undefined, view);
   }
 
   function getCurrentReturnView() {
@@ -3272,16 +3273,43 @@
     setNodeText("#tnMobileLangBtn", languageLabel);
   }
 
-  function closeProfileMenu() {
+  function syncProfileMenuState(forceOpen, activeViewOverride) {
     const menu = qs("#tnProfileMenu");
     const trigger = qs("#tnProfileTrigger");
+    const currentView = activeViewOverride || getCurrentReturnView();
+    const isProfileContext = ["profile", "fav", "chat"].includes(currentView);
+    const isOpen = typeof forceOpen === "boolean"
+      ? forceOpen
+      : !!(menu && menu.classList.contains("open"));
+
     if (menu) {
-      menu.classList.remove("open");
+      menu.classList.toggle("open", isOpen);
     }
+
     if (trigger) {
-      trigger.classList.remove("is-open");
-      trigger.setAttribute("aria-expanded", "false");
+      trigger.classList.toggle("is-open", isOpen);
+      trigger.classList.toggle("active", isOpen || isProfileContext);
+      trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      trigger.setAttribute("aria-pressed", isOpen || isProfileContext ? "true" : "false");
     }
+
+    [
+      ["#tnMenuProfileBtn", "profile"],
+      ["#tnMenuFavBtn", "fav"],
+      ["#tnMenuChatBtn", "chat"]
+    ].forEach(function (entry) {
+      const button = qs(entry[0]);
+      if (!button) {
+        return;
+      }
+      const isActive = entry[1] === currentView;
+      button.classList.toggle("active", isActive);
+      button.setAttribute("aria-current", isActive ? "page" : "false");
+    });
+  }
+
+  function closeProfileMenu() {
+    syncProfileMenuState(false);
   }
 
   function toggleProfileMenu() {
@@ -3291,10 +3319,7 @@
       return;
     }
     closeMobileNav();
-    const willOpen = !menu.classList.contains("open");
-    menu.classList.toggle("open", willOpen);
-    trigger.classList.toggle("is-open", willOpen);
-    trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    syncProfileMenuState(!menu.classList.contains("open"));
   }
 
   function closeMobileNav() {

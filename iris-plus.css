@@ -5093,3 +5093,151 @@ body.irisx-luxury .sell-side {
     display: block !important;
   }
 }
+
+/* ===== profile + hero stabilization pass ===== */
+body.irisx-luxury .topnav,
+body.irisx-luxury .tn-row,
+body.irisx-luxury .tn-links {
+  overflow: visible;
+}
+
+body.irisx-luxury .tn-avatar,
+body.irisx-luxury .tn-icon,
+body.irisx-luxury .tn-menu-link,
+body.irisx-luxury .irisx-area-btn,
+body.irisx-luxury .irisx-sidebar-link,
+body.irisx-luxury .irisx-profile-quick-card {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.irisx-luxury .tn-profile-menu {
+  z-index: 40;
+}
+
+body.irisx-luxury .tn-avatar.active,
+body.irisx-luxury .tn-avatar.is-open,
+body.irisx-luxury .tn-avatar:hover,
+body.irisx-luxury .tn-icon:hover {
+  background: rgba(196, 160, 106, 0.09) !important;
+  border-color: rgba(196, 160, 106, 0.38) !important;
+  color: #f1ddb0 !important;
+  box-shadow: 0 0 0 1px rgba(196, 160, 106, 0.1), 0 16px 28px rgba(196, 160, 106, 0.08) !important;
+}
+
+body.irisx-luxury .tn-menu-link {
+  position: relative;
+  min-height: 46px;
+}
+
+body.irisx-luxury .tn-menu-link.active,
+body.irisx-luxury .tn-menu-link:hover,
+body.irisx-luxury .tn-menu-link:focus-visible {
+  background: rgba(196, 160, 106, 0.08) !important;
+  border-color: rgba(196, 160, 106, 0.3) !important;
+  color: #f4e4bb !important;
+  box-shadow: 0 12px 28px rgba(196, 160, 106, 0.08) !important;
+}
+
+body.irisx-luxury .irisx-area-nav {
+  gap: 0.7rem;
+}
+
+body.irisx-luxury .irisx-area-btn,
+body.irisx-luxury .irisx-sidebar-link,
+body.irisx-luxury .irisx-profile-quick-card {
+  position: relative;
+  overflow: hidden;
+}
+
+body.irisx-luxury .irisx-area-btn::after,
+body.irisx-luxury .irisx-sidebar-link::after,
+body.irisx-luxury .irisx-profile-quick-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  pointer-events: none;
+  transition: border-color 0.22s ease, opacity 0.22s ease;
+  opacity: 0;
+}
+
+body.irisx-luxury .irisx-area-btn:hover::after,
+body.irisx-luxury .irisx-area-btn.on::after,
+body.irisx-luxury .irisx-sidebar-link:hover::after,
+body.irisx-luxury .irisx-sidebar-link.on::after,
+body.irisx-luxury .irisx-profile-quick-card:hover::after,
+body.irisx-luxury .irisx-profile-quick-card:focus-visible::after {
+  border-color: rgba(196, 160, 106, 0.36);
+  opacity: 1;
+}
+
+body.irisx-luxury .irisx-area-btn.on,
+body.irisx-luxury .irisx-sidebar-link.on,
+body.irisx-luxury .irisx-profile-quick-card:hover,
+body.irisx-luxury .irisx-profile-quick-card:focus-visible {
+  background-color: rgba(196, 160, 106, 0.09) !important;
+  background: linear-gradient(180deg, rgba(196, 160, 106, 0.11), rgba(255, 255, 255, 0.03)) !important;
+  border-color: rgba(196, 160, 106, 0.34) !important;
+  color: #f4e4bb !important;
+  box-shadow: 0 0 0 1px rgba(196, 160, 106, 0.08), 0 16px 30px rgba(196, 160, 106, 0.08) !important;
+  transform: translateY(-1px);
+}
+
+body.irisx-luxury .irisx-sidebar-link.on small,
+body.irisx-luxury .irisx-profile-quick-card:hover span,
+body.irisx-luxury .irisx-profile-quick-card:focus-visible span {
+  color: rgba(245, 240, 235, 0.72);
+}
+
+body.irisx-luxury .irisx-home {
+  min-height: calc(100vh - var(--iris-nav-height) - var(--iris-nav-sub-height)) !important;
+  padding-top: 0 !important;
+}
+
+body.irisx-luxury .irisx-home-shell {
+  padding: 0 0 4rem;
+}
+
+body.irisx-luxury .irisx-home-hero {
+  min-height: calc(100vh - var(--iris-nav-height) - var(--iris-nav-sub-height)) !important;
+  padding: clamp(3rem, 6vh, 4.4rem) clamp(1.35rem, 4vw, 3rem) clamp(3rem, 6vh, 4.4rem) !important;
+}
+
+body.irisx-luxury .irisx-home-copy {
+  min-height: min(560px, calc(100dvh - var(--iris-nav-height) - var(--iris-nav-sub-height) - 2rem));
+  display: grid;
+  align-content: center;
+  justify-items: center;
+}
+
+body.irisx-luxury .irisx-home-title {
+  max-width: 11ch;
+}
+
+body.irisx-luxury .irisx-home-proof {
+  max-width: 46ch;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.7;
+}
+
+body.irisx-luxury .irisx-home-scroll {
+  bottom: 1.4rem;
+}
+
+@media (max-width: 900px) {
+  body.irisx-luxury .irisx-home {
+    min-height: calc(100vh - var(--iris-nav-height)) !important;
+  }
+
+  body.irisx-luxury .irisx-home-hero {
+    min-height: calc(100vh - var(--iris-nav-height)) !important;
+    padding-top: clamp(2.4rem, 7vh, 3.4rem) !important;
+    padding-bottom: clamp(2.8rem, 7vh, 3.8rem) !important;
+  }
+
+  body.irisx-luxury .irisx-home-copy {
+    min-height: auto;
+  }
+}

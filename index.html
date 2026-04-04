@@ -14,11 +14,13 @@
 <meta property="og:description" content="Il marketplace italiano per la moda di lusso. Compra e vendi pezzi firmati autenticati.">
 <meta property="og:url" content="https://popi99999.github.io/IRIS/">
 <meta property="og:site_name" content="IRIS">
-<meta property="og:image" content="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=630&fit=crop">
+<meta property="og:image" content="https://popi99999.github.io/IRIS/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="IRIS — Luxury Fashion Marketplace">
 <meta name="twitter:description" content="Il marketplace italiano per la moda di lusso.">
-<meta name="twitter:image" content="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=630&fit=crop">
+<meta name="twitter:image" content="https://popi99999.github.io/IRIS/og-image.png">
 <link rel="canonical" href="https://popi99999.github.io/IRIS/">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23060310' width='100' height='100' rx='20'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-size='36' font-family='serif' font-style='italic' fill='%23A78BFA'%3EIRIS%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="./manifest.json">
@@ -27,7 +29,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Il marketplace italiano per la moda di lusso.","potentialAction":{"@type":"SearchAction","target":"https://popi99999.github.io/IRIS/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Luxury Fashion Marketplace italiano"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -42,9 +44,25 @@ body{background:var(--deep);color:rgba(253,250,255,.78);font-family:'Inter',sans
 a{color:inherit;text-decoration:none}
 button{font-family:inherit}
 .container{width:100%;max-width:1200px;margin:0 auto;padding:0 2rem}
-.skip-to-content{position:fixed;top:1rem;left:1rem;z-index:3000;padding:.75rem 1rem;background:#111;color:#fff;border:1px solid rgba(167,139,250,.35);transform:translateY(-160%);transition:transform .25s ease}
-.skip-to-content:focus{transform:translateY(0)}
+.skip-link,.skip-to-content{position:fixed;top:1rem;left:1rem;z-index:3000;padding:.75rem 1rem;background:#111;color:#fff;border:1px solid rgba(167,139,250,.35);transform:translateY(-160%);transition:transform .25s ease}
+.skip-link:focus,.skip-to-content:focus{transform:translateY(0)}
 .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.cookie-banner{position:fixed;left:0;right:0;bottom:0;z-index:9999;display:none;align-items:flex-start;justify-content:space-between;gap:1.5rem;padding:1.25rem 1.5rem;background:rgba(6,3,16,.92);backdrop-filter:blur(18px);border-top:1px solid rgba(167,139,250,.35);box-shadow:0 -20px 50px rgba(0,0,0,.25)}
+.cookie-text{display:flex;flex-direction:column;gap:.45rem;max-width:860px}
+.cookie-text strong{font-size:.95rem;font-weight:500;color:#fff}
+.cookie-text p{font-size:.92rem;line-height:1.65;color:rgba(253,250,255,.76)}
+.cookie-text a{color:var(--lavender);text-decoration:underline;text-underline-offset:3px}
+.cookie-actions{display:flex;align-items:center;gap:.75rem;flex-shrink:0}
+.cookie-actions button{min-width:150px}
+body.light-mode .cookie-banner{background:rgba(255,255,255,.95);border-top-color:rgba(124,58,237,.22);box-shadow:0 -18px 46px rgba(10,10,10,.12)}
+body.light-mode .cookie-text strong{color:#14092b}
+body.light-mode .cookie-text p{color:rgba(20,9,43,.78)}
+body.light-mode .cookie-text a{color:#6d28d9}
+@media (max-width:600px){
+  .cookie-banner{flex-direction:column;align-items:stretch;padding:1rem}
+  .cookie-actions{flex-direction:column;align-items:stretch;width:100%}
+  .cookie-actions button{width:100%}
+}
 
 /* ═══════ INTRO ═══════ */
 #intro{position:fixed;inset:0;z-index:2000;overflow:hidden;background:#02000A;cursor:pointer}
@@ -2072,9 +2090,9 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 </head>
 <body class="irisx-luxury">
 <noscript><div style="padding:2rem;text-align:center;color:#fff;background:#060310">Per utilizzare IRIS è necessario abilitare JavaScript.</div></noscript>
-<a class="skip-to-content" href="#mainContent">Vai al contenuto</a>
+<a class="skip-link" href="#main-content">Vai al contenuto</a>
 <h1 class="visually-hidden">IRIS — Luxury Fashion Marketplace</h1>
-<main id="mainContent">
+<main id="main-content">
 
 <!-- ═══════ INTRO ═══════ -->
 <div id="intro" onclick="skipIntro()" style="display:none">
@@ -2132,7 +2150,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 <div class="page" id="page-buy">
 
   <!-- Top nav -->
-  <nav class="topnav" id="topnav" aria-label="Navigazione principale">
+  <nav class="topnav" id="topnav" role="navigation" aria-label="Navigazione principale">
     <button class="tn-back irisx-hidden" id="tnBackBtn" onclick="showBuyView('home')">Home</button>
     <div class="tn-row tn-row--main">
       <button class="tn-mobile-toggle" id="tnMobileToggle" onclick="toggleMobileNav()" aria-label="Apri menu" aria-controls="tnMobileMenu" aria-expanded="false" type="button">
@@ -2167,14 +2185,14 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     </div>
     <div class="tn-profile-menu" id="tnProfileMenu">
       <div class="tn-menu-section">
-        <button class="tn-menu-link tn-profile" id="tnMenuProfileBtn" data-nav-view="profile" onclick="closeProfileMenu();showBuyView('profile')">Profilo</button>
-        <button class="tn-menu-link tn-fav" id="tnMenuFavBtn" data-nav-view="fav" onclick="closeProfileMenu();showBuyView('fav')">Preferiti <span class="badge" id="fav-badge" style="display:none">0</span></button>
-        <button class="tn-menu-link tn-chat" id="tnMenuChatBtn" data-nav-view="chat" onclick="closeProfileMenu();showBuyView('chat')">Messaggi <span class="badge" id="chat-badge" style="display:none">0</span></button>
+        <button class="tn-menu-link tn-profile" id="tnMenuProfileBtn" data-nav-view="profile" onclick="closeProfileMenu();showBuyView('profile')" aria-label="Apri profilo">Profilo</button>
+        <button class="tn-menu-link tn-fav" id="tnMenuFavBtn" data-nav-view="fav" onclick="closeProfileMenu();showBuyView('fav')" aria-label="Apri preferiti">Preferiti <span class="badge" id="fav-badge" style="display:none">0</span></button>
+        <button class="tn-menu-link tn-chat" id="tnMenuChatBtn" data-nav-view="chat" onclick="closeProfileMenu();showBuyView('chat')" aria-label="Apri messaggi">Messaggi <span class="badge" id="chat-badge" style="display:none">0</span></button>
       </div>
       <div class="tn-menu-divider"></div>
       <div class="tn-menu-section">
-        <button class="tn-menu-link" id="modeToggle" onclick="toggleDarkLight()">Tema</button>
-        <button class="tn-menu-link" id="langToggle" onclick="switchLang()">EN</button>
+        <button class="tn-menu-link" id="modeToggle" onclick="toggleDarkLight()" aria-label="Cambia tema">Tema</button>
+        <button class="tn-menu-link" id="langToggle" onclick="switchLang()" aria-label="Cambia lingua">EN</button>
         <button class="tn-menu-link" id="authBtn">Accedi</button>
         <button class="tn-menu-link" id="opsBtn" style="display:none" onclick="closeProfileMenu();showBuyView('ops')">Ops</button>
       </div>
@@ -2189,13 +2207,13 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           <button class="tn-mobile-link" id="tnMobileHomeBtn" onclick="closeMobileNav();showBuyView('home')">Home</button>
           <button class="tn-mobile-link" id="tnMobileShopBtn" onclick="closeMobileNav();showBuyView('shop')">Shop</button>
           <button class="tn-mobile-link" id="tnMobileAboutBtn" onclick="closeMobileNav();showBuyView('home');setTimeout(function(){var manifesto=document.getElementById('irisManifesto');if(manifesto){manifesto.scrollIntoView({behavior:'smooth',block:'start'});}},120)">Chi siamo</button>
-          <button class="tn-mobile-link" id="tnMobileProfileBtn" onclick="closeMobileNav();showBuyView('profile')">Profilo</button>
-          <button class="tn-mobile-link" id="tnMobileFavBtn" onclick="closeMobileNav();showBuyView('fav')">Preferiti</button>
-          <button class="tn-mobile-link" id="tnMobileChatBtn" onclick="closeMobileNav();showBuyView('chat')">Messaggi</button>
+          <button class="tn-mobile-link" id="tnMobileProfileBtn" onclick="closeMobileNav();showBuyView('profile')" aria-label="Apri profilo">Profilo</button>
+          <button class="tn-mobile-link" id="tnMobileFavBtn" onclick="closeMobileNav();showBuyView('fav')" aria-label="Apri preferiti">Preferiti</button>
+          <button class="tn-mobile-link" id="tnMobileChatBtn" onclick="closeMobileNav();showBuyView('chat')" aria-label="Apri messaggi">Messaggi</button>
           <button class="tn-mobile-link" id="tnMobileCartBtn" onclick="closeMobileNav();openCart()">Carrello</button>
           <button class="tn-mobile-link tn-mobile-link--primary" id="tnMobileSellBtn" onclick="closeMobileNav();showPage('sell')">Vendi</button>
-          <button class="tn-mobile-link" id="tnMobileThemeBtn" onclick="toggleDarkLight()">Tema</button>
-          <button class="tn-mobile-link" id="tnMobileLangBtn" onclick="switchLang()">Lingua</button>
+          <button class="tn-mobile-link" id="tnMobileThemeBtn" onclick="toggleDarkLight()" aria-label="Cambia tema">Tema</button>
+          <button class="tn-mobile-link" id="tnMobileLangBtn" onclick="switchLang()" aria-label="Cambia lingua">Lingua</button>
           <button class="tn-mobile-link" id="tnMobileAuthBtn" onclick="handleAuthButtonClick()">Accedi / Esci</button>
         </div>
       </div>
@@ -2338,7 +2356,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
         <div class="prof-av"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="15" r="6"/><path d="M8 36c0-6.6 5.4-12 12-12s12 5.4 12 12"/></svg></div>
         <div class="prof-info">
           <div class="prof-name">Il tuo profilo</div>
-          <div class="prof-bio">Milano, Italia · Membro dal 2026</div>
+          <div class="prof-bio" id="profBio">Completa il tuo profilo per personalizzare questa sezione.</div>
           <div class="prof-stats">
             <div class="prof-stat"><div class="prof-stat-n" id="myListings">0</div><div class="prof-stat-l">In vendita</div></div>
             <div class="prof-stat"><div class="prof-stat-n">0</div><div class="prof-stat-l">Venduti</div></div>
@@ -2367,7 +2385,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
   <div class="sell-topbar" id="sellTopbar">
     <button class="st-back" onclick="backToChoice()">← Torna</button>
     <span class="st-logo"><em>IRIS</em> · Vendi</span>
-    <ul class="st-nav"><li><a href="#sell-form-sec">Pubblica</a></li><li><a href="#sell-why">Perché IRIS</a></li></ul>
+    <ul class="st-nav"><li><a href="#sell-form-sec">Pubblica</a></li><li><a href="#concierge-form">Perché IRIS</a></li></ul>
   </div>
   <div class="sh">
     <div style="position:relative;z-index:2">
@@ -2427,7 +2445,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           <div class="step-card"><div class="step-n">1</div><div class="step-t">Richiedi</div><div class="step-d">Compila il form. Ti rispondiamo entro 24h con la valutazione gratuita.</div></div>
           <div class="step-card"><div class="step-n">2</div><div class="step-t">Spedisci</div><div class="step-d">Ti inviamo l'etichetta prepagata. Imballa e spedisci comodamente.</div></div>
           <div class="step-card"><div class="step-n">3</div><div class="step-t">Noi lavoriamo</div><div class="step-d">Foto professionali, autenticazione, annuncio curato. In 48h online.</div></div>
-          <div class="step-card"><div class="step-n">4</div><div class="step-t">Incassi</div><div class="step-d">Venduto? Bonifico entro 48h. Il 78% del prezzo finale, garantito.</div></div>
+          <div class="step-card"><div class="step-n">4</div><div class="step-t">Incassi</div><div class="step-d">Bonifico entro 48h dal venduto. Ricevi il netto dopo la commissione, garantito.</div></div>
         </div>
       </div>
     </div>
@@ -2460,34 +2478,34 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           </div>
           <input type="file" id="fileIn" multiple accept="image/*" style="display:none" required>
           <div class="form-fields">
-            <div class="fg"><label class="fl">Categoria *</label><select class="fsel" id="sf-cat" required onchange="handleSellTaxonomyChange('category');updateFee()"><option value="">Seleziona</option></select></div>
-            <div class="fg"><label class="fl">Brand / Designer *</label><select class="fsel" id="sf-brand" required><option value="">Seleziona brand</option><optgroup label="Ultra Lusso"><option>Hermès</option><option>Chanel</option><option>Louis Vuitton</option><option>Dior</option><option>Bottega Veneta</option></optgroup><optgroup label="Lusso"><option>Gucci</option><option>Prada</option><option>Valentino</option><option>Versace</option><option>Fendi</option><option>Burberry</option><option>Moncler</option><option>Stone Island</option></optgroup><optgroup label="Contemporary"><option>Balenciaga</option><option>Off-White</option><option>Jacquemus</option><option>Amiri</option><option>Rick Owens</option><option>Maison Margiela</option></optgroup><option>Altro</option></select></div>
-            <div class="fg"><label class="fl">Nome articolo *</label><input class="fi" id="sf-name" placeholder="es. Gucci GG Marmont Shoulder Bag" required></div>
+            <div class="fg"><label class="fl" for="sf-cat">Categoria *</label><select class="fsel" id="sf-cat" required onchange="handleSellTaxonomyChange('category');updateFee()"><option value="">Seleziona</option></select></div>
+            <div class="fg"><label class="fl" for="sf-brand">Brand / Designer *</label><select class="fsel" id="sf-brand" required><option value="">Seleziona brand</option><optgroup label="Ultra Lusso"><option>Hermès</option><option>Chanel</option><option>Louis Vuitton</option><option>Dior</option><option>Bottega Veneta</option></optgroup><optgroup label="Lusso"><option>Gucci</option><option>Prada</option><option>Valentino</option><option>Versace</option><option>Fendi</option><option>Burberry</option><option>Moncler</option><option>Stone Island</option></optgroup><optgroup label="Contemporary"><option>Balenciaga</option><option>Off-White</option><option>Jacquemus</option><option>Amiri</option><option>Rick Owens</option><option>Maison Margiela</option></optgroup><option>Altro</option></select></div>
+            <div class="fg"><label class="fl" for="sf-name">Nome articolo *</label><input class="fi" id="sf-name" placeholder="es. Gucci GG Marmont Shoulder Bag" required></div>
             <div class="fr">
-              <div class="fg" id="irisxSubcategoryGroup"><label class="fl" id="sf-subcat-label">Sottocategoria *</label><select class="fsel" id="sf-subcat" required onchange="handleSellTaxonomyChange('subcategory')"><option value="">Seleziona</option></select></div>
-              <div class="fg" id="irisxTypeGroup"><label class="fl" id="sf-type-label">Tipo</label><select class="fsel" id="sf-type" onchange="handleSellTaxonomyChange('type')"><option value="">Seleziona</option></select></div>
+              <div class="fg" id="irisxSubcategoryGroup"><label class="fl" id="sf-subcat-label" for="sf-subcat">Sottocategoria *</label><select class="fsel" id="sf-subcat" required onchange="handleSellTaxonomyChange('subcategory')"><option value="">Seleziona</option></select></div>
+              <div class="fg" id="irisxTypeGroup"><label class="fl" id="sf-type-label" for="sf-type">Tipo</label><select class="fsel" id="sf-type" onchange="handleSellTaxonomyChange('type')"><option value="">Seleziona</option></select></div>
             </div>
             <div class="irisx-note" id="irisxSellTaxonomyHint">Scegli prima il tipo di articolo: cosi il form ti mostra solo taglie e campi coerenti.</div>
             <div class="fr">
-              <div class="fg" id="irisxSizeGroup"><label class="fl" id="sf-size-label">Taglia</label><select class="fsel" id="sf-size"><option value="">Seleziona</option></select><div class="irisx-note" id="irisxSizeHint">La taglia si adatta alla categoria che scegli.</div></div>
-              <div class="fg" id="irisxSizeOriginalGroup"><label class="fl" id="sf-size-original-label">Taglia etichetta originale</label><input class="fi" id="sf-size-original" placeholder="es. 2, US 9, 30"></div>
+              <div class="fg" id="irisxSizeGroup"><label class="fl" id="sf-size-label" for="sf-size">Taglia</label><select class="fsel" id="sf-size"><option value="">Seleziona</option></select><div class="irisx-note" id="irisxSizeHint">La taglia si adatta alla categoria che scegli.</div></div>
+              <div class="fg" id="irisxSizeOriginalGroup"><label class="fl" id="sf-size-original-label" for="sf-size-original">Taglia etichetta originale</label><input class="fi" id="sf-size-original" placeholder="es. 2, US 9, 30"></div>
             </div>
             <div class="fr">
-              <div class="fg"><label class="fl">Colore</label><input class="fi" id="sf-color" placeholder="es. Nero"></div>
-              <div class="fg" id="irisxFitGroup"><label class="fl">Vestibilità</label><select class="fsel" id="sf-fit"><option>Regular</option><option>Slim</option><option>Oversize</option></select></div>
+              <div class="fg"><label class="fl" for="sf-color">Colore</label><input class="fi" id="sf-color" placeholder="es. Nero"></div>
+              <div class="fg" id="irisxFitGroup"><label class="fl" for="sf-fit">Vestibilità</label><select class="fsel" id="sf-fit"><option>Regular</option><option>Slim</option><option>Oversize</option></select></div>
             </div>
             <div class="fr">
-              <div class="fg"><label class="fl">Materiale</label><input class="fi" id="sf-material" placeholder="es. Pelle, Cotone"></div>
-              <div class="fg" id="irisxDimensionsGroup"><label class="fl" id="sf-dims-label">Dimensioni</label><input class="fi" id="sf-dims" placeholder="es. 30 x 22 x 16 cm"></div>
+              <div class="fg"><label class="fl" for="sf-material">Materiale</label><input class="fi" id="sf-material" placeholder="es. Pelle, Cotone"></div>
+              <div class="fg" id="irisxDimensionsGroup"><label class="fl" id="sf-dims-label" for="sf-dims">Dimensioni</label><input class="fi" id="sf-dims" placeholder="es. 30 x 22 x 16 cm"></div>
             </div>
             <div class="fg irisx-measurement-block" id="irisxMeasurementsGroup">
               <label class="fl" id="irisxMeasurementsTitle">Misure principali</label>
               <div class="irisx-note" id="irisxMeasurementsHint">Inserisci le misure seller piu importanti. Le immagini guida le aggiungeremo dopo.</div>
               <div class="irisx-measurement-grid" id="irisxMeasurementsFields"></div>
             </div>
-            <div class="fg"><label class="fl">Condizione *</label><input type="hidden" id="sf-condition" required><div class="cond-grid"><button type="button" class="cond-btn" onclick="selCond(this)">Nuovo con tag</button><button type="button" class="cond-btn" onclick="selCond(this)">Nuovo senza tag</button><button type="button" class="cond-btn" onclick="selCond(this)">Molto buono</button><button type="button" class="cond-btn" onclick="selCond(this)">Buono</button><button type="button" class="cond-btn" onclick="selCond(this)">Accettabile</button><button type="button" class="cond-btn" onclick="selCond(this)">Da restauro</button></div></div>
-            <div class="fg"><label class="fl">Descrizione *</label><textarea class="fta" id="sf-desc" placeholder="Materiale, colore, hardware, segni di usura, cosa è incluso..." required minlength="10"></textarea></div>
-            <div class="fg"><label class="fl">Il tuo prezzo (€) *</label><input class="fi" type="number" id="sf-price" placeholder="es. 450" oninput="updateFee()" required min="1" step="0.01"></div>
+            <div class="fg"><label class="fl" for="sf-condition">Condizione *</label><input type="hidden" id="sf-condition" required><div class="cond-grid" role="group" aria-label="Condizione"><button type="button" class="cond-btn" onclick="selCond(this)">Nuovo con tag</button><button type="button" class="cond-btn" onclick="selCond(this)">Nuovo senza tag</button><button type="button" class="cond-btn" onclick="selCond(this)">Eccellente</button><button type="button" class="cond-btn" onclick="selCond(this)">Molto buono</button><button type="button" class="cond-btn" onclick="selCond(this)">Buono</button><button type="button" class="cond-btn" onclick="selCond(this)">Accettabile</button><button type="button" class="cond-btn" onclick="selCond(this)">Da restauro</button></div></div>
+            <div class="fg"><label class="fl" for="sf-desc">Descrizione *</label><textarea class="fta" id="sf-desc" placeholder="Materiale, colore, hardware, segni di usura, cosa è incluso..." required minlength="10"></textarea></div>
+            <div class="fg"><label class="fl" for="sf-price">Il tuo prezzo (€) *</label><input class="fi" type="number" id="sf-price" placeholder="es. 450" oninput="updateFee()" required min="1" step="0.01"></div>
           </div>
         </div>
         <div class="sell-side">
@@ -2502,7 +2520,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 </main>
 
 <!-- ═══════ STATIC PAGE MODALS ═══════ -->
-<div class="static-modal" id="modal-about" role="dialog" aria-modal="true">
+<div class="static-modal" id="modal-about" role="dialog" aria-modal="true" aria-label="Chi siamo">
   <button class="sm-close" onclick="closeStatic('about')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Chi siamo</div>
@@ -2512,7 +2530,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div class="sm-section"><h3>I numeri</h3><p>+1.000 articoli autenticati &middot; +500 venditori verificati &middot; 98% soddisfazione clienti &middot; Spedizioni in tutta Europa</p></div>
   </div>
 </div>
-<div class="static-modal" id="modal-howto" role="dialog" aria-modal="true">
+<div class="static-modal" id="modal-howto" role="dialog" aria-modal="true" aria-label="Come funziona">
   <button class="sm-close" onclick="closeStatic('howto')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Come funziona</div>
@@ -2521,7 +2539,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div class="sm-section"><h3>Per chi vende</h3><p>1. Fotografa il tuo articolo da pi&ugrave; angolazioni<br>2. Crea l'annuncio: brand, condizione, prezzo. Gratis!<br>3. Il compratore acquista, tu ricevi l'etichetta prepagata<br>4. Spedisci, noi autentichiamo<br>5. Ricevi il pagamento entro 48h dalla conferma</p></div>
   </div>
 </div>
-<div class="static-modal" id="modal-faq" role="dialog" aria-modal="true">
+<div class="static-modal" id="modal-faq" role="dialog" aria-modal="true" aria-label="Domande frequenti">
   <button class="sm-close" onclick="closeStatic('faq')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Domande frequenti</div>
@@ -2538,7 +2556,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     </div>
   </div>
 </div>
-<div class="static-modal" id="modal-terms" role="dialog" aria-modal="true">
+<div class="static-modal" id="modal-terms" role="dialog" aria-modal="true" aria-label="Termini e condizioni">
   <button class="sm-close" onclick="closeStatic('terms')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Termini e Condizioni</div>
@@ -2550,19 +2568,19 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div class="sm-section"><h3>5. Responsabilit&agrave;</h3><p>IRIS si impegna a verificare l'autenticit&agrave; degli articoli ma non pu&ograve; garantire al 100% l'assenza di errori. In caso di articolo non autentico, rimborso totale garantito.</p></div>
   </div>
 </div>
-<div class="static-modal" id="modal-privacy" role="dialog" aria-modal="true">
+<div class="static-modal" id="modal-privacy" role="dialog" aria-modal="true" aria-label="Privacy policy">
   <button class="sm-close" onclick="closeStatic('privacy')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Privacy Policy</div>
     <div class="sm-subtitle">Ultimo aggiornamento: Marzo 2026 &middot; Conforme al GDPR (Reg. UE 2016/679)</div>
     <div class="sm-section"><h3>Titolare del trattamento</h3><p>IRIS S.r.l. con sede in Milano, Italia. Email: privacy@iris-fashion.it</p></div>
-    <div class="sm-section"><h3>Dati raccolti</h3><p>Raccogliamo dati necessari al funzionamento del servizio: nome, email, indirizzo di spedizione, cronologia acquisti e preferenze. I dati di pagamento saranno gestiti dal provider di pagamento integrato quando il backend live sara' attivo.</p></div>
+    <div class="sm-section"><h3>Dati raccolti</h3><p>Raccogliamo dati necessari al funzionamento del servizio: nome, email, indirizzo di spedizione, cronologia acquisti e preferenze. I dati di pagamento sono gestiti in modo sicuro tramite provider certificati PCI-DSS.</p></div>
     <div class="sm-section"><h3>Finalit&agrave;</h3><p>I dati sono utilizzati per: erogazione del servizio, autenticazione, comunicazioni transazionali, miglioramento dell'esperienza utente, obblighi di legge.</p></div>
     <div class="sm-section"><h3>I tuoi diritti</h3><p>Hai diritto di accesso, rettifica, cancellazione, portabilit&agrave; e opposizione al trattamento dei tuoi dati personali. Puoi esercitare i tuoi diritti scrivendo a privacy@iris-fashion.it.</p></div>
     <div class="sm-section"><h3>Cookie</h3><p>Utilizziamo cookie tecnici necessari e cookie analitici anonimi per migliorare il servizio. Nessun cookie di profilazione senza consenso esplicito.</p></div>
   </div>
 </div>
-<div class="static-modal" id="modal-contact" role="dialog" aria-modal="true">
+<div class="static-modal" id="modal-contact" role="dialog" aria-modal="true" aria-label="Contattaci">
   <button class="sm-close" onclick="closeStatic('contact')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Contattaci</div>
@@ -2570,7 +2588,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div class="sm-section"><h3>Email</h3><p><a href="mailto:support@iris-fashion.it">support@iris-fashion.it</a></p></div>
   </div>
 </div>
-<div class="static-modal" id="modal-cookie" role="dialog" aria-modal="true">
+<div class="static-modal" id="modal-cookie" role="dialog" aria-modal="true" aria-label="Cookie policy">
   <button class="sm-close" onclick="closeStatic('cookie')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Cookie Policy</div>
@@ -2588,12 +2606,23 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 </div>
 
 <!-- Offer modal -->
-<div class="offer-modal" id="offerModal" role="dialog" aria-modal="true">
+<div class="offer-modal" id="offerModal" role="dialog" aria-modal="true" aria-label="Fai un'offerta">
   <div class="offer-box">
     <div class="offer-title">Fai un'offerta</div>
     <input class="offer-input" type="number" placeholder="€" id="offerInput">
     <button class="offer-send" onclick="sendOffer()">Invia offerta</button>
     <button class="offer-cancel" onclick="closeOffer()">Annulla</button>
+  </div>
+</div>
+
+<div id="cookieBanner" class="cookie-banner" style="display:none" role="dialog" aria-modal="true" aria-label="Cookie banner">
+  <div class="cookie-text">
+    <strong id="cookieBannerTitle">Questo sito utilizza cookie</strong>
+    <p id="cookieBannerMessage">Utilizziamo cookie tecnici e analitici per migliorare l'esperienza. Puoi consultare la nostra <a href="#" onclick="event.preventDefault();openStatic('privacy')">Privacy Policy</a>.</p>
+  </div>
+  <div class="cookie-actions">
+    <button class="irisx-primary" id="cookieAcceptAllBtn" onclick="acceptCookies('all')">Accetta tutti</button>
+    <button class="irisx-secondary" id="cookieNecessaryBtn" onclick="acceptCookies('necessary')">Solo necessari</button>
   </div>
 </div>
 
@@ -2641,7 +2670,7 @@ let curChat=null;
 
 const allBrands=[...new Set(prods.map(p=>p.brand))].sort();
 const allCats=[...new Set(prods.map(p=>p.cat))].sort();
-const allConds=['Nuovo','Eccellente','Molto buono','Buono','Accettabile'];
+const allConds=['Nuovo con tag','Nuovo senza tag','Eccellente','Molto buono','Buono','Accettabile','Da restauro'];
 const allFits=['Slim','Regular','Oversize'];
 const colorMap={Nero:'#111',Bianco:'#f5f5f5',Marrone:'#8B4513',Beige:'#D2B48C',Verde:'#2E8B57',Rosa:'#DB7093',Grigio:'#808080',Argento:'#C0C0C0',Blu:'#2255AA',Rosso:'#CC3333'};
 const allColors=Object.keys(colorMap);

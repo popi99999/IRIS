@@ -1012,14 +1012,32 @@
 
   function getCookieConsentStatus() {
     try {
-      return localStorage.getItem(COOKIE_CONSENT_KEY) || "";
+      const raw = localStorage.getItem(COOKIE_CONSENT_KEY);
+      if (!raw) {
+        return "";
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object" && parsed.level) {
+          return parsed.level;
+        }
+      } catch (parseError) {
+        // Support legacy string values.
+      }
+      if (raw === "accepted") {
+        return "all";
+      }
+      if (raw === "rejected") {
+        return "necessary";
+      }
+      return raw;
     } catch (error) {
       return "";
     }
   }
 
   function canPersistUserData() {
-    return getCookieConsentStatus() === "accepted";
+    return getCookieConsentStatus() === "all";
   }
 
   function persistPreference(key, value) {
@@ -3446,9 +3464,49 @@
     ["iris-lang", "iris-mode", "iris-pwa-dismissed"].forEach(removeStoredValue);
   }
 
-  function setCookieConsent(status) {
-    persistPreference(COOKIE_CONSENT_KEY, status);
-    if (status === "rejected") {
+  function updateCookieBannerContent() {
+    const banner = qs("#cookieBanner");
+    const title = qs("#cookieBannerTitle");
+    const message = qs("#cookieBannerMessage");
+    const acceptButton = qs("#cookieAcceptAllBtn");
+    const necessaryButton = qs("#cookieNecessaryBtn");
+
+    if (banner) {
+      banner.setAttribute("aria-label", langText("Banner cookie", "Cookie banner"));
+    }
+    if (title) {
+      title.textContent = langText("Questo sito utilizza cookie", "This site uses cookies");
+    }
+    if (message) {
+      message.innerHTML = langText(
+        "Utilizziamo cookie tecnici e analitici per migliorare l'esperienza. Puoi consultare la nostra <a href=\"#\" onclick=\"event.preventDefault();openStatic('privacy')\">Privacy Policy</a>.",
+        "We use technical and analytics cookies to improve your experience. You can read our <a href=\"#\" onclick=\"event.preventDefault();openStatic('privacy')\">Privacy Policy</a>."
+      );
+    }
+    if (acceptButton) {
+      acceptButton.textContent = langText("Accetta tutti", "Accept all");
+    }
+    if (necessaryButton) {
+      necessaryButton.textContent = langText("Solo necessari", "Only necessary");
+    }
+  }
+
+  function syncCookieBannerVisibility(forceVisible) {
+    const banner = qs("#cookieBanner");
+    if (!banner) {
+      return;
+    }
+    banner.style.display = forceVisible ? "flex" : "none";
+  }
+
+  function checkCookieConsent() {
+    updateCookieBannerContent();
+    syncCookieBannerVisibility(!getCookieConsentStatus());
+  }
+
+  function acceptCookies(level) {
+    const normalizedLevel = level === "all" ? "all" : "necessary";
+    if (normalizedLevel !== "all") {
       clearPersistedPrototypeData();
       favorites = new Set();
       state.cart = [];
@@ -3470,31 +3528,26 @@
       renderNotifications();
       renderProfilePanel();
     }
-    const banner = qs("#irisCookieBanner");
-    if (banner) {
-      banner.classList.remove("open");
+    try {
+      localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify({
+        level: normalizedLevel,
+        date: new Date().toISOString()
+      }));
+    } catch (error) {
+      return;
     }
+    syncCookieBannerVisibility(false);
+  }
+
+  function setCookieConsent(status) {
+    acceptCookies(status === "accepted" ? "all" : "necessary");
   }
 
   function injectCookieConsentUi() {
-    if (!qs("#irisCookieBanner")) {
-      document.body.insertAdjacentHTML(
-        "beforeend",
-        "<div class=\"irisx-cookie-banner\" id=\"irisCookieBanner\" role=\"dialog\" aria-modal=\"true\" aria-live=\"polite\">" +
-          "<div class=\"irisx-cookie-banner__copy\">" +
-            "<strong>" + langText("Cookie tecnici IRIS", "IRIS technical cookies") + "</strong>" +
-            "<span>" + langText("Questo sito utilizza cookie tecnici per il funzionamento. Nessun dato viene condiviso con terze parti.", "This website uses technical cookies for functionality. No data is shared with third parties.") + "</span>" +
-          "</div>" +
-          "<div class=\"irisx-cookie-banner__actions\">" +
-            "<button class=\"irisx-secondary\" onclick=\"rejectCookieConsent()\">" + langText("Rifiuta", "Reject") + "</button>" +
-            "<button class=\"irisx-primary\" onclick=\"acceptCookieConsent()\">" + langText("Accetta", "Accept") + "</button>" +
-          "</div>" +
-        "</div>"
-      );
-    }
-    const banner = qs("#irisCookieBanner");
-    if (banner) {
-      banner.classList.toggle("open", !getCookieConsentStatus());
+    updateCookieBannerContent();
+    syncCookieBannerVisibility(false);
+    if (!window.__irisCookieConsentTimer) {
+      window.__irisCookieConsentTimer = window.setTimeout(checkCookieConsent, 2000);
     }
   }
 
@@ -5654,6 +5707,7 @@
         }
         langSelect.setAttribute("title", locale.nativeLabel + " · " + locale.currency);
       }
+      updateCookieBannerContent();
       const cartButton = qs("#cartBtn");
       if (cartButton) {
         cartButton.setAttribute("aria-label", t("cart_open"));
@@ -11261,6 +11315,9 @@
     if (!modal) {
       return;
     }
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-label", langText("Checkout sicuro", "Secure checkout"));
     const items = state.checkoutItems || [];
     if (!items.length && !state.checkoutStatus) {
       modal.innerHTML = "";
@@ -11291,14 +11348,14 @@
     let body = "";
     if (state.checkoutStatus === "success") {
       body = `<div class="irisx-state-panel success">
-        <strong>${langText("Payment success", "Payment success")}</strong>
-        <span>${langText("Ordine creato, conferma buyer e seller notificati.", "Order created, buyer and seller confirmation queued.")}</span>
+        <strong>${langText("Pagamento riuscito!", "Payment successful!")}</strong>
+        <span>${langText("Il tuo ordine è stato creato con successo! Riceverai una conferma via email.", "Your order has been created successfully! You will receive a confirmation email.")}</span>
         <div class="irisx-actions"><button class="irisx-primary" onclick="closeCheckout();showBuyView('profile');setBuyerSection('order_detail','${state.activeOrderId}')">${langText("Vedi ordine", "View order")}</button><button class="irisx-secondary" onclick="closeCheckout();showBuyView('shop')">${langText("Continua", "Continue")}</button></div>
       </div>`;
     } else if (state.checkoutStatus === "failed") {
       body = `<div class="irisx-state-panel error">
-        <strong>${langText("Payment failed", "Payment failed")}</strong>
-        <span>${langText("Skeleton page per errore pagamento e retry.", "Skeleton page for payment failure and retry.")}</span>
+        <strong>${langText("Pagamento non riuscito", "Payment failed")}</strong>
+        <span>${langText("Si è verificato un errore con il pagamento. Riprova o scegli un altro metodo.", "A payment error occurred. Please try again or choose another method.")}</span>
         <div class="irisx-actions"><button class="irisx-primary" onclick="state.checkoutStatus=null;state.checkoutStep='payment';renderCheckoutModal()">${langText("Riprova", "Retry")}</button><button class="irisx-secondary" onclick="closeCheckout()">${langText("Chiudi", "Close")}</button></div>
       </div>`;
     } else if (state.checkoutStep === "address") {
@@ -11315,12 +11372,12 @@
       body = `<div class="irisx-form-grid">
         <div class="irisx-field"><label for="checkoutShippingMethod">${langText("Metodo di spedizione", "Shipping method")}</label><select id="checkoutShippingMethod"><option ${draft.shippingMethod === langText("Spedizione assicurata", "Insured shipping") ? "selected" : ""}>${langText("Spedizione assicurata", "Insured shipping")}</option><option ${draft.shippingMethod === langText("Spedizione espressa assicurata", "Express insured") ? "selected" : ""}>${langText("Spedizione espressa assicurata", "Express insured")}</option></select></div>
         <div class="irisx-field"><label for="checkoutShippingFee">${langText("Costo spedizione", "Shipping fee")}</label><input id="checkoutShippingFee" type="number" value="${escapeHtml(String(shippingFee))}"></div>
-        <div class="irisx-note">${langText("Step predisposto per future shipping methods, carrier e label pricing.", "Step prepared for future shipping methods, carriers, and label pricing.")}</div>
+        <div class="irisx-note">${langText("Seleziona il metodo di spedizione preferito.", "Select your preferred shipping method.")}</div>
       </div>`;
     } else if (state.checkoutStep === "payment") {
       body = `<div class="irisx-form-grid">
-        <div class="irisx-field"><label for="checkoutPaymentLabel">${langText("Fase pagamento", "Payment step")}</label><input id="checkoutPaymentLabel" type="text" value="${escapeHtml(draft.paymentLabel || "")}"></div>
-        <div class="irisx-note">${langText("Checkout reale non richiesto in questa fase: qui prepariamo metodo, stato successo e stato fallimento.", "Real checkout is not required at this stage: here we prepare method, success state, and failure state.")}</div>
+        <div class="irisx-field"><label for="checkoutPaymentLabel">${langText("Metodo di pagamento", "Payment method")}</label><input id="checkoutPaymentLabel" type="text" value="${escapeHtml(draft.paymentLabel || "")}"></div>
+        <div class="irisx-note">${langText("Seleziona il metodo di pagamento. Il pagamento è protetto da IRIS.", "Select your payment method. Payment is protected by IRIS.")}</div>
       </div>`;
     } else if (state.checkoutStep === "review") {
       body = `<div class="irisx-checkout-review">
@@ -11332,20 +11389,20 @@
       </div>`;
     } else {
       body = `<div class="irisx-state-panel">
-        <strong>${langText("Pagina conferma", "Confirmation page")}</strong>
-        <span>${langText("Ultimo step prima di creare l'ordine mock.", "Last step before creating the mock order.")}</span>
+        <strong>${langText("Conferma ordine", "Order confirmation")}</strong>
+        <span>${langText("Rivedi i dettagli e conferma il tuo acquisto.", "Review the details and confirm your purchase.")}</span>
       </div>`;
     }
 
     const primaryAction = state.checkoutStatus
       ? ""
       : state.checkoutStep === "confirmation"
-        ? `<button class="irisx-primary" onclick="finalizeCheckout(true)">${langText("Simula pagamento riuscito", "Simulate successful payment")}</button>`
+        ? `<button class="irisx-primary" onclick="finalizeCheckout(true)">${langText("Conferma e paga", "Confirm and pay")}</button>`
         : `<button class="irisx-primary" onclick="nextCheckoutStep()">${state.checkoutStep === "review" ? langText("Vai alla conferma", "Go to confirmation") : langText("Continua", "Continue")}</button>`;
     const secondaryAction = state.checkoutStatus
       ? ""
       : state.checkoutStep === "confirmation"
-        ? `<button class="irisx-secondary" onclick="finalizeCheckout(false)">${langText("Simula pagamento fallito", "Simulate failed payment")}</button>`
+        ? `<button class="irisx-secondary" onclick="finalizeCheckout(false)">${langText("Annulla", "Cancel")}</button>`
         : CHECKOUT_STEPS.indexOf(state.checkoutStep) > 0
           ? `<button class="irisx-secondary" onclick="prevCheckoutStep()">${langText("Indietro", "Back")}</button>`
           : `<button class="irisx-secondary" onclick="closeCheckout()">${langText("Annulla", "Cancel")}</button>`;
@@ -11907,6 +11964,8 @@
   window.toggleMobileNav = toggleMobileNav;
   window.closeMobileNav = closeMobileNav;
   window.handleAuthButtonClick = handleAuthButtonClick;
+  window.acceptCookies = acceptCookies;
+  window.checkCookieConsent = checkCookieConsent;
   window.acceptCookieConsent = function () { setCookieConsent("accepted"); };
   window.rejectCookieConsent = function () { setCookieConsent("rejected"); };
 

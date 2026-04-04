@@ -1,9 +1,10 @@
-const CACHE_NAME = 'iris-v6';
+const CACHE_NAME = 'iris-v8';
 const APP_SHELL_URL = new URL('./index.html', self.location.href).toString();
 const MANIFEST_URL = new URL('./manifest.json', self.location.href).toString();
 const PLUS_CSS_URL = new URL('./iris-plus.css', self.location.href).toString();
 const PLUS_JS_URL = new URL('./iris-plus.js', self.location.href).toString();
-const ASSETS = [APP_SHELL_URL, MANIFEST_URL, PLUS_CSS_URL, PLUS_JS_URL];
+const I18N_URL = new URL('./iris-i18n-config.js', self.location.href).toString();
+const ASSETS = [APP_SHELL_URL, MANIFEST_URL, PLUS_CSS_URL, PLUS_JS_URL, I18N_URL];
 const CORE_ASSET_URLS = new Set(ASSETS);
 
 self.addEventListener('install', e => {

@@ -14,9 +14,11 @@
 <meta property="og:description" content="Il marketplace italiano per la moda di lusso. Compra e vendi pezzi firmati autenticati.">
 <meta property="og:url" content="https://popi99999.github.io/IRIS/">
 <meta property="og:site_name" content="IRIS">
+<meta property="og:image" content="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=630&fit=crop">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="IRIS — Luxury Fashion Marketplace">
 <meta name="twitter:description" content="Il marketplace italiano per la moda di lusso.">
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=630&fit=crop">
 <link rel="canonical" href="https://popi99999.github.io/IRIS/">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23060310' width='100' height='100' rx='20'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-size='36' font-family='serif' font-style='italic' fill='%23A78BFA'%3EIRIS%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="./manifest.json">
@@ -35,11 +37,14 @@
   --bg-card:#110826;--border:rgba(167,139,250,.08);
 }
 html{scroll-behavior:smooth}
-body{background:var(--deep);color:rgba(253,250,255,.78);font-family:'Outfit',sans-serif;font-weight:300;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body{background:var(--deep);color:rgba(253,250,255,.78);font-family:'Inter',sans-serif;font-weight:300;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--deep)}::-webkit-scrollbar-thumb{background:rgba(124,58,237,.35)}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit}
 .container{width:100%;max-width:1200px;margin:0 auto;padding:0 2rem}
+.skip-to-content{position:fixed;top:1rem;left:1rem;z-index:3000;padding:.75rem 1rem;background:#111;color:#fff;border:1px solid rgba(167,139,250,.35);transform:translateY(-160%);transition:transform .25s ease}
+.skip-to-content:focus{transform:translateY(0)}
+.visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 
 /* ═══════ INTRO ═══════ */
 #intro{position:fixed;inset:0;z-index:2000;overflow:hidden;background:#02000A;cursor:pointer}
@@ -151,7 +156,7 @@ a:active,button:focus-visible{outline:1px solid rgba(196,160,106,.35);outline-of
 
 /* Filter sidebar */
 .filters{padding:1.5rem;border-right:1px solid var(--border);background:rgba(6,3,16,.5);position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
-@media(max-width:900px){.filters{display:none}.filters.open{display:block;position:fixed;inset:0;top:54px;z-index:400;background:rgba(6,3,16,.98);border:none;width:100%}}
+@media(max-width:900px){body:not(.irisx-luxury) .filters{display:none}body:not(.irisx-luxury) .filters.open{display:block;position:fixed;inset:0;top:54px;z-index:400;background:rgba(6,3,16,.98);border:none;width:100%}}
 .f-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
 .f-title{font-size:.52rem;letter-spacing:.35em;text-transform:uppercase;color:var(--lavender);opacity:.4}
 .f-clear{background:none;border:none;color:rgba(255,255,255,.45);font-size:.65rem;cursor:pointer;font-family:inherit;transition:color .3s}
@@ -180,8 +185,8 @@ a:active,button:focus-visible{outline:1px solid rgba(196,160,106,.35);outline-of
 .f-fit{display:flex;gap:.4rem}
 .f-fit-btn{flex:1;padding:.5rem;border:1px solid rgba(167,139,250,.12);background:transparent;color:rgba(255,255,255,.55);font-family:inherit;font-size:.65rem;letter-spacing:.1em;cursor:pointer;text-align:center;transition:all .25s;border-radius:2px}
 .f-fit-btn.on,.f-fit-btn:hover{border-color:var(--purple);background:rgba(124,58,237,.12);color:var(--lavender)}
-.mob-filter-btn{display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:300;background:var(--purple);color:#fff;border:none;padding:.7rem 2rem;font-family:inherit;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;border-radius:2px;cursor:pointer;box-shadow:0 4px 24px rgba(124,58,237,.4)}
-@media(max-width:900px){.mob-filter-btn{display:block}}
+body:not(.irisx-luxury) .mob-filter-btn{display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:300;background:var(--purple);color:#fff;border:none;padding:.7rem 2rem;font-family:inherit;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;border-radius:2px;cursor:pointer;box-shadow:0 4px 24px rgba(124,58,237,.4)}
+@media(max-width:900px){body:not(.irisx-luxury) .mob-filter-btn{display:block}}
 
 /* Product grid area */
 .shop-main{padding:1.5rem 2rem}
@@ -571,7 +576,7 @@ body.light-mode .skel-img,body.light-mode .skel-line{background:linear-gradient(
 .notif-bell:hover{color:var(--lavender)}
 body.light-mode .notif-bell{color:rgba(26,10,53,.4)}
 body.light-mode .notif-bell:hover{color:var(--purple)}
-.notif-badge{position:absolute;top:2px;right:2px;width:16px;height:16px;background:#e74c6f;border-radius:50%;font-size:.5rem;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Outfit',sans-serif;letter-spacing:0;pointer-events:none}
+.notif-badge{position:absolute;top:2px;right:2px;width:16px;height:16px;background:#e74c6f;border-radius:50%;font-size:.5rem;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Inter',sans-serif;letter-spacing:0;pointer-events:none}
 .notif-panel{position:absolute;top:100%;right:0;width:340px;max-height:420px;overflow-y:auto;background:rgba(14,7,32,.98);backdrop-filter:blur(24px);border:1px solid rgba(167,139,250,.1);display:none;z-index:600;border-radius:2px;box-shadow:0 12px 48px rgba(0,0,0,.5)}
 .notif-panel.open{display:block}
 body.light-mode .notif-panel{background:rgba(255,255,255,.98);border-color:rgba(124,58,237,.1);box-shadow:0 12px 48px rgba(0,0,0,.1)}
@@ -586,7 +591,7 @@ body.light-mode .notif-clear{color:rgba(26,10,53,.3)}
 body.light-mode .notif-item{border-color:rgba(124,58,237,.03)}
 body.light-mode .notif-item.unread{background:rgba(124,58,237,.04)}
 body.light-mode .notif-item:hover{background:rgba(124,58,237,.06)}
-.notif-icon{width:26px;height:26px;border-radius:0;background:transparent;border:1px solid rgba(167,139,250,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.6rem;color:var(--lavender);font-family:'Outfit',sans-serif;letter-spacing:0}
+.notif-icon{width:26px;height:26px;border-radius:0;background:transparent;border:1px solid rgba(167,139,250,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.6rem;color:var(--lavender);font-family:'Inter',sans-serif;letter-spacing:0}
 .notif-content{flex:1;min-width:0}
 .notif-text{font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.5}
 body.light-mode .notif-text{color:rgba(26,10,53,.55)}
@@ -779,8 +784,8 @@ body.irisx-luxury.light-mode .topnav{
 }
 
 body.irisx-luxury .tn-row{
-  height:82px !important;
-  gap:1.2rem !important;
+  height:auto !important;
+  gap:1rem !important;
   align-items:center !important;
   flex-wrap:nowrap !important;
 }
@@ -798,9 +803,7 @@ body.irisx-luxury .tn-logo em{color:inherit}
 
 body.irisx-luxury #authBadge,
 body.irisx-luxury .mode-toggle,
-body.irisx-luxury .lang-toggle,
-body.irisx-luxury .tn-search,
-body.irisx-luxury #acDropdown{
+body.irisx-luxury .lang-toggle{
   display:none !important;
 }
 
@@ -2000,32 +2003,6 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 }
 
 @media (max-width: 900px){
-  body.irisx-luxury .tn-row{
-    height:auto !important;
-    padding:1rem 0 !important;
-    flex-wrap:wrap !important;
-    gap:.8rem !important;
-  }
-
-  body.irisx-luxury .tn-logo{
-    flex:1 1 auto;
-  }
-
-  body.irisx-luxury .tn-links{
-    width:100%;
-    justify-content:space-between;
-    flex-wrap:wrap;
-    gap:.25rem;
-  }
-
-  body.irisx-luxury .tn-home,
-  body.irisx-luxury .tn-shop,
-  body.irisx-luxury .tn-sell,
-  body.irisx-luxury #tnAboutBtn{
-    flex:1 1 calc(50% - .25rem);
-    text-align:center;
-  }
-
   body.irisx-luxury .shop-layout,
   body.irisx-luxury .irisx-home-manifesto,
   body.irisx-luxury .irisx-home-process-grid,
@@ -2076,18 +2053,28 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
   body.irisx-luxury #profile-view,
   body.irisx-luxury #seller-view,
   body.irisx-luxury #chat-view,
-  body.irisx-luxury #detail-view,
   body.irisx-luxury #page-sell{
     padding-top:132px !important;
+  }
+
+  body.irisx-luxury #detail-view{
+    padding-top:calc(var(--iris-nav-height, 64px) + 18px) !important;
   }
 
   body.irisx-luxury .sell-topbar{
     height:72px;
   }
 }
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
 </style>
 </head>
 <body class="irisx-luxury">
+<noscript><div style="padding:2rem;text-align:center;color:#fff;background:#060310">Per utilizzare IRIS è necessario abilitare JavaScript.</div></noscript>
+<a class="skip-to-content" href="#mainContent">Vai al contenuto</a>
+<h1 class="visually-hidden">IRIS — Luxury Fashion Marketplace</h1>
+<main id="mainContent">
 
 <!-- ═══════ INTRO ═══════ -->
 <div id="intro" onclick="skipIntro()" style="display:none">
@@ -2145,32 +2132,75 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 <div class="page" id="page-buy">
 
   <!-- Top nav -->
-  <div class="topnav" id="topnav">
-    <div class="tn-row">
-      <button class="tn-back" id="tnBackBtn" onclick="showBuyView('home')">Home</button>
-      <span class="tn-logo" onclick="showBuyView('home')"><em>IRIS</em></span>
-      <span id="authBadge" style="font-size:.4rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(196,160,106,.25);padding:.22rem .65rem;border-radius:1px;white-space:nowrap;opacity:.85">✦ 100% Autenticato</span>
+  <nav class="topnav" id="topnav" aria-label="Navigazione principale">
+    <button class="tn-back irisx-hidden" id="tnBackBtn" onclick="showBuyView('home')">Home</button>
+    <div class="tn-row tn-row--main">
+      <button class="tn-mobile-toggle" id="tnMobileToggle" onclick="toggleMobileNav()" aria-label="Apri menu" aria-controls="tnMobileMenu" aria-expanded="false" type="button">
+        <span></span><span></span><span></span>
+      </button>
+      <button class="tn-logo" onclick="showBuyView('home')"><em>IRIS</em></button>
       <div class="tn-search">
-        <input type="text" placeholder="Cerca brand, articoli, stili..." id="searchInput" oninput="handleSearch(this.value)">
+        <input type="text" placeholder="Cerca brand, articoli, stili..." id="searchInput" oninput="handleSearch(this.value)" aria-label="Cerca prodotti">
+        <div class="ac-dropdown" id="acDropdown"></div>
       </div>
-      <div class="ac-dropdown" id="acDropdown"></div>
       <div class="tn-links">
-        <button class="tn-btn tn-home" data-nav-view="home" onclick="showBuyView('home')">Home</button>
-        <button class="tn-btn tn-shop" data-nav-view="shop" onclick="showBuyView('shop')">Shop</button>
-        <button class="tn-btn" id="tnAboutBtn" onclick="showBuyView('home');setTimeout(function(){var manifesto=document.getElementById('irisManifesto');if(manifesto){manifesto.scrollIntoView({behavior:'smooth',block:'start'});}},120)">Chi siamo</button>
-        <button class="tn-btn tn-fav" data-nav-view="fav" onclick="showBuyView('fav')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13.7C8 13.7 1.5 9.5 1.5 5.5A3 3 0 018 4a3 3 0 016.5 1.5c0 4-6.5 8.2-6.5 8.2z"/></svg><span class="badge" id="fav-badge" style="display:none">0</span></button>
+        <button class="tn-btn tn-icon" id="cartBtn" onclick="openCart()" aria-label="Apri carrello">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1h2l1.5 8h8L15 3.5H4"/><circle cx="6" cy="12.5" r="1"/><circle cx="11" cy="12.5" r="1"/></svg>
+          <span class="badge" id="cart-badge" style="display:none">0</span>
+        </button>
         <div class="notif-wrap">
-          <button class="notif-bell" onclick="toggleNotifs()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6a4 4 0 018 0c0 4 1.5 5.5 1.5 5.5H2.5S4 10 4 6z"/><path d="M6.5 13a1.5 1.5 0 003 0"/></svg><span class="notif-badge" id="notifBadge">3</span></button>
+          <button class="notif-bell tn-btn tn-icon" onclick="toggleNotifs()" aria-label="Notifiche"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6a4 4 0 018 0c0 4 1.5 5.5 1.5 5.5H2.5S4 10 4 6z"/><path d="M6.5 13a1.5 1.5 0 003 0"/></svg><span class="notif-badge" id="notifBadge" style="display:none">0</span></button>
           <div class="notif-panel" id="notifPanel"></div>
         </div>
-        <button class="tn-btn tn-chat" data-nav-view="chat" onclick="showBuyView('chat')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5h11v8h-7l-4 3v-3z"/></svg><span class="badge" id="chat-badge">2</span></button>
-        <button class="tn-btn tn-profile" data-nav-view="profile" onclick="showBuyView('profile')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 14.5c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg></button>
-        <button class="mode-toggle" id="modeToggle" onclick="toggleDarkLight()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3.5"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/></svg></button>
-        <button class="lang-toggle" id="langToggle" onclick="switchLang()">EN</button>
-        <button class="tn-btn tn-sell" onclick="showPage('sell')">Vendi</button>
+        <button class="tn-btn tn-avatar tn-profile-trigger" id="tnProfileTrigger" onclick="toggleProfileMenu()" aria-label="Profilo" aria-haspopup="menu" aria-controls="tnProfileMenu" aria-expanded="false" type="button">
+          <span class="tn-avatar-dot">IR</span>
+        </button>
+        <button class="tn-btn tn-sell tn-primary" onclick="showPage('sell')">Vendi</button>
       </div>
     </div>
-  </div>
+    <div class="tn-row tn-row--sub">
+      <div class="tn-secondary-nav">
+        <button class="tn-btn tn-home" id="tnHomeBtn" data-nav-view="home" onclick="showBuyView('home')">Home</button>
+        <button class="tn-btn tn-shop" id="tnShopBtn" data-nav-view="shop" onclick="showBuyView('shop')">Shop</button>
+        <button class="tn-btn" id="tnAboutBtn" onclick="showBuyView('home');setTimeout(function(){var manifesto=document.getElementById('irisManifesto');if(manifesto){manifesto.scrollIntoView({behavior:'smooth',block:'start'});}},120)">Chi siamo</button>
+      </div>
+    </div>
+    <div class="tn-profile-menu" id="tnProfileMenu">
+      <div class="tn-menu-section">
+        <button class="tn-menu-link tn-profile" id="tnMenuProfileBtn" data-nav-view="profile" onclick="closeProfileMenu();showBuyView('profile')">Profilo</button>
+        <button class="tn-menu-link tn-fav" id="tnMenuFavBtn" data-nav-view="fav" onclick="closeProfileMenu();showBuyView('fav')">Preferiti <span class="badge" id="fav-badge" style="display:none">0</span></button>
+        <button class="tn-menu-link tn-chat" id="tnMenuChatBtn" data-nav-view="chat" onclick="closeProfileMenu();showBuyView('chat')">Messaggi <span class="badge" id="chat-badge" style="display:none">0</span></button>
+      </div>
+      <div class="tn-menu-divider"></div>
+      <div class="tn-menu-section">
+        <button class="tn-menu-link" id="modeToggle" onclick="toggleDarkLight()">Tema</button>
+        <button class="tn-menu-link" id="langToggle" onclick="switchLang()">EN</button>
+        <button class="tn-menu-link" id="authBtn">Accedi</button>
+        <button class="tn-menu-link" id="opsBtn" style="display:none" onclick="closeProfileMenu();showBuyView('ops')">Ops</button>
+      </div>
+    </div>
+    <div class="tn-mobile-menu" id="tnMobileMenu">
+      <div class="tn-mobile-menu__panel">
+        <div class="tn-mobile-menu__head">
+          <div class="tn-mobile-menu__brand">IRIS</div>
+          <button class="tn-mobile-menu__close" onclick="closeMobileNav()" aria-label="Chiudi">✕</button>
+        </div>
+        <div class="tn-mobile-menu__links">
+          <button class="tn-mobile-link" id="tnMobileHomeBtn" onclick="closeMobileNav();showBuyView('home')">Home</button>
+          <button class="tn-mobile-link" id="tnMobileShopBtn" onclick="closeMobileNav();showBuyView('shop')">Shop</button>
+          <button class="tn-mobile-link" id="tnMobileAboutBtn" onclick="closeMobileNav();showBuyView('home');setTimeout(function(){var manifesto=document.getElementById('irisManifesto');if(manifesto){manifesto.scrollIntoView({behavior:'smooth',block:'start'});}},120)">Chi siamo</button>
+          <button class="tn-mobile-link" id="tnMobileProfileBtn" onclick="closeMobileNav();showBuyView('profile')">Profilo</button>
+          <button class="tn-mobile-link" id="tnMobileFavBtn" onclick="closeMobileNav();showBuyView('fav')">Preferiti</button>
+          <button class="tn-mobile-link" id="tnMobileChatBtn" onclick="closeMobileNav();showBuyView('chat')">Messaggi</button>
+          <button class="tn-mobile-link" id="tnMobileCartBtn" onclick="closeMobileNav();openCart()">Carrello</button>
+          <button class="tn-mobile-link tn-mobile-link--primary" id="tnMobileSellBtn" onclick="closeMobileNav();showPage('sell')">Vendi</button>
+          <button class="tn-mobile-link" id="tnMobileThemeBtn" onclick="toggleDarkLight()">Tema</button>
+          <button class="tn-mobile-link" id="tnMobileLangBtn" onclick="switchLang()">Lingua</button>
+          <button class="tn-mobile-link" id="tnMobileAuthBtn" onclick="handleAuthButtonClick()">Accedi / Esci</button>
+        </div>
+      </div>
+    </div>
+  </nav>
 
   <!-- SHOP VIEW -->
   <div id="shop-view" class="active">
@@ -2179,7 +2209,10 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
       <aside class="filters" id="filtersPanel">
         <div class="f-head">
           <span class="f-title">Filtri</span>
-          <button class="f-clear" onclick="clearFilters()">Resetta</button>
+          <div class="f-head-actions">
+            <button class="f-clear" type="button" onclick="clearFilters()">Resetta</button>
+            <button class="f-close" type="button" onclick="closeMobileFilters()">Chiudi</button>
+          </div>
         </div>
 
         <!-- Category -->
@@ -2245,6 +2278,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
         <div class="active-filters" id="activeFilters"></div>
         <div class="shop-bar">
           <div class="shop-count"><span id="resultCount">0</span> risultati</div>
+          <button class="mob-filter-btn" onclick="toggleMobileFilters()">☰ Filtri</button>
           <div class="shop-sort">
             <button class="sort-btn on" onclick="setSort('recent',this)">Recenti</button>
             <button class="sort-btn" onclick="setSort('price_asc',this)">Prezzo ↑</button>
@@ -2255,7 +2289,6 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
         <div class="pgrid" id="grid"></div>
       </div>
     </div>
-    <button class="mob-filter-btn" onclick="toggleMobileFilters()">Filtri</button>
   </div>
 
   <!-- DETAIL VIEW -->
@@ -2401,7 +2434,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
   </section>
   <section class="sell-form irisx-reveal-section" id="sell-form-sec">
     <div class="container">
-      <div class="form-grid">
+      <form id="sellForm" class="form-grid" novalidate>
         <div>
           <!-- Mode selector -->
           <div style="display:flex;gap:.8rem;margin-bottom:2rem">
@@ -2425,13 +2458,13 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
             <div class="pu-t">Aggiungi fino a 8 foto</div>
             <div class="pu-s">JPG o PNG · Max 10MB · La prima sarà la copertina</div>
           </div>
-          <input type="file" id="fileIn" multiple accept="image/*" style="display:none">
+          <input type="file" id="fileIn" multiple accept="image/*" style="display:none" required>
           <div class="form-fields">
-            <div class="fg"><label class="fl">Categoria *</label><select class="fsel" id="sf-cat" onchange="handleSellTaxonomyChange('category');updateFee()"><option value="">Seleziona</option></select></div>
-            <div class="fg"><label class="fl">Brand / Designer *</label><select class="fsel"><option value="">Seleziona brand</option><optgroup label="Ultra Lusso"><option>Hermès</option><option>Chanel</option><option>Louis Vuitton</option><option>Dior</option><option>Bottega Veneta</option></optgroup><optgroup label="Lusso"><option>Gucci</option><option>Prada</option><option>Valentino</option><option>Versace</option><option>Fendi</option><option>Burberry</option><option>Moncler</option><option>Stone Island</option></optgroup><optgroup label="Contemporary"><option>Balenciaga</option><option>Off-White</option><option>Jacquemus</option><option>Amiri</option><option>Rick Owens</option><option>Maison Margiela</option></optgroup><option>Altro</option></select></div>
-            <div class="fg"><label class="fl">Nome articolo *</label><input class="fi" placeholder="es. Gucci GG Marmont Shoulder Bag"></div>
+            <div class="fg"><label class="fl">Categoria *</label><select class="fsel" id="sf-cat" required onchange="handleSellTaxonomyChange('category');updateFee()"><option value="">Seleziona</option></select></div>
+            <div class="fg"><label class="fl">Brand / Designer *</label><select class="fsel" id="sf-brand" required><option value="">Seleziona brand</option><optgroup label="Ultra Lusso"><option>Hermès</option><option>Chanel</option><option>Louis Vuitton</option><option>Dior</option><option>Bottega Veneta</option></optgroup><optgroup label="Lusso"><option>Gucci</option><option>Prada</option><option>Valentino</option><option>Versace</option><option>Fendi</option><option>Burberry</option><option>Moncler</option><option>Stone Island</option></optgroup><optgroup label="Contemporary"><option>Balenciaga</option><option>Off-White</option><option>Jacquemus</option><option>Amiri</option><option>Rick Owens</option><option>Maison Margiela</option></optgroup><option>Altro</option></select></div>
+            <div class="fg"><label class="fl">Nome articolo *</label><input class="fi" id="sf-name" placeholder="es. Gucci GG Marmont Shoulder Bag" required></div>
             <div class="fr">
-              <div class="fg" id="irisxSubcategoryGroup"><label class="fl" id="sf-subcat-label">Sottocategoria *</label><select class="fsel" id="sf-subcat" onchange="handleSellTaxonomyChange('subcategory')"><option value="">Seleziona</option></select></div>
+              <div class="fg" id="irisxSubcategoryGroup"><label class="fl" id="sf-subcat-label">Sottocategoria *</label><select class="fsel" id="sf-subcat" required onchange="handleSellTaxonomyChange('subcategory')"><option value="">Seleziona</option></select></div>
               <div class="fg" id="irisxTypeGroup"><label class="fl" id="sf-type-label">Tipo</label><select class="fsel" id="sf-type" onchange="handleSellTaxonomyChange('type')"><option value="">Seleziona</option></select></div>
             </div>
             <div class="irisx-note" id="irisxSellTaxonomyHint">Scegli prima il tipo di articolo: cosi il form ti mostra solo taglie e campi coerenti.</div>
@@ -2440,11 +2473,11 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
               <div class="fg" id="irisxSizeOriginalGroup"><label class="fl" id="sf-size-original-label">Taglia etichetta originale</label><input class="fi" id="sf-size-original" placeholder="es. 2, US 9, 30"></div>
             </div>
             <div class="fr">
-              <div class="fg"><label class="fl">Colore</label><input class="fi" placeholder="es. Nero"></div>
-              <div class="fg" id="irisxFitGroup"><label class="fl">Vestibilità</label><select class="fsel"><option>Regular</option><option>Slim</option><option>Oversize</option></select></div>
+              <div class="fg"><label class="fl">Colore</label><input class="fi" id="sf-color" placeholder="es. Nero"></div>
+              <div class="fg" id="irisxFitGroup"><label class="fl">Vestibilità</label><select class="fsel" id="sf-fit"><option>Regular</option><option>Slim</option><option>Oversize</option></select></div>
             </div>
             <div class="fr">
-              <div class="fg"><label class="fl">Materiale</label><input class="fi" placeholder="es. Pelle, Cotone"></div>
+              <div class="fg"><label class="fl">Materiale</label><input class="fi" id="sf-material" placeholder="es. Pelle, Cotone"></div>
               <div class="fg" id="irisxDimensionsGroup"><label class="fl" id="sf-dims-label">Dimensioni</label><input class="fi" id="sf-dims" placeholder="es. 30 x 22 x 16 cm"></div>
             </div>
             <div class="fg irisx-measurement-block" id="irisxMeasurementsGroup">
@@ -2452,24 +2485,25 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
               <div class="irisx-note" id="irisxMeasurementsHint">Inserisci le misure seller piu importanti. Le immagini guida le aggiungeremo dopo.</div>
               <div class="irisx-measurement-grid" id="irisxMeasurementsFields"></div>
             </div>
-            <div class="fg"><label class="fl">Condizione *</label><div class="cond-grid"><button class="cond-btn" onclick="selCond(this)">Nuovo con tag</button><button class="cond-btn" onclick="selCond(this)">Nuovo senza tag</button><button class="cond-btn" onclick="selCond(this)">Molto buono</button><button class="cond-btn" onclick="selCond(this)">Buono</button><button class="cond-btn" onclick="selCond(this)">Accettabile</button><button class="cond-btn" onclick="selCond(this)">Da restauro</button></div></div>
-            <div class="fg"><label class="fl">Descrizione *</label><textarea class="fta" placeholder="Materiale, colore, hardware, segni di usura, cosa è incluso..."></textarea></div>
-            <div class="fg"><label class="fl">Il tuo prezzo (€) *</label><input class="fi" type="number" id="sf-price" placeholder="es. 450" oninput="updateFee()"></div>
+            <div class="fg"><label class="fl">Condizione *</label><input type="hidden" id="sf-condition" required><div class="cond-grid"><button type="button" class="cond-btn" onclick="selCond(this)">Nuovo con tag</button><button type="button" class="cond-btn" onclick="selCond(this)">Nuovo senza tag</button><button type="button" class="cond-btn" onclick="selCond(this)">Molto buono</button><button type="button" class="cond-btn" onclick="selCond(this)">Buono</button><button type="button" class="cond-btn" onclick="selCond(this)">Accettabile</button><button type="button" class="cond-btn" onclick="selCond(this)">Da restauro</button></div></div>
+            <div class="fg"><label class="fl">Descrizione *</label><textarea class="fta" id="sf-desc" placeholder="Materiale, colore, hardware, segni di usura, cosa è incluso..." required minlength="10"></textarea></div>
+            <div class="fg"><label class="fl">Il tuo prezzo (€) *</label><input class="fi" type="number" id="sf-price" placeholder="es. 450" oninput="updateFee()" required min="1" step="0.01"></div>
           </div>
         </div>
         <div class="sell-side">
           <div class="side-card"><div class="sc-t">💜 Il tuo guadagno</div><div class="fee-row"><span class="fee-l">Prezzo</span><span class="fee-v" id="fee-p">€ —</span></div><div class="fee-row"><span class="fee-l">Commissione</span><span class="fee-v" id="fee-c">— %</span></div><div class="fee-row fee-total"><span class="fee-l">Guadagno netto</span><span class="fee-v" id="fee-n">€ —</span></div><div class="fee-note">La commissione si paga solo al venduto.</div></div>
           <div class="side-card"><div class="sc-t">✦ Incluso</div><div class="auth-badge"><div class="ab-icon">🔍</div><div class="ab-text"><strong>Autenticazione gratuita</strong>Verificato da esperti.</div></div><div class="auth-badge"><div class="ab-icon">🚚</div><div class="ab-text"><strong>Spedizione inclusa</strong>Etichetta prepagata.</div></div><div class="auth-badge"><div class="ab-icon">💳</div><div class="ab-text"><strong>Pagamento garantito</strong>Bonifico in 48h.</div></div></div>
-          <button class="sell-submit" onclick="publishListing()">Pubblica il tuo articolo</button>
+          <button class="sell-submit" id="sf-submit" type="submit">Pubblica il tuo articolo</button>
         </div>
-      </div>
+      </form>
     </div>
   </section>
 </div>
+</main>
 
 <!-- ═══════ STATIC PAGE MODALS ═══════ -->
-<div class="static-modal" id="modal-about">
-  <button class="sm-close" onclick="closeStatic('about')">✕</button>
+<div class="static-modal" id="modal-about" role="dialog" aria-modal="true">
+  <button class="sm-close" onclick="closeStatic('about')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Chi siamo</div>
     <div class="sm-subtitle">IRIS nasce dalla passione per la moda di lusso e dalla volont&agrave; di creare il primo marketplace italiano dedicato.</div>
@@ -2478,8 +2512,8 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div class="sm-section"><h3>I numeri</h3><p>+1.000 articoli autenticati &middot; +500 venditori verificati &middot; 98% soddisfazione clienti &middot; Spedizioni in tutta Europa</p></div>
   </div>
 </div>
-<div class="static-modal" id="modal-howto">
-  <button class="sm-close" onclick="closeStatic('howto')">✕</button>
+<div class="static-modal" id="modal-howto" role="dialog" aria-modal="true">
+  <button class="sm-close" onclick="closeStatic('howto')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Come funziona</div>
     <div class="sm-subtitle">Comprare e vendere su IRIS &egrave; semplice, sicuro e veloce.</div>
@@ -2487,8 +2521,8 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div class="sm-section"><h3>Per chi vende</h3><p>1. Fotografa il tuo articolo da pi&ugrave; angolazioni<br>2. Crea l'annuncio: brand, condizione, prezzo. Gratis!<br>3. Il compratore acquista, tu ricevi l'etichetta prepagata<br>4. Spedisci, noi autentichiamo<br>5. Ricevi il pagamento entro 48h dalla conferma</p></div>
   </div>
 </div>
-<div class="static-modal" id="modal-faq">
-  <button class="sm-close" onclick="closeStatic('faq')">✕</button>
+<div class="static-modal" id="modal-faq" role="dialog" aria-modal="true">
+  <button class="sm-close" onclick="closeStatic('faq')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Domande frequenti</div>
     <div class="sm-subtitle">Tutto quello che devi sapere su IRIS.</div>
@@ -2504,8 +2538,8 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     </div>
   </div>
 </div>
-<div class="static-modal" id="modal-terms">
-  <button class="sm-close" onclick="closeStatic('terms')">✕</button>
+<div class="static-modal" id="modal-terms" role="dialog" aria-modal="true">
+  <button class="sm-close" onclick="closeStatic('terms')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Termini e Condizioni</div>
     <div class="sm-subtitle">Ultimo aggiornamento: Marzo 2026</div>
@@ -2516,8 +2550,8 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div class="sm-section"><h3>5. Responsabilit&agrave;</h3><p>IRIS si impegna a verificare l'autenticit&agrave; degli articoli ma non pu&ograve; garantire al 100% l'assenza di errori. In caso di articolo non autentico, rimborso totale garantito.</p></div>
   </div>
 </div>
-<div class="static-modal" id="modal-privacy">
-  <button class="sm-close" onclick="closeStatic('privacy')">✕</button>
+<div class="static-modal" id="modal-privacy" role="dialog" aria-modal="true">
+  <button class="sm-close" onclick="closeStatic('privacy')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Privacy Policy</div>
     <div class="sm-subtitle">Ultimo aggiornamento: Marzo 2026 &middot; Conforme al GDPR (Reg. UE 2016/679)</div>
@@ -2526,6 +2560,23 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div class="sm-section"><h3>Finalit&agrave;</h3><p>I dati sono utilizzati per: erogazione del servizio, autenticazione, comunicazioni transazionali, miglioramento dell'esperienza utente, obblighi di legge.</p></div>
     <div class="sm-section"><h3>I tuoi diritti</h3><p>Hai diritto di accesso, rettifica, cancellazione, portabilit&agrave; e opposizione al trattamento dei tuoi dati personali. Puoi esercitare i tuoi diritti scrivendo a privacy@iris-fashion.it.</p></div>
     <div class="sm-section"><h3>Cookie</h3><p>Utilizziamo cookie tecnici necessari e cookie analitici anonimi per migliorare il servizio. Nessun cookie di profilazione senza consenso esplicito.</p></div>
+  </div>
+</div>
+<div class="static-modal" id="modal-contact" role="dialog" aria-modal="true">
+  <button class="sm-close" onclick="closeStatic('contact')" aria-label="Chiudi">✕</button>
+  <div class="sm-inner">
+    <div class="sm-title">Contattaci</div>
+    <div class="sm-subtitle">Supporto clienti IRIS</div>
+    <div class="sm-section"><h3>Email</h3><p><a href="mailto:support@iris-fashion.it">support@iris-fashion.it</a></p></div>
+  </div>
+</div>
+<div class="static-modal" id="modal-cookie" role="dialog" aria-modal="true">
+  <button class="sm-close" onclick="closeStatic('cookie')" aria-label="Chiudi">✕</button>
+  <div class="sm-inner">
+    <div class="sm-title">Cookie Policy</div>
+    <div class="sm-subtitle">Informativa sintetica sui cookie tecnici</div>
+    <div class="sm-section"><h3>Cookie tecnici</h3><p>IRIS utilizza cookie tecnici e storage locale per ricordare preferenze e mantenere il funzionamento della demo. Nessun dato viene condiviso con terze parti.</p></div>
+    <div class="sm-section"><h3>Scelta utente</h3><p>Puoi accettare o rifiutare il salvataggio delle preferenze dal banner cookie. In caso di rifiuto il sito continua a funzionare, ma non salva preferenze persistenti.</p></div>
   </div>
 </div>
 
@@ -2537,7 +2588,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 </div>
 
 <!-- Offer modal -->
-<div class="offer-modal" id="offerModal">
+<div class="offer-modal" id="offerModal" role="dialog" aria-modal="true">
   <div class="offer-box">
     <div class="offer-title">Fai un'offerta</div>
     <input class="offer-input" type="number" placeholder="€" id="offerInput">
@@ -2569,6 +2620,19 @@ const prods=[
   {id:11,name:'Santos de Cartier Watch',brand:'Cartier',cat:'Orologi',sz:'Medium',cond:'Eccellente',fit:'—',dims:'35.1 mm cassa · 7.9 mm spessore',price:5400,orig:7500,color:'Argento',material:'Acciaio Inox',emoji:'⌚',desc:'Santos de Cartier Medium in acciaio, quadrante argento, cinturino acciaio con sgancio rapido. Garanzia e box originali inclusi. Revisionato.',chips:['Acciaio','Con garanzia','Con box','Revisionato'],seller:sellers[2],date:Date.now()-900000000},
   {id:12,name:'Serpenti Forever Crossbody',brand:'Bvlgari',cat:'Borse',sz:'Small',cond:'Nuovo',fit:'—',dims:'20 × 14 × 5 cm',price:1800,orig:2700,color:'Rosa',material:'Pelle Karung',emoji:'🐍',desc:'Serpenti Forever crossbody in pelle Karung rosa con chiusura testa serpente in ottone palladio. Mai usata, con scatola e certificato.',chips:['Karung','Serpenti','Palladio HW','Con box'],seller:sellers[3],date:Date.now()-950000000},
 ];
+
+const placeholderImagesByCategory={
+  Borse:'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400&h=500&fit=crop',
+  Scarpe:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=500&fit=crop',
+  Orologi:'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=400&h=500&fit=crop',
+  Abbigliamento:'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=500&fit=crop',
+  Accessori:'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=400&h=500&fit=crop',
+  Gioielli:'https://images.unsplash.com/photo-1515562141589-67f0d569b6f5?w=400&h=500&fit=crop'
+};
+prods.forEach(p=>{
+  if(!p.image){p.image=placeholderImagesByCategory[p.cat]||placeholderImagesByCategory.Accessori}
+  if(!Array.isArray(p.images)||!p.images.length){p.images=[p.image]}
+});
 
 let favorites=new Set();
 let curSort='recent';

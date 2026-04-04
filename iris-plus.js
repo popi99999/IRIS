@@ -15,6 +15,15 @@
     chats: "iris-chats",
     reviews: "iris-reviews"
   };
+  const COOKIE_CONSENT_KEY = "iris-cookie-consent";
+  const PLACEHOLDER_IMAGES = {
+    borse: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400&h=500&fit=crop",
+    scarpe: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=500&fit=crop",
+    orologi: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=400&h=500&fit=crop",
+    abbigliamento: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=500&fit=crop",
+    accessori: "https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=400&h=500&fit=crop",
+    gioielli: "https://images.unsplash.com/photo-1515562141589-67f0d569b6f5?w=400&h=500&fit=crop"
+  };
 
   const PLATFORM_CONFIG = {
     ownerEmail: "owner@iris-fashion.it",
@@ -448,11 +457,23 @@
     favorites = new Set(existingFavorites);
   }
 
+  if (state.currentUser && normalizeEmail(state.currentUser.email) === "utente@iris-marketplace.it") {
+    state.currentUser = null;
+    removeStoredValue(STORAGE_KEYS.session);
+  }
+
+  if (!state.currentUser && Array.isArray(state.cart) && state.cart.length) {
+    state.cart = [];
+    removeStoredValue(STORAGE_KEYS.cart);
+  }
+
   extendTranslations();
   injectShellUi();
+  injectCookieConsentUi();
   injectHomeView();
   assignSellFormIds();
   injectSellHelpers();
+  bindShellMenus();
   ensureLanguageSelector();
   rebindMarketplaceSearch();
   normalizeMarketState();
@@ -951,6 +972,35 @@
     }).join(" · ");
   }
 
+  function getPlaceholderImageByCategory(category) {
+    const normalized = normalizeSearchText(category || "");
+    if (normalized.includes("scarpe")) return PLACEHOLDER_IMAGES.scarpe;
+    if (normalized.includes("orologi")) return PLACEHOLDER_IMAGES.orologi;
+    if (normalized.includes("accessori")) return PLACEHOLDER_IMAGES.accessori;
+    if (normalized.includes("gioielli")) return PLACEHOLDER_IMAGES.gioielli;
+    if (normalized.includes("abbigliamento")) return PLACEHOLDER_IMAGES.abbigliamento;
+    return PLACEHOLDER_IMAGES.borse;
+  }
+
+  function getListingImageSources(listing) {
+    const sources = [];
+    if (Array.isArray(listing && listing.images)) {
+      listing.images.filter(Boolean).forEach(function (src) {
+        if (sources.indexOf(src) === -1) {
+          sources.push(src);
+        }
+      });
+    }
+    if (listing && listing.image && sources.indexOf(listing.image) === -1) {
+      sources.push(listing.image);
+    }
+    const fallback = getPlaceholderImageByCategory(listing && listing.cat);
+    if (!sources.length && fallback) {
+      sources.push(fallback);
+    }
+    return sources;
+  }
+
   function loadJson(key, fallback) {
     try {
       const raw = localStorage.getItem(key);
@@ -960,7 +1010,41 @@
     }
   }
 
+  function getCookieConsentStatus() {
+    try {
+      return localStorage.getItem(COOKIE_CONSENT_KEY) || "";
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function canPersistUserData() {
+    return getCookieConsentStatus() === "accepted";
+  }
+
+  function persistPreference(key, value) {
+    try {
+      if (key !== COOKIE_CONSENT_KEY && !canPersistUserData()) {
+        return;
+      }
+      localStorage.setItem(key, value);
+    } catch (error) {
+      return;
+    }
+  }
+
+  function removeStoredValue(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      return;
+    }
+  }
+
   function saveJson(key, value) {
+    if (!canPersistUserData()) {
+      return;
+    }
     localStorage.setItem(key, JSON.stringify(value));
   }
 
@@ -1075,7 +1159,7 @@
   function setLanguage(nextLang) {
     const fallback = LOCALE_SETTINGS.en ? "en" : Object.keys(LOCALE_SETTINGS)[0];
     curLang = LOCALE_SETTINGS[nextLang] ? nextLang : fallback;
-    localStorage.setItem("iris-lang", curLang);
+    persistPreference("iris-lang", curLang);
     document.documentElement.lang = curLang;
     document.documentElement.dir = isRtlLocale() ? "rtl" : "ltr";
     document.body.classList.toggle("irisx-rtl", isRtlLocale());
@@ -1799,7 +1883,7 @@
       seller.city = listing.city;
     }
     if (!seller.name) {
-      seller.name = (listing && listing.ownerName) || langText("Seller", "Seller");
+      seller.name = (listing && listing.ownerName) || langText("Venditore", "Seller");
     }
     if (listing && listing.ownerEmail && !seller.email) {
       seller.email = normalizeEmail(listing.ownerEmail);
@@ -1988,7 +2072,8 @@
         productTypeKey: productTypeKey,
         sizeOriginal: (listing && listing.sizeOriginal) || "",
         sizeSchema: inferSellSizeSchema(listing),
-        images: Array.isArray(listing && listing.images) ? listing.images.filter(Boolean) : [],
+        image: (listing && listing.image) || "",
+        images: getListingImageSources(listing),
         inventoryStatus: "active",
         listingStatus: "published",
         orderId: null,
@@ -2025,6 +2110,8 @@
         sizeSchema: inferSellSizeSchema(listing),
         verified: isListingVerified(listing),
         measurements: measurements,
+        image: getListingImageSources(listing)[0] || "",
+        images: getListingImageSources(listing),
         seller: seller
       }
     );
@@ -2196,8 +2283,8 @@
     const messages = Array.isArray(thread && thread.msgs) ? thread.msgs.map(normalizeChatMessageRecord) : [];
     const lastMessage = messages[messages.length - 1];
     const updatedAt = Number((thread && thread.updatedAt) || (lastMessage && lastMessage.at) || Date.now());
-    const sellerName = (thread && thread.sellerName) || storedSeller.name || productSeller.name || ((legacyParticipantEmail && legacyParticipantEmail === sellerEmail) ? legacyParticipant.name : "") || langText("Seller", "Seller");
-    const buyerName = (thread && thread.buyerName) || storedBuyer.name || ((legacyParticipantEmail && legacyParticipantEmail === fallbackBuyerEmail) ? legacyParticipant.name : "") || ((state.currentUser && fallbackBuyerEmail === currentUserEmail) ? state.currentUser.name : "") || langText("Buyer", "Buyer");
+    const sellerName = (thread && thread.sellerName) || storedSeller.name || productSeller.name || ((legacyParticipantEmail && legacyParticipantEmail === sellerEmail) ? legacyParticipant.name : "") || langText("Venditore", "Seller");
+    const buyerName = (thread && thread.buyerName) || storedBuyer.name || ((legacyParticipantEmail && legacyParticipantEmail === fallbackBuyerEmail) ? legacyParticipant.name : "") || ((state.currentUser && fallbackBuyerEmail === currentUserEmail) ? state.currentUser.name : "") || langText("Acquirente", "Buyer");
     const sellerParticipant = normalizeChatParticipant(
       Object.assign({}, productSeller, storedSeller),
       sellerName,
@@ -2368,7 +2455,7 @@
       checkout: "Vai al checkout",
       add_to_cart: "Aggiungi al carrello",
       cart_added: "Articolo aggiunto al carrello.",
-      empty_cart: "Il carrello e' vuoto. Esplora lo shop e aggiungi i pezzi che vuoi acquistare.",
+      empty_cart: "Il carrello è vuoto. Esplora lo shop e aggiungi i pezzi che vuoi acquistare.",
       cart_total: "Totale",
       continue_shopping: "Continua a esplorare",
       checkout_title: "Checkout",
@@ -2376,7 +2463,7 @@
       order_summary: "Riepilogo ordine",
       shipping_name: "Nome e cognome",
       shipping_address: "Indirizzo",
-      shipping_city: "Citta'",
+      shipping_city: "Città",
       shipping_country: "Paese",
       shipping_note: "Note per il corriere",
       confirm_order: "Conferma ordine",
@@ -2389,7 +2476,7 @@
       full_name: "Nome completo",
       email: "Email",
       password: "Password",
-      auth_switch_login: "Hai gia' un account?",
+      auth_switch_login: "Hai già un account?",
       auth_switch_register: "Non hai ancora un account?",
       cart_items: "articoli",
       manual_payment_note: "Questo checkout funziona lato interfaccia e salva l'ordine nel browser. Per pagamenti reali serve collegare Stripe o un backend.",
@@ -2398,22 +2485,22 @@
       photos_ready: "Foto pronte. Verranno salvate in versione ottimizzata nel browser.",
       my_listings: "I tuoi annunci",
       my_orders: "I tuoi ordini",
-      profile_guest_title: "Accedi per attivare il tuo profilo",
-      profile_guest_body: "Login, registrazione, publish flow e checkout adesso sono attivi lato browser.",
+      profile_guest_title: "Accedi o registrati per gestire il tuo account",
+      profile_guest_body: "Accedi o registrati per gestire il tuo account.",
       sign_in_to_continue: "Accedi per continuare",
       checkout_success: "Ordine registrato con successo.",
       login_success: "Accesso effettuato.",
       logout_success: "Sessione chiusa.",
       register_success: "Account creato con successo.",
       remove: "Rimuovi",
-      qty: "Quantita'",
+      qty: "Quantità",
       cart_open: "Apri carrello",
-      account_area: "Account",
+      account_area: "Area account",
       profile_nav: "Profilo",
       profile_details: "Dati profilo",
       save_profile: "Salva profilo",
       profile_saved: "Profilo aggiornato.",
-      profile_city: "Citta'",
+      profile_city: "Città",
       profile_country: "Paese",
       profile_bio: "Bio",
       favorites_section: "Preferiti",
@@ -2421,17 +2508,41 @@
       no_favorites_yet: "Non hai ancora preferiti salvati.",
       account_summary: "Panoramica account",
       sell_status_idle: "Pubblica un annuncio con foto reali, dettagli e prezzo.",
-      sell_status_ready: "Le foto sono state caricate e il form e' pronto.",
+      sell_status_ready: "Le foto sono state caricate e il form è pronto.",
       sell_status_auth: "Per pubblicare davvero serve autenticarti.",
       shipping: "Spedizione",
-      prototype_mode: "Modalita' prototipo avanzata",
+      prototype_mode: "Modalità prototipo avanzata",
       search_short: "Ricerca",
       size_placeholder: "es. M, 42, 30cm...",
       price_min: "Min",
       price_max: "Max",
       dimensions: "Dimensioni",
       material: "Materiale",
-      not_available: "N/A"
+      not_available: "N/A",
+      profile_area_account: "Area account",
+      profile_area_buyer: "Area acquisti",
+      profile_area_seller: "Area vendite",
+      overview: "Panoramica",
+      preferences: "Preferenze",
+      my_size: "Le mie taglie",
+      saved_searches: "Ricerche salvate",
+      selling_preferences: "Preferenze vendita",
+      location: "Posizione",
+      vacation_mode: "Modalità vacanza",
+      listing_preferences: "Preferenze annunci",
+      shipping_protection: "Spedizione e protezione",
+      accessibility_statement: "Accessibilità",
+      your_listings: "I tuoi annunci",
+      identity_verification: "Verifica identità",
+      quick_support: "Supporto rapido",
+      notification_settings: "Impostazioni notifiche",
+      payout_settings: "Impostazioni pagamento",
+      size_profile: "Profilo taglie",
+      shipping_method_label: "Metodo di spedizione",
+      trust_label: "Garanzia",
+      insured_tracked: "Assicurata e tracciata",
+      auth_queue_prepared: "Autenticazione in coda",
+      learn_more: "Scopri di più"
     });
 
     Object.assign(i18n.en, {
@@ -2506,7 +2617,31 @@
       price_max: "Max",
       dimensions: "Dimensions",
       material: "Material",
-      not_available: "N/A"
+      not_available: "N/A",
+      profile_area_account: "Account area",
+      profile_area_buyer: "Buyer area",
+      profile_area_seller: "Seller area",
+      overview: "Overview",
+      preferences: "Preferences",
+      my_size: "My Size",
+      saved_searches: "Saved searches",
+      selling_preferences: "Selling preferences",
+      location: "Location",
+      vacation_mode: "Vacation mode",
+      listing_preferences: "Listing preferences",
+      shipping_protection: "Shipping and Protection",
+      accessibility_statement: "Accessibility Statement",
+      your_listings: "Your listings",
+      identity_verification: "Verification",
+      quick_support: "Quick support",
+      notification_settings: "Notification settings",
+      payout_settings: "Payout settings",
+      size_profile: "Size profile",
+      shipping_method_label: "Shipping method",
+      trust_label: "Trust",
+      insured_tracked: "Insured and tracked",
+      auth_queue_prepared: "Authentication queue prepared",
+      learn_more: "Learn more"
     });
 
     Object.keys(I18N_PACKS).forEach(function (code) {
@@ -2572,10 +2707,10 @@
     if (!qs("#irisxAuthModal")) {
       document.body.insertAdjacentHTML(
         "beforeend",
-        "<div class=\"irisx-modal\" id=\"irisxAuthModal\"></div>" +
-          "<div class=\"irisx-drawer\" id=\"irisxCartDrawer\"></div>" +
-          "<div class=\"irisx-modal\" id=\"irisxCheckoutModal\"></div>" +
-          "<div class=\"irisx-modal\" id=\"irisxOrderModal\"></div>" +
+        "<div class=\"irisx-modal\" id=\"irisxAuthModal\" role=\"dialog\" aria-modal=\"true\"></div>" +
+          "<div class=\"irisx-drawer\" id=\"irisxCartDrawer\" role=\"dialog\" aria-modal=\"true\"></div>" +
+          "<div class=\"irisx-modal\" id=\"irisxCheckoutModal\" role=\"dialog\" aria-modal=\"true\"></div>" +
+          "<div class=\"irisx-modal\" id=\"irisxOrderModal\" role=\"dialog\" aria-modal=\"true\"></div>" +
           "<div class=\"irisx-toast-stack\" id=\"irisxToastStack\"></div>"
       );
     }
@@ -3021,6 +3156,206 @@
     return "home";
   }
 
+  function bumpViewSyncToken() {
+    state.viewSyncToken = Number(state.viewSyncToken || 0) + 1;
+    return state.viewSyncToken;
+  }
+
+  function syncTopnavChrome(view) {
+    const topnav = qs("#topnav");
+    const mobileTrigger = qs("#tnMobileToggle");
+    const searchWrap = qs("#topnav .tn-search");
+    const autocomplete = qs("#acDropdown");
+    const activeView = view || getCurrentReturnView();
+    const showSearch = window.innerWidth > 900 ? true : activeView === "shop";
+
+    if (topnav) {
+      topnav.classList.toggle("irisx-search-hidden", !showSearch);
+    }
+    if (searchWrap) {
+      searchWrap.style.display = showSearch ? "" : "none";
+      searchWrap.setAttribute("aria-hidden", showSearch ? "false" : "true");
+    }
+    if (autocomplete) {
+      autocomplete.style.display = showSearch ? "" : "none";
+      if (!showSearch) {
+        autocomplete.classList.remove("open");
+      }
+    }
+    if (mobileTrigger) {
+      mobileTrigger.setAttribute("aria-expanded", qs("#tnMobileMenu") && qs("#tnMobileMenu").classList.contains("open") ? "true" : "false");
+    }
+  }
+
+  function closeMobileFilters() {
+    const panel = qs("#filtersPanel");
+    if (panel) {
+      panel.classList.remove("open");
+    }
+    document.body.classList.remove("irisx-filters-open");
+  }
+
+  function toggleMobileFilters(forceOpen) {
+    const panel = qs("#filtersPanel");
+    if (!panel) {
+      return;
+    }
+    const willOpen = typeof forceOpen === "boolean" ? forceOpen : !panel.classList.contains("open");
+    panel.classList.toggle("open", willOpen);
+    document.body.classList.toggle("irisx-filters-open", willOpen);
+  }
+
+  function setNodeText(selector, value) {
+    const node = qs(selector);
+    if (node) {
+      node.textContent = value;
+    }
+  }
+
+  function setButtonLabelWithBadge(selector, label, badgeId) {
+    const node = qs(selector);
+    if (!node) {
+      return;
+    }
+    const badge = badgeId ? qs("#" + badgeId) : null;
+    if (badge) {
+      node.innerHTML = `${escapeHtml(label)} <span class="badge" id="${badgeId}" style="${badge.style.cssText || "display:none"}">${escapeHtml(badge.textContent || "0")}</span>`;
+      return;
+    }
+    node.textContent = label;
+  }
+
+  function syncNavigationLabels() {
+    const locale = getLocaleConfig();
+    const themeLabel = darkMode
+      ? langText("Tema scuro", "Dark mode")
+      : langText("Tema chiaro", "Light mode");
+    const languageLabel = `${langText("Lingua", "Language")} · ${locale.label}`;
+
+    setNodeText("#tnHomeBtn", langText("Home", "Home"));
+    setNodeText("#tnShopBtn", langText("Shop", "Shop"));
+    setNodeText("#tnAboutBtn", langText("Chi siamo", "About us"));
+
+    setNodeText("#tnMenuProfileBtn", langText("Profilo", "Profile"));
+    setButtonLabelWithBadge("#tnMenuFavBtn", langText("Preferiti", "Favorites"), "fav-badge");
+    setButtonLabelWithBadge("#tnMenuChatBtn", langText("Messaggi", "Messages"), "chat-badge");
+    setNodeText("#modeToggle", themeLabel);
+    setNodeText("#langToggle", languageLabel);
+
+    setNodeText("#tnMobileHomeBtn", langText("Home", "Home"));
+    setNodeText("#tnMobileShopBtn", langText("Shop", "Shop"));
+    setNodeText("#tnMobileAboutBtn", langText("Chi siamo", "About us"));
+    setNodeText("#tnMobileProfileBtn", langText("Profilo", "Profile"));
+    setNodeText("#tnMobileFavBtn", langText("Preferiti", "Favorites"));
+    setNodeText("#tnMobileChatBtn", langText("Messaggi", "Messages"));
+    setNodeText("#tnMobileCartBtn", langText("Carrello", "Cart"));
+    setNodeText("#tnMobileSellBtn", langText("Vendi", "Sell"));
+    setNodeText("#tnMobileThemeBtn", themeLabel);
+    setNodeText("#tnMobileLangBtn", languageLabel);
+  }
+
+  function closeProfileMenu() {
+    const menu = qs("#tnProfileMenu");
+    const trigger = qs("#tnProfileTrigger");
+    if (menu) {
+      menu.classList.remove("open");
+    }
+    if (trigger) {
+      trigger.classList.remove("is-open");
+      trigger.setAttribute("aria-expanded", "false");
+    }
+  }
+
+  function toggleProfileMenu() {
+    const menu = qs("#tnProfileMenu");
+    const trigger = qs("#tnProfileTrigger");
+    if (!menu || !trigger) {
+      return;
+    }
+    closeMobileNav();
+    const willOpen = !menu.classList.contains("open");
+    menu.classList.toggle("open", willOpen);
+    trigger.classList.toggle("is-open", willOpen);
+    trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+  }
+
+  function closeMobileNav() {
+    const menu = qs("#tnMobileMenu");
+    const trigger = qs("#tnMobileToggle");
+    if (menu) {
+      menu.classList.remove("open");
+    }
+    if (trigger) {
+      trigger.classList.remove("is-open");
+      trigger.setAttribute("aria-expanded", "false");
+    }
+    document.body.classList.remove("irisx-mobile-menu-open");
+  }
+
+  function toggleMobileNav() {
+    const menu = qs("#tnMobileMenu");
+    const trigger = qs("#tnMobileToggle");
+    if (!menu || !trigger) {
+      return;
+    }
+    closeProfileMenu();
+    const willOpen = !menu.classList.contains("open");
+    menu.classList.toggle("open", willOpen);
+    trigger.classList.toggle("is-open", willOpen);
+    trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    document.body.classList.toggle("irisx-mobile-menu-open", willOpen);
+  }
+
+  function bindShellMenus() {
+    window.addEventListener("resize", function () {
+      syncTopnavChrome();
+    });
+    document.addEventListener("click", function (event) {
+      const profileMenu = qs("#tnProfileMenu");
+      const profileTrigger = qs("#tnProfileTrigger");
+      if (
+        profileMenu &&
+        profileTrigger &&
+        profileMenu.classList.contains("open") &&
+        !profileMenu.contains(event.target) &&
+        !profileTrigger.contains(event.target)
+      ) {
+        closeProfileMenu();
+      }
+      const mobileMenu = qs("#tnMobileMenu");
+      const mobileToggle = qs("#tnMobileToggle");
+      const mobilePanel = qs(".tn-mobile-menu__panel");
+      if (
+        mobileMenu &&
+        mobileMenu.classList.contains("open") &&
+        !mobilePanel.contains(event.target) &&
+        !mobileToggle.contains(event.target)
+      ) {
+        closeMobileNav();
+      }
+      const filtersPanel = qs("#filtersPanel");
+      if (
+        filtersPanel &&
+        filtersPanel.classList.contains("open") &&
+        !filtersPanel.contains(event.target) &&
+        !event.target.closest(".mob-filter-btn")
+      ) {
+        closeMobileFilters();
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        closeProfileMenu();
+        closeMobileNav();
+        closeMobileFilters();
+      }
+    });
+
+    window.toggleMobileFilters = toggleMobileFilters;
+    window.closeMobileFilters = closeMobileFilters;
+  }
+
   function initializeSimplifiedShell() {
     document.body.classList.add("irisx-simple-state");
 
@@ -3074,8 +3409,12 @@
       const sellPage = qs("#page-sell");
       const topnav = qs("#topnav");
       const sellTopbar = qs("#sellTopbar");
+      bumpViewSyncToken();
 
       document.body.style.overflow = "";
+      closeProfileMenu();
+      closeMobileNav();
+      closeMobileFilters();
 
       if (type === "sell") {
         buyPage.classList.remove("active");
@@ -3100,18 +3439,259 @@
     }
   }
 
+  function clearPersistedPrototypeData() {
+    Object.keys(STORAGE_KEYS).forEach(function (key) {
+      removeStoredValue(STORAGE_KEYS[key]);
+    });
+    ["iris-lang", "iris-mode", "iris-pwa-dismissed"].forEach(removeStoredValue);
+  }
+
+  function setCookieConsent(status) {
+    persistPreference(COOKIE_CONSENT_KEY, status);
+    if (status === "rejected") {
+      clearPersistedPrototypeData();
+      favorites = new Set();
+      state.cart = [];
+      state.currentUser = null;
+      state.listings = [];
+      state.orders = [];
+      state.offers = [];
+      state.notifications = [];
+      state.emailOutbox = [];
+      state.supportTickets = [];
+      state.auditLog = [];
+      state.reviews = [];
+      if (typeof chats !== "undefined" && Array.isArray(chats)) {
+        chats.length = 0;
+      }
+      updateCartBadge();
+      updateFavBadge();
+      renderCartDrawer();
+      renderNotifications();
+      renderProfilePanel();
+    }
+    const banner = qs("#irisCookieBanner");
+    if (banner) {
+      banner.classList.remove("open");
+    }
+  }
+
+  function injectCookieConsentUi() {
+    if (!qs("#irisCookieBanner")) {
+      document.body.insertAdjacentHTML(
+        "beforeend",
+        "<div class=\"irisx-cookie-banner\" id=\"irisCookieBanner\" role=\"dialog\" aria-modal=\"true\" aria-live=\"polite\">" +
+          "<div class=\"irisx-cookie-banner__copy\">" +
+            "<strong>" + langText("Cookie tecnici IRIS", "IRIS technical cookies") + "</strong>" +
+            "<span>" + langText("Questo sito utilizza cookie tecnici per il funzionamento. Nessun dato viene condiviso con terze parti.", "This website uses technical cookies for functionality. No data is shared with third parties.") + "</span>" +
+          "</div>" +
+          "<div class=\"irisx-cookie-banner__actions\">" +
+            "<button class=\"irisx-secondary\" onclick=\"rejectCookieConsent()\">" + langText("Rifiuta", "Reject") + "</button>" +
+            "<button class=\"irisx-primary\" onclick=\"acceptCookieConsent()\">" + langText("Accetta", "Accept") + "</button>" +
+          "</div>" +
+        "</div>"
+      );
+    }
+    const banner = qs("#irisCookieBanner");
+    if (banner) {
+      banner.classList.toggle("open", !getCookieConsentStatus());
+    }
+  }
+
+  function getSellFieldContainer(field) {
+    if (!field) {
+      return null;
+    }
+    return field.closest(".fg") || field.closest(".photo-upload") || field.closest(".irisx-measurement-block") || field.parentElement || null;
+  }
+
+  function ensureSellFieldErrorNode(field) {
+    const container = getSellFieldContainer(field);
+    if (!container || !field || !field.id) {
+      return null;
+    }
+    let errorNode = container.querySelector('.field-error[data-for="' + field.id + '"]');
+    if (!errorNode) {
+      errorNode = document.createElement("span");
+      errorNode.className = "field-error";
+      errorNode.dataset.for = field.id;
+      container.appendChild(errorNode);
+    }
+    return errorNode;
+  }
+
+  function clearSellFieldError(field) {
+    const container = getSellFieldContainer(field);
+    const errorNode = field ? ensureSellFieldErrorNode(field) : null;
+    if (container) {
+      container.classList.remove("has-error");
+    }
+    if (field) {
+      field.removeAttribute("aria-invalid");
+    }
+    if (errorNode) {
+      errorNode.textContent = "";
+    }
+  }
+
+  function setSellFieldError(field, message) {
+    const container = getSellFieldContainer(field);
+    const errorNode = ensureSellFieldErrorNode(field);
+    if (container) {
+      container.classList.add("has-error");
+    }
+    if (field) {
+      field.setAttribute("aria-invalid", "true");
+    }
+    if (errorNode) {
+      errorNode.textContent = message;
+    }
+  }
+
+  function validateSellField(fieldOrId) {
+    const field = typeof fieldOrId === "string" ? qs("#" + fieldOrId) : fieldOrId;
+    if (!field) {
+      return true;
+    }
+
+    const value = typeof field.value === "string" ? field.value.trim() : "";
+    let message = "";
+    switch (field.id) {
+      case "fileIn":
+        if (!state.sellPhotos.length) {
+          message = langText("Aggiungi almeno una foto.", "Add at least one photo.");
+        }
+        break;
+      case "sf-desc":
+        if (!value) {
+          message = langText("Inserisci una descrizione.", "Add a description.");
+        } else if (value.length < 10) {
+          message = langText("La descrizione deve avere almeno 10 caratteri.", "Description must be at least 10 characters.");
+        }
+        break;
+      case "sf-price": {
+        const numeric = Number(field.value);
+        if (!value) {
+          message = langText("Inserisci il prezzo.", "Enter the price.");
+        } else if (!Number.isFinite(numeric) || numeric < 1) {
+          message = langText("Il prezzo deve essere almeno 1 €.", "Price must be at least €1.");
+        }
+        break;
+      }
+      case "sf-condition":
+        if (!value) {
+          message = langText("Seleziona la condizione.", "Select the condition.");
+        }
+        break;
+      default:
+        if (field.hasAttribute("required") && !value) {
+          message = langText("Campo obbligatorio.", "Required field.");
+        }
+        break;
+    }
+
+    if (message) {
+      setSellFieldError(field, message);
+      return false;
+    }
+
+    clearSellFieldError(field);
+    return true;
+  }
+
+  function validateSellForm() {
+    const requiredFields = ["fileIn", "sf-cat", "sf-brand", "sf-name", "sf-subcat", "sf-condition", "sf-desc", "sf-price"];
+    return requiredFields.every(function (fieldId) {
+      return validateSellField(fieldId);
+    });
+  }
+
+  function focusFirstSellError() {
+    const firstInvalid = qs("#sellForm [aria-invalid='true']");
+    if (firstInvalid && typeof firstInvalid.focus === "function") {
+      firstInvalid.focus();
+      return;
+    }
+    const photoUpload = qs(".photo-upload.has-error");
+    if (photoUpload && typeof photoUpload.scrollIntoView === "function") {
+      photoUpload.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  function bindSellFormValidation() {
+    const form = qs("#sellForm");
+    if (!form || form.dataset.irisxBound === "1") {
+      return;
+    }
+    form.dataset.irisxBound = "1";
+
+    qsa("input, textarea, select", form).forEach(function (field) {
+      if (field.type === "file") {
+        field.addEventListener("change", function () {
+          setTimeout(function () {
+            validateSellField(field);
+          }, 0);
+        });
+        return;
+      }
+      field.addEventListener("blur", function () {
+        validateSellField(field);
+      });
+      field.addEventListener("change", function () {
+        validateSellField(field);
+      });
+      field.addEventListener("input", function () {
+        const errorNode = ensureSellFieldErrorNode(field);
+        if (errorNode && errorNode.textContent) {
+          validateSellField(field);
+        }
+      });
+    });
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const isValid = validateSellForm();
+      if (!isValid) {
+        updateSellStatus(t("publish_error"), true);
+        focusFirstSellError();
+        return;
+      }
+      requireAuth(function () {
+        if (validateSellForm()) {
+          publishListing();
+        }
+      });
+    });
+  }
+
+  selCond = function (button) {
+    qsa(".cond-btn").forEach(function (candidate) {
+      candidate.classList.remove("sel");
+    });
+    if (button) {
+      button.classList.add("sel");
+    }
+    const hiddenField = qs("#sf-condition");
+    if (hiddenField) {
+      hiddenField.value = button ? button.textContent.trim() : "";
+      validateSellField(hiddenField);
+    }
+  };
+
   function bindStaticEnhancements() {
     const fileInput = qs("#fileIn");
     if (fileInput) {
       fileInput.addEventListener("change", handleSellPhotosSelected);
     }
+    bindSellFormValidation();
 
-    const submitButton = qs("#sf-submit");
-    if (submitButton) {
-      submitButton.addEventListener("click", function () {
-        requireAuth(publishListing);
-      });
-    }
+    qsa(".static-modal").forEach(function (modal) {
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+    });
+    qsa(".sm-close").forEach(function (button) {
+      button.setAttribute("aria-label", langText("Chiudi", "Close"));
+    });
 
     qsa("#irisxAuthModal, #irisxCheckoutModal, #irisxCartDrawer, #irisxOpsModal").forEach((node) => {
       node.addEventListener("click", function (event) {
@@ -3307,6 +3887,20 @@
     );
     if (!email) return null;
     return state.users.find(function (u) { return normalizeEmail(u.email) === email; }) || null;
+  }
+
+  function isCurrentUserListingOwner(product) {
+    if (!product || !state.currentUser) {
+      return false;
+    }
+    const currentEmail = normalizeEmail(state.currentUser.email || "");
+    const ownerEmail = normalizeEmail(
+      product.ownerEmail ||
+      (product.seller && product.seller.email) ||
+      buildListingSeller(product).email ||
+      ""
+    );
+    return Boolean(currentEmail && ownerEmail && currentEmail === ownerEmail);
   }
 
   function isSellerOnVacation(product) {
@@ -4461,7 +5055,7 @@
         ? Number(product.minimumOfferAmount)
         : null;
       const minimumText = minimum !== null
-        ? `${langText("Offerta minima", "Minimum offer")} ${formatCurrency(minimum)}`
+        ? `${langText("Offerta minima", "Minimum offer")}: ${formatCurrency(minimum)}`
         : "";
       if (!sanitized) {
         return {
@@ -4486,7 +5080,7 @@
           rawValue: sanitized,
           amount: amount,
           canContinue: false,
-          errorMessage: langText(`La tua offerta e' troppo bassa. Minimo ${formatCurrency(minimum)}.`, `Your offer is too low. Minimum ${formatCurrency(minimum)}.`),
+          errorMessage: `${langText("La tua offerta è troppo bassa.", "Your offer is too low.")} ${minimumText}`,
           minimumText: minimumText
         };
       }
@@ -4887,7 +5481,7 @@
         offerProdId = id;
         state.offerDraft = {
           listingId: product.id,
-          offerAmount: product.minimumOfferAmount || "",
+          offerAmount: "",
           shippingSnapshot: getBuyerOfferDefaults().shippingSnapshot,
           paymentMethodSnapshot: getBuyerOfferDefaults().paymentMethodSnapshot,
           termsAccepted: false
@@ -5017,7 +5611,11 @@
   function overrideMarketplaceFunctions() {
     const originalApplyLang = applyLang;
     applyLang = function () {
-      originalApplyLang();
+      try {
+        originalApplyLang();
+      } catch (error) {
+        // The legacy inline applyLang touches old selectors; keep the SPA usable if one is missing.
+      }
       const locale = getLocaleConfig();
       ensureLanguageSelector();
       document.documentElement.lang = curLang;
@@ -5043,9 +5641,17 @@
       if (opsButton) {
         opsButton.textContent = "Ops";
       }
+      const modeButton = qs("#modeToggle");
+      if (modeButton) {
+        modeButton.textContent = darkMode ? langText("Tema chiaro", "Light mode") : langText("Tema scuro", "Dark mode");
+      }
       const langSelect = qs("#langToggle");
       if (langSelect) {
-        langSelect.value = curLang;
+        if (langSelect.tagName === "SELECT") {
+          langSelect.value = curLang;
+        } else {
+          langSelect.textContent = curLang === "it" ? "EN" : "IT";
+        }
         langSelect.setAttribute("title", locale.nativeLabel + " · " + locale.currency);
       }
       const cartButton = qs("#cartBtn");
@@ -5079,6 +5685,7 @@
       }
       initFilters();
       syncSessionUi();
+      syncNavigationLabels();
       renderHomeView();
       if (typeof renderFooters === "function") {
         renderFooters();
@@ -5099,6 +5706,21 @@
       }
       const currentIndex = Math.max(0, localeCodes.indexOf(curLang));
       setLanguage(localeCodes[(currentIndex + 1) % localeCodes.length]);
+    };
+
+    toggleDarkLight = function () {
+      darkMode = !darkMode;
+      document.body.classList.toggle("light-mode", !darkMode);
+      persistPreference("iris-mode", darkMode ? "dark" : "light");
+      applyLang();
+    };
+
+    dismissPwa = function () {
+      const banner = qs("#pwaBanner");
+      if (banner) {
+        banner.style.display = "none";
+      }
+      persistPreference("iris-pwa-dismissed", "1");
     };
 
     renderBrandFilters = function (query) {
@@ -5305,16 +5927,14 @@
       });
     };
 
-    const originalOpenOffer = openOffer;
-    openOffer = function (id) {
-      requireAuth(function () {
-        originalOpenOffer(id);
-      });
-    };
-
     showBuyView = function (view) {
       const targetView = view || "home";
+      const viewToken = bumpViewSyncToken();
       const ids = ["home-view", "shop-view", "detail-view", "fav-view", "chat-view", "profile-view", "seller-view", "ops-view"];
+
+      closeProfileMenu();
+      closeMobileNav();
+      closeMobileFilters();
 
       ids.forEach(function (id) {
         const element = qs("#" + id);
@@ -5330,6 +5950,7 @@
       const detailView = qs("#detail-view");
       if (detailView) {
         detailView.style.display = "none";
+        detailView.style.paddingTop = "";
       }
 
       state.lastNonDetailView = targetView === "detail" ? state.lastNonDetailView : targetView;
@@ -5339,15 +5960,13 @@
         mobileFilterButton.style.display = targetView === "shop" ? "" : "none";
       }
 
-      const topnav = qs("#topnav");
-      if (topnav) {
-        topnav.classList.toggle("irisx-search-hidden", !(targetView === "home" || targetView === "shop"));
-      }
+      syncTopnavChrome(targetView);
 
       if (targetView === "home") {
         renderHomeView();
         qs("#home-view").classList.add("active");
         setActiveNav("home");
+        syncTopnavChrome(targetView);
         window.scrollTo(0, 0);
         return;
       }
@@ -5357,9 +5976,14 @@
         qs("#shop-view").classList.add("active");
         setActiveNav("shop");
         setTimeout(function () {
+          if (state.viewSyncToken !== viewToken || !qs("#shop-view") || !qs("#shop-view").classList.contains("active")) {
+            return;
+          }
           render();
           renderFooters();
+          syncTopnavChrome(targetView);
         }, 180);
+        syncTopnavChrome(targetView);
         window.scrollTo(0, 0);
         return;
       }
@@ -5368,6 +5992,7 @@
         qs("#fav-view").classList.add("active", "view-enter");
         renderFavorites();
         setActiveNav("fav");
+        syncTopnavChrome(targetView);
         window.scrollTo(0, 0);
         return;
       }
@@ -5378,8 +6003,13 @@
         showSkeleton("chatList", "chat");
         setActiveNav("chat");
         setTimeout(function () {
+          if (state.viewSyncToken !== viewToken || !qs("#chat-view") || !qs("#chat-view").classList.contains("active")) {
+            return;
+          }
           renderChats();
+          syncTopnavChrome(targetView);
         }, 200);
+        syncTopnavChrome(targetView);
         return;
       }
 
@@ -5387,13 +6017,17 @@
         qs("#profile-view").classList.add("active", "view-enter");
         renderProfilePanel();
         setActiveNav("profile");
+        syncTopnavChrome(targetView);
         window.scrollTo(0, 0);
         return;
       }
 
       if (targetView === "seller") {
         qs("#seller-view").classList.add("active", "view-enter");
+        renderSellerProfileView();
         setActiveNav("");
+        syncTopnavChrome(targetView);
+        window.scrollTo(0, 0);
         return;
       }
 
@@ -5401,6 +6035,7 @@
         qs("#ops-view").classList.add("active", "view-enter");
         renderOpsView();
         setActiveNav("ops");
+        syncTopnavChrome(targetView);
       }
     };
 
@@ -5483,6 +6118,10 @@
       if (!product) {
         return;
       }
+
+      closeProfileMenu();
+      closeMobileNav();
+      closeMobileFilters();
 
       ["home-view", "shop-view", "fav-view", "chat-view", "profile-view", "seller-view"].forEach(function (viewId) {
         const view = qs("#" + viewId);
@@ -5618,11 +6257,13 @@
       qs("#shop-view").style.display = "none";
       detailView.style.display = "block";
       detailView.classList.add("active");
+      syncTopnavChrome("detail");
       window.scrollTo(0, 0);
       updateMeta("IRIS - " + product.brand + " " + product.name, product.desc.substring(0, 160));
     };
 
     closeDetail = function () {
+      state.activeDetailListingId = null;
       showBuyView(state.lastNonDetailView || "home");
     };
 
@@ -5646,16 +6287,17 @@
   }
 
   function productVisualMarkup(product, compact) {
-    const hasImages = Array.isArray(product.images) && product.images.length > 0;
+    const imageSources = getListingImageSources(product);
+    const primaryImage = imageSources[0] || "";
     const conditionLabel = getFacetLabel("conds", product.cond);
     const fitLabel = getFacetLabel("fits", product.fit);
     const soldTag = !isProductPurchasable(product) ? "<span class=\"pi-tag sold\">" + escapeHtml(getProductStatusLabel(product)) + "</span>" : "";
-    const media = hasImages
+    const media = primaryImage
       ? "<div class=\"pi\"><div class=\"pi-bg irisx-media\"><img class=\"irisx-card-image\" src=\"" +
-        product.images[0] +
-        "\" alt=\"" +
-        escapeHtml(product.name) +
-        "\"></div>" +
+        primaryImage +
+        "\" loading=\"lazy\" alt=\"" +
+        escapeHtml(product.brand + " - " + product.name) +
+        "\" onerror=\"this.style.display='none';this.parentNode.classList.remove('irisx-media');this.parentNode.innerHTML='<div class=&quot;pi-emoji&quot;>" + escapeHtml(product.emoji || "👜") + "</div>'\"></div>" +
         (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(conditionLabel) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(fitLabel) + "</span>" : "") + soldTag + "</div>") +
         "</div>"
       : "<div class=\"pi\"><div class=\"pi-bg\"><div class=\"pi-emoji\">" + escapeHtml(product.emoji || "👜") + "</div></div>" + (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(conditionLabel) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(fitLabel) + "</span>" : "") + soldTag + "</div>") + "</div>";
@@ -5726,6 +6368,8 @@
       productIdExpr +
       ")\"><button class=\"pc-heart" +
       (liked ? " liked" : "") +
+      "\" aria-label=\"" +
+      escapeHtml(langText("Aggiungi ai preferiti", "Add to favorites")) +
       "\" onclick=\"event.stopPropagation();toggleFav(" +
       productIdExpr +
       ",this)\">" +
@@ -5754,12 +6398,13 @@
     if (!images.length) {
       return "<div class=\"det-img-main\">" + escapeHtml(product.emoji || "👜") + "</div>";
     }
+    const activeIndex = Math.min(Math.max(Number(state.activeDetailImage || 0), 0), images.length - 1);
 
     const thumbs = images
       .map(function (src, index) {
         return (
           "<button class=\"irisx-detail-thumb" +
-          (index === state.activeDetailImage ? " on" : "") +
+          (index === activeIndex ? " on" : "") +
           "\" onclick=\"setDetailImage(" +
           index +
           ")\"><img src=\"" +
@@ -5775,7 +6420,7 @@
 
     return (
       "<div><div class=\"irisx-detail-stage\"><img class=\"irisx-detail-image\" id=\"detailMainImage\" src=\"" +
-      images[state.activeDetailImage] +
+      images[activeIndex] +
       "\" alt=\"" +
       escapeHtml(product.name) +
       "\"></div>" +
@@ -5786,7 +6431,7 @@
 
   function setDetailImage(index) {
     const mainImage = qs("#detailMainImage");
-    const currentProduct = qs("#detail-view.active") ? prods.find((item) => mainImage && item.images && item.images.includes(mainImage.src)) : null;
+    const currentProduct = state.activeDetailListingId ? getListingById(state.activeDetailListingId) : null;
     if (!mainImage || !currentProduct || !currentProduct.images[index]) {
       return;
     }
@@ -5839,7 +6484,7 @@
       t(isLogin ? "auth_title_login" : "auth_title_register") +
       "</div><div class=\"irisx-subtitle\">" +
       t(isLogin ? "auth_sub_login" : "auth_sub_register") +
-      "</div></div><button class=\"irisx-close\" onclick=\"closeAuthModal()\">✕</button></div><div class=\"irisx-card-body\">" +
+      "</div></div><button class=\"irisx-close\" aria-label=\"" + langText("Chiudi", "Close") + "\" onclick=\"closeAuthModal()\">✕</button></div><div class=\"irisx-card-body\">" +
       "<button class=\"irisx-google-btn\" onclick=\"signInWithGoogle()\">" + googleSvg + " " + googleBtnText + "</button>" +
       "<div class=\"irisx-divider\"><span>" + orText + "</span></div>" +
       "<div class=\"irisx-segment\"><button class=\"" +
@@ -5850,7 +6495,7 @@
       (!isLogin ? "on" : "") +
       "\" onclick=\"switchAuthMode('register')\">" +
       t("register") +
-      "</button></div><div class=\"irisx-form-grid\"><div class=\"irisx-field" +
+      "</button></div><form class=\"irisx-auth-form\" onsubmit=\"event.preventDefault();submitAuth()\"><div class=\"irisx-form-grid\"><div class=\"irisx-field" +
       (isLogin ? " irisx-hidden" : "") +
       "\"><label for=\"irisxAuthName\">" +
       t("full_name") +
@@ -5864,9 +6509,9 @@
       t("password") +
       "</label><input id=\"irisxAuthPassword\" type=\"password\" autocomplete=\"" +
       (isLogin ? "current-password" : "new-password") +
-      "\"></div></div><div class=\"irisx-actions\"><button class=\"irisx-primary\" onclick=\"submitAuth()\">" +
+      "\"></div></div><div class=\"irisx-actions\"><button class=\"irisx-primary\" type=\"submit\">" +
       t(isLogin ? "auth_cta_login" : "auth_cta_register") +
-      "</button></div><div class=\"irisx-auth-switch\">" +
+      "</button></div></form><div class=\"irisx-auth-switch\">" +
       t(isLogin ? "auth_switch_register" : "auth_switch_login") +
       " <button onclick=\"switchAuthMode('" +
       (isLogin ? "register" : "login") +
@@ -5942,8 +6587,8 @@
     }
 
     // Fallback: simulated Google sign-in for prototype
-    var mockName = "Utente IRIS";
-    var mockEmail = "utente@iris-marketplace.it";
+    var mockName = curLang === "it" ? "Accesso Google demo" : "Google demo sign-in";
+    var mockEmail = "demo.google@iris-fashion.it";
     var existing = state.users.find(function(u) { return normalizeEmail(u.email) === normalizeEmail(mockEmail); });
     var blockedMessage = getBlockedIdentityMessage(mockEmail, existing && existing.phone);
     if ((existing && existing.accountStatus === "banned") || blockedMessage) {
@@ -6277,6 +6922,7 @@
     renderProfilePanel();
     renderOpsView();
     renderNotifications();
+    syncTopnavChrome();
     showToast(t("logout_success"));
   }
 
@@ -6284,6 +6930,7 @@
     const authButton = qs("#authBtn");
     if (authButton) {
       authButton.textContent = state.currentUser ? t("logout") : t("login");
+      authButton.onclick = handleAuthButtonClick;
     }
 
     const opsButton = qs("#opsBtn");
@@ -6291,11 +6938,22 @@
       opsButton.style.display = isCurrentUserAdmin() ? "" : "none";
     }
 
-    const profileButton = qs(".tn-profile") || qs(".tn-btn[data-nav-view=\"profile\"]") || qs(".tn-btn[onclick*=\"profile\"]");
+    const profileButton = qs("#tnProfileTrigger") || qs(".tn-profile") || qs(".tn-btn[data-nav-view=\"profile\"]") || qs(".tn-btn[onclick*=\"profile\"]");
     if (profileButton) {
       profileButton.setAttribute("aria-label", t("profile_nav"));
-      profileButton.textContent = "👤 " + t("profile_nav");
+      const initials = state.currentUser && state.currentUser.name
+        ? state.currentUser.name.split(/\s+/).map(function (part) { return part.charAt(0); }).join("").slice(0, 2).toUpperCase()
+        : "IR";
+      profileButton.innerHTML = "<span class=\"tn-avatar-dot\">" + escapeHtml(initials) + "</span>";
     }
+
+    const mobileAuthButton = qs("#tnMobileAuthBtn");
+    if (mobileAuthButton) {
+      mobileAuthButton.textContent = state.currentUser ? t("logout") : t("login");
+    }
+
+    syncNavigationLabels();
+    syncTopnavChrome();
   }
 
   function requireAuth(callback) {
@@ -6305,8 +6963,8 @@
     }
 
     state.pendingAction = callback;
-    openAuthModal("register");
     showToast(t("sign_in_to_continue"));
+    openAuthModal("register");
   }
 
   function addToCart(productId) {
@@ -6431,7 +7089,10 @@
             );
           })
           .join("") +
-        "</div><div class=\"irisx-cart-row\"><span>Subtotal</span><strong>" +
+        "</div>"
+      : "<div class=\"irisx-empty-state\">" + t("empty_cart") + "</div>";
+    const footerHtml = items.length
+      ? "<div class=\"irisx-cart-footer-grid\"><div class=\"irisx-cart-row\"><span>" + langText("Subtotale", "Subtotal") + "</span><strong>" +
         formatCurrency(subtotal) +
         "</strong></div><div class=\"irisx-cart-row\"><span>" +
         t("shipping") +
@@ -6441,12 +7102,14 @@
         t("cart_total") +
         "</span><strong>" +
         formatCurrency(subtotal + SHIPPING_COST) +
-        "</strong></div><div class=\"irisx-actions\"><button class=\"irisx-primary\" onclick=\"openCheckout('cart')\">" +
+        "</strong></div></div><div class=\"irisx-actions irisx-actions--stack\"><button class=\"irisx-primary\" onclick=\"openCheckout('cart')\">" +
         t("checkout") +
         "</button><button class=\"irisx-secondary\" onclick=\"closeCart()\">" +
         t("continue_shopping") +
         "</button></div>"
-      : "<div class=\"irisx-empty-state\">" + t("empty_cart") + "</div>";
+      : "<div class=\"irisx-actions irisx-actions--stack\"><button class=\"irisx-secondary\" onclick=\"closeCart();showBuyView('shop')\">" +
+        t("continue_shopping") +
+        "</button></div>";
 
     drawer.innerHTML =
       "<div class=\"irisx-drawer-backdrop\"></div><div class=\"irisx-drawer-panel\"><div class=\"irisx-drawer-head\"><div><div class=\"irisx-kicker\">" +
@@ -6457,8 +7120,10 @@
       items.length +
       " " +
       t("cart_items") +
-      "</div></div><button class=\"irisx-close\" onclick=\"closeCart()\">✕</button></div><div class=\"irisx-drawer-body\">" +
+      "</div></div><button class=\"irisx-close\" onclick=\"closeCart()\" aria-label=\"" + escapeHtml(langText("Chiudi", "Close")) + "\">✕</button></div><div class=\"irisx-drawer-body\">" +
       itemsHtml +
+      "</div><div class=\"irisx-drawer-foot\">" +
+      footerHtml +
       "</div></div>";
   }
 
@@ -6688,6 +7353,7 @@
 
     state.sellPhotos = processed;
     renderSellPhotoPreview();
+    validateSellField("fileIn");
     updateSellStatus(processed.length ? t("sell_status_ready") : t("sell_status_idle"));
   }
 
@@ -6725,6 +7391,7 @@
   function removeSellPhoto(index) {
     state.sellPhotos.splice(index, 1);
     renderSellPhotoPreview();
+    validateSellField("fileIn");
   }
 
   function updateSellStatus(message, isError) {
@@ -6848,6 +7515,20 @@
     qsa(".cond-btn.sel", form).forEach(function (button) {
       button.classList.remove("sel");
     });
+    const conditionField = qs("#sf-condition", form);
+    if (conditionField) {
+      conditionField.value = "";
+      clearSellFieldError(conditionField);
+    }
+    qsa("#sellForm .field-error", form).forEach(function (node) {
+      node.textContent = "";
+    });
+    qsa("#sellForm [aria-invalid='true']", form).forEach(function (field) {
+      field.removeAttribute("aria-invalid");
+    });
+    qsa("#sellForm .has-error", form).forEach(function (node) {
+      node.classList.remove("has-error");
+    });
     state.sellPhotos = [];
     state.editingListingId = null;
     ensureSellTaxonomyUi({
@@ -6943,7 +7624,7 @@
             "</strong><span>" +
             escapeHtml(getOrderStatusLabel(order)) +
             "</span></div><div class=\"irisx-order-items\"><div>" +
-            escapeHtml(langText("Buyer", "Buyer")) +
+            escapeHtml(langText("Acquirente", "Buyer")) +
             ": " +
             escapeHtml(order.buyerEmail) +
             "</div><div>" +
@@ -7242,25 +7923,25 @@
   const CHECKOUT_STEPS = ["address", "shipping", "payment", "review", "confirmation"];
   const POLICY_PAGE_CONTENT = {
     "shipping-policy": {
-      title: langText("Shipping Policy", "Shipping Policy"),
+      title: langText("Policy spedizioni", "Shipping Policy"),
       subtitle: langText("Linee guida operative per spedizioni buyer e seller.", "Operational guidelines for buyer and seller shipments."),
       sections: [
         {
-          title: langText("Seller shipping flow", "Seller shipping flow"),
+          title: langText("Flusso spedizione seller", "Seller shipping flow"),
           body: langText(
             "Il seller prepara il pacco, genera l'etichetta placeholder e consegna al corriere. Lo stato passa da paid a awaiting shipment e poi a shipped.",
             "The seller prepares the parcel, generates the placeholder label, and hands it to the carrier. Status moves from paid to awaiting shipment and then shipped."
           )
         },
         {
-          title: langText("Buyer delivery flow", "Buyer delivery flow"),
+          title: langText("Flusso consegna buyer", "Buyer delivery flow"),
           body: langText(
             "Dopo l'autenticazione il pacco viene dispatchato al buyer con tracking, carrier, fee di spedizione e timeline visibile nell'ordine.",
             "After authentication the parcel is dispatched to the buyer with tracking, carrier, shipping fee, and a visible order timeline."
           )
         },
         {
-          title: langText("Coverage", "Coverage"),
+          title: langText("Copertura", "Coverage"),
           body: langText(
             "Questa e' una skeleton policy: metodi, tempi e corrieri sono predisposti come struttura mock e potranno essere finalizzati nel go-live backend.",
             "This is a skeleton policy: methods, timings, and carriers are prepared as mock structure and can be finalized at backend go-live."
@@ -7269,25 +7950,25 @@
       ]
     },
     "refund-policy": {
-      title: langText("Refund / Return Policy", "Refund / Return Policy"),
+      title: langText("Policy resi e rimborsi", "Refund / Return Policy"),
       subtitle: langText("Regole placeholder per annulli, problemi post-acquisto e refund.", "Placeholder rules for cancellations, post-purchase issues, and refunds."),
       sections: [
         {
-          title: langText("Refund states", "Refund states"),
+          title: langText("Stati rimborso", "Refund states"),
           body: langText(
             "Gli ordini possono passare a refund requested e refunded. Il payout seller va on hold o reversed a seconda dello stato finale.",
             "Orders can move to refund requested and refunded. Seller payout moves to on hold or reversed depending on the final state."
           )
         },
         {
-          title: langText("Return request", "Return request"),
+          title: langText("Richiesta reso", "Return request"),
           body: langText(
             "Il buyer puo' aprire supporto o richiesta rimborso dal dettaglio ordine. L'admin vede la richiesta nell'area disputes / support.",
             "The buyer can open support or refund request from order detail. Admin sees the request inside the disputes / support area."
           )
         },
         {
-          title: langText("Scope", "Scope"),
+          title: langText("Ambito", "Scope"),
           body: langText(
             "Questa pagina definisce il flusso strutturale del prototipo; condizioni economiche, costi e tempi reali saranno confermati in produzione.",
             "This page defines the prototype structural flow; real economics, costs, and timings will be confirmed in production."
@@ -7296,18 +7977,18 @@
       ]
     },
     "buyer-protection": {
-      title: langText("Buyer Protection", "Buyer Protection"),
+      title: langText("Protezione acquirente", "Buyer Protection"),
       subtitle: langText("Cosa vede e cosa riceve il buyer nel flusso prototipo.", "What the buyer sees and receives in the prototype flow."),
       sections: [
         {
-          title: langText("Protected flow", "Protected flow"),
+          title: langText("Flusso protetto", "Protected flow"),
           body: langText(
             "Ogni ordine espone timeline, tracking, supporto, review flow e storico notifiche. I passaggi pending, paid, shipped, delivered e completed sono coerenti in UI.",
             "Each order exposes timeline, tracking, support, review flow, and notification history. Pending, paid, shipped, delivered, and completed remain coherent across the UI."
           )
         },
         {
-          title: langText("Support access", "Support access"),
+          title: langText("Accesso al supporto", "Support access"),
           body: langText(
             "Il buyer puo' aprire ticket, segnalare problemi e richiedere refund direttamente dall'area ordini.",
             "The buyer can open tickets, report issues, and request refunds directly from the orders area."
@@ -7316,18 +7997,18 @@
       ]
     },
     "seller-protection": {
-      title: langText("Seller Protection", "Seller Protection"),
+      title: langText("Protezione venditore", "Seller Protection"),
       subtitle: langText("Regole placeholder per payout, spedizione e gestione offerte.", "Placeholder rules for payout, shipping, and offer management."),
       sections: [
         {
-          title: langText("Payout overview", "Payout overview"),
+          title: langText("Panoramica payout", "Payout overview"),
           body: langText(
             "Ogni ordine seller mostra gross, fee piattaforma, seller net e payout status: pending shipment, pending delivery, ready, paid, reversed.",
             "Each seller order shows gross, platform fee, seller net, and payout status: pending shipment, pending delivery, ready, paid, reversed."
           )
         },
         {
-          title: langText("Operational queue", "Operational queue"),
+          title: langText("Coda operativa", "Operational queue"),
           body: langText(
             "La seller area include active listings, draft listings, offers received, shipping queue e sales history con CTA operative reali del prototipo.",
             "The seller area includes active listings, draft listings, offers received, shipping queue, and sales history with real prototype CTAs."
@@ -7336,18 +8017,18 @@
       ]
     },
     "prohibited-items": {
-      title: langText("Prohibited Items", "Prohibited Items"),
+      title: langText("Articoli vietati", "Prohibited Items"),
       subtitle: langText("Categorie placeholder da bloccare o revisionare manualmente.", "Placeholder categories to block or manually review."),
       sections: [
         {
-          title: langText("Blocked categories", "Blocked categories"),
+          title: langText("Categorie bloccate", "Blocked categories"),
           body: langText(
             "Articoli contraffatti, materiale illegale, beni non spedibili, beni pericolosi e categorie senza prova di ownership devono essere bloccati o moderati.",
             "Counterfeits, illegal material, non-shippable goods, hazardous goods, and categories without proof of ownership must be blocked or moderated."
           )
         },
         {
-          title: langText("Moderation path", "Moderation path"),
+          title: langText("Percorso moderazione", "Moderation path"),
           body: langText(
             "Il pannello admin include una sezione listings e categories / brands per predisporre moderazione, taxonomy e futuri blocchi automatici.",
             "The admin panel includes listings and categories / brands sections to prepare moderation, taxonomy, and future automatic blocks."
@@ -7356,18 +8037,18 @@
       ]
     },
     "trust-authentication": {
-      title: langText("Trust / Authentication", "Trust / Authentication"),
+      title: langText("Trust / autenticazione", "Trust / Authentication"),
       subtitle: langText("Come il prototipo espone autenticazione, protezione e segnali di fiducia.", "How the prototype exposes authentication, protection, and trust signals."),
       sections: [
         {
-          title: langText("Trust blocks", "Trust blocks"),
+          title: langText("Blocchi trust", "Trust blocks"),
           body: langText(
             "La product page mostra seller card, breadcrumb, shipping info, trust block, azioni report e buyer protection links.",
             "The product page shows seller card, breadcrumb, shipping info, trust block, report actions, and buyer protection links."
           )
         },
         {
-          title: langText("Authentication queue", "Authentication queue"),
+          title: langText("Coda autenticazione", "Authentication queue"),
           body: langText(
             "Gli ordini possono essere marcati in authentication e dispatched to buyer dal pannello admin con timeline coerente.",
             "Orders can be marked in authentication and dispatched to buyer from the admin panel with a coherent timeline."
@@ -7376,11 +8057,11 @@
       ]
     },
     "community-guidelines": {
-      title: langText("Community Guidelines", "Community Guidelines"),
+      title: langText("Linee guida community", "Community Guidelines"),
       subtitle: langText("Comportamenti attesi per buyer, seller e owner.", "Expected behavior for buyers, sellers, and owners."),
       sections: [
         {
-          title: langText("Marketplace conduct", "Marketplace conduct"),
+          title: langText("Condotta marketplace", "Marketplace conduct"),
           body: langText(
             "Le comunicazioni devono restare rispettose, le offerte devono essere serie, i contenuti devono essere accurati e le dispute devono passare dai canali supporto predisposti.",
             "Communications must remain respectful, offers should be serious, content must be accurate, and disputes should go through the prepared support channels."
@@ -7396,7 +8077,7 @@
       ]
     },
     "accessibility-statement": {
-      title: langText("Accessibility Statement", "Accessibility Statement"),
+      title: langText("Accessibilità", "Accessibility Statement"),
       subtitle: langText("Impegni placeholder su accessibilita', leggibilita' e supporto assistivo.", "Placeholder commitments on accessibility, readability, and assistive support."),
       sections: [
         {
@@ -7422,6 +8103,7 @@
     if (!state.profileSection) state.profileSection = "overview";
     if (!state.buyerSection) state.buyerSection = "orders";
     if (!state.sellerSection) state.sellerSection = "dashboard";
+    if (!state.sellerProfile) state.sellerProfile = { sellerId: null, tab: "listings" };
     if (!state.adminSection) state.adminSection = "overview";
     if (!state.checkoutStep) state.checkoutStep = "address";
     if (!state.checkoutDraft) state.checkoutDraft = {};
@@ -7431,6 +8113,7 @@
     if (!state.offerError) state.offerError = "";
     if (!state.offerStep) state.offerStep = "amount";
     if (!state.editingListingId) state.editingListingId = null;
+    if (!state.activeDetailListingId) state.activeDetailListingId = null;
     if (!state.chatScope) state.chatScope = "buying";
     state.banRegistry = normalizeBanRegistry(state.banRegistry);
     if (state.currentUser) {
@@ -7589,13 +8272,13 @@
   function getChatRoleContext(thread) {
     const scope = getChatConversationScope(thread);
     if (scope === "selling") {
-      return langText("Selling chat · buyer inquiry", "Selling chat · buyer inquiry");
+      return langText("Conversazione con un buyer interessato", "Conversation with an interested buyer");
     }
-    return langText("Buying chat · seller conversation", "Buying chat · seller conversation");
+    return langText("Conversazione con il seller", "Conversation with the seller");
   }
 
   function getChatRoleBadgeLabel(thread) {
-    return getChatConversationScope(thread) === "selling" ? langText("Selling", "Selling") : langText("Buying", "Buying");
+    return getChatConversationScope(thread) === "selling" ? langText("Vendo", "Selling") : langText("Compro", "Buying");
   }
 
   function getChatScopeTabLabel(scope) {
@@ -7624,10 +8307,11 @@
   function renderMessagingWorkspaceCard(scope) {
     const threads = getChatThreadsForScope(scope);
     const scopeCopy = getChatScopeCopy(scope);
+    const unreadCount = getChatScopeUnreadCount(scope);
     return `<div class="irisx-workspace-card">
       <div class="irisx-section-head">
         <div><h3>${escapeHtml(scopeCopy.title)}</h3><span>${escapeHtml(scopeCopy.subtitle)}</span></div>
-        <span class="irisx-badge">${getChatScopeUnreadCount(scope)} ${langText("non letti", "unread")}</span>
+        ${unreadCount ? `<span class="irisx-badge">${unreadCount} ${langText("non letti", "unread")}</span>` : `<span>${langText("Inbox pulita", "Inbox clear")}</span>`}
       </div>
       ${threads.length ? `<div class="irisx-card-stack">${threads.slice(0, 5).map(function (thread) {
         const lastMessage = thread.msgs[thread.msgs.length - 1] || { text: "", time: "" };
@@ -7645,6 +8329,40 @@
       }).join("")}</div>` : `<div class="irisx-empty-state">${escapeHtml(scopeCopy.empty)}</div>`}
       <div class="irisx-actions"><button class="irisx-primary" onclick="openMessagingInbox('${scope}')">${langText("Apri inbox completa", "Open full inbox")}</button></div>
     </div>`;
+  }
+
+  function formatWorkspaceCountLabel(count, singularIt, pluralIt, singularEn, pluralEn) {
+    const safeCount = Number(count) || 0;
+    if (curLang === "it") {
+      return `${safeCount} ${safeCount === 1 ? singularIt : pluralIt}`;
+    }
+    return `${safeCount} ${safeCount === 1 ? singularEn : pluralEn}`;
+  }
+
+  function getWorkspaceChatSummary(scope, threads) {
+    const unread = getChatScopeUnreadCount(scope);
+    if (!threads.length) {
+      return langText("Nessuna conversazione attiva.", "No active conversations.");
+    }
+    const conversationsLabel = formatWorkspaceCountLabel(threads.length, "conversazione", "conversazioni", "conversation", "conversations");
+    return unread
+      ? `${conversationsLabel} · ${unread} ${langText("non lette", "unread")}`
+      : `${conversationsLabel} · ${langText("Inbox pulita", "Inbox clear")}`;
+  }
+
+  function getWorkspaceSupportSummary(ticketCount, unreadNotifications) {
+    const safeTickets = Number(ticketCount) || 0;
+    const safeNotifications = Number(unreadNotifications) || 0;
+    if (!safeTickets && !safeNotifications) {
+      return langText("Nessun ticket aperto · Inbox pulita", "No open tickets · Inbox clear");
+    }
+    if (!safeTickets) {
+      return `${safeNotifications} ${langText("notifiche non lette", "unread notifications")}`;
+    }
+    if (!safeNotifications) {
+      return `${formatWorkspaceCountLabel(safeTickets, "ticket aperto", "ticket aperti", "open ticket", "open tickets")} · ${langText("nessuna notifica urgente", "no urgent notifications")}`;
+    }
+    return `${formatWorkspaceCountLabel(safeTickets, "ticket aperto", "ticket aperti", "open ticket", "open tickets")} · ${safeNotifications} ${langText("notifiche non lette", "unread notifications")}`;
   }
 
   function syncChatBadge() {
@@ -7808,7 +8526,7 @@
           <div id="irisxMinimumOfferWrap">
             <label class="fl" id="irisxMinimumOfferLabel" for="sf-min-offer">${langText("Offerta minima", "Minimum offer")}</label>
             <input class="fi" type="number" id="sf-min-offer" placeholder="${langText("es. 300", "e.g. 300")}">
-            <div class="irisx-note" id="irisxMinimumOfferNote">${langText("Se lasci vuoto, qualsiasi offerta valida sopra 0 puo' essere autorizzata.", "If left blank, any valid offer above 0 can be authorized.")}</div>
+            <div class="irisx-note" id="irisxMinimumOfferNote">${langText("Se lasci vuoto, qualsiasi offerta valida sopra 0 può essere autorizzata.", "If left blank, any valid offer above 0 can be authorized.")}</div>
           </div>
         </div>
       `);
@@ -7826,7 +8544,7 @@
       qs("#sf-min-offer").placeholder = langText("es. 300", "e.g. 300");
     }
     if (qs("#irisxMinimumOfferNote")) {
-      qs("#irisxMinimumOfferNote").textContent = langText("Se lasci vuoto, qualsiasi offerta valida sopra 0 puo' essere autorizzata.", "If left blank, any valid offer above 0 can be authorized.");
+      qs("#irisxMinimumOfferNote").textContent = langText("Se lasci vuoto, qualsiasi offerta valida sopra 0 può essere autorizzata.", "If left blank, any valid offer above 0 can be authorized.");
     }
     toggleOfferSettings();
   }
@@ -7879,7 +8597,7 @@
     if (listing.minimumOfferAmount !== null && amount < Number(listing.minimumOfferAmount)) {
       return {
         ok: false,
-        error: langText(`La tua offerta e' troppo bassa. Minimo ${formatCurrency(listing.minimumOfferAmount)}.`, `Your offer is too low. Minimum ${formatCurrency(listing.minimumOfferAmount)}.`)
+        error: `${langText("Offerta minima", "Minimum offer")}: ${formatCurrency(listing.minimumOfferAmount)}`
       };
     }
     if (!state.currentUser || normalizeEmail(payload.buyerEmail) !== normalizeEmail(state.currentUser.email)) {
@@ -8388,7 +9106,7 @@
           </div>
         </div>
         <div class="irisx-order-panel">
-          <div class="irisx-order-panel-title">${langText("Payment", "Payment")}</div>
+          <div class="irisx-order-panel-title">${langText("Pagamento", "Payment")}</div>
           <div class="irisx-order-items">
             <div>${langText("Totale", "Total")}: ${escapeHtml(formatCurrency(order.total))}</div>
             <div>${langText("Fee piattaforma", "Platform fee")}: ${escapeHtml(formatCurrency(order.payment.platformFee || 0))}</div>
@@ -8416,9 +9134,9 @@
         <div class="irisx-order-panel">
           <div class="irisx-order-panel-title">${langText("Shipment status", "Shipment status")}</div>
           <div class="irisx-order-items">
-            <div>${langText("Method", "Method")}: ${escapeHtml(order.shipping.method || "—")}</div>
+            <div>${langText("Metodo di spedizione", "Method")}: ${escapeHtml(order.shipping.method || "—")}</div>
             <div>${langText("Carrier", "Carrier")}: ${escapeHtml(order.shipping.carrier || langText("Pending assignment", "Pending assignment"))}</div>
-            <div>${langText("Tracking", "Tracking")}: ${escapeHtml(order.shipping.trackingNumber || langText("Will appear after seller handoff", "Will appear after seller handoff"))}</div>
+            <div>${langText("Tracking", "Tracking")}: ${escapeHtml(order.shipping.trackingNumber || langText("Comparirà dopo la consegna al corriere", "Will appear after seller handoff"))}</div>
             <div>${langText("Label", "Label")}: ${escapeHtml(order.shipping.labelStatus || "pending")}</div>
           </div>
         </div>
@@ -8643,7 +9361,7 @@
       })
     });
     renderProfilePanel();
-    showToast(langText("Preferenze shopping salvate.", "Shopping preferences saved."));
+    showToast(langText("Preferenze acquisti salvate.", "Shopping preferences saved."));
   }
 
   function saveSizeProfile() {
@@ -8991,50 +9709,50 @@
   function getAccountSectionGroups() {
     return [
       {
-        title: langText("Overview", "Overview"),
+        title: langText("Panoramica", "Overview"),
         entries: [
-          { id: "overview", label: langText("Overview", "Overview") }
+          { id: "overview", label: langText("Panoramica", "Overview") }
         ]
       },
       {
-        title: langText("Shopping", "Shopping"),
+        title: langText("Acquisti", "Shopping"),
         entries: [
-          { id: "shopping_preferences", label: langText("Preferences", "Preferences") },
-          { id: "shopping_sizes", label: langText("My Size", "My Size") },
-          { id: "shopping_saved_searches", label: langText("Saved searches", "Saved searches") }
+          { id: "shopping_preferences", label: langText("Preferenze", "Preferences") },
+          { id: "shopping_sizes", label: langText("Le mie taglie", "My Size") },
+          { id: "shopping_saved_searches", label: langText("Ricerche salvate", "Saved searches") }
         ]
       },
       {
-        title: langText("Selling", "Selling"),
+        title: langText("Vendita", "Selling"),
         entries: [
-          { id: "selling_preferences", label: langText("Selling preferences", "Selling preferences") },
-          { id: "selling_location", label: langText("Location", "Location") },
-          { id: "selling_vacation", label: langText("Vacation mode", "Vacation mode") },
-          { id: "selling_listing_preferences", label: langText("Listing preferences", "Listing preferences") }
+          { id: "selling_preferences", label: langText("Preferenze vendita", "Selling preferences") },
+          { id: "selling_location", label: langText("Posizione", "Location") },
+          { id: "selling_vacation", label: langText("Modalità vacanza", "Vacation mode") },
+          { id: "selling_listing_preferences", label: langText("Preferenze annunci", "Listing preferences") }
         ]
       },
       {
-        title: langText("Settings", "Settings"),
+        title: langText("Impostazioni", "Settings"),
         entries: [
           { id: "settings_account", label: langText("Account", "Account") },
-          { id: "settings_profile", label: langText("Profile", "Profile") },
+          { id: "settings_profile", label: langText("Profilo", "Profile") },
           { id: "settings_privacy", label: langText("Privacy", "Privacy") },
-          { id: "settings_payment", label: langText("Payment", "Payment") },
-          { id: "settings_notifications", label: langText("Notifications", "Notifications") },
-          { id: "settings_security", label: langText("Security", "Security") }
+          { id: "settings_payment", label: langText("Pagamento", "Payment") },
+          { id: "settings_notifications", label: langText("Notifiche", "Notifications") },
+          { id: "settings_security", label: langText("Sicurezza", "Security") }
         ]
       },
       {
-        title: langText("Help / Support / Trust", "Help / Support / Trust"),
+        title: langText("Aiuto / Supporto / Trust", "Help / Support / Trust"),
         entries: [
-          { id: "help_help", label: langText("Help", "Help") },
-          { id: "help_listings", label: langText("Listings", "Listings") },
-          { id: "help_verification", label: langText("Verification", "Verification") },
-          { id: "help_shipping", label: langText("Shipping and Protection", "Shipping and Protection") },
-          { id: "help_accessibility", label: langText("Accessibility Statement", "Accessibility Statement") },
-          { id: "help_contact", label: langText("Contact Support", "Contact Support") },
-          { id: "help_about", label: langText("About", "About") },
-          { id: "help_sell", label: langText("Sell", "Sell") }
+          { id: "help_help", label: langText("Aiuto", "Help") },
+          { id: "help_listings", label: langText("I tuoi annunci", "Listings") },
+          { id: "help_verification", label: langText("Verifica identità", "Verification") },
+          { id: "help_shipping", label: langText("Spedizione e protezione", "Shipping and Protection") },
+          { id: "help_accessibility", label: langText("Accessibilità", "Accessibility Statement") },
+          { id: "help_contact", label: langText("Contatta il supporto", "Contact Support") },
+          { id: "help_about", label: langText("Chi siamo", "About") },
+          { id: "help_sell", label: langText("Vendi", "Sell") }
         ]
       }
     ];
@@ -9101,8 +9819,8 @@
         <div class="irisx-order-items">
           <div>${escapeHtml(formatCurrency(offer.offerAmount || offer.amount))}</div>
           <div>${scope === "seller"
-            ? `${langText("Buyer", "Buyer")}: ${escapeHtml(offer.buyerName || offer.buyerEmail)}`
-            : `${langText("Seller", "Seller")}: ${escapeHtml(offer.sellerName || offer.sellerEmail)}`}</div>
+            ? `${langText("Acquirente", "Buyer")}: ${escapeHtml(offer.buyerName || offer.buyerEmail)}`
+            : `${langText("Venditore", "Seller")}: ${escapeHtml(offer.sellerName || offer.sellerEmail)}`}</div>
           <div>${langText("Scade", "Expires")}: ${escapeHtml(formatDateTime(offer.expiresAt))}</div>
           <div>${langText("Autorizzazione", "Authorization")}: ${escapeHtml(getOfferAuthorizationLabel(offer))}</div>
           ${offer.minimumOfferAmount !== null && offer.minimumOfferAmount !== undefined ? `<div>${langText("Minimo seller", "Seller minimum")}: ${escapeHtml(formatCurrency(offer.minimumOfferAmount))}</div>` : ""}
@@ -9139,11 +9857,11 @@
 
     if (section === "shopping_preferences") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Shopping preferences", "Shopping preferences")}</h3><span>${langText("Preferenze di acquisto, alert e visibilita' del catalogo.", "Buying preferences, alerts, and catalog visibility.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Preferenze acquisti", "Shopping preferences")}</h3><span>${langText("Preferenze di acquisto, alert e visibilità del catalogo.", "Buying preferences, alerts, and catalog visibility.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
-            <div class="irisx-field"><label for="shoppingCurrency">${langText("Preferred currency", "Preferred currency")}</label><input id="shoppingCurrency" type="text" value="${escapeHtml(user.shoppingPreferences.preferredCurrency || getLocaleConfig().currency)}"></div>
-            <div class="irisx-field"><label>${langText("Visibility", "Visibility")}</label><div class="irisx-static-field">${user.shoppingPreferences.authenticatedOnly ? langText("Solo articoli autenticati", "Authenticated items only") : langText("Tutto il catalogo", "Full catalog")}</div></div>
+            <div class="irisx-field"><label for="shoppingCurrency">${langText("Valuta preferita", "Preferred currency")}</label><input id="shoppingCurrency" type="text" value="${escapeHtml(user.shoppingPreferences.preferredCurrency || getLocaleConfig().currency)}"></div>
+            <div class="irisx-field"><label>${langText("Visibilità", "Visibility")}</label><div class="irisx-static-field">${user.shoppingPreferences.authenticatedOnly ? langText("Solo articoli autenticati", "Authenticated items only") : langText("Tutto il catalogo", "Full catalog")}</div></div>
           </div>
           <div class="irisx-toggle-grid">
             <label><input id="shoppingAuthenticatedOnly" type="checkbox" ${user.shoppingPreferences.authenticatedOnly ? "checked" : ""}> ${langText("Mostra solo articoli autenticati", "Show authenticated items only")}</label>
@@ -9158,25 +9876,25 @@
 
     if (section === "shopping_sizes") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("My Size", "My Size")}</h3><span>${langText("Profilo taglie e brand preferiti per buyer e app futura.", "Sizing profile and preferred brands for buyer web and future app.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Le mie taglie", "My Size")}</h3><span>${langText("Profilo taglie e brand preferiti per buyer e app futura.", "Sizing profile and preferred brands for buyer web and future app.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
             <div class="irisx-field"><label for="sizeProfileTops">${langText("Tops", "Tops")}</label><input id="sizeProfileTops" type="text" value="${escapeHtml(user.sizeProfile.tops || "")}"></div>
             <div class="irisx-field"><label for="sizeProfileBottoms">${langText("Bottoms", "Bottoms")}</label><input id="sizeProfileBottoms" type="text" value="${escapeHtml(user.sizeProfile.bottoms || "")}"></div>
           </div>
           <div class="irisx-account-row">
-            <div class="irisx-field"><label for="sizeProfileShoes">${langText("Shoes", "Shoes")}</label><input id="sizeProfileShoes" type="text" value="${escapeHtml(user.sizeProfile.shoes || "")}"></div>
-            <div class="irisx-field"><label for="sizeProfileFit">${langText("Preferred fit", "Preferred fit")}</label><input id="sizeProfileFit" type="text" value="${escapeHtml(user.sizeProfile.fit || "")}"></div>
+            <div class="irisx-field"><label for="sizeProfileShoes">${langText("Scarpe", "Shoes")}</label><input id="sizeProfileShoes" type="text" value="${escapeHtml(user.sizeProfile.shoes || "")}"></div>
+            <div class="irisx-field"><label for="sizeProfileFit">${langText("Vestibilità preferita", "Preferred fit")}</label><input id="sizeProfileFit" type="text" value="${escapeHtml(user.sizeProfile.fit || "")}"></div>
           </div>
-          <div class="irisx-field"><label for="sizeProfileBrands">${langText("Preferred brands", "Preferred brands")}</label><input id="sizeProfileBrands" type="text" value="${escapeHtml(user.sizeProfile.preferredBrands || "")}" placeholder="${langText("Chanel, Prada, Loewe", "Chanel, Prada, Loewe")}"></div>
-          <div class="irisx-actions"><button class="irisx-primary" onclick="saveSizeProfile()">${langText("Salva My Size", "Save My Size")}</button></div>
+          <div class="irisx-field"><label for="sizeProfileBrands">${langText("Brand preferiti", "Preferred brands")}</label><input id="sizeProfileBrands" type="text" value="${escapeHtml(user.sizeProfile.preferredBrands || "")}" placeholder="${langText("Chanel, Prada, Loewe", "Chanel, Prada, Loewe")}"></div>
+          <div class="irisx-actions"><button class="irisx-primary" onclick="saveSizeProfile()">${langText("Salva profilo taglie", "Save My Size")}</button></div>
         </div>
       </div>`;
     }
 
     if (section === "shopping_saved_searches") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Saved searches", "Saved searches")}</h3><span>${langText("Ricerche salvate e alert mock riusabili anche nell'app.", "Saved searches and alert-ready mock logic reusable in the app.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Ricerche salvate", "Saved searches")}</h3><span>${langText("Ricerche salvate e alert mock riusabili anche nell'app.", "Saved searches and alert-ready mock logic reusable in the app.")}</span></div>
         ${savedSearches.length ? `<div class="irisx-card-stack">${savedSearches.map(function (entry) {
           return `<div class="irisx-inline-card">
             <div><strong>${escapeHtml(entry.label)}</strong><span>${escapeHtml(entry.query)} · ${escapeHtml(entry.filtersSummary || "")}</span></div>
@@ -9185,10 +9903,10 @@
         }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessuna ricerca salvata. Aggiungi la prima per avere alert e scorciatoie buyer.", "No saved searches yet. Add one to enable alerts and buyer shortcuts.")}</div>`}
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
-            <div class="irisx-field"><label for="savedSearchLabel">${langText("Name", "Name")}</label><input id="savedSearchLabel" type="text" placeholder="${langText("Borse nere", "Black bags")}"></div>
-            <div class="irisx-field"><label for="savedSearchQuery">${langText("Query", "Query")}</label><input id="savedSearchQuery" type="text" placeholder="${langText("Chanel bag 42", "Chanel bag 42")}"></div>
+            <div class="irisx-field"><label for="savedSearchLabel">${langText("Nome", "Name")}</label><input id="savedSearchLabel" type="text" placeholder="${langText("Borse nere", "Black bags")}"></div>
+            <div class="irisx-field"><label for="savedSearchQuery">${langText("Ricerca", "Query")}</label><input id="savedSearchQuery" type="text" placeholder="${langText("Chanel bag 42", "Chanel bag 42")}"></div>
           </div>
-          <div class="irisx-field"><label for="savedSearchFilters">${langText("Filters summary", "Filters summary")}</label><input id="savedSearchFilters" type="text" placeholder="${langText("Brand, size, price ceiling", "Brand, size, price ceiling")}"></div>
+          <div class="irisx-field"><label for="savedSearchFilters">${langText("Riepilogo filtri", "Filters summary")}</label><input id="savedSearchFilters" type="text" placeholder="${langText("Brand, taglia, tetto prezzo", "Brand, size, price ceiling")}"></div>
           <div class="irisx-toggle-grid"><label><input id="savedSearchAlertsToggle" type="checkbox" checked> ${langText("Attiva alert", "Enable alerts")}</label></div>
           <div class="irisx-actions"><button class="irisx-primary" onclick="addSavedSearch()">${langText("Salva ricerca", "Save search")}</button></div>
         </div>
@@ -9197,11 +9915,11 @@
 
     if (section === "selling_preferences") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Selling preferences", "Selling preferences")}</h3><span>${langText("Regole operative seller per messaggi, offerte e gestione inventario.", "Seller operating rules for messaging, offers, and inventory handling.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Preferenze vendita", "Selling preferences")}</h3><span>${langText("Regole operative seller per messaggi, offerte e gestione inventario.", "Seller operating rules for messaging, offers, and inventory handling.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
-            <div class="irisx-field"><label for="sellingHandlingModel">${langText("Handling model", "Handling model")}</label><input id="sellingHandlingModel" type="text" value="${escapeHtml(user.sellingPreferences.handlingModel || "")}"></div>
-            <div class="irisx-field"><label for="sellingOfferStrategy">${langText("Offer strategy", "Offer strategy")}</label><input id="sellingOfferStrategy" type="text" value="${escapeHtml(user.sellingPreferences.offerStrategy || "")}"></div>
+            <div class="irisx-field"><label for="sellingHandlingModel">${langText("Modello operativo", "Handling model")}</label><input id="sellingHandlingModel" type="text" value="${escapeHtml(user.sellingPreferences.handlingModel || "")}"></div>
+            <div class="irisx-field"><label for="sellingOfferStrategy">${langText("Strategia offerte", "Offer strategy")}</label><input id="sellingOfferStrategy" type="text" value="${escapeHtml(user.sellingPreferences.offerStrategy || "")}"></div>
           </div>
           <div class="irisx-toggle-grid">
             <label><input id="sellingAutoMessages" type="checkbox" ${user.sellingPreferences.autoMessages ? "checked" : ""}> ${langText("Risposte rapide seller abilitate", "Seller quick replies enabled")}</label>
@@ -9213,46 +9931,46 @@
 
     if (section === "selling_location") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Selling location", "Selling location")}</h3><span>${langText("Origine spedizioni e visibilita' area seller.", "Shipping origin and seller-facing location visibility.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Posizione vendita", "Selling location")}</h3><span>${langText("Origine spedizioni e visibilità area seller.", "Shipping origin and seller-facing location visibility.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
-            <div class="irisx-field"><label for="sellingLocationCity">${langText("City", "City")}</label><input id="sellingLocationCity" type="text" value="${escapeHtml(user.sellingPreferences.shipFromCity || "")}"></div>
-            <div class="irisx-field"><label for="sellingLocationCountry">${langText("Country", "Country")}</label><input id="sellingLocationCountry" type="text" value="${escapeHtml(user.sellingPreferences.shipFromCountry || "")}"></div>
+            <div class="irisx-field"><label for="sellingLocationCity">${langText("Città", "City")}</label><input id="sellingLocationCity" type="text" value="${escapeHtml(user.sellingPreferences.shipFromCity || "")}"></div>
+            <div class="irisx-field"><label for="sellingLocationCountry">${langText("Paese", "Country")}</label><input id="sellingLocationCountry" type="text" value="${escapeHtml(user.sellingPreferences.shipFromCountry || "")}"></div>
           </div>
           <div class="irisx-toggle-grid"><label><input id="sellingPublicLocation" type="checkbox" ${user.sellingPreferences.publicLocation ? "checked" : ""}> ${langText("Mostra location seller nel listing", "Show seller location on listings")}</label></div>
-          <div class="irisx-actions"><button class="irisx-primary" onclick="saveSellingWorkspace()">${langText("Salva location", "Save location")}</button></div>
+          <div class="irisx-actions"><button class="irisx-primary" onclick="saveSellingWorkspace()">${langText("Salva posizione", "Save location")}</button></div>
         </div>
       </div>`;
     }
 
     if (section === "selling_vacation") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Vacation mode", "Vacation mode")}</h3><span>${langText("Stato seller, data di ritorno e messaggio operativo.", "Seller status, return date, and operational message.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Modalità vacanza", "Vacation mode")}</h3><span>${langText("Stato seller, data di ritorno e messaggio operativo.", "Seller status, return date, and operational message.")}</span></div>
         <div class="irisx-toggle-grid">
-          <label><input id="sellingVacationEnabled" type="checkbox" ${user.vacationMode.enabled ? "checked" : ""}> ${langText("Attiva vacation mode", "Enable vacation mode")}</label>
+          <label><input id="sellingVacationEnabled" type="checkbox" ${user.vacationMode.enabled ? "checked" : ""}> ${langText("Attiva modalità vacanza", "Enable vacation mode")}</label>
         </div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
-            <div class="irisx-field"><label for="sellingVacationReturnDate">${langText("Return date", "Return date")}</label><input id="sellingVacationReturnDate" type="date" value="${escapeHtml(user.vacationMode.returnDate || "")}"></div>
-            <div class="irisx-field"><label>${langText("Status", "Status")}</label><div class="irisx-static-field">${user.vacationMode.enabled ? langText("Pausa attiva", "Pause enabled") : langText("Operativo", "Active")}</div></div>
+            <div class="irisx-field"><label for="sellingVacationReturnDate">${langText("Data rientro", "Return date")}</label><input id="sellingVacationReturnDate" type="date" value="${escapeHtml(user.vacationMode.returnDate || "")}"></div>
+            <div class="irisx-field"><label>${langText("Stato", "Status")}</label><div class="irisx-static-field">${user.vacationMode.enabled ? langText("Pausa attiva", "Pause enabled") : langText("Operativo", "Active")}</div></div>
           </div>
-          <div class="irisx-field"><label for="sellingVacationNote">${langText("Buyer message", "Buyer message")}</label><textarea id="sellingVacationNote">${escapeHtml(user.vacationMode.note || "")}</textarea></div>
-          <div class="irisx-actions"><button class="irisx-primary" onclick="saveSellingWorkspace()">${langText("Salva vacation mode", "Save vacation mode")}</button></div>
+          <div class="irisx-field"><label for="sellingVacationNote">${langText("Messaggio per il buyer", "Buyer message")}</label><textarea id="sellingVacationNote">${escapeHtml(user.vacationMode.note || "")}</textarea></div>
+          <div class="irisx-actions"><button class="irisx-primary" onclick="saveSellingWorkspace()">${langText("Salva modalità vacanza", "Save vacation mode")}</button></div>
         </div>
       </div>`;
     }
 
     if (section === "selling_listing_preferences") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Listing preferences", "Listing preferences")}</h3><span>${langText("Default seller per nuove inserzioni e future bulk actions.", "Seller defaults for new listings and future bulk actions.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Preferenze annunci", "Listing preferences")}</h3><span>${langText("Default seller per nuove inserzioni e future bulk actions.", "Seller defaults for new listings and future bulk actions.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
-            <div class="irisx-field"><label for="sellingDefaultCondition">${langText("Default condition", "Default condition")}</label><input id="sellingDefaultCondition" type="text" value="${escapeHtml(user.listingPreferences.defaultCondition || "")}"></div>
-            <div class="irisx-field"><label for="sellingProcessingDays">${langText("Processing days", "Processing days")}</label><input id="sellingProcessingDays" type="text" value="${escapeHtml(user.listingPreferences.defaultProcessingDays || "")}"></div>
+            <div class="irisx-field"><label for="sellingDefaultCondition">${langText("Condizione predefinita", "Default condition")}</label><input id="sellingDefaultCondition" type="text" value="${escapeHtml(user.listingPreferences.defaultCondition || "")}"></div>
+            <div class="irisx-field"><label for="sellingProcessingDays">${langText("Giorni di lavorazione", "Processing days")}</label><input id="sellingProcessingDays" type="text" value="${escapeHtml(user.listingPreferences.defaultProcessingDays || "")}"></div>
           </div>
-          <div class="irisx-field"><label for="sellingShippingMethod">${langText("Default shipping method", "Default shipping method")}</label><input id="sellingShippingMethod" type="text" value="${escapeHtml(user.listingPreferences.defaultShippingMethod || "")}"></div>
+          <div class="irisx-field"><label for="sellingShippingMethod">${langText("Metodo di spedizione predefinito", "Default shipping method")}</label><input id="sellingShippingMethod" type="text" value="${escapeHtml(user.listingPreferences.defaultShippingMethod || "")}"></div>
           <div class="irisx-toggle-grid"><label><input id="sellingOffersDefault" type="checkbox" ${user.listingPreferences.offersDefault ? "checked" : ""}> ${langText("Accetta offerte di default", "Enable offers by default")}</label></div>
-          <div class="irisx-actions"><button class="irisx-primary" onclick="saveSellingWorkspace()">${langText("Salva listing defaults", "Save listing defaults")}</button></div>
+          <div class="irisx-actions"><button class="irisx-primary" onclick="saveSellingWorkspace()">${langText("Salva preferenze annunci", "Save listing defaults")}</button></div>
         </div>
       </div>`;
     }
@@ -9262,17 +9980,17 @@
         <div class="irisx-workspace-card">
           <div class="irisx-section-head"><h3>${langText("Account", "Account")}</h3><span>${langText("Email, telefono, membership e rubrica indirizzi buyer.", "Email, phone number, membership, and buyer address book.")}</span></div>
           <div class="irisx-summary-grid">
-            <div class="irisx-summary-card"><strong>${escapeHtml(user.email || "")}</strong><span>${langText("Account email", "Account email")}</span></div>
+            <div class="irisx-summary-card"><strong>${escapeHtml(user.email || "")}</strong><span>${langText("Email account", "Account email")}</span></div>
             <div class="irisx-summary-card"><strong>${escapeHtml(user.phone || langText("Da aggiungere", "Add phone"))}</strong><span>${langText("Telefono obbligatorio", "Required phone number")}</span></div>
-            <div class="irisx-summary-card"><strong>${user.verification.emailVerified ? langText("Verificata", "Verified") : langText("Da verificare", "Verify now")}</strong><span>${langText("Email status", "Email status")}</span></div>
-            <div class="irisx-summary-card"><strong>${user.verification.phoneVerified ? langText("Verificato", "Verified") : langText("Da verificare", "Verify now")}</strong><span>${langText("Phone status", "Phone status")}</span></div>
-            <div class="irisx-summary-card"><strong>${escapeHtml(user.memberSince || "2026")}</strong><span>${langText("Member since", "Member since")}</span></div>
-            <div class="irisx-summary-card"><strong>${user.addresses.length}</strong><span>${langText("Saved addresses", "Saved addresses")}</span></div>
-            <div class="irisx-summary-card"><strong>${user.security.twoFactor ? "2FA on" : "2FA off"}</strong><span>${langText("Security baseline", "Security baseline")}</span></div>
+            <div class="irisx-summary-card"><strong>${user.verification.emailVerified ? langText("Verificata", "Verified") : langText("Da verificare", "Verify now")}</strong><span>${langText("Stato email", "Email status")}</span></div>
+            <div class="irisx-summary-card"><strong>${user.verification.phoneVerified ? langText("Verificato", "Verified") : langText("Da verificare", "Verify now")}</strong><span>${langText("Stato telefono", "Phone status")}</span></div>
+            <div class="irisx-summary-card"><strong>${escapeHtml(user.memberSince || "2026")}</strong><span>${langText("Membro dal", "Member since")}</span></div>
+            <div class="irisx-summary-card"><strong>${user.addresses.length}</strong><span>${langText("Indirizzi salvati", "Saved addresses")}</span></div>
+            <div class="irisx-summary-card"><strong>${user.security.twoFactor ? "2FA on" : "2FA off"}</strong><span>${langText("Livello sicurezza", "Security baseline")}</span></div>
           </div>
         </div>
         <div class="irisx-workspace-card">
-          <div class="irisx-section-head"><h3>${langText("Addresses", "Addresses")}</h3><span>${langText("Shipping address book del buyer.", "Buyer shipping address book.")}</span></div>
+          <div class="irisx-section-head"><h3>${langText("Indirizzi", "Addresses")}</h3><span>${langText("Rubrica indirizzi di spedizione dell'acquirente.", "Buyer shipping address book.")}</span></div>
           <div class="irisx-card-stack">${user.addresses.map(function (address) {
             return `<div class="irisx-inline-card">
               <div><strong>${escapeHtml(address.label)}</strong><span>${escapeHtml(address.name || user.name || "")} · ${escapeHtml(address.address || "")}, ${escapeHtml(address.city || "")}, ${escapeHtml(address.country || "")}</span></div>
@@ -9281,13 +9999,13 @@
           }).join("")}</div>
           <div class="irisx-form-grid">
             <div class="irisx-account-row">
-              <div class="irisx-field"><label for="accountAddressLabel">${langText("Label", "Label")}</label><input id="accountAddressLabel" type="text" placeholder="${langText("Casa", "Home")}"></div>
-              <div class="irisx-field"><label for="accountAddressName">${langText("Recipient", "Recipient")}</label><input id="accountAddressName" type="text" value="${escapeHtml(user.name || "")}"></div>
+              <div class="irisx-field"><label for="accountAddressLabel">${langText("Etichetta", "Label")}</label><input id="accountAddressLabel" type="text" placeholder="${langText("Casa", "Home")}"></div>
+              <div class="irisx-field"><label for="accountAddressName">${langText("Destinatario", "Recipient")}</label><input id="accountAddressName" type="text" value="${escapeHtml(user.name || "")}"></div>
             </div>
-            <div class="irisx-field"><label for="accountAddressLine">${langText("Address line", "Address line")}</label><input id="accountAddressLine" type="text"></div>
+            <div class="irisx-field"><label for="accountAddressLine">${langText("Indirizzo", "Address line")}</label><input id="accountAddressLine" type="text"></div>
             <div class="irisx-account-row">
-              <div class="irisx-field"><label for="accountAddressCity">${langText("City", "City")}</label><input id="accountAddressCity" type="text"></div>
-              <div class="irisx-field"><label for="accountAddressCountry">${langText("Country", "Country")}</label><input id="accountAddressCountry" type="text" value="${escapeHtml(user.country || getWorkspaceDefaultCountry())}"></div>
+              <div class="irisx-field"><label for="accountAddressCity">${langText("Città", "City")}</label><input id="accountAddressCity" type="text"></div>
+              <div class="irisx-field"><label for="accountAddressCountry">${langText("Paese", "Country")}</label><input id="accountAddressCountry" type="text" value="${escapeHtml(user.country || getWorkspaceDefaultCountry())}"></div>
             </div>
             <div class="irisx-actions"><button class="irisx-primary" onclick="saveAddressBook()">${langText("Salva indirizzo", "Save address")}</button></div>
           </div>
@@ -9297,7 +10015,7 @@
 
     if (section === "settings_profile") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Profile settings", "Profile settings")}</h3><span>${langText("Aggiorna nome, bio e localita'.", "Update name, bio, and location.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Impostazioni profilo", "Profile settings")}</h3><span>${langText("Aggiorna nome, bio e localita'.", "Update name, bio, and location.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
             <div class="irisx-field"><label for="profileNameInput">${t("full_name")}</label><input id="profileNameInput" type="text" value="${escapeHtml(user.name || "")}"></div>
@@ -9316,12 +10034,12 @@
 
     if (section === "settings_privacy") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Privacy", "Privacy")}</h3><span>${langText("Controlli placeholder per visibilita', messaggi e personalizzazione.", "Placeholder controls for visibility, messaging, and personalization.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Privacy", "Privacy")}</h3><span>${langText("Controlli placeholder per visibilità, messaggi e personalizzazione.", "Placeholder controls for visibility, messaging, and personalization.")}</span></div>
         <div class="irisx-form-grid">
-          <div class="irisx-field"><label for="privacyVisibility">${langText("Profile visibility", "Profile visibility")}</label><input id="privacyVisibility" type="text" value="${escapeHtml(user.privacySettings.profileVisibility || "")}"></div>
+          <div class="irisx-field"><label for="privacyVisibility">${langText("Visibilità profilo", "Profile visibility")}</label><input id="privacyVisibility" type="text" value="${escapeHtml(user.privacySettings.profileVisibility || "")}"></div>
           <div class="irisx-toggle-grid">
-            <label><input id="privacyActivityStatus" type="checkbox" ${user.privacySettings.showActivityStatus ? "checked" : ""}> ${langText("Mostra activity status", "Show activity status")}</label>
-            <label><input id="privacyMessageRequests" type="checkbox" ${user.privacySettings.allowMessageRequests ? "checked" : ""}> ${langText("Consenti message requests", "Allow message requests")}</label>
+            <label><input id="privacyActivityStatus" type="checkbox" ${user.privacySettings.showActivityStatus ? "checked" : ""}> ${langText("Mostra stato attività", "Show activity status")}</label>
+            <label><input id="privacyMessageRequests" type="checkbox" ${user.privacySettings.allowMessageRequests ? "checked" : ""}> ${langText("Consenti richieste messaggi", "Allow message requests")}</label>
             <label><input id="privacyPersonalized" type="checkbox" ${user.privacySettings.personalizedRecommendations ? "checked" : ""}> ${langText("Suggerimenti personalizzati", "Personalized recommendations")}</label>
           </div>
           <div class="irisx-actions"><button class="irisx-primary" onclick="savePrivacyWorkspace()">${langText("Salva privacy", "Save privacy")}</button></div>
@@ -9332,21 +10050,21 @@
     if (section === "settings_payment") {
       return `<div class="irisx-card-stack">
         <div class="irisx-workspace-card">
-          <div class="irisx-section-head"><h3>${langText("Payment methods", "Payment methods")}</h3><span>${langText("Scheletro per carte e metodi futuri.", "Skeleton for cards and future methods.")}</span></div>
+          <div class="irisx-section-head"><h3>${langText("Metodi di pagamento", "Payment methods")}</h3><span>${langText("Scheletro per carte e metodi futuri.", "Skeleton for cards and future methods.")}</span></div>
           ${user.paymentMethods.length ? `<div class="irisx-card-stack">${user.paymentMethods.map(function (method) {
             return `<div class="irisx-inline-card"><div><strong>${escapeHtml(method.brand)} •••• ${escapeHtml(method.last4)}</strong><span>${escapeHtml(method.label || "")}</span></div>${method.isDefault ? `<span class="irisx-badge">${langText("Default", "Default")}</span>` : ""}</div>`;
           }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun metodo salvato.", "No saved payment methods.")}</div>`}
           <div class="irisx-actions"><button class="irisx-primary" onclick="addPrototypePaymentMethod()">${langText("Aggiungi metodo mock", "Add mock method")}</button></div>
         </div>
         <div class="irisx-workspace-card">
-          <div class="irisx-section-head"><h3>${langText("Payout settings", "Payout settings")}</h3><span>${langText("Dettagli seller payout predisposti nel profilo.", "Seller payout details prepared inside the profile.")}</span></div>
+          <div class="irisx-section-head"><h3>${langText("Impostazioni pagamento", "Payout settings")}</h3><span>${langText("Dettagli payout venditore predisposti nel profilo.", "Seller payout details prepared inside the profile.")}</span></div>
           <div class="irisx-form-grid">
             <div class="irisx-account-row">
-              <div class="irisx-field"><label for="payoutMethod">${langText("Method", "Method")}</label><input id="payoutMethod" type="text" value="${escapeHtml(user.payoutSettings.method || "bank_transfer")}"></div>
-              <div class="irisx-field"><label for="payoutCadence">${langText("Cadence", "Cadence")}</label><input id="payoutCadence" type="text" value="${escapeHtml(user.payoutSettings.cadence || "")}"></div>
+              <div class="irisx-field"><label for="payoutMethod">${langText("Metodo", "Method")}</label><input id="payoutMethod" type="text" value="${escapeHtml(user.payoutSettings.method || "bank_transfer")}"></div>
+              <div class="irisx-field"><label for="payoutCadence">${langText("Cadenza", "Cadence")}</label><input id="payoutCadence" type="text" value="${escapeHtml(user.payoutSettings.cadence || "")}"></div>
             </div>
             <div class="irisx-account-row">
-              <div class="irisx-field"><label for="payoutHolder">${langText("Account holder", "Account holder")}</label><input id="payoutHolder" type="text" value="${escapeHtml(user.payoutSettings.accountHolder || user.name || "")}"></div>
+              <div class="irisx-field"><label for="payoutHolder">${langText("Intestatario conto", "Account holder")}</label><input id="payoutHolder" type="text" value="${escapeHtml(user.payoutSettings.accountHolder || user.name || "")}"></div>
               <div class="irisx-field"><label for="payoutPaypal">${langText("PayPal email", "PayPal email")}</label><input id="payoutPaypal" type="text" value="${escapeHtml(user.payoutSettings.paypalEmail || user.email || "")}"></div>
             </div>
             <div class="irisx-field"><label for="payoutIban">IBAN</label><input id="payoutIban" type="text" value="${escapeHtml(user.payoutSettings.iban || "")}"></div>
@@ -9358,13 +10076,13 @@
 
     if (section === "settings_notifications") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Notifications", "Notifications")}</h3><span>${langText("Badge, notifiche in-app e preferenze mock.", "Badges, in-app notifications, and mock preferences.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Notifiche", "Notifications")}</h3><span>${langText("Badge, notifiche in-app e preferenze mock.", "Badges, in-app notifications, and mock preferences.")}</span></div>
         <div class="irisx-toggle-grid">
           <label><input id="notifPrefOrders" type="checkbox" ${user.notificationSettings.orders ? "checked" : ""}> ${langText("Ordini", "Orders")}</label>
           <label><input id="notifPrefMessages" type="checkbox" ${user.notificationSettings.messages ? "checked" : ""}> ${langText("Messaggi", "Messages")}</label>
           <label><input id="notifPrefOffers" type="checkbox" ${user.notificationSettings.offers ? "checked" : ""}> ${langText("Offerte", "Offers")}</label>
           <label><input id="notifPrefPayouts" type="checkbox" ${user.notificationSettings.payouts ? "checked" : ""}> ${langText("Payout", "Payouts")}</label>
-          <label><input id="notifPrefAdmin" type="checkbox" ${user.notificationSettings.admin ? "checked" : ""}> ${langText("Admin notice", "Admin notices")}</label>
+          <label><input id="notifPrefAdmin" type="checkbox" ${user.notificationSettings.admin ? "checked" : ""}> ${langText("Avvisi admin", "Admin notices")}</label>
         </div>
         <div class="irisx-actions"><button class="irisx-primary" onclick="saveNotificationPreferences()">${langText("Salva preferenze", "Save preferences")}</button><button class="irisx-secondary" onclick="markAllRead()">${langText("Segna tutto letto", "Mark all read")}</button></div>
         ${renderNotificationsCenter()}
@@ -9373,7 +10091,7 @@
 
     if (section === "settings_security") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Security", "Security")}</h3><span>${langText("2FA, login alerts, verifica contatti e blocco identità bannate.", "2FA, login alerts, contact verification, and banned identity blocking.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Sicurezza", "Security")}</h3><span>${langText("2FA, login alerts, verifica contatti e blocco identità bannate.", "2FA, login alerts, contact verification, and banned identity blocking.")}</span></div>
         <div class="irisx-card-stack">
           <div class="irisx-inline-card">
             <div>
@@ -9426,52 +10144,52 @@
 
     if (section === "help_help") {
       return `<div class="irisx-policy-grid">
-        <button class="irisx-policy-card" onclick="setProfileArea('account','help_listings')"><strong>${langText("Listings help", "Listings help")}</strong><span>${langText("Regole seller, bozze e pubblicazione.", "Seller rules, drafts, and publishing.")}</span></button>
-        <button class="irisx-policy-card" onclick="setProfileArea('account','help_verification')"><strong>${langText("Verification", "Verification")}</strong><span>${langText("Trust, protection e autenticazione.", "Trust, protection, and authentication.")}</span></button>
-        <button class="irisx-policy-card" onclick="setProfileArea('account','help_shipping')"><strong>${langText("Shipping and protection", "Shipping and protection")}</strong><span>${langText("Policy, refund e tracking flow.", "Policies, refund, and tracking flow.")}</span></button>
-        <button class="irisx-policy-card" onclick="setProfileArea('account','help_contact')"><strong>${langText("Contact support", "Contact support")}</strong><span>${langText("Ticket, issue reporting e support queue.", "Tickets, issue reporting, and support queue.")}</span></button>
+        <button class="irisx-policy-card" onclick="setProfileArea('account','help_listings')"><strong>${langText("Guida annunci", "Listings help")}</strong><span>${langText("Regole seller, bozze e pubblicazione.", "Seller rules, drafts, and publishing.")}</span></button>
+        <button class="irisx-policy-card" onclick="setProfileArea('account','help_verification')"><strong>${langText("Verifica identità", "Verification")}</strong><span>${langText("Trust, protection e autenticazione.", "Trust, protection, and authentication.")}</span></button>
+        <button class="irisx-policy-card" onclick="setProfileArea('account','help_shipping')"><strong>${langText("Spedizione e protezione", "Shipping and protection")}</strong><span>${langText("Policy, refund e tracking flow.", "Policies, refund, and tracking flow.")}</span></button>
+        <button class="irisx-policy-card" onclick="setProfileArea('account','help_contact')"><strong>${langText("Contatta il supporto", "Contact support")}</strong><span>${langText("Ticket, issue reporting e support queue.", "Tickets, issue reporting, and support queue.")}</span></button>
       </div>`;
     }
 
     if (section === "help_listings") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Listings", "Listings")}</h3><span>${langText("Guida seller per creare, salvare bozza e pubblicare annunci.", "Seller guide for drafting and publishing listings.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("I tuoi annunci", "Listings")}</h3><span>${langText("Guida seller per creare, salvare bozza e pubblicare annunci.", "Seller guide for drafting and publishing listings.")}</span></div>
         <div class="irisx-card-stack">
-          <div class="irisx-inline-card"><div><strong>${langText("Draft flow", "Draft flow")}</strong><span>${langText("Salva bozza, rientra nell'editor e pubblica quando l'annuncio e' pronto.", "Save drafts, reopen the editor, and publish when the listing is ready.")}</span></div><button class="irisx-secondary" onclick="setProfileArea('seller','drafts')">${langText("Apri bozze", "Open drafts")}</button></div>
-          <div class="irisx-inline-card"><div><strong>${langText("Live listings", "Live listings")}</strong><span>${langText("Controlla annunci attivi, offerte abilitate e archivio.", "Check active listings, offer settings, and archive.")}</span></div><button class="irisx-secondary" onclick="setProfileArea('seller','active')">${langText("Apri attivi", "Open active")}</button></div>
+          <div class="irisx-inline-card"><div><strong>${langText("Flusso bozze", "Draft flow")}</strong><span>${langText("Salva bozza, rientra nell'editor e pubblica quando l'annuncio e' pronto.", "Save drafts, reopen the editor, and publish when the listing is ready.")}</span></div><button class="irisx-secondary" onclick="setProfileArea('seller','drafts')">${langText("Apri bozze", "Open drafts")}</button></div>
+          <div class="irisx-inline-card"><div><strong>${langText("Annunci live", "Live listings")}</strong><span>${langText("Controlla annunci attivi, offerte abilitate e archivio.", "Check active listings, offer settings, and archive.")}</span></div><button class="irisx-secondary" onclick="setProfileArea('seller','active')">${langText("Apri attivi", "Open active")}</button></div>
         </div>
       </div>`;
     }
 
     if (section === "help_verification") {
       return `<div class="irisx-policy-grid">
-        <button class="irisx-policy-card" onclick="openStatic('trust-authentication')"><strong>${langText("Trust / Authentication", "Trust / Authentication")}</strong><span>${langText("Flusso autenticazione e trust block prodotto.", "Authentication flow and product trust block.")}</span></button>
-        <button class="irisx-policy-card" onclick="openStatic('buyer-protection')"><strong>${langText("Buyer Protection", "Buyer Protection")}</strong><span>${langText("Supporto, timeline e protezione buyer.", "Support, timeline, and buyer protection.")}</span></button>
-        <button class="irisx-policy-card" onclick="openStatic('seller-protection')"><strong>${langText("Seller Protection", "Seller Protection")}</strong><span>${langText("Payout, queue operativa e seller safeguards.", "Payout, operational queue, and seller safeguards.")}</span></button>
+        <button class="irisx-policy-card" onclick="openStatic('trust-authentication')"><strong>${langText("Trust / autenticazione", "Trust / Authentication")}</strong><span>${langText("Flusso autenticazione e trust block prodotto.", "Authentication flow and product trust block.")}</span></button>
+        <button class="irisx-policy-card" onclick="openStatic('buyer-protection')"><strong>${langText("Protezione acquirente", "Buyer Protection")}</strong><span>${langText("Supporto, timeline e protezione buyer.", "Support, timeline, and buyer protection.")}</span></button>
+        <button class="irisx-policy-card" onclick="openStatic('seller-protection')"><strong>${langText("Protezione venditore", "Seller Protection")}</strong><span>${langText("Payout, queue operativa e seller safeguards.", "Payout, operational queue, and seller safeguards.")}</span></button>
       </div>`;
     }
 
     if (section === "help_shipping") {
       return `<div class="irisx-policy-grid">
-        <button class="irisx-policy-card" onclick="openStatic('shipping-policy')"><strong>${langText("Shipping Policy", "Shipping Policy")}</strong><span>${langText("Metodi, tracking e queue spedizioni.", "Methods, tracking, and shipping queue.")}</span></button>
-        <button class="irisx-policy-card" onclick="openStatic('refund-policy')"><strong>${langText("Refund / Return Policy", "Refund / Return Policy")}</strong><span>${langText("Refund states, dispute e support path.", "Refund states, disputes, and support path.")}</span></button>
-        <button class="irisx-policy-card" onclick="setProfileArea('seller','shipping')"><strong>${langText("Seller shipping queue", "Seller shipping queue")}</strong><span>${langText("Apri gli ordini da spedire e tracking placeholder.", "Open seller orders awaiting shipment and placeholder tracking.")}</span></button>
+        <button class="irisx-policy-card" onclick="openStatic('shipping-policy')"><strong>${langText("Policy spedizioni", "Shipping Policy")}</strong><span>${langText("Metodi, tracking e queue spedizioni.", "Methods, tracking, and shipping queue.")}</span></button>
+        <button class="irisx-policy-card" onclick="openStatic('refund-policy')"><strong>${langText("Policy resi / rimborsi", "Refund / Return Policy")}</strong><span>${langText("Refund states, dispute e support path.", "Refund states, disputes, and support path.")}</span></button>
+        <button class="irisx-policy-card" onclick="setProfileArea('seller','shipping')"><strong>${langText("Coda spedizioni venditore", "Seller shipping queue")}</strong><span>${langText("Apri gli ordini da spedire e tracking placeholder.", "Open seller orders awaiting shipment and placeholder tracking.")}</span></button>
       </div>`;
     }
 
     if (section === "help_accessibility") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Accessibility Statement", "Accessibility Statement")}</h3><span>${langText("Impegni di struttura e supporto del prototipo.", "Prototype structure and support commitments.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Accessibilità", "Accessibility Statement")}</h3><span>${langText("Impegni di struttura e supporto del prototipo.", "Prototype structure and support commitments.")}</span></div>
         <div class="irisx-card-stack">
-          <div class="irisx-inline-card"><div><strong>${langText("Responsive baseline", "Responsive baseline")}</strong><span>${langText("Layout account e messaging adattati a desktop e mobile.", "Account and messaging layouts are adapted for desktop and mobile.")}</span></div></div>
-          <div class="irisx-inline-card"><div><strong>${langText("Assistive support path", "Assistive support path")}</strong><span>${langText("Per richieste specifiche usa Contact Support o apri il documento dedicato.", "Use Contact Support or open the dedicated statement for specific needs.")}</span></div><button class="irisx-secondary" onclick="openStatic('accessibility-statement')">${langText("Apri statement", "Open statement")}</button></div>
+          <div class="irisx-inline-card"><div><strong>${langText("Base responsive", "Responsive baseline")}</strong><span>${langText("Layout account e messaging adattati a desktop e mobile.", "Account and messaging layouts are adapted for desktop and mobile.")}</span></div></div>
+          <div class="irisx-inline-card"><div><strong>${langText("Percorso di supporto assistivo", "Assistive support path")}</strong><span>${langText("Per richieste specifiche usa Contact Support o apri il documento dedicato.", "Use Contact Support or open the dedicated statement for specific needs.")}</span></div><button class="irisx-secondary" onclick="openStatic('accessibility-statement')">${langText("Apri documento", "Open statement")}</button></div>
         </div>
       </div>`;
     }
 
     if (section === "help_contact") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Contact Support", "Contact Support")}</h3><span>${langText("Ticket, dispute e issue reporting.", "Tickets, disputes, and issue reporting.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Contatta il supporto", "Contact Support")}</h3><span>${langText("Ticket, dispute e issue reporting.", "Tickets, disputes, and issue reporting.")}</span></div>
         <div class="irisx-card-stack">
           <div class="irisx-inline-card"><div><strong>${PLATFORM_CONFIG.supportEmail}</strong><span>${langText("Inbox support proprietario / team.", "Owner / team support inbox.")}</span></div></div>
         </div>
@@ -9482,31 +10200,25 @@
 
     if (section === "help_about") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("About", "About")}</h3><span>${langText("Contesto del marketplace, fiducia e linee guida community.", "Marketplace context, trust, and community guidelines.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Chi siamo", "About")}</h3><span>${langText("Contesto del marketplace, fiducia e linee guida community.", "Marketplace context, trust, and community guidelines.")}</span></div>
         <div class="irisx-card-stack">
           <div class="irisx-inline-card"><div><strong>IRIS</strong><span>${langText("Marketplace prototype strutturato per buyer, seller e owner.", "Structured marketplace prototype for buyers, sellers, and owner.")}</span></div><button class="irisx-secondary" onclick="openStatic('about')">${langText("Apri about", "Open about")}</button></div>
-          <div class="irisx-inline-card"><div><strong>${langText("Community Guidelines", "Community Guidelines")}</strong><span>${langText("Regole di comportamento e moderazione.", "Conduct and moderation rules.")}</span></div><button class="irisx-secondary" onclick="openStatic('community-guidelines')">${langText("Apri", "Open")}</button></div>
+          <div class="irisx-inline-card"><div><strong>${langText("Linee guida community", "Community Guidelines")}</strong><span>${langText("Regole di comportamento e moderazione.", "Conduct and moderation rules.")}</span></div><button class="irisx-secondary" onclick="openStatic('community-guidelines')">${langText("Apri", "Open")}</button></div>
         </div>
       </div>`;
     }
 
     if (section === "help_sell") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Sell", "Sell")}</h3><span>${langText("Onboarding seller, fee coerenti e scorciatoie operative.", "Seller onboarding, coherent fees, and operational shortcuts.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Vendi", "Sell")}</h3><span>${langText("Onboarding seller, fee coerenti e scorciatoie operative.", "Seller onboarding, coherent fees, and operational shortcuts.")}</span></div>
         <div class="irisx-card-stack">
-          <div class="irisx-inline-card"><div><strong>${langText("Create a listing", "Create a listing")}</strong><span>${langText("Apri il form seller mantenendo fee e offer settings coerenti.", "Open the seller form while keeping fee and offer settings coherent.")}</span></div><button class="irisx-primary" onclick="showPage('sell')">${langText("Vai a Sell", "Go to Sell")}</button></div>
-          <div class="irisx-inline-card"><div><strong>${langText("Seller dashboard", "Seller dashboard")}</strong><span>${langText("Gestisci shipping queue, offerte ricevute e cronologia vendite.", "Manage shipping queue, incoming offers, and sales history.")}</span></div><button class="irisx-secondary" onclick="setProfileArea('seller','dashboard')">${langText("Apri dashboard", "Open dashboard")}</button></div>
+          <div class="irisx-inline-card"><div><strong>${langText("Crea un annuncio", "Create a listing")}</strong><span>${langText("Apri il form seller mantenendo fee e offer settings coerenti.", "Open the seller form while keeping fee and offer settings coherent.")}</span></div><button class="irisx-primary" onclick="showPage('sell')">${langText("Vai a Vendi", "Go to Sell")}</button></div>
+          <div class="irisx-inline-card"><div><strong>${langText("Dashboard venditore", "Seller dashboard")}</strong><span>${langText("Gestisci shipping queue, offerte ricevute e cronologia vendite.", "Manage shipping queue, incoming offers, and sales history.")}</span></div><button class="irisx-secondary" onclick="setProfileArea('seller','dashboard')">${langText("Apri dashboard", "Open dashboard")}</button></div>
         </div>
       </div>`;
     }
 
     return `<div class="irisx-overview-shell">
-      <div class="irisx-summary-grid">
-        <div class="irisx-summary-card"><strong>${orders.length}</strong><span>${langText("Buyer orders", "Buyer orders")}</span></div>
-        <div class="irisx-summary-card"><strong>${sellerOrders.length}</strong><span>${langText("Seller workflow", "Seller workflow")}</span></div>
-        <div class="irisx-summary-card"><strong>${favoritesItems.length}</strong><span>${t("favorites_section")}</span></div>
-        <div class="irisx-summary-card"><strong>${unreadNotifications}</strong><span>${langText("Unread notifications", "Unread notifications")}</span></div>
-      </div>
       <div class="irisx-overview-grid">
         <section class="irisx-workspace-card">
           <div class="irisx-section-head">
@@ -9514,9 +10226,9 @@
             <span>${langText("Le cose essenziali da completare o controllare.", "The essential things to complete or check.")}</span>
           </div>
           <div class="irisx-card-stack">
-            <div class="irisx-inline-card"><div><strong>${langText("Metodo di pagamento", "Payment method")}</strong><span>${user.paymentMethods.find(function (method) { return method.isDefault; }) ? langText("Default gia impostato", "Default already set") : langText("Aggiungi una carta predefinita", "Add a default card")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_payment')">${langText("Apri", "Open")}</button></div>
-            <div class="irisx-inline-card"><div><strong>${langText("Indirizzo di spedizione", "Shipping address")}</strong><span>${user.addresses.find(function (address) { return address.isDefault; }) ? langText("Default attivo", "Default active") : langText("Imposta un indirizzo principale", "Set a main address")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_account')">${langText("Apri", "Open")}</button></div>
-            <div class="irisx-inline-card"><div><strong>${langText("Payout seller", "Seller payout")}</strong><span>${escapeHtml(user.payoutSettings.status || langText("Da configurare", "Setup needed"))}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_payment')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Metodo di pagamento", "Payment method")}</strong><span>${user.paymentMethods.find(function (method) { return method.isDefault; }) ? langText("Predefinito già impostato", "Default already set") : langText("Aggiungi una carta predefinita", "Add a default card")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_payment')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Indirizzo di spedizione", "Shipping address")}</strong><span>${user.addresses.find(function (address) { return address.isDefault; }) ? langText("Predefinito attivo", "Default active") : langText("Imposta un indirizzo principale", "Set a main address")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_account')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Pagamento venditore", "Seller payout")}</strong><span>${escapeHtml(user.payoutSettings.status || langText("Da configurare", "Setup needed"))}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_payment')">${langText("Apri", "Open")}</button></div>
           </div>
         </section>
         <section class="irisx-workspace-card">
@@ -9525,9 +10237,9 @@
             <span>${langText("Le aree dove torni più spesso durante la giornata.", "The areas you return to most during the day.")}</span>
           </div>
           <div class="irisx-card-stack">
-            <div class="irisx-inline-card"><div><strong>${langText("Chat compro", "Buying chat")}</strong><span>${buyingThreads.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("buying")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="openMessagingInbox('buying')">${langText("Apri", "Open")}</button></div>
-            <div class="irisx-inline-card"><div><strong>${langText("Chat vendo", "Selling chat")}</strong><span>${sellingThreads.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("selling")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="openMessagingInbox('selling')">${langText("Apri", "Open")}</button></div>
-            <div class="irisx-inline-card"><div><strong>${langText("Supporto e notifiche", "Support and notifications")}</strong><span>${tickets.length} ${langText("ticket", "tickets")} · ${unreadNotifications} ${langText("notifiche non lette", "unread notifications")}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_notifications')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Chat compro", "Buying chat")}</strong><span>${getWorkspaceChatSummary("buying", buyingThreads)}</span></div><button class="irisx-secondary" onclick="openMessagingInbox('buying')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Chat vendo", "Selling chat")}</strong><span>${getWorkspaceChatSummary("selling", sellingThreads)}</span></div><button class="irisx-secondary" onclick="openMessagingInbox('selling')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Supporto e notifiche", "Support and notifications")}</strong><span>${getWorkspaceSupportSummary(tickets.length, unreadNotifications)}</span></div><button class="irisx-secondary" onclick="setProfileArea('account','settings_notifications')">${langText("Apri", "Open")}</button></div>
           </div>
         </section>
       </div>
@@ -9629,28 +10341,28 @@
         byBrand[listing.brand] = (byBrand[listing.brand] || 0) + 1;
       });
       return `<div class="irisx-summary-grid">
-        <div class="irisx-summary-card"><strong>${published.length}</strong><span>${langText("Active listings", "Active listings")}</span></div>
-        <div class="irisx-summary-card"><strong>${drafts.length}</strong><span>${langText("Draft listings", "Draft listings")}</span></div>
-        <div class="irisx-summary-card"><strong>${sellerOffers.length}</strong><span>${langText("Offers received", "Offers received")}</span></div>
-        <div class="irisx-summary-card"><strong>${sellerOrders.length}</strong><span>${langText("Sales history", "Sales history")}</span></div>
+        <div class="irisx-summary-card"><strong>${published.length}</strong><span>${langText("Annunci attivi", "Active listings")}</span></div>
+        <div class="irisx-summary-card"><strong>${drafts.length}</strong><span>${langText("Bozze", "Draft listings")}</span></div>
+        <div class="irisx-summary-card"><strong>${sellerOffers.length}</strong><span>${langText("Offerte ricevute", "Offers received")}</span></div>
+        <div class="irisx-summary-card"><strong>${sellerOrders.length}</strong><span>${langText("Storico vendite", "Sales history")}</span></div>
       </div>
       <div class="irisx-card-stack">${Object.keys(byBrand).map(function (brand) {
         return `<div class="irisx-inline-card"><div><strong>${escapeHtml(brand)}</strong><span>${byBrand[brand]} ${langText("annunci", "listings")}</span></div></div>`;
       }).join("")}</div>`;
     }
     return `<div class="irisx-summary-grid">
-      <div class="irisx-summary-card"><strong>${published.length}</strong><span>${langText("Active listings", "Active listings")}</span></div>
-      <div class="irisx-summary-card"><strong>${drafts.length}</strong><span>${langText("Drafts", "Drafts")}</span></div>
-      <div class="irisx-summary-card"><strong>${sellerOrders.filter(function (order) { return ["paid", "awaiting_shipment"].includes(order.status); }).length}</strong><span>${langText("Shipping queue", "Shipping queue")}</span></div>
-      <div class="irisx-summary-card"><strong>${sellerOrders.filter(function (order) { return order.payment.payoutStatus === "ready"; }).length}</strong><span>${langText("Payout ready", "Payout ready")}</span></div>
-      <div class="irisx-summary-card"><strong>${sellingConversations.length}</strong><span>${langText("Selling chats", "Selling chats")}</span></div>
+      <div class="irisx-summary-card"><strong>${published.length}</strong><span>${langText("Annunci attivi", "Active listings")}</span></div>
+      <div class="irisx-summary-card"><strong>${drafts.length}</strong><span>${langText("Bozze", "Drafts")}</span></div>
+      <div class="irisx-summary-card"><strong>${sellerOrders.filter(function (order) { return ["paid", "awaiting_shipment"].includes(order.status); }).length}</strong><span>${langText("Coda spedizioni", "Shipping queue")}</span></div>
+      <div class="irisx-summary-card"><strong>${sellerOrders.filter(function (order) { return order.payment.payoutStatus === "ready"; }).length}</strong><span>${langText("Payout pronti", "Payout ready")}</span></div>
+      <div class="irisx-summary-card"><strong>${sellingConversations.length}</strong><span>${langText("Chat vendita", "Selling chats")}</span></div>
     </div>
     <div class="irisx-card-stack">
-      <div class="irisx-inline-card"><div><strong>${langText("Active listings", "Active listings")}</strong><span>${langText("Catalogo live seller.", "Seller live catalog.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('active')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Draft listings", "Draft listings")}</strong><span>${langText("Bozze pronte da completare.", "Drafts ready to complete.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('drafts')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Offers received", "Offers received")}</strong><span>${sellerOffers.length} ${langText("offerte", "offers")}</span></div><button class="irisx-secondary" onclick="setSellerSection('offers')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Selling inbox", "Selling inbox")}</strong><span>${sellingConversations.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("selling")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="setSellerSection('messages')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Shipping queue", "Shipping queue")}</strong><span>${langText("Ordini da processare.", "Orders to process.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('shipping')">${langText("Apri", "Open")}</button></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Annunci attivi", "Active listings")}</strong><span>${langText("Catalogo live seller.", "Seller live catalog.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('active')">${langText("Apri", "Open")}</button></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Bozze", "Draft listings")}</strong><span>${langText("Bozze pronte da completare.", "Drafts ready to complete.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('drafts')">${langText("Apri", "Open")}</button></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Offerte ricevute", "Offers received")}</strong><span>${sellerOffers.length} ${langText("offerte", "offers")}</span></div><button class="irisx-secondary" onclick="setSellerSection('offers')">${langText("Apri", "Open")}</button></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Inbox vendita", "Selling inbox")}</strong><span>${sellingConversations.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("selling")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="setSellerSection('messages')">${langText("Apri", "Open")}</button></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Coda spedizioni", "Shipping queue")}</strong><span>${langText("Ordini da processare.", "Orders to process.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('shipping')">${langText("Apri", "Open")}</button></div>
     </div>`;
   }
 
@@ -9662,48 +10374,48 @@
     }
     if (area === "buyer") {
       return [
-        { id: "orders", label: langText("My orders", "My orders") },
-        { id: "order_detail", label: langText("Order detail", "Order detail") },
-        { id: "tracking", label: langText("Tracking", "Tracking") },
-        { id: "offers", label: langText("Sent offers", "Sent offers") },
-        { id: "wishlist", label: langText("Wishlist", "Wishlist") },
+        { id: "orders", label: langText("I miei ordini", "My orders") },
+        { id: "order_detail", label: langText("Dettaglio ordine", "Order detail") },
+        { id: "tracking", label: langText("Tracciamento", "Tracking") },
+        { id: "offers", label: langText("Offerte inviate", "Sent offers") },
+        { id: "wishlist", label: langText("Preferiti", "Wishlist") },
         { id: "messages", label: langText("Chat compro", "Buying chat") },
-        { id: "history", label: langText("Purchase history", "Purchase history") },
-        { id: "reviews", label: langText("Review flow", "Review flow") },
-        { id: "support", label: langText("Support / report issue", "Support / report issue") }
+        { id: "history", label: langText("Storico acquisti", "Purchase history") },
+        { id: "reviews", label: langText("Recensioni", "Review flow") },
+        { id: "support", label: langText("Supporto / segnala un problema", "Support / report issue") }
       ];
     }
     return [
-      { id: "dashboard", label: langText("Seller dashboard", "Seller dashboard") },
-      { id: "active", label: langText("Active listings", "Active listings") },
-      { id: "drafts", label: langText("Draft listings", "Draft listings") },
-      { id: "sold", label: langText("Sold items", "Sold items") },
-      { id: "offers", label: langText("Offers received", "Offers received") },
+      { id: "dashboard", label: langText("Dashboard venditore", "Seller dashboard") },
+      { id: "active", label: langText("Annunci attivi", "Active listings") },
+      { id: "drafts", label: langText("Bozze", "Draft listings") },
+      { id: "sold", label: langText("Articoli venduti", "Sold items") },
+      { id: "offers", label: langText("Offerte ricevute", "Offers received") },
       { id: "messages", label: langText("Chat vendo", "Selling chat") },
-      { id: "shipping", label: langText("Shipping queue", "Shipping queue") },
-      { id: "payouts", label: langText("Payout overview", "Payout overview") },
-      { id: "history", label: langText("Sales history", "Sales history") },
-      { id: "stats", label: langText("Listing stats", "Listing stats") }
+      { id: "shipping", label: langText("Coda spedizioni", "Shipping queue") },
+      { id: "payouts", label: langText("Panoramica pagamenti", "Payout overview") },
+      { id: "history", label: langText("Storico vendite", "Sales history") },
+      { id: "stats", label: langText("Statistiche annunci", "Listing stats") }
     ];
   }
 
   function getProfileAreaCopy(area) {
     if (area === "buyer") {
       return {
-        kicker: langText("Buyer workspace", "Buyer workspace"),
+        kicker: langText("Spazio acquisti", "Buyer workspace"),
         title: langText("Acquisti", "Buying"),
         subtitle: langText("Ordini, offerte, wishlist e chat degli articoli che stai comprando.", "Orders, offers, wishlist, and chats for the items you are buying.")
       };
     }
     if (area === "seller") {
       return {
-        kicker: langText("Seller workspace", "Seller workspace"),
+        kicker: langText("Spazio vendite", "Seller workspace"),
         title: langText("Vendite", "Selling"),
         subtitle: langText("Annunci, offerte ricevute, chat e spedizioni in un unico spazio.", "Listings, received offers, chats, and shipping in one place.")
       };
     }
     return {
-      kicker: langText("Account workspace", "Account workspace"),
+      kicker: langText("Spazio account", "Account workspace"),
       title: langText("Account", "Account"),
       subtitle: langText("Le impostazioni importanti in uno spazio più semplice e leggibile.", "Important settings in a simpler, easier-to-read space.")
     };
@@ -9782,7 +10494,7 @@
       {
         title: langText("Gestione vendite", "Sales management"),
         entries: [
-          { id: "dashboard", label: langText("Dashboard", "Dashboard"), description: langText("Panoramica seller immediata.", "Quick seller overview."), badge: "" },
+          { id: "dashboard", label: langText("Dashboard", "Dashboard"), description: langText("Panoramica venditore immediata.", "Quick seller overview."), badge: "" },
           { id: "active", label: langText("Annunci attivi", "Active listings"), description: langText("I prodotti live che stai vendendo.", "Live products you are selling."), badge: String(publishedCount) },
           { id: "drafts", label: langText("Bozze", "Drafts"), description: langText("Annunci da completare o pubblicare.", "Listings to finish or publish."), badge: String(context.listings.filter(function (listing) { return listing.listingStatus === "draft" || listing.inventoryStatus === "draft"; }).length) },
           { id: "offers", label: langText("Offerte ricevute", "Offers received"), description: langText("Rispondi alle offerte dei buyer.", "Respond to buyer offers."), badge: String(getSellerOffers().length) }
@@ -9793,7 +10505,7 @@
         entries: [
           { id: "messages", label: langText("Chat vendo", "Selling chat"), description: langText("Messaggi sugli articoli che stai vendendo.", "Messages for the items you are selling."), badge: String(getChatScopeUnreadCount("selling")) },
           { id: "shipping", label: langText("Spedizioni", "Shipping"), description: langText("Ordini da preparare e spedire.", "Orders to prepare and ship."), badge: String(context.sellerOrders.filter(function (order) { return ["paid", "awaiting_shipment"].includes(order.status); }).length) },
-          { id: "payouts", label: langText("Payout", "Payouts"), description: langText("Pagamenti in uscita e stato saldo.", "Outgoing payouts and balance status."), badge: String(payoutReadyCount) },
+          { id: "payouts", label: langText("Pagamenti", "Payouts"), description: langText("Pagamenti in uscita e stato saldo.", "Outgoing payouts and balance status."), badge: String(payoutReadyCount) },
           { id: "history", label: langText("Storico vendite", "Sales history"), description: langText("Ordini seller conclusi.", "Completed seller orders."), badge: "" }
         ]
       }
@@ -9810,6 +10522,21 @@
     return `setProfileArea('account','${sectionId}')`;
   }
 
+  function shouldRenderWorkspaceBadge(badge) {
+    if (badge === null || badge === undefined) {
+      return false;
+    }
+    const text = String(badge).trim();
+    if (!text) {
+      return false;
+    }
+    const numeric = Number(text);
+    if (Number.isFinite(numeric)) {
+      return numeric > 0;
+    }
+    return true;
+  }
+
   function renderProfileSidebarMenu(area, activeSection, context) {
     const groups = getProfileSidebarGroups(area, context);
     return `<div class="irisx-sidebar-menu">
@@ -9821,9 +10548,9 @@
               return `<button class="irisx-sidebar-link${entry.id === activeSection ? " on" : ""}" onclick="${getProfileSectionHandler(area, entry.id)}">
                 <span class="irisx-sidebar-link__main">
                   <strong>${escapeHtml(entry.label)}</strong>
-                  <small>${escapeHtml(entry.description || "")}</small>
+                  ${entry.description && entry.id === activeSection ? `<small>${escapeHtml(entry.description)}</small>` : ""}
                 </span>
-                ${entry.badge ? `<em>${escapeHtml(entry.badge)}</em>` : ""}
+                ${shouldRenderWorkspaceBadge(entry.badge) ? `<em>${escapeHtml(entry.badge)}</em>` : ""}
               </button>`;
             }).join("")}
           </div>
@@ -9838,8 +10565,7 @@
       cards = [
         { title: langText("I miei ordini", "My orders"), copy: langText("Apri ordini e tracking.", "Open orders and tracking."), badge: String(context.orders.length), action: "setBuyerSection('orders')" },
         { title: langText("Offerte inviate", "Sent offers"), copy: langText("Controlla risposta e scadenza.", "Check response and expiry."), badge: String(getBuyerOffers().length), action: "setBuyerSection('offers')" },
-        { title: langText("Chat compro", "Buying chat"), copy: langText("Messaggi sugli articoli che vuoi comprare.", "Messages about items you want to buy."), badge: String(getChatScopeUnreadCount('buying')), action: "setBuyerSection('messages')" },
-        { title: langText("Supporto", "Support"), copy: langText("Apri ticket o segnala un problema.", "Open a ticket or report an issue."), badge: String(context.tickets.length), action: "setBuyerSection('support')" }
+        { title: langText("Chat compro", "Buying chat"), copy: langText("Messaggi sugli articoli che vuoi comprare.", "Messages about items you want to buy."), badge: String(getChatScopeUnreadCount('buying')), action: "setBuyerSection('messages')" }
       ];
     } else if (area === "seller") {
       const activeListings = context.listings.filter(function (listing) {
@@ -9851,27 +10577,38 @@
       cards = [
         { title: langText("Annunci attivi", "Active listings"), copy: langText("Modifica o controlla i prodotti live.", "Edit or check live products."), badge: String(activeListings), action: "setSellerSection('active')" },
         { title: langText("Offerte ricevute", "Offers received"), copy: langText("Accetta o rifiuta le offerte buyer.", "Accept or decline buyer offers."), badge: String(getSellerOffers().length), action: "setSellerSection('offers')" },
-        { title: langText("Chat vendo", "Selling chat"), copy: langText("Conversazioni sui prodotti che vendi.", "Conversations for items you sell."), badge: String(getChatScopeUnreadCount('selling')), action: "setSellerSection('messages')" },
         { title: langText("Spedizioni", "Shipping"), copy: langText("Gestisci ordini da preparare.", "Manage orders to prepare."), badge: String(shippingQueue), action: "setSellerSection('shipping')" }
       ];
     } else {
       cards = [
-        { title: langText("Ordini", "Orders"), copy: langText("Vai agli ordini buyer.", "Go to buyer orders."), badge: String(context.orders.length), action: "setProfileArea('buyer','orders')" },
-        { title: langText("Pagamenti", "Payments"), copy: langText("Carte, metodi salvati e payout.", "Cards, saved methods, and payouts."), badge: String(context.user.paymentMethods.length), action: "setProfileArea('account','settings_payment')" },
-        { title: langText("Indirizzi", "Addresses"), copy: langText("Aggiorna rubrica e default shipping.", "Update address book and default shipping."), badge: String(context.user.addresses.length), action: "setProfileArea('account','settings_account')" },
-        { title: langText("Supporto", "Support"), copy: langText("Apri ticket o controlla policy.", "Open tickets or check policies."), badge: String(context.tickets.length), action: "setProfileArea('account','help_contact')" }
+          { title: langText("Pagamenti", "Payments"), copy: langText("Carte, metodi salvati e payout.", "Cards, saved methods, and payouts."), badge: String(context.user.paymentMethods.length), action: "setProfileArea('account','settings_payment')" },
+          { title: langText("Indirizzi", "Addresses"), copy: langText("Aggiorna rubrica e indirizzo di spedizione predefinito.", "Update address book and default shipping address."), badge: String(context.user.addresses.length), action: "setProfileArea('account','settings_account')" },
+          { title: langText("Sicurezza", "Security"), copy: langText("Verifica email, telefono e sessioni.", "Verify email, phone, and sessions."), badge: String((context.user.verification.emailVerified ? 1 : 0) + (context.user.verification.phoneVerified ? 1 : 0)), action: "setProfileArea('account','settings_security')" }
       ];
     }
 
     return `<div class="irisx-profile-quick-grid">
       ${cards.map(function (card) {
         return `<button class="irisx-profile-quick-card" onclick="${card.action}">
-          <span class="irisx-profile-quick-card__badge">${escapeHtml(card.badge)}</span>
+          ${shouldRenderWorkspaceBadge(card.badge) ? `<span class="irisx-profile-quick-card__badge">${escapeHtml(card.badge)}</span>` : ""}
           <strong>${escapeHtml(card.title)}</strong>
           <span>${escapeHtml(card.copy)}</span>
         </button>`;
       }).join("")}
     </div>`;
+  }
+
+  function shouldRenderProfileQuickActions(area, activeSection) {
+    if (area === "account") {
+      return activeSection === "overview";
+    }
+    if (area === "buyer") {
+      return activeSection === "orders";
+    }
+    if (area === "seller") {
+      return activeSection === "dashboard";
+    }
+    return false;
   }
 
   renderBuyerOrdersMarkup = function (orders) {
@@ -9904,7 +10641,7 @@
       return `<div class="irisx-order-card">
         <div class="irisx-order-head"><strong>${escapeHtml(order.number)}</strong><span class="irisx-badge">${escapeHtml(getOrderStatusLabel(order))}</span></div>
         <div class="irisx-order-items">
-          <div>${langText("Buyer", "Buyer")}: ${escapeHtml(order.buyerEmail)}</div>
+          <div>${langText("Acquirente", "Buyer")}: ${escapeHtml(order.buyerEmail)}</div>
           <div>${escapeHtml(sellerItems.map(function (item) { return item.brand + " " + item.name; }).join(", "))}</div>
           <div>${escapeHtml(order.shipping.method || langText("Spedizione assicurata", "Insured shipping"))}</div>
         </div>
@@ -9957,12 +10694,6 @@
             <div class="prof-bio">${t("profile_guest_body")}</div>
           </div>
         </div>
-        <div class="irisx-summary-grid">
-          <div class="irisx-summary-card"><strong>Account</strong><span>${langText("Overview, settings, addresses, payment methods.", "Overview, settings, addresses, payment methods.")}</span></div>
-          <div class="irisx-summary-card"><strong>Buyer</strong><span>${langText("Orders, tracking, offers, wishlist, support.", "Orders, tracking, offers, wishlist, support.")}</span></div>
-          <div class="irisx-summary-card"><strong>Seller</strong><span>${langText("Dashboard, drafts, sold items, shipping queue.", "Dashboard, drafts, sold items, shipping queue.")}</span></div>
-          <div class="irisx-summary-card"><strong>Admin</strong><span>${langText("Ops, users, listings, orders, payouts.", "Ops, users, listings, orders, payouts.")}</span></div>
-        </div>
         <div class="irisx-actions"><button class="irisx-primary" onclick="openAuthModal('register')">${t("register")}</button><button class="irisx-secondary" onclick="openAuthModal('login')">${t("login")}</button></div>
       </div>`;
       return;
@@ -9979,6 +10710,7 @@
     const area = state.profileArea || "account";
     const activeSection = area === "account" ? resolveAccountSectionId(state.profileSection) : area === "buyer" ? state.buyerSection : state.sellerSection;
     const areaCopy = getProfileAreaCopy(area);
+    const showQuickActions = shouldRenderProfileQuickActions(area, activeSection);
     const profileContext = {
       user: user,
       listings: listings,
@@ -10032,17 +10764,12 @@
           </div>
         </div>
         <div class="irisx-area-nav">
-          <button class="irisx-area-btn${area === "account" ? " on" : ""}" onclick="setProfileArea('account','overview')">${langText("Account area", "Account area")}</button>
-          <button class="irisx-area-btn${area === "buyer" ? " on" : ""}" onclick="setProfileArea('buyer','orders')">${langText("Buyer area", "Buyer area")}</button>
-          <button class="irisx-area-btn${area === "seller" ? " on" : ""}" onclick="setProfileArea('seller','dashboard')">${langText("Seller area", "Seller area")}</button>
-          ${isCurrentUserAdmin() ? `<button class="irisx-area-btn" onclick="showBuyView('ops')">${langText("Admin dashboard", "Admin dashboard")}</button>` : ""}
+          <button class="irisx-area-btn${area === "account" ? " on" : ""}" onclick="setProfileArea('account','overview')">${langText("Area account", "Account area")}</button>
+          <button class="irisx-area-btn${area === "buyer" ? " on" : ""}" onclick="setProfileArea('buyer','orders')">${langText("Area acquisti", "Buyer area")}</button>
+          <button class="irisx-area-btn${area === "seller" ? " on" : ""}" onclick="setProfileArea('seller','dashboard')">${langText("Area vendite", "Seller area")}</button>
+        ${isCurrentUserAdmin() ? `<button class="irisx-area-btn" onclick="showBuyView('ops')">${langText("Dashboard admin", "Admin dashboard")}</button>` : ""}
         </div>
         ${renderProfileSidebarMenu(area, activeSection, profileContext)}
-        <div class="irisx-summary-grid irisx-summary-grid--sidebar">
-          ${summaryCards.map(function (card) {
-            return `<div class="irisx-summary-card"><strong>${escapeHtml(String(card.value))}</strong><span>${escapeHtml(card.label)}</span></div>`;
-          }).join("")}
-        </div>
         <div class="irisx-actions irisx-actions--stack"><button class="irisx-secondary" onclick="showPage('sell')">${t("sell")}</button><button class="irisx-danger" onclick="logout()">${t("logout")}</button></div>
       </aside>
       <div class="irisx-workspace-main">
@@ -10053,7 +10780,7 @@
             <div class="irisx-subtitle">${escapeHtml(areaCopy.subtitle)}</div>
           </div>
         </div>
-        ${renderProfileQuickActions(area, profileContext)}
+        ${showQuickActions ? renderProfileQuickActions(area, profileContext) : ""}
         <div class="irisx-workspace-content">${content}</div>
       </div>
     </div>`;
@@ -10070,16 +10797,16 @@
     }
     const orders = state.orders.slice().sort(function (left, right) { return right.createdAt - left.createdAt; });
     const tabs = [
-      { id: "overview", label: langText("Overview", "Overview") },
-      { id: "users", label: langText("Users", "Users") },
-      { id: "listings", label: langText("Listings", "Listings") },
-      { id: "orders", label: langText("Orders", "Orders") },
-      { id: "support", label: langText("Disputes / support", "Disputes / support") },
-      { id: "reviews", label: langText("Reviews", "Reviews") },
-      { id: "payouts", label: langText("Payouts", "Payouts") },
-      { id: "taxonomy", label: langText("Categories / brands", "Categories / brands") },
-      { id: "content", label: langText("Content / policies", "Content / policies") },
-      { id: "settings", label: langText("Settings", "Settings") }
+      { id: "overview", label: langText("Panoramica", "Overview") },
+      { id: "users", label: langText("Utenti", "Users") },
+      { id: "listings", label: langText("I tuoi annunci", "Listings") },
+      { id: "orders", label: langText("Ordini", "Orders") },
+      { id: "support", label: langText("Dispute / supporto", "Disputes / support") },
+      { id: "reviews", label: langText("Recensioni", "Reviews") },
+      { id: "payouts", label: langText("Pagamenti", "Payouts") },
+      { id: "taxonomy", label: langText("Categorie / brand", "Categories / brands") },
+      { id: "content", label: langText("Contenuti / policy", "Content / policies") },
+      { id: "settings", label: langText("Impostazioni", "Settings") }
     ];
     const tabHtml = tabs.map(function (tab) {
       return `<button class="irisx-section-tab${state.adminSection === tab.id ? " on" : ""}" onclick="setAdminSection('${tab.id}')">${escapeHtml(tab.label)}</button>`;
@@ -10123,20 +10850,20 @@
       content = `<div class="irisx-summary-grid">
         <div class="irisx-summary-card"><strong>${Math.round(PLATFORM_CONFIG.selfServeFeeRate * 100)}%</strong><span>${langText("Self-serve fee", "Self-serve fee")}</span></div>
         <div class="irisx-summary-card"><strong>${Math.round(PLATFORM_CONFIG.conciergeFeeRate * 100)}%</strong><span>${langText("Concierge fee", "Concierge fee")}</span></div>
-        <div class="irisx-summary-card"><strong>${escapeHtml(formatCurrency(PLATFORM_CONFIG.shippingCost))}</strong><span>${langText("Shipping fee", "Shipping fee")}</span></div>
+        <div class="irisx-summary-card"><strong>${escapeHtml(formatCurrency(PLATFORM_CONFIG.shippingCost))}</strong><span>${langText("Costo spedizione", "Shipping fee")}</span></div>
         <div class="irisx-summary-card"><strong>${PLATFORM_CONFIG.ownerEmail}</strong><span>${langText("Owner inbox", "Owner inbox")}</span></div>
       </div>`;
     } else {
       content = `<div class="irisx-summary-grid">
-        <div class="irisx-summary-card"><strong>${orders.length}</strong><span>${langText("Orders", "Orders")}</span></div>
-        <div class="irisx-summary-card"><strong>${orders.filter(function (order) { return ["paid", "awaiting_shipment"].includes(order.status); }).length}</strong><span>${langText("Shipping queue", "Shipping queue")}</span></div>
-        <div class="irisx-summary-card"><strong>${state.supportTickets.filter(function (ticket) { return ticket.status !== "resolved"; }).length}</strong><span>${langText("Open tickets", "Open tickets")}</span></div>
-        <div class="irisx-summary-card"><strong>${state.notifications.filter(function (notification) { return notification.audience === "admin" && notification.unread; }).length}</strong><span>${langText("Admin notices", "Admin notices")}</span></div>
+        <div class="irisx-summary-card"><strong>${orders.length}</strong><span>${langText("Ordini", "Orders")}</span></div>
+        <div class="irisx-summary-card"><strong>${orders.filter(function (order) { return ["paid", "awaiting_shipment"].includes(order.status); }).length}</strong><span>${langText("Coda spedizioni", "Shipping queue")}</span></div>
+        <div class="irisx-summary-card"><strong>${state.supportTickets.filter(function (ticket) { return ticket.status !== "resolved"; }).length}</strong><span>${langText("Ticket aperti", "Open tickets")}</span></div>
+        <div class="irisx-summary-card"><strong>${state.notifications.filter(function (notification) { return notification.audience === "admin" && notification.unread; }).length}</strong><span>${langText("Notifiche admin", "Admin notices")}</span></div>
       </div>
       <div class="irisx-card-stack">
-        <div class="irisx-inline-card"><div><strong>${langText("Orders", "Orders")}</strong><span>${langText("Order lifecycle, shipping, payout visibility.", "Order lifecycle, shipping, payout visibility.")}</span></div><button class="irisx-secondary" onclick="setAdminSection('orders')">${langText("Apri", "Open")}</button></div>
-        <div class="irisx-inline-card"><div><strong>${langText("Users", "Users")}</strong><span>${langText("Registrazioni e ruoli.", "Registrations and roles.")}</span></div><button class="irisx-secondary" onclick="setAdminSection('users')">${langText("Apri", "Open")}</button></div>
-        <div class="irisx-inline-card"><div><strong>${langText("Content / policies", "Content / policies")}</strong><span>${langText("Policy, trust pages e outbox email.", "Policies, trust pages, and email outbox.")}</span></div><button class="irisx-secondary" onclick="setAdminSection('content')">${langText("Apri", "Open")}</button></div>
+        <div class="irisx-inline-card"><div><strong>${langText("Ordini", "Orders")}</strong><span>${langText("Order lifecycle, shipping, payout visibility.", "Order lifecycle, shipping, payout visibility.")}</span></div><button class="irisx-secondary" onclick="setAdminSection('orders')">${langText("Apri", "Open")}</button></div>
+        <div class="irisx-inline-card"><div><strong>${langText("Utenti", "Users")}</strong><span>${langText("Registrazioni e ruoli.", "Registrations and roles.")}</span></div><button class="irisx-secondary" onclick="setAdminSection('users')">${langText("Apri", "Open")}</button></div>
+        <div class="irisx-inline-card"><div><strong>${langText("Contenuti / policy", "Content / policies")}</strong><span>${langText("Policy, trust pages e outbox email.", "Policies, trust pages, and email outbox.")}</span></div><button class="irisx-secondary" onclick="setAdminSection('content')">${langText("Apri", "Open")}</button></div>
       </div>`;
     }
 
@@ -10145,16 +10872,16 @@
         <div class="irisx-user-card">
           <div class="irisx-user-avatar">OPS</div>
           <div class="irisx-user-meta">
-            <strong>${langText("Admin dashboard", "Admin dashboard")}</strong>
+            <strong>${langText("Dashboard admin", "Admin dashboard")}</strong>
             <span>${PLATFORM_CONFIG.ownerEmail}</span>
-            <em>${langText("Owner tools", "Owner tools")}</em>
+            <em>${langText("Strumenti owner", "Owner tools")}</em>
           </div>
         </div>
       </aside>
       <div class="irisx-workspace-main">
         <div class="irisx-workspace-head">
           <div>
-            <div class="irisx-kicker">${langText("Operations", "Operations")}</div>
+            <div class="irisx-kicker">${langText("Operazioni", "Operations")}</div>
             <div class="irisx-title">OPS</div>
             <div class="irisx-subtitle">${langText("Gestione ordini, utenti, payout e contenuti.", "Order, user, payout and content management.")}</div>
           </div>
@@ -10176,7 +10903,7 @@
     badge.style.display = unread ? "flex" : "none";
     badge.textContent = unread;
     panel.innerHTML = `<div class="irisx-notif-panel-head">
-      <strong>${langText("Notifications", "Notifications")}</strong>
+      <strong>${langText("Notifiche", "Notifications")}</strong>
       <button onclick="markAllRead()">${langText("Mark all", "Mark all")}</button>
     </div>
     ${visible.length ? visible.slice(0, 6).map(function (notification) {
@@ -10294,7 +11021,7 @@
     list.innerHTML = threads.map(function (thread) {
       const lastMessage = thread.msgs[thread.msgs.length - 1] || { text: "", time: "" };
       const counterpartyName = thread.with && thread.with.name ? thread.with.name : (scope === "selling" ? thread.buyerName : thread.sellerName);
-      return `<button class="cl-item${curChat === thread.id ? " on" : ""}" onclick="openChatById('${thread.id}')">
+      return `<button class="cl-item${curChat === thread.id ? " on" : ""}" data-chat-id="${escapeHtml(thread.id)}" onclick="openChatById('${thread.id}')">
         <div class="cl-av">${escapeHtml(thread.with.avatar || "👤")}</div>
         <div class="cl-info">
           <div class="cl-name">${escapeHtml(counterpartyName || langText("Conversation", "Conversation"))}</div>
@@ -10353,7 +11080,7 @@
       messages.scrollTop = messages.scrollHeight;
     }
     qsa(".cl-item").forEach(function (item) {
-      item.classList.toggle("on", item.getAttribute("onclick").indexOf(id) > -1);
+      item.classList.toggle("on", item.getAttribute("data-chat-id") === String(id));
     });
     renderNotifications();
   };
@@ -10586,26 +11313,26 @@
       </div>`;
     } else if (state.checkoutStep === "shipping") {
       body = `<div class="irisx-form-grid">
-        <div class="irisx-field"><label for="checkoutShippingMethod">${langText("Shipping method", "Shipping method")}</label><select id="checkoutShippingMethod"><option ${draft.shippingMethod === langText("Spedizione assicurata", "Insured shipping") ? "selected" : ""}>${langText("Spedizione assicurata", "Insured shipping")}</option><option ${draft.shippingMethod === langText("Express insured", "Express insured") ? "selected" : ""}>${langText("Express insured", "Express insured")}</option></select></div>
-        <div class="irisx-field"><label for="checkoutShippingFee">${langText("Shipping fee", "Shipping fee")}</label><input id="checkoutShippingFee" type="number" value="${escapeHtml(String(shippingFee))}"></div>
+        <div class="irisx-field"><label for="checkoutShippingMethod">${langText("Metodo di spedizione", "Shipping method")}</label><select id="checkoutShippingMethod"><option ${draft.shippingMethod === langText("Spedizione assicurata", "Insured shipping") ? "selected" : ""}>${langText("Spedizione assicurata", "Insured shipping")}</option><option ${draft.shippingMethod === langText("Spedizione espressa assicurata", "Express insured") ? "selected" : ""}>${langText("Spedizione espressa assicurata", "Express insured")}</option></select></div>
+        <div class="irisx-field"><label for="checkoutShippingFee">${langText("Costo spedizione", "Shipping fee")}</label><input id="checkoutShippingFee" type="number" value="${escapeHtml(String(shippingFee))}"></div>
         <div class="irisx-note">${langText("Step predisposto per future shipping methods, carrier e label pricing.", "Step prepared for future shipping methods, carriers, and label pricing.")}</div>
       </div>`;
     } else if (state.checkoutStep === "payment") {
       body = `<div class="irisx-form-grid">
-        <div class="irisx-field"><label for="checkoutPaymentLabel">${langText("Payment step", "Payment step")}</label><input id="checkoutPaymentLabel" type="text" value="${escapeHtml(draft.paymentLabel || "")}"></div>
+        <div class="irisx-field"><label for="checkoutPaymentLabel">${langText("Fase pagamento", "Payment step")}</label><input id="checkoutPaymentLabel" type="text" value="${escapeHtml(draft.paymentLabel || "")}"></div>
         <div class="irisx-note">${langText("Checkout reale non richiesto in questa fase: qui prepariamo metodo, stato successo e stato fallimento.", "Real checkout is not required at this stage: here we prepare method, success state, and failure state.")}</div>
       </div>`;
     } else if (state.checkoutStep === "review") {
       body = `<div class="irisx-checkout-review">
         <div class="irisx-kicker">${t("order_summary")}</div>
         <div class="irisx-summary-items">${summary}</div>
-        <div class="irisx-checkout-row"><span>Subtotal</span><strong>${escapeHtml(formatCurrency(subtotal))}</strong></div>
-        <div class="irisx-checkout-row"><span>${langText("Shipping", "Shipping")}</span><strong>${escapeHtml(formatCurrency(shippingFee))}</strong></div>
+        <div class="irisx-checkout-row"><span>${langText("Subtotale", "Subtotal")}</span><strong>${escapeHtml(formatCurrency(subtotal))}</strong></div>
+        <div class="irisx-checkout-row"><span>${langText("Spedizione", "Shipping")}</span><strong>${escapeHtml(formatCurrency(shippingFee))}</strong></div>
         <div class="irisx-checkout-row total"><span>${t("cart_total")}</span><strong>${escapeHtml(formatCurrency(total))}</strong></div>
       </div>`;
     } else {
       body = `<div class="irisx-state-panel">
-        <strong>${langText("Confirmation page", "Confirmation page")}</strong>
+        <strong>${langText("Pagina conferma", "Confirmation page")}</strong>
         <span>${langText("Ultimo step prima di creare l'ordine mock.", "Last step before creating the mock order.")}</span>
       </div>`;
     }
@@ -10639,8 +11366,8 @@
           <aside class="irisx-checkout-summary">
             <div class="irisx-kicker">${t("order_summary")}</div>
             <div class="irisx-summary-items">${summary}</div>
-            <div class="irisx-checkout-row"><span>Subtotal</span><strong>${escapeHtml(formatCurrency(subtotal))}</strong></div>
-            <div class="irisx-checkout-row"><span>${langText("Shipping", "Shipping")}</span><strong>${escapeHtml(formatCurrency(shippingFee))}</strong></div>
+            <div class="irisx-checkout-row"><span>${langText("Subtotale", "Subtotal")}</span><strong>${escapeHtml(formatCurrency(subtotal))}</strong></div>
+            <div class="irisx-checkout-row"><span>${langText("Spedizione", "Shipping")}</span><strong>${escapeHtml(formatCurrency(shippingFee))}</strong></div>
             <div class="irisx-checkout-row total"><span>${t("cart_total")}</span><strong>${escapeHtml(formatCurrency(total))}</strong></div>
           </aside>
         </div>
@@ -10676,23 +11403,44 @@
     const productIdExpr = inlineJsValue(product.id);
     const seller = buildListingSeller(product);
     const sellerIdExpr = inlineJsValue(seller.id);
+    const ownListing = isCurrentUserListingOwner(product);
+    const minimumOfferLine = product.minimumOfferAmount !== null && product.minimumOfferAmount !== undefined
+      ? `${langText("Offerta minima", "Minimum offer")}: ${formatCurrency(product.minimumOfferAmount)}`
+      : langText("Il seller accetta offerte vincolanti con pre-autorizzazione pagamento.", "The seller accepts binding offers with payment pre-authorization.");
     if (!isProductPurchasable(product)) {
       return `<div class="irisx-note">${langText("Questo articolo risulta gia' venduto o non disponibile per nuovi acquisti.", "This item is already sold or unavailable.")}</div><div class="irisx-detail-actions"><button class="det-fav" onclick="toggleFav(${productIdExpr},null)">${liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")}</button><button class="irisx-secondary" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button></div>`;
     }
+    if (ownListing) {
+      return `<div class="irisx-note irisx-note--owner">${langText("Stai guardando un tuo annuncio. Da qui puoi gestirlo, ma non comprarlo o fare offerte.", "You are viewing your own listing. From here you can manage it, but not buy it or make offers.")}</div>
+      <div class="irisx-detail-action-stack">
+        <button class="det-buy" onclick="loadDraftIntoSellForm(${productIdExpr})">${langText("Modifica annuncio", "Edit listing")}</button>
+        <div class="irisx-detail-secondary-actions">
+          <button class="irisx-secondary" onclick="showBuyView('profile');setProfileArea('seller','active')">${langText("Area vendite", "Seller area")}</button>
+          <button class="irisx-secondary" onclick="toggleListingOffers(${productIdExpr})">${product.offersEnabled ? langText("Disattiva offerte", "Disable offers") : langText("Attiva offerte", "Enable offers")}</button>
+          <button class="det-fav" onclick="toggleFav(${productIdExpr},null)">${liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")}</button>
+        </div>
+        <div class="irisx-note irisx-note--compact">${product.offersEnabled ? minimumOfferLine : langText("Le offerte sono disattivate su questo annuncio.", "Offers are disabled on this listing.")}</div>
+      </div>`;
+    }
     const offerButton = product.offersEnabled
       ? `<button class="det-offer" onclick="openOffer(${productIdExpr})">${t("make_offer")}</button>`
-      : `<button class="det-offer" disabled>${langText("Offerte non disponibili", "Offers unavailable")}</button>`;
+      : "";
     const offerNote = product.offersEnabled
-      ? `<div class="irisx-note">${product.minimumOfferAmount !== null && product.minimumOfferAmount !== undefined ? `${langText("Offerta minima", "Minimum offer")}: ${escapeHtml(formatCurrency(product.minimumOfferAmount))}` : langText("Il seller accetta offerte vincolanti con pre-autorizzazione pagamento.", "The seller accepts binding offers with payment pre-authorization.")}</div>`
-      : `<div class="irisx-note">${langText("Questo seller ha disattivato le offerte su questo articolo.", "This seller has disabled offers for this listing.")}</div>`;
-    return `<div class="irisx-detail-actions">
+      ? minimumOfferLine
+      : langText("Questo seller ha disattivato le offerte su questo articolo.", "This seller has disabled offers for this listing.");
+    return `<div class="irisx-detail-action-stack">
       <button class="det-buy" onclick="buyNow(${productIdExpr})">${t("buy_now")} · ${formatCurrency(product.price)}</button>
-      <button class="irisx-secondary" onclick="addToCart(${productIdExpr})">${t("add_to_cart")}</button>
-      ${offerButton}
-      <button class="irisx-secondary" onclick="openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>
-      <button class="det-fav" onclick="toggleFav(${productIdExpr},null)">${liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")}</button>
-      <button class="irisx-secondary" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button>
-    </div>${offerNote}`;
+      <div class="irisx-detail-secondary-actions">
+        ${offerButton}
+        <button class="irisx-secondary" onclick="openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>
+      </div>
+      <div class="irisx-detail-utility-actions">
+        <button class="irisx-secondary" onclick="addToCart(${productIdExpr})">${t("add_to_cart")}</button>
+        <button class="det-fav" onclick="toggleFav(${productIdExpr},null)">${liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")}</button>
+        <button class="irisx-secondary" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button>
+      </div>
+      <div class="irisx-note irisx-note--compact">${offerNote}</div>
+    </div>`;
   };
 
   function renderMeasurementsSection(product) {
@@ -10721,11 +11469,170 @@
     </div>`;
   }
 
+  function resolveSellerProfileSeller(sellerId) {
+    const normalizedTarget = normalizeEmail(sellerId || "");
+    const matchingProduct = prods.find(function (product) {
+      const productSeller = buildListingSeller(product);
+      return productSeller.id === sellerId || (normalizedTarget && normalizeEmail(productSeller.email) === normalizedTarget);
+    });
+    if (matchingProduct) {
+      return buildListingSeller(matchingProduct);
+    }
+    if (typeof sellers !== "undefined" && Array.isArray(sellers)) {
+      const seedSeller = sellers.find(function (seller) {
+        return seller.id === sellerId || (normalizedTarget && normalizeEmail(seller.email || "") === normalizedTarget);
+      });
+      if (seedSeller) {
+        return buildListingSeller({ seller: seedSeller, ownerEmail: seedSeller.email, city: seedSeller.city });
+      }
+    }
+    if (state.currentUser) {
+      const currentSeller = getCurrentUserSeller();
+      if (currentSeller && (currentSeller.id === sellerId || (normalizedTarget && normalizeEmail(currentSeller.email) === normalizedTarget))) {
+        return currentSeller;
+      }
+    }
+    return null;
+  }
+
+  function getSellerProfileListings(seller) {
+    if (!seller) {
+      return [];
+    }
+    const sellerEmail = normalizeEmail(seller.email || "");
+    return getVisibleCatalogProducts().filter(function (product) {
+      const productSeller = buildListingSeller(product);
+      return productSeller.id === seller.id || (sellerEmail && normalizeEmail(productSeller.email) === sellerEmail);
+    });
+  }
+
+  function getSellerProfileReviews(seller) {
+    if (!seller) {
+      return [];
+    }
+    const seedReviews = typeof reviewsData === "object" && reviewsData ? (reviewsData[seller.id] || []) : [];
+    const dynamicReviews = (state.reviews || []).filter(function (review) {
+      return normalizeEmail(review.sellerEmail || "") === normalizeEmail(seller.email || "");
+    });
+    return seedReviews.concat(dynamicReviews);
+  }
+
+  function renderSellerProfileView() {
+    const container = qs("#sellerContent");
+    if (!container) {
+      return;
+    }
+
+    const sellerState = state.sellerProfile || {};
+    const seller = resolveSellerProfileSeller(sellerState.sellerId);
+    if (!seller) {
+      container.innerHTML = `<div class="irisx-seller-shell"><div class="irisx-empty-state">${langText("Seller non trovato o non disponibile.", "Seller not found or unavailable.")}</div></div>`;
+      return;
+    }
+
+    const listings = getSellerProfileListings(seller);
+    const reviews = getSellerProfileReviews(seller);
+    const activeTab = sellerState.tab === "reviews" ? "reviews" : "listings";
+    const sellerIdExpr = inlineJsValue(seller.id);
+    const primaryChatAction = listings.length
+      ? `openChat(${sellerIdExpr},${inlineJsValue(listings[0].id)})`
+      : `showBuyView('chat');setChatScope('buying')`;
+    const averageRating = reviews.length
+      ? (reviews.reduce(function (sum, review) { return sum + Number(review.rating || 0); }, 0) / reviews.length).toFixed(1)
+      : String(seller.rating || 5);
+    const tabContent = activeTab === "reviews"
+      ? (reviews.length
+          ? `<div class="irisx-seller-review-list">${reviews.map(function (review) {
+              const reviewBuyer = review.buyer || review.buyerName || langText("Buyer verificato", "Verified buyer");
+              const reviewDate = review.date || formatDateTime(review.createdAt || Date.now());
+              const reviewText = review.text || langText("Nessun commento testuale disponibile.", "No written comment available.");
+              const reviewProduct = review.product || review.productName || "";
+              const starCount = Math.max(0, Math.min(5, Number(review.rating || 0))) || 5;
+              return `<article class="irisx-seller-review-card">
+                <div class="irisx-seller-review-card__head">
+                  <strong>${escapeHtml(reviewBuyer)}</strong>
+                  <span>${escapeHtml(reviewDate)}</span>
+                </div>
+                <div class="irisx-seller-review-card__rating">${escapeHtml("★".repeat(starCount))}</div>
+                <p>${escapeHtml(reviewText)}</p>
+                ${reviewProduct ? `<small>${langText("Acquisto", "Purchase")}: ${escapeHtml(reviewProduct)}</small>` : ""}
+              </article>`;
+            }).join("")}</div>`
+          : `<div class="irisx-empty-state">${langText("Nessuna recensione pubblica per questo seller.", "No public reviews for this seller.")}</div>`)
+      : (listings.length
+          ? `<div class="pgrid irisx-seller-listings">${listings.map(function (listing) { return productCardMarkup(listing); }).join("")}</div>`
+          : `<div class="irisx-empty-state">${langText("Nessun articolo live in questo momento.", "No live listings right now.")}</div>`);
+
+    container.innerHTML = `<div class="irisx-seller-shell">
+      <section class="irisx-seller-hero">
+        <button class="det-back irisx-seller-back" onclick="showBuyView('shop')">${langText("← Torna allo shop", "← Back to shop")}</button>
+        <div class="irisx-seller-hero__main">
+          <div class="irisx-seller-avatar">${escapeHtml(seller.avatar || "👤")}</div>
+          <div class="irisx-seller-copy">
+            <div class="irisx-kicker">${langText("Profilo seller", "Seller profile")}</div>
+            <h1>${escapeHtml(seller.name)}</h1>
+            <p>${langText("Venditore verificato sulla piattaforma IRIS.", "Verified seller on the IRIS platform.")}</p>
+            <div class="irisx-seller-meta">
+              <span>★ ${escapeHtml(averageRating)}</span>
+              <span>${escapeHtml(String(seller.sales || 0))} ${t("sales")}</span>
+              <span>${escapeHtml(seller.city || getWorkspaceDefaultCountry())}</span>
+              <span>${langText("Membro dal", "Member since")} ${escapeHtml(String(seller.since || "2026"))}</span>
+            </div>
+          </div>
+          <div class="irisx-seller-actions">
+            <button class="irisx-secondary" onclick="${primaryChatAction}">${t("chat")}</button>
+            <button class="irisx-secondary" onclick="showBuyView('chat');setChatScope('buying')">${langText("Apri inbox", "Open inbox")}</button>
+          </div>
+        </div>
+        <div class="irisx-seller-stat-grid">
+          <div class="irisx-summary-card"><strong>${listings.length}</strong><span>${langText("Articoli live", "Live listings")}</span></div>
+          <div class="irisx-summary-card"><strong>${escapeHtml(String(seller.sales || 0))}</strong><span>${langText("Vendite", "Sales")}</span></div>
+          <div class="irisx-summary-card"><strong>${escapeHtml(averageRating)}</strong><span>${langText("Rating medio", "Average rating")}</span></div>
+          <div class="irisx-summary-card"><strong>${reviews.length}</strong><span>${langText("Recensioni", "Reviews")}</span></div>
+        </div>
+      </section>
+
+      <div class="irisx-seller-tabbar">
+        <button class="irisx-section-tab${activeTab === "listings" ? " on" : ""}" onclick="showSellerTab('listings',${sellerIdExpr})">${langText("Articoli in vendita", "Listings for sale")}</button>
+        <button class="irisx-section-tab${activeTab === "reviews" ? " on" : ""}" onclick="showSellerTab('reviews',${sellerIdExpr})">${langText("Recensioni", "Reviews")} ${reviews.length ? `(${reviews.length})` : ""}</button>
+      </div>
+
+      <section class="irisx-seller-content">
+        ${tabContent}
+      </section>
+    </div>`;
+  }
+
+  showSeller = function (sellerId) {
+    ensureStructuredSkeletonState();
+    state.sellerProfile = {
+      sellerId: sellerId,
+      tab: "listings"
+    };
+    showBuyView("seller");
+    renderSellerProfileView();
+    window.scrollTo(0, 0);
+  };
+
+  showSellerTab = function (tab, sellerId) {
+    ensureStructuredSkeletonState();
+    state.sellerProfile = Object.assign({}, state.sellerProfile || {}, {
+      sellerId: sellerId || (state.sellerProfile && state.sellerProfile.sellerId) || null,
+      tab: tab === "reviews" ? "reviews" : "listings"
+    });
+    renderSellerProfileView();
+  };
+
   showDetail = function (id) {
     const product = getListingById(id);
     if (!product) {
       return;
     }
+
+    bumpViewSyncToken();
+    closeProfileMenu();
+    closeMobileNav();
+    closeMobileFilters();
     ["home-view", "shop-view", "fav-view", "chat-view", "profile-view", "seller-view", "ops-view"].forEach(function (viewId) {
       const view = qs("#" + viewId);
       if (view) {
@@ -10733,6 +11640,7 @@
       }
     });
     state.activeDetailImage = 0;
+    state.activeDetailListingId = product.id;
     const discount = getListingDiscount(product);
     const liked = favorites.has(product.id);
     const fitLabel = getFacetLabel("fits", product.fit === "—" ? "—" : product.fit);
@@ -10743,10 +11651,17 @@
     const sizeOriginalMarkup = product.sizeOriginal
       ? `<div class="det-fit-item"><div class="det-fit-label">${langText("Etichetta originale", "Original label")}</div><div class="det-fit-value">${escapeHtml(product.sizeOriginal)}</div></div>`
       : "";
+    const viewerOwnsListing = isCurrentUserListingOwner(product);
     const chips = getListingChips(product);
     const seller = buildListingSeller(product);
     const sellerIdExpr = inlineJsValue(seller.id);
     const productIdExpr = inlineJsValue(product.id);
+    const sellerPrimaryAction = viewerOwnsListing
+      ? `<button class="seller-chat" onclick="event.stopPropagation();loadDraftIntoSellForm(${productIdExpr})">${langText("Modifica", "Edit")}</button>`
+      : `<button class="seller-chat" onclick="event.stopPropagation();openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>`;
+    const sellerCardClick = viewerOwnsListing
+      ? `showBuyView('profile');setProfileArea('seller','active')`
+      : `showSeller('${escapeHtml(seller.id)}')`;
     const similar = prods.filter(function (item) { return !sameEntityId(item.id, product.id) && (item.brand === product.brand || item.cat === product.cat); }).slice(0, 4);
     const detailView = qs("#detail-view");
     detailView.innerHTML = `<div class="det-layout view-enter">
@@ -10757,39 +11672,88 @@
         <div class="det-brand">${escapeHtml(product.brand)}</div>
         <div class="det-name">${escapeHtml(product.name)}</div>
         <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
+        ${getDetailActionsMarkup(product, liked)}
         <div class="det-div"></div>
         <div class="det-section"><div class="det-section-title">${t("details")}</div><div class="det-chips">${chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div></div>
         <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(sizeDisplay)}</div></div>${sizeOriginalMarkup}<div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
         ${renderMeasurementsSection(product)}
         <div class="det-section"><div class="det-section-title">${t("description")}</div><div class="det-desc">${escapeHtml(product.desc)}</div></div>
-        <div class="det-section"><div class="det-section-title">${langText("Shipping info", "Shipping info")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Shipping fee", "Shipping fee")}</strong><span>${formatCurrency(SHIPPING_COST)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Method", "Method")}</strong><span>${langText("Insured and tracked", "Insured and tracked")}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Trust", "Trust")}</strong><span>${langText("Authentication queue prepared", "Authentication queue prepared")}</span></div><button class="irisx-secondary" onclick="openStatic('trust-authentication')">${langText("Learn more", "Learn more")}</button></div></div></div>
-        <div class="det-section"><div class="det-section-title">${t("seller")}</div><div class="seller-card" onclick="showSeller('${escapeHtml(seller.id)}')"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta"><span>★ ${escapeHtml(seller.rating)}</span> ${escapeHtml(seller.sales)} ${t("sales")} · ${escapeHtml(seller.city)}</div></div><button class="seller-chat" onclick="event.stopPropagation();openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button></div></div>
-        ${getDetailActionsMarkup(product, liked)}
-        <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Buyer Protection", "Buyer Protection")}</button></li></ul></div>
+        <div class="det-section"><div class="det-section-title">${langText("Spedizione", "Shipping info")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Costo spedizione", "Shipping fee")}</strong><span>${formatCurrency(SHIPPING_COST)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Metodo di spedizione", "Method")}</strong><span>${langText("Assicurata e tracciata", "Insured and tracked")}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Garanzia", "Trust")}</strong><span>${langText("Autenticazione in coda", "Authentication queue prepared")}</span></div><button class="irisx-secondary" onclick="openStatic('trust-authentication')">${langText("Scopri di più", "Learn more")}</button></div></div></div>
+        <div class="det-section"><div class="det-section-title">${viewerOwnsListing ? langText("Gestione annuncio", "Listing management") : t("seller")}</div><div class="seller-card" onclick="${sellerCardClick}"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta"><span>★ ${escapeHtml(seller.rating)}</span> ${escapeHtml(seller.sales)} ${t("sales")} · ${escapeHtml(seller.city)}</div></div>${sellerPrimaryAction}</div></div>
+        <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Protezione acquirente", "Buyer Protection")}</button></li></ul></div>
         ${similar.length ? `<div class="det-similar"><div class="det-similar-title">${t("similar")}</div><div class="det-similar-grid">${similar.map(function (item) { return `<div class="pc" onclick="showDetail(${inlineJsValue(item.id)})" style="min-width:160px">${productVisualMarkup(item, true)}<div class="pinfo" style="padding:.8rem"><div class="p-brand">${escapeHtml(item.brand)}</div><div class="p-name" style="font-size:.78rem">${escapeHtml(item.name)}</div><div class="p-price" style="font-size:.78rem;margin-top:.3rem">${formatCurrency(item.price)}</div></div></div>`; }).join("")}</div></div>` : ""}
       </div>
     </div>`;
     qs("#shop-view").style.display = "none";
+    detailView.style.paddingTop = window.innerWidth > 900
+      ? ""
+      : `${((qs("#topnav") && qs("#topnav").offsetHeight) || 64) + 18}px`;
     detailView.style.display = "block";
     detailView.classList.add("active");
+    syncTopnavChrome("detail");
     window.scrollTo(0, 0);
     updateMeta("IRIS - " + product.brand + " " + product.name, product.desc.substring(0, 160));
   };
 
   footerHTML = function () {
-    return `<footer class="site-footer irisx-reveal-section">
-      <div class="irisx-footer-minimal">
-        <div class="irisx-footer-brand">IRIS</div>
-        <div class="irisx-footer-links">
-          <a href="#" onclick="event.preventDefault();openStatic('about')">${langText("Chi siamo", "About")}</a>
-          <a href="#" onclick="event.preventDefault();openStatic('faq')">${t("footer_faq")}</a>
-          <a href="#" onclick="event.preventDefault();openStatic('terms')">${t("footer_terms")}</a>
-          <a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a>
-          <a href="#" onclick="event.preventDefault();openStatic('trust-authentication')">${langText("Autenticazione", "Authentication")}</a>
+    return `<footer class="site-footer irisx-site-footer irisx-reveal-section">
+      <div class="irisx-site-footer__grid">
+        <div class="irisx-site-footer__col irisx-site-footer__col--brand">
+          <div class="irisx-site-footer__logo">IRIS</div>
+          <p>${langText("Il marketplace italiano per la moda di lusso.", "The Italian marketplace for luxury fashion.")}</p>
+          <div class="irisx-site-footer__social">
+            <a href="#" aria-label="Instagram"><span aria-hidden="true">◎</span> Instagram</a>
+            <a href="#" aria-label="TikTok"><span aria-hidden="true">◌</span> TikTok</a>
+          </div>
         </div>
-        <div class="irisx-footer-copy">© 2026 IRIS S.r.l. · Milano, Italia</div>
+        <div class="irisx-site-footer__col">
+          <h3>${langText("Catalogo", "Catalog")}</h3>
+          <a href="#" onclick="event.preventDefault();showBuyView('shop')">${langText("Tutti i prodotti", "All products")}</a>
+          <a href="#" onclick="event.preventDefault();filterByCat('Borse')">${langText("Borse", "Bags")}</a>
+          <a href="#" onclick="event.preventDefault();filterByCat('Scarpe')">${langText("Scarpe", "Shoes")}</a>
+          <a href="#" onclick="event.preventDefault();filterByCat('Abbigliamento')">${langText("Abbigliamento", "Clothing")}</a>
+          <a href="#" onclick="event.preventDefault();filterByCat('Orologi')">${langText("Orologi", "Watches")}</a>
+          <a href="#" onclick="event.preventDefault();filterByCat('Accessori')">${langText("Accessori", "Accessories")}</a>
+        </div>
+        <div class="irisx-site-footer__col">
+          <h3>${langText("Vendere", "Selling")}</h3>
+          <a href="#" onclick="event.preventDefault();openStatic('howto')">${langText("Come funziona", "How it works")}</a>
+          <a href="#" onclick="event.preventDefault();openStatic('faq')">${langText("Commissioni", "Fees")}</a>
+          <a href="#" onclick="event.preventDefault();showPage('sell')">${langText("Inizia a vendere", "Start selling")}</a>
+        </div>
+        <div class="irisx-site-footer__col">
+          <h3>${langText("Supporto", "Support")}</h3>
+          <a href="#" onclick="event.preventDefault();openStatic('about')">${langText("Chi siamo", "About us")}</a>
+          <a href="#" onclick="event.preventDefault();openStatic('faq')">${langText("FAQ", "FAQ")}</a>
+          <a href="#" onclick="event.preventDefault();openStatic('contact')">${langText("Contattaci", "Contact us")}</a>
+          <a href="#" onclick="event.preventDefault();openStatic('terms')">${langText("Termini", "Terms")}</a>
+          <a href="#" onclick="event.preventDefault();openStatic('privacy')">${langText("Privacy", "Privacy")}</a>
+          <a href="#" onclick="event.preventDefault();openStatic('cookie')">${langText("Cookie", "Cookie")}</a>
+        </div>
+      </div>
+      <div class="irisx-site-footer__bottom">
+        <span>© 2026 IRIS S.r.l. · Milano, Italia</span>
+        <div class="irisx-site-footer__bottom-links">
+          <a href="#" onclick="event.preventDefault();openStatic('terms')">${langText("Termini", "Terms")}</a>
+          <a href="#" onclick="event.preventDefault();openStatic('privacy')">${langText("Privacy", "Privacy")}</a>
+          <a href="#" onclick="event.preventDefault();openStatic('cookie')">${langText("Cookie", "Cookie")}</a>
+        </div>
       </div>
     </footer>`;
+  };
+
+  renderFooters = function () {
+    qsa(".dyn-footer").forEach(function (node) {
+      node.remove();
+    });
+    const buyPage = qs("#page-buy");
+    if (buyPage) {
+      buyPage.insertAdjacentHTML("beforeend", `<div class="dyn-footer">${footerHTML()}</div>`);
+    }
+    const sellPage = qs("#page-sell");
+    if (sellPage) {
+      sellPage.insertAdjacentHTML("beforeend", `<div class="dyn-footer">${footerHTML()}</div>`);
+    }
   };
 
   function ensurePolicyModals() {
@@ -10887,13 +11851,17 @@
     renderNotifications();
     renderProfilePanel();
     renderOpsView();
+    renderSellerProfileView();
     renderChats();
+    syncTopnavChrome();
     bindLuxuryReveal();
   };
 
   window.setProfileArea = setProfileArea;
   window.setBuyerSection = setBuyerSection;
   window.setSellerSection = setSellerSection;
+  window.showSeller = showSeller;
+  window.showSellerTab = showSellerTab;
   window.setAdminSection = setAdminSection;
   window.setChatScope = setChatScope;
   window.openMessagingInbox = openMessagingInbox;
@@ -10934,6 +11902,13 @@
   window.backToChats = backToChats;
   window.openChatAttachmentPlaceholder = openChatAttachmentPlaceholder;
   window.reportListing = reportListing;
+  window.toggleProfileMenu = toggleProfileMenu;
+  window.closeProfileMenu = closeProfileMenu;
+  window.toggleMobileNav = toggleMobileNav;
+  window.closeMobileNav = closeMobileNav;
+  window.handleAuthButtonClick = handleAuthButtonClick;
+  window.acceptCookieConsent = function () { setCookieConsent("accepted"); };
+  window.rejectCookieConsent = function () { setCookieConsent("rejected"); };
 
   ensureStructuredSkeletonState();
   ensureSellDraftButton();
@@ -10945,6 +11920,7 @@
   renderNotifications();
   renderProfilePanel();
   renderOpsView();
+  renderSellerProfileView();
   renderChats();
 
   function showToast(message) {

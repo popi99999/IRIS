@@ -14,13 +14,13 @@
 <meta property="og:description" content="Il marketplace italiano per la moda di lusso. Compra e vendi pezzi firmati autenticati.">
 <meta property="og:url" content="https://popi99999.github.io/IRIS/">
 <meta property="og:site_name" content="IRIS">
-<meta property="og:image" content="https://popi99999.github.io/IRIS/og-image.png">
+<meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'%3E%3Crect width='1200' height='630' fill='%23060310'/%3E%3Crect x='70' y='70' width='1060' height='490' rx='28' fill='%23110826' stroke='%237C3AED' stroke-opacity='.35'/%3E%3Ctext x='600' y='290' text-anchor='middle' fill='%23C4A06A' font-family='Georgia, serif' font-size='136'%3EIRIS%3C/text%3E%3Ctext x='600' y='370' text-anchor='middle' fill='%23F5F0EB' font-family='Arial, sans-serif' font-size='36' letter-spacing='6'%3ELUXURY FASHION MARKETPLACE%3C/text%3E%3C/svg%3E">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="IRIS — Luxury Fashion Marketplace">
 <meta name="twitter:description" content="Il marketplace italiano per la moda di lusso.">
-<meta name="twitter:image" content="https://popi99999.github.io/IRIS/og-image.png">
+<meta name="twitter:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'%3E%3Crect width='1200' height='630' fill='%23060310'/%3E%3Crect x='70' y='70' width='1060' height='490' rx='28' fill='%23110826' stroke='%237C3AED' stroke-opacity='.35'/%3E%3Ctext x='600' y='290' text-anchor='middle' fill='%23C4A06A' font-family='Georgia, serif' font-size='136'%3EIRIS%3C/text%3E%3Ctext x='600' y='370' text-anchor='middle' fill='%23F5F0EB' font-family='Arial, sans-serif' font-size='36' letter-spacing='6'%3ELUXURY FASHION MARKETPLACE%3C/text%3E%3C/svg%3E">
 <link rel="canonical" href="https://popi99999.github.io/IRIS/">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23060310' width='100' height='100' rx='20'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-size='36' font-family='serif' font-style='italic' fill='%23A78BFA'%3EIRIS%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="./manifest.json">
@@ -39,7 +39,7 @@
   --bg-card:#110826;--border:rgba(167,139,250,.08);
 }
 html{scroll-behavior:smooth}
-body{background:var(--deep);color:rgba(253,250,255,.78);font-family:'Inter',sans-serif;font-weight:300;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body{background:var(--deep);color:rgba(253,250,255,.78);font-family:'Outfit',sans-serif;font-weight:300;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--deep)}::-webkit-scrollbar-thumb{background:rgba(124,58,237,.35)}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit}
@@ -62,6 +62,9 @@ body.light-mode .cookie-text a{color:#6d28d9}
   .cookie-banner{flex-direction:column;align-items:stretch;padding:1rem}
   .cookie-actions{flex-direction:column;align-items:stretch;width:100%}
   .cookie-actions button{width:100%}
+}
+@media (max-width:1100px){
+  #authBadge{display:none !important}
 }
 
 /* ═══════ INTRO ═══════ */
@@ -150,7 +153,7 @@ a:active,button:focus-visible{outline:1px solid rgba(196,160,106,.35);outline-of
 /* ═══════ MAIN NAV (Buy page) ═══════ */
 .topnav{position:fixed;top:0;left:0;right:0;z-index:500;background:rgba(6,3,16,.97);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);padding:0 2rem;display:none}
 .topnav.show{display:block}
-.tn-row{display:flex;align-items:center;height:54px;gap:1.5rem}
+.tn-row{display:flex;align-items:center;height:54px;gap:1rem;flex-wrap:nowrap;overflow:hidden}
 .tn-logo{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-style:italic;color:rgba(255,255,255,.8);letter-spacing:.2em;flex-shrink:0;cursor:pointer}
 .tn-logo em{color:var(--lavender)}
 .tn-search{flex:1;position:relative;max-width:480px}
@@ -158,7 +161,7 @@ a:active,button:focus-visible{outline:1px solid rgba(196,160,106,.35);outline-of
 .tn-search input:focus{border-color:rgba(167,139,250,.35)}
 .tn-search input::placeholder{color:rgba(255,255,255,.45)}
 .tn-search::before{content:'';position:absolute;left:.75rem;top:50%;transform:translateY(-50%);width:13px;height:13px;opacity:.32;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 16 16'%3E%3Ccircle cx='6.5' cy='6.5' r='4.5' stroke='%23A78BFA' stroke-width='1.4'/%3E%3Cline x1='10.2' y1='10.2' x2='14' y2='14' stroke='%23A78BFA' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");background-size:contain;background-repeat:no-repeat}
-.tn-links{display:flex;gap:.3rem;margin-left:auto;align-items:center}
+.tn-links{display:flex;gap:.18rem;margin-left:auto;align-items:center;flex-wrap:nowrap}
 .tn-btn{background:none;border:none;color:rgba(255,255,255,.6);font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:.5rem .8rem;transition:color .3s;position:relative;font-family:inherit}
 .tn-btn:hover{color:var(--lavender)}
 .tn-btn .badge{position:absolute;top:2px;right:2px;width:14px;height:14px;background:var(--purple);border-radius:50%;font-size:.5rem;display:flex;align-items:center;justify-content:center;color:#fff;letter-spacing:0}
@@ -775,7 +778,7 @@ body.irisx-luxury.light-mode{
     radial-gradient(circle at 85% 12%, rgba(45,27,78,.28), transparent 22%),
     linear-gradient(180deg, #090909 0%, #0a0a0a 32%, #111111 100%);
   color:var(--iris-white);
-  font-family:"Inter",sans-serif;
+  font-family:"Outfit",sans-serif;
 }
 
 body.irisx-luxury ::selection{

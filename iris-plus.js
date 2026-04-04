@@ -197,7 +197,7 @@
         en: "e.g. insole 27 cm, heel 9 cm, box included"
       },
       hint: {
-        it: "Per le scarpe usiamo sempre una taglia EU standard. Se l'etichetta e' US o UK, scrivila nel campo originale.",
+        it: "Per le scarpe usiamo sempre una taglia EU standard. Se l'etichetta è US o UK, scrivila nel campo originale.",
         en: "Shoes always use a standard EU size. If the label is US or UK, add it as the original size."
       },
       subcategories: {
@@ -2488,7 +2488,7 @@
       auth_title_login: "Bentornata su IRIS",
       auth_title_register: "Crea il tuo account",
       auth_sub_login: "Accedi per chattare, comprare e pubblicare i tuoi articoli.",
-      auth_sub_register: "Registrazione locale di prototipo. Per il live servira' auth server-side.",
+      auth_sub_register: "Crea il tuo account IRIS per comprare, vendere e salvare i tuoi preferiti.",
       auth_cta_login: "Entra nel tuo account",
       auth_cta_register: "Crea account",
       full_name: "Nome completo",
@@ -2513,7 +2513,7 @@
       remove: "Rimuovi",
       qty: "Quantità",
       cart_open: "Apri carrello",
-      account_area: "Area account",
+      account_area: "AREA ACCOUNT",
       profile_nav: "Profilo",
       profile_details: "Dati profilo",
       save_profile: "Salva profilo",
@@ -2537,9 +2537,9 @@
       dimensions: "Dimensioni",
       material: "Materiale",
       not_available: "N/A",
-      profile_area_account: "Area account",
-      profile_area_buyer: "Area acquisti",
-      profile_area_seller: "Area vendite",
+      profile_area_account: "AREA ACCOUNT",
+      profile_area_buyer: "AREA ACQUISTI",
+      profile_area_seller: "AREA VENDITE",
       overview: "Panoramica",
       preferences: "Preferenze",
       my_size: "Le mie taglie",
@@ -2556,11 +2556,11 @@
       notification_settings: "Impostazioni notifiche",
       payout_settings: "Impostazioni pagamento",
       size_profile: "Profilo taglie",
-      shipping_method_label: "Metodo di spedizione",
+      shipping_method_label: "Metodo",
       trust_label: "Garanzia",
       insured_tracked: "Assicurata e tracciata",
-      auth_queue_prepared: "Autenticazione in coda",
-      learn_more: "Scopri di più"
+      auth_queue_prepared: "In coda per autenticazione",
+      learn_more: "SCOPRI DI PIÙ"
     });
 
     Object.assign(i18n.en, {
@@ -2587,7 +2587,7 @@
       auth_title_login: "Welcome back to IRIS",
       auth_title_register: "Create your account",
       auth_sub_login: "Sign in to chat, buy and publish your listings.",
-      auth_sub_register: "This is a local prototype account. Production auth still needs a backend.",
+      auth_sub_register: "Create your IRIS account to buy, sell and save your favorites.",
       auth_cta_login: "Sign in",
       auth_cta_register: "Create account",
       full_name: "Full name",
@@ -3873,7 +3873,7 @@
     }
     const reason = (emailEntry && emailEntry.reason) || (phoneEntry && phoneEntry.reason) || "";
     return langText(
-      "Questo account e' bloccato. Contatta " + PLATFORM_CONFIG.supportEmail + (reason ? " · Motivo: " + reason : "") + ".",
+      "Questo account è bloccato. Contatta " + PLATFORM_CONFIG.supportEmail + (reason ? " · Motivo: " + reason : "") + ".",
       "This account is blocked. Contact " + PLATFORM_CONFIG.supportEmail + (reason ? " · Reason: " + reason : "") + "."
     );
   }
@@ -4033,7 +4033,7 @@
       return {
         subject: langText("Benvenuta su IRIS", "Welcome to IRIS"),
         body: langText(
-          "Ciao " + payload.name + ", il tuo account IRIS e' stato creato. Completa la verifica email prima del go-live del backend.",
+          "Ciao " + payload.name + ", il tuo account IRIS è stato creato. Completa la verifica email prima del go-live del backend.",
           "Hi " + payload.name + ", your IRIS account is ready. Complete email verification before backend go-live."
         )
       };
@@ -4117,7 +4117,7 @@
       return {
         subject: langText("Ordine spedito " + payload.orderNumber, "Order shipped " + payload.orderNumber),
         body: langText(
-          "Il tuo ordine e' stato spedito con " + payload.carrier + " - tracking " + payload.trackingNumber + ".",
+          "Il tuo ordine è stato spedito con " + payload.carrier + " - tracking " + payload.trackingNumber + ".",
           "Your order was shipped with " + payload.carrier + " - tracking " + payload.trackingNumber + "."
         )
       };
@@ -5520,7 +5520,7 @@
       requireAuth(function () {
         const product = getListingById(id);
         if (!product || !isProductPurchasable(product)) {
-          showToast(langText("Questo articolo non e' piu' disponibile.", "This item is no longer available."));
+          showToast(langText("Questo articolo non è più disponibile.", "This item is no longer available."));
           return;
         }
         if (!product.offersEnabled) {
@@ -7997,7 +7997,7 @@
         {
           title: langText("Copertura", "Coverage"),
           body: langText(
-            "Questa e' una skeleton policy: metodi, tempi e corrieri sono predisposti come struttura mock e potranno essere finalizzati nel go-live backend.",
+            "Questa è una skeleton policy: metodi, tempi e corrieri sono predisposti come struttura mock e potranno essere finalizzati nel go-live backend.",
             "This is a skeleton policy: methods, timings, and carriers are prepared as mock structure and can be finalized at backend go-live."
           )
         }
@@ -8017,7 +8017,7 @@
         {
           title: langText("Richiesta reso", "Return request"),
           body: langText(
-            "Il buyer puo' aprire supporto o richiesta rimborso dal dettaglio ordine. L'admin vede la richiesta nell'area disputes / support.",
+            "Il buyer può aprire supporto o richiesta rimborso dal dettaglio ordine. L'admin vede la richiesta nell'area disputes / support.",
             "The buyer can open support or refund request from order detail. Admin sees the request inside the disputes / support area."
           )
         },
@@ -8044,7 +8044,7 @@
         {
           title: langText("Accesso al supporto", "Support access"),
           body: langText(
-            "Il buyer puo' aprire ticket, segnalare problemi e richiedere refund direttamente dall'area ordini.",
+            "Il buyer può aprire ticket, segnalare problemi e richiedere refund direttamente dall'area ordini.",
             "The buyer can open tickets, report issues, and request refunds directly from the orders area."
           )
         }
@@ -8144,7 +8144,7 @@
         {
           title: langText("Support path", "Support path"),
           body: langText(
-            "Chi riscontra difficolta' puo' usare Contact Support dall'area account; richieste e feedback confluiscono nel flusso assistenza del prototipo.",
+            "Chi riscontra difficoltà può usare Contact Support dall'area account; richieste e feedback confluiscono nel flusso assistenza del prototipo.",
             "Anyone encountering difficulties can use Contact Support from the account area; requests and feedback flow into the prototype support queue."
           )
         }
@@ -8533,7 +8533,7 @@
     if (Number(listingPrice || 0) && policy.minimumOfferAmount > Number(listingPrice || 0)) {
       return {
         ok: false,
-        error: langText("L'offerta minima non puo' superare il prezzo di vendita.", "Minimum offer cannot exceed listing price.")
+        error: langText("L'offerta minima non può superare il prezzo di vendita.", "Minimum offer cannot exceed listing price.")
       };
     }
     return { ok: true, minimumOfferAmount: policy.minimumOfferAmount };
@@ -8639,7 +8639,7 @@
     syncOfferStates();
     const listing = getListingById(payload.listingId);
     if (!listing || !isProductPurchasable(listing)) {
-      return { ok: false, error: langText("Questo articolo non e' disponibile per offerte.", "This listing is not available for offers.") };
+      return { ok: false, error: langText("Questo articolo non è disponibile per offerte.", "This listing is not available for offers.") };
     }
     if (!listing.offersEnabled) {
       return { ok: false, error: langText("Le offerte non sono abilitate per questo articolo.", "Offers are disabled for this listing.") };
@@ -8838,11 +8838,11 @@
       return { ok: false, error: langText("Offerta non trovata.", "Offer not found.") };
     }
     if (current.status !== "pending") {
-      return { ok: false, error: langText("Questa offerta non e' piu' gestibile.", "This offer can no longer be managed.") };
+      return { ok: false, error: langText("Questa offerta non è più gestibile.", "This offer can no longer be managed.") };
     }
     if (isOfferExpired(current)) {
       syncOfferStates();
-      return { ok: false, error: langText("L'offerta e' scaduta.", "The offer has expired.") };
+      return { ok: false, error: langText("L'offerta è scaduta.", "The offer has expired.") };
     }
     if (!isCurrentUserAdmin() && normalizeEmail(current.sellerEmail) !== normalizeEmail(state.currentUser && state.currentUser.email)) {
       return { ok: false, error: langText("Non puoi gestire questa offerta.", "You cannot manage this offer.") };
@@ -9763,13 +9763,13 @@
   function getAccountSectionGroups() {
     return [
       {
-        title: langText("Panoramica", "Overview"),
+        title: langText("PANORAMICA", "OVERVIEW"),
         entries: [
           { id: "overview", label: langText("Panoramica", "Overview") }
         ]
       },
       {
-        title: langText("Acquisti", "Shopping"),
+        title: langText("ACQUISTI", "SHOPPING"),
         entries: [
           { id: "shopping_preferences", label: langText("Preferenze", "Preferences") },
           { id: "shopping_sizes", label: langText("Le mie taglie", "My Size") },
@@ -9777,7 +9777,7 @@
         ]
       },
       {
-        title: langText("Vendita", "Selling"),
+        title: langText("VENDITE", "SELLING"),
         entries: [
           { id: "selling_preferences", label: langText("Preferenze vendita", "Selling preferences") },
           { id: "selling_location", label: langText("Posizione", "Location") },
@@ -9786,7 +9786,7 @@
         ]
       },
       {
-        title: langText("Impostazioni", "Settings"),
+        title: langText("IMPOSTAZIONI", "SETTINGS"),
         entries: [
           { id: "settings_account", label: langText("Account", "Account") },
           { id: "settings_profile", label: langText("Profilo", "Profile") },
@@ -9797,7 +9797,7 @@
         ]
       },
       {
-        title: langText("Aiuto / Supporto / Trust", "Help / Support / Trust"),
+        title: langText("AIUTO / SUPPORTO / TRUST", "HELP / SUPPORT / TRUST"),
         entries: [
           { id: "help_help", label: langText("Aiuto", "Help") },
           { id: "help_listings", label: langText("I tuoi annunci", "Listings") },
@@ -10209,7 +10209,7 @@
       return `<div class="irisx-workspace-card">
         <div class="irisx-section-head"><h3>${langText("I tuoi annunci", "Listings")}</h3><span>${langText("Guida seller per creare, salvare bozza e pubblicare annunci.", "Seller guide for drafting and publishing listings.")}</span></div>
         <div class="irisx-card-stack">
-          <div class="irisx-inline-card"><div><strong>${langText("Flusso bozze", "Draft flow")}</strong><span>${langText("Salva bozza, rientra nell'editor e pubblica quando l'annuncio e' pronto.", "Save drafts, reopen the editor, and publish when the listing is ready.")}</span></div><button class="irisx-secondary" onclick="setProfileArea('seller','drafts')">${langText("Apri bozze", "Open drafts")}</button></div>
+          <div class="irisx-inline-card"><div><strong>${langText("Flusso bozze", "Draft flow")}</strong><span>${langText("Salva bozza, rientra nell'editor e pubblica quando l'annuncio è pronto.", "Save drafts, reopen the editor, and publish when the listing is ready.")}</span></div><button class="irisx-secondary" onclick="setProfileArea('seller','drafts')">${langText("Apri bozze", "Open drafts")}</button></div>
           <div class="irisx-inline-card"><div><strong>${langText("Annunci live", "Live listings")}</strong><span>${langText("Controlla annunci attivi, offerte abilitate e archivio.", "Check active listings, offer settings, and archive.")}</span></div><button class="irisx-secondary" onclick="setProfileArea('seller','active')">${langText("Apri attivi", "Open active")}</button></div>
         </div>
       </div>`;
@@ -10456,20 +10456,20 @@
   function getProfileAreaCopy(area) {
     if (area === "buyer") {
       return {
-        kicker: langText("Spazio acquisti", "Buyer workspace"),
+        kicker: langText("AREA ACQUISTI", "BUYER AREA"),
         title: langText("Acquisti", "Buying"),
         subtitle: langText("Ordini, offerte, wishlist e chat degli articoli che stai comprando.", "Orders, offers, wishlist, and chats for the items you are buying.")
       };
     }
     if (area === "seller") {
       return {
-        kicker: langText("Spazio vendite", "Seller workspace"),
+        kicker: langText("AREA VENDITE", "SELLER AREA"),
         title: langText("Vendite", "Selling"),
         subtitle: langText("Annunci, offerte ricevute, chat e spedizioni in un unico spazio.", "Listings, received offers, chats, and shipping in one place.")
       };
     }
     return {
-      kicker: langText("Spazio account", "Account workspace"),
+      kicker: langText("AREA ACCOUNT", "ACCOUNT AREA"),
       title: langText("Account", "Account"),
       subtitle: langText("Le impostazioni importanti in uno spazio più semplice e leggibile.", "Important settings in a simpler, easier-to-read space.")
     };
@@ -10818,9 +10818,9 @@
           </div>
         </div>
         <div class="irisx-area-nav">
-          <button class="irisx-area-btn${area === "account" ? " on" : ""}" onclick="setProfileArea('account','overview')">${langText("Area account", "Account area")}</button>
-          <button class="irisx-area-btn${area === "buyer" ? " on" : ""}" onclick="setProfileArea('buyer','orders')">${langText("Area acquisti", "Buyer area")}</button>
-          <button class="irisx-area-btn${area === "seller" ? " on" : ""}" onclick="setProfileArea('seller','dashboard')">${langText("Area vendite", "Seller area")}</button>
+          <button class="irisx-area-btn${area === "account" ? " on" : ""}" onclick="setProfileArea('account','overview')">${langText("AREA ACCOUNT", "ACCOUNT AREA")}</button>
+          <button class="irisx-area-btn${area === "buyer" ? " on" : ""}" onclick="setProfileArea('buyer','orders')">${langText("AREA ACQUISTI", "BUYER AREA")}</button>
+          <button class="irisx-area-btn${area === "seller" ? " on" : ""}" onclick="setProfileArea('seller','dashboard')">${langText("AREA VENDITE", "SELLER AREA")}</button>
         ${isCurrentUserAdmin() ? `<button class="irisx-area-btn" onclick="showBuyView('ops')">${langText("Dashboard admin", "Admin dashboard")}</button>` : ""}
         </div>
         ${renderProfileSidebarMenu(area, activeSection, profileContext)}
@@ -11381,11 +11381,12 @@
       </div>`;
     } else if (state.checkoutStep === "review") {
       body = `<div class="irisx-checkout-review">
-        <div class="irisx-kicker">${t("order_summary")}</div>
-        <div class="irisx-summary-items">${summary}</div>
-        <div class="irisx-checkout-row"><span>${langText("Subtotale", "Subtotal")}</span><strong>${escapeHtml(formatCurrency(subtotal))}</strong></div>
-        <div class="irisx-checkout-row"><span>${langText("Spedizione", "Shipping")}</span><strong>${escapeHtml(formatCurrency(shippingFee))}</strong></div>
-        <div class="irisx-checkout-row total"><span>${t("cart_total")}</span><strong>${escapeHtml(formatCurrency(total))}</strong></div>
+        <div class="irisx-kicker">${langText("Dettagli acquisto", "Purchase details")}</div>
+        <div class="irisx-card-stack">
+          <div class="irisx-inline-card"><div><strong>${langText("Indirizzo di spedizione", "Shipping address")}</strong><span>${escapeHtml([draft.name, draft.address, draft.city, draft.country].filter(Boolean).join(" · ")) || escapeHtml(langText("Da completare", "To complete"))}</span></div></div>
+          <div class="irisx-inline-card"><div><strong>${langText("METODO DI SPEDIZIONE", "SHIPPING METHOD")}</strong><span>${escapeHtml(draft.shippingMethod || langText("Da selezionare", "To select"))}</span></div><em>${escapeHtml(formatCurrency(shippingFee))}</em></div>
+          <div class="irisx-inline-card"><div><strong>${langText("METODO DI PAGAMENTO", "PAYMENT METHOD")}</strong><span>${escapeHtml(draft.paymentLabel || langText("Da selezionare", "To select"))}</span></div></div>
+        </div>
       </div>`;
     } else {
       body = `<div class="irisx-state-panel">
@@ -11735,9 +11736,9 @@
         <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(sizeDisplay)}</div></div>${sizeOriginalMarkup}<div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
         ${renderMeasurementsSection(product)}
         <div class="det-section"><div class="det-section-title">${t("description")}</div><div class="det-desc">${escapeHtml(product.desc)}</div></div>
-        <div class="det-section"><div class="det-section-title">${langText("Spedizione", "Shipping info")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Costo spedizione", "Shipping fee")}</strong><span>${formatCurrency(SHIPPING_COST)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Metodo di spedizione", "Method")}</strong><span>${langText("Assicurata e tracciata", "Insured and tracked")}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Garanzia", "Trust")}</strong><span>${langText("Autenticazione in coda", "Authentication queue prepared")}</span></div><button class="irisx-secondary" onclick="openStatic('trust-authentication')">${langText("Scopri di più", "Learn more")}</button></div></div></div>
+        <div class="det-section"><div class="det-section-title">${langText("Spedizione", "Shipping")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Costo spedizione", "Shipping fee")}</strong><span>${formatCurrency(SHIPPING_COST)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Metodo", "Method")}</strong><span>${langText("Assicurata e tracciata", "Insured and tracked")}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Garanzia", "Trust")}</strong><span>${langText("In coda per autenticazione", "Authentication queue prepared")}</span></div><button class="irisx-secondary" onclick="openStatic('trust-authentication')">${langText("SCOPRI DI PIÙ", "LEARN MORE")}</button></div></div></div>
         <div class="det-section"><div class="det-section-title">${viewerOwnsListing ? langText("Gestione annuncio", "Listing management") : t("seller")}</div><div class="seller-card" onclick="${sellerCardClick}"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta"><span>★ ${escapeHtml(seller.rating)}</span> ${escapeHtml(seller.sales)} ${t("sales")} · ${escapeHtml(seller.city)}</div></div>${sellerPrimaryAction}</div></div>
-        <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Protezione acquirente", "Buyer Protection")}</button></li></ul></div>
+        <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Protezione Acquirente", "Buyer Protection")}</button></li></ul></div>
         ${similar.length ? `<div class="det-similar"><div class="det-similar-title">${t("similar")}</div><div class="det-similar-grid">${similar.map(function (item) { return `<div class="pc" onclick="showDetail(${inlineJsValue(item.id)})" style="min-width:160px">${productVisualMarkup(item, true)}<div class="pinfo" style="padding:.8rem"><div class="p-brand">${escapeHtml(item.brand)}</div><div class="p-name" style="font-size:.78rem">${escapeHtml(item.name)}</div><div class="p-price" style="font-size:.78rem;margin-top:.3rem">${formatCurrency(item.price)}</div></div></div>`; }).join("")}</div></div>` : ""}
       </div>
     </div>`;
@@ -11866,7 +11867,7 @@
       const heading = qs("h3", section);
       const paragraph = qs("p", section);
       if (heading && paragraph && heading.textContent.indexOf("Commissioni") > -1) {
-        paragraph.textContent = `Il venditore paga ${selfFee}% sul percorso autonomo e ${conciergeFee}% sul servizio Concierge. La pubblicazione e' gratuita.`;
+        paragraph.textContent = `Il venditore paga ${selfFee}% sul percorso autonomo e ${conciergeFee}% sul servizio Concierge. La pubblicazione è gratuita.`;
       }
     });
     updateFee();

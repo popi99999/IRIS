@@ -130,7 +130,7 @@
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.88);
-  font-family: "Inter", sans-serif;
+  font-family: "Outfit", sans-serif;
   font-size: 0.82rem;
   font-weight: 400;
   letter-spacing: 0.02em;
@@ -1024,7 +1024,7 @@ body.light-mode .irisx-divider::after {
 
 .irisx-home-card strong {
   display: block;
-  font-family: "Inter", sans-serif;
+  font-family: "Outfit", sans-serif;
   font-size: 0.78rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.88);
@@ -3318,7 +3318,7 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 
 /* ── Detail page buy button ── */
 .det-buy {
-  font-family: 'Inter', sans-serif !important;
+  font-family: 'Outfit', sans-serif !important;
   letter-spacing: .18em !important;
   text-transform: uppercase !important;
   font-size: .55rem !important;

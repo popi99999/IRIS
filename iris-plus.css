@@ -2,6 +2,78 @@
   display: none !important;
 }
 
+/* Ensure footer is always visible (override reveal animations) */
+.dyn-footer .site-footer {
+  opacity: 1 !important;
+  transform: none !important;
+  visibility: visible !important;
+}
+
+/* Layout fixes */
+#shop-view { padding-top: 54px !important; }
+.shop-layout { min-height: auto !important; }
+.det-layout { min-height: 0 !important; }
+.det-body { padding-bottom: 2rem !important; }
+.det-similar { margin-bottom: 0 !important; }
+.tn-row { flex-wrap: nowrap !important; }
+.tn-search { max-width: 280px !important; }
+
+/* Offer modal redesign — clean, no box/line */
+.offer-modal.open {
+  display: flex !important;
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(6,3,16,.88) !important;
+  backdrop-filter: blur(20px) !important;
+  z-index: 700 !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.offer-box {
+  background: rgba(12,6,28,.98) !important;
+  border: 1px solid rgba(167,139,250,.12) !important;
+  padding: 2.5rem 2rem !important;
+  max-width: 380px !important;
+  width: 100% !important;
+  text-align: center !important;
+  border-radius: 4px !important;
+}
+.offer-title {
+  font-family: 'Playfair Display',serif !important;
+  font-size: 1.4rem !important;
+  color: #FDFAFF !important;
+  margin-bottom: .5rem !important;
+  font-weight: 300 !important;
+}
+.offer-amount-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: .4rem !important;
+  margin: 1.5rem 0 .5rem !important;
+}
+.offer-currency {
+  font-size: 1.5rem !important;
+  color: rgba(167,139,250,.5) !important;
+  font-family: 'Playfair Display',serif !important;
+  flex-shrink: 0 !important;
+}
+.offer-input {
+  width: 60% !important;
+  padding: .3rem .2rem !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(167,139,250,.25) !important;
+  font-family: 'Playfair Display',serif !important;
+  font-size: 2.2rem !important;
+  font-weight: 300 !important;
+  color: #FDFAFF !important;
+  text-align: center !important;
+  outline: none !important;
+  border-radius: 0 !important;
+}
+.offer-input:focus { border-bottom-color: rgba(167,139,250,.6) !important; }
+
 .irisx-toast-stack {
   position: fixed;
   right: 1rem;
@@ -708,6 +780,57 @@ body.light-mode .irisx-divider::after {
   margin-top: 1.5rem;
 }
 
+/* ── Detail action row pair (side-by-side buttons) ── */
+.det-row-pair {
+  display: flex;
+  gap: 0.65rem;
+  width: 100%;
+}
+.det-row-pair .det-half {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* ── Detail icon row (compact action icons) ── */
+.det-icon-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+.det-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(167,139,250,.15);
+  background: transparent;
+  color: rgba(255,255,255,.5);
+  cursor: pointer;
+  padding: 0;
+  transition: border-color .22s, color .22s, box-shadow .22s, transform .18s;
+}
+.det-icon-btn:hover {
+  border-color: var(--lavender);
+  color: var(--lavender);
+  box-shadow: 0 0 14px rgba(124,58,237,.15);
+  transform: translateY(-1px);
+}
+.det-icon-btn:active {
+  color: var(--gold);
+  border-color: rgba(196,160,106,.4);
+  transform: scale(.95);
+}
+.det-icon-btn.det-icon-active {
+  color: var(--lavender);
+  border-color: rgba(167,139,250,.35);
+}
+.det-icon-btn svg {
+  pointer-events: none;
+}
+
 .irisx-checkout-grid {
   display: grid;
   gap: 1rem;
@@ -790,8 +913,20 @@ body.light-mode .irisx-divider::after {
 }
 
 .tn-links {
-  flex-wrap: wrap;
+  flex-wrap: nowrap !important;
+  display: flex !important;
 }
+
+/* Hide redundant nav items for clean luxury nav */
+#tnAboutBtn { display: none !important; }
+#authBtn { display: none !important; }
+#opsBtn { display: none !important; }
+.mode-toggle { display: none !important; }
+#langToggle, select#langToggle, .lang-toggle { display: none !important; }
+
+/* Profile button: icon only, no text */
+.tn-profile { font-size: 0 !important; padding: 0.5rem !important; }
+.tn-profile svg { display: block; width: 16px; height: 16px; }
 
 .tn-btn.active {
   color: var(--white);
@@ -1280,7 +1415,6 @@ body.light-mode .irisx-home-strip span {
     margin-top: 4vh;
   }
 
-  .irisx-actions,
   .irisx-inline-actions {
     flex-direction: column;
   }
@@ -1303,20 +1437,28 @@ body.light-mode .irisx-home-strip span {
     grid-template-columns: 1fr;
   }
 
+  /* ── Mobile nav: single compact strip ── */
+  #authBadge {
+    display: none !important;
+  }
+
   .topnav {
     padding: 0 1rem !important;
   }
 
   .tn-row {
-    gap: 0.65rem !important;
-    height: auto !important;
-    padding: 0.75rem 0 0.9rem !important;
-    align-items: stretch !important;
-    flex-wrap: wrap !important;
+    height: 52px !important;
+    gap: 0.25rem !important;
+    padding: 0 !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
   }
 
   .tn-logo {
-    flex-basis: 100% !important;
+    flex-basis: auto !important;
+    flex-shrink: 0 !important;
+    margin-right: auto !important;
+    font-size: 1rem !important;
   }
 
   .tn-search {
@@ -1324,30 +1466,17 @@ body.light-mode .irisx-home-strip span {
   }
 
   .tn-links {
-    order: 2;
-    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.15rem !important;
     margin-left: 0 !important;
-    display: grid !important;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    gap: 0.35rem !important;
+    width: auto !important;
+    flex-wrap: nowrap !important;
   }
 
-  .tn-btn,
-  .mode-toggle,
-  .lang-toggle {
-    min-width: 0;
-    width: 100% !important;
-    padding: 0.7rem 0.2rem !important;
-    font-size: 0.48rem !important;
-    letter-spacing: 0.08em !important;
-    text-align: center;
-  }
-
-  .tn-btn .badge {
-    top: 0.22rem;
-    right: 0.22rem;
-  }
-
+  /* Hide low-priority items on mobile */
+  .tn-home,
+  .tn-shop,
   .tn-fav,
   .tn-chat,
   #authBtn,
@@ -1355,20 +1484,44 @@ body.light-mode .irisx-home-strip span {
     display: none !important;
   }
 
-  /* Notif bell sempre visibile — nel grid mobile */
+  /* Compact icon buttons */
+  .tn-btn,
+  .lang-toggle {
+    min-width: 0;
+    width: auto !important;
+    padding: 0.45rem 0.5rem !important;
+    font-size: 0.6rem !important;
+    letter-spacing: 0.1em !important;
+  }
+
+  .tn-btn .badge {
+    top: 0.1rem;
+    right: 0.1rem;
+  }
+
+  /* Notif bell */
   .notif-wrap {
     display: flex !important;
     align-items: center;
     justify-content: center;
   }
 
+  /* Compact language select */
   .tn-links .irisx-lang-select {
     display: block !important;
-    grid-column: span 2;
+    width: 52px !important;
+    padding: 0.4rem 0.3rem !important;
+    font-size: 0.55rem !important;
+  }
+
+  /* VENDI compact */
+  .tn-sell {
+    padding: 0.4rem 0.65rem !important;
+    font-size: 0.55rem !important;
   }
 
   .irisx-home {
-    padding-top: 128px !important;
+    padding-top: 72px !important;
   }
 
   #shop-view,
@@ -1377,7 +1530,7 @@ body.light-mode .irisx-home-strip span {
   #profile-view,
   #seller-view,
   #ops-view {
-    padding-top: 128px !important;
+    padding-top: 72px !important;
   }
 
   .prof-header {
@@ -1479,6 +1632,8 @@ body.light-mode .irisx-home-strip span {
 .topnav .tn-primary:hover {
   background: linear-gradient(135deg, #9D5CF5, #7C3AED) !important;
   box-shadow: 0 0 24px rgba(124,58,237,.4) !important;
+}
+
 .irisx-modal-card--wide {
   width: min(980px, calc(100vw - 2rem));
 }

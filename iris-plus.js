@@ -112,6 +112,10 @@
   } else if (typeof render === "function") {
     render();
   }
+  cleanupNavbar();
+  setTimeout(cleanupNavbar, 300);
+  setTimeout(cleanupNavbar, 800);
+  setTimeout(cleanupNavbar, 2000);
 
   function qs(selector, root) {
     return (root || document).querySelector(selector);
@@ -1796,6 +1800,7 @@
         }
       });
     });
+
   }
 
   function hydrateLocalListings() {
@@ -3097,7 +3102,7 @@
         <div class="offer-note">${escapeHtml(product.brand)} ${escapeHtml(product.name)} · ${escapeHtml(formatCurrency(product.price))}</div>
         <div class="offer-meta">${escapeHtml(minimumText)}</div>
         ${statusBox}
-        <input class="offer-input" type="number" placeholder="${escapeHtml(formatCurrency(product.minimumOfferAmount || 0))}" id="offerInput" value="${escapeHtml(amountValue)}">
+        <div class="offer-amount-row"><span class="offer-currency">€</span><input class="offer-input" type="number" placeholder="0" id="offerInput" value="${escapeHtml(amountValue)}"></div>
         <div class="offer-meta">${langText("Se il seller accetta, il pagamento autorizzato verra' catturato automaticamente.", "If the seller accepts, the authorized payment will be captured automatically.")}</div>
         <button class="offer-send" onclick="sendOffer()">${langText("Continua", "Continue")}</button>
         <button class="offer-cancel" onclick="closeOffer()">${t("cancel")}</button>
@@ -3571,6 +3576,9 @@
         renderHomeView();
         qs("#home-view").classList.add("active");
         setActiveNav("home");
+        if (typeof renderFooters === "function") {
+          renderFooters();
+        }
         window.scrollTo(0, 0);
         return;
       }
@@ -3917,14 +3925,20 @@
       ? "<button class=\"det-offer\" onclick=\"openOffer(" + product.id + ")\">" + t("make_offer") + "</button>"
       : "";
 
+    const offerBtnHalf = offerBtn ? offerBtn.replace('class="det-offer"', 'class="det-offer det-half"') : "";
+    const liked2 = liked;
+
     return (
       "<div class=\"irisx-detail-actions\"><button class=\"det-buy\" onclick=\"buyNow(" +
       product.id + ")\">" +
       t("buy_now") + " · " + formatCurrency(product.price) +
-      "</button><button class=\"irisx-secondary\" onclick=\"addToCart(" +
+      "</button><div class=\"det-row-pair\"><button class=\"irisx-secondary det-half\" onclick=\"addToCart(" +
       product.id + ")\">" +
       t("add_to_cart") +
-      "</button>" + offerBtn + favBtn + "</div>"
+      "</button>" + offerBtnHalf + "</div>" +
+      "<div class=\"det-icon-row\">" +
+      "<button class=\"det-icon-btn" + (liked2 ? " det-icon-active" : "") + "\" onclick=\"toggleFav(" + product.id + ",null)\" title=\"" + (liked2 ? t("saved_fav") : t("add_fav")) + "\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"" + (liked2 ? "currentColor" : "none") + "\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z\"/></svg></button>" +
+      "</div></div>"
     );
   }
 
@@ -4342,6 +4356,21 @@
     showToast(t("logout_success"));
   }
 
+  function cleanupNavbar() {
+    var el;
+    el = qs("#tnAboutBtn"); if (el) el.style.display = "none";
+    el = qs("#authBtn"); if (el) el.style.display = "none";
+    el = qs("#opsBtn"); if (el) el.style.display = "none";
+    el = qs(".mode-toggle"); if (el) el.style.display = "none";
+    var prof = qs(".tn-profile");
+    if (prof) {
+      prof.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 14.5c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg>';
+      prof.style.fontSize = '0';
+    }
+    var lg = qs("#langToggle") || qs(".lang-toggle") || qs("select#langToggle");
+    if (lg) lg.style.display = "none";
+  }
+
   function syncSessionUi() {
     const authButton = qs("#authBtn");
     if (authButton) {
@@ -4356,8 +4385,9 @@
     const profileButton = qs(".tn-profile") || qs(".tn-btn[data-nav-view=\"profile\"]") || qs(".tn-btn[onclick*=\"profile\"]");
     if (profileButton) {
       profileButton.setAttribute("aria-label", t("profile_nav"));
-      profileButton.textContent = "👤 " + t("profile_nav");
     }
+
+    cleanupNavbar();
   }
 
   function requireAuth(callback) {
@@ -5340,7 +5370,7 @@
       ]
     },
     "buyer-protection": {
-      title: langText("Buyer Protection", "Buyer Protection"),
+      title: langText("Protezione acquirente", "Buyer Protection"),
       subtitle: langText("Cosa vede e cosa riceve il buyer nel flusso prototipo.", "What the buyer sees and receives in the prototype flow."),
       sections: [
         {
@@ -5440,7 +5470,7 @@
       ]
     },
     "accessibility-statement": {
-      title: langText("Accessibility Statement", "Accessibility Statement"),
+      title: langText("Accessibilità", "Accessibility Statement"),
       subtitle: langText("Impegni placeholder su accessibilita', leggibilita' e supporto assistivo.", "Placeholder commitments on accessibility, readability, and assistive support."),
       sections: [
         {
@@ -6284,7 +6314,7 @@
           </div>
         </div>
         <div class="irisx-order-panel">
-          <div class="irisx-order-panel-title">${langText("Payment", "Payment")}</div>
+          <div class="irisx-order-panel-title">${langText("Pagamento", "Payment")}</div>
           <div class="irisx-order-items">
             <div>${langText("Totale", "Total")}: ${escapeHtml(formatCurrency(order.total))}</div>
             <div>${langText("Fee piattaforma", "Platform fee")}: ${escapeHtml(formatCurrency(order.payment.platformFee || 0))}</div>
@@ -6311,7 +6341,7 @@
         <div class="irisx-order-panel">
           <div class="irisx-order-panel-title">${langText("Shipment status", "Shipment status")}</div>
           <div class="irisx-order-items">
-            <div>${langText("Method", "Method")}: ${escapeHtml(order.shipping.method || "—")}</div>
+            <div>${langText("Metodo", "Method")}: ${escapeHtml(order.shipping.method || "—")}</div>
             <div>${langText("Carrier", "Carrier")}: ${escapeHtml(order.shipping.carrier || langText("Pending assignment", "Pending assignment"))}</div>
             <div>${langText("Tracking", "Tracking")}: ${escapeHtml(order.shipping.trackingNumber || langText("Will appear after seller handoff", "Will appear after seller handoff"))}</div>
             <div>${langText("Label", "Label")}: ${escapeHtml(order.shipping.labelStatus || "pending")}</div>
@@ -6852,10 +6882,10 @@
       {
         title: langText("Selling", "Selling"),
         entries: [
-          { id: "selling_preferences", label: langText("Selling preferences", "Selling preferences") },
-          { id: "selling_location", label: langText("Location", "Location") },
-          { id: "selling_vacation", label: langText("Vacation mode", "Vacation mode") },
-          { id: "selling_listing_preferences", label: langText("Listing preferences", "Listing preferences") }
+          { id: "selling_preferences", label: langText("Preferenze vendita", "Selling preferences") },
+          { id: "selling_location", label: langText("Posizione", "Location") },
+          { id: "selling_vacation", label: langText("Modalità vacanza", "Vacation mode") },
+          { id: "selling_listing_preferences", label: langText("Preferenze annunci", "Listing preferences") }
         ]
       },
       {
@@ -6864,21 +6894,21 @@
           { id: "settings_account", label: langText("Account", "Account") },
           { id: "settings_profile", label: langText("Profile", "Profile") },
           { id: "settings_privacy", label: langText("Privacy", "Privacy") },
-          { id: "settings_payment", label: langText("Payment", "Payment") },
-          { id: "settings_notifications", label: langText("Notifications", "Notifications") },
-          { id: "settings_security", label: langText("Security", "Security") }
+          { id: "settings_payment", label: langText("Pagamento", "Payment") },
+          { id: "settings_notifications", label: langText("Notifiche", "Notifications") },
+          { id: "settings_security", label: langText("Sicurezza", "Security") }
         ]
       },
       {
         title: langText("Help / Support / Trust", "Help / Support / Trust"),
         entries: [
-          { id: "help_help", label: langText("Help", "Help") },
+          { id: "help_help", label: langText("Aiuto", "Help") },
           { id: "help_listings", label: langText("Listings", "Listings") },
           { id: "help_verification", label: langText("Verification", "Verification") },
-          { id: "help_shipping", label: langText("Shipping and Protection", "Shipping and Protection") },
-          { id: "help_accessibility", label: langText("Accessibility Statement", "Accessibility Statement") },
-          { id: "help_contact", label: langText("Contact Support", "Contact Support") },
-          { id: "help_about", label: langText("About", "About") },
+          { id: "help_shipping", label: langText("Spedizione e protezione", "Shipping and Protection") },
+          { id: "help_accessibility", label: langText("Accessibilità", "Accessibility Statement") },
+          { id: "help_contact", label: langText("Assistenza", "Contact Support") },
+          { id: "help_about", label: langText("Chi siamo", "About") },
           { id: "help_sell", label: langText("Sell", "Sell") }
         ]
       }
@@ -7012,7 +7042,7 @@
 
     if (section === "selling_preferences") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Selling preferences", "Selling preferences")}</h3><span>${langText("Regole operative seller per messaggi, offerte e gestione inventario.", "Seller operating rules for messaging, offers, and inventory handling.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Preferenze vendita", "Selling preferences")}</h3><span>${langText("Regole operative seller per messaggi, offerte e gestione inventario.", "Seller operating rules for messaging, offers, and inventory handling.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
             <div class="irisx-field"><label for="sellingHandlingModel">${langText("Handling model", "Handling model")}</label><input id="sellingHandlingModel" type="text" value="${escapeHtml(user.sellingPreferences.handlingModel || "")}"></div>
@@ -7042,7 +7072,7 @@
 
     if (section === "selling_vacation") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Vacation mode", "Vacation mode")}</h3><span>${langText("Stato seller, data di ritorno e messaggio operativo.", "Seller status, return date, and operational message.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Modalità vacanza", "Vacation mode")}</h3><span>${langText("Stato seller, data di ritorno e messaggio operativo.", "Seller status, return date, and operational message.")}</span></div>
         <div class="irisx-toggle-grid">
           <label><input id="sellingVacationEnabled" type="checkbox" ${user.vacationMode.enabled ? "checked" : ""}> ${langText("Attiva vacation mode", "Enable vacation mode")}</label>
         </div>
@@ -7059,7 +7089,7 @@
 
     if (section === "selling_listing_preferences") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Listing preferences", "Listing preferences")}</h3><span>${langText("Default seller per nuove inserzioni e future bulk actions.", "Seller defaults for new listings and future bulk actions.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Preferenze annunci", "Listing preferences")}</h3><span>${langText("Default seller per nuove inserzioni e future bulk actions.", "Seller defaults for new listings and future bulk actions.")}</span></div>
         <div class="irisx-form-grid">
           <div class="irisx-account-row">
             <div class="irisx-field"><label for="sellingDefaultCondition">${langText("Default condition", "Default condition")}</label><input id="sellingDefaultCondition" type="text" value="${escapeHtml(user.listingPreferences.defaultCondition || "")}"></div>
@@ -7155,7 +7185,7 @@
           <div class="irisx-section-head"><h3>${langText("Payout settings", "Payout settings")}</h3><span>${langText("Dettagli seller payout predisposti nel profilo.", "Seller payout details prepared inside the profile.")}</span></div>
           <div class="irisx-form-grid">
             <div class="irisx-account-row">
-              <div class="irisx-field"><label for="payoutMethod">${langText("Method", "Method")}</label><input id="payoutMethod" type="text" value="${escapeHtml(user.payoutSettings.method || "bank_transfer")}"></div>
+              <div class="irisx-field"><label for="payoutMethod">${langText("Metodo", "Method")}</label><input id="payoutMethod" type="text" value="${escapeHtml(user.payoutSettings.method || "bank_transfer")}"></div>
               <div class="irisx-field"><label for="payoutCadence">${langText("Cadence", "Cadence")}</label><input id="payoutCadence" type="text" value="${escapeHtml(user.payoutSettings.cadence || "")}"></div>
             </div>
             <div class="irisx-account-row">
@@ -7171,7 +7201,7 @@
 
     if (section === "settings_notifications") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Notifications", "Notifications")}</h3><span>${langText("Badge, notifiche in-app e preferenze mock.", "Badges, in-app notifications, and mock preferences.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Notifiche", "Notifications")}</h3><span>${langText("Badge, notifiche in-app e preferenze mock.", "Badges, in-app notifications, and mock preferences.")}</span></div>
         <div class="irisx-toggle-grid">
           <label><input id="notifPrefOrders" type="checkbox" ${user.notificationSettings.orders ? "checked" : ""}> ${langText("Ordini", "Orders")}</label>
           <label><input id="notifPrefMessages" type="checkbox" ${user.notificationSettings.messages ? "checked" : ""}> ${langText("Messaggi", "Messages")}</label>
@@ -7186,7 +7216,7 @@
 
     if (section === "settings_security") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Security", "Security")}</h3><span>${langText("2FA, login alerts e sessioni attive mock.", "2FA, login alerts, and mock active sessions.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Sicurezza", "Security")}</h3><span>${langText("2FA, login alerts e sessioni attive mock.", "2FA, login alerts, and mock active sessions.")}</span></div>
         <div class="irisx-toggle-grid">
           <label><input id="securityTwoFactor" type="checkbox" ${user.security.twoFactor ? "checked" : ""}> ${langText("Two-factor authentication", "Two-factor authentication")}</label>
           <label><input id="securityLoginAlerts" type="checkbox" ${user.security.loginAlerts ? "checked" : ""}> ${langText("Login alerts", "Login alerts")}</label>
@@ -7220,7 +7250,7 @@
     if (section === "help_verification") {
       return `<div class="irisx-policy-grid">
         <button class="irisx-policy-card" onclick="openStatic('trust-authentication')"><strong>${langText("Trust / Authentication", "Trust / Authentication")}</strong><span>${langText("Flusso autenticazione e trust block prodotto.", "Authentication flow and product trust block.")}</span></button>
-        <button class="irisx-policy-card" onclick="openStatic('buyer-protection')"><strong>${langText("Buyer Protection", "Buyer Protection")}</strong><span>${langText("Supporto, timeline e protezione buyer.", "Support, timeline, and buyer protection.")}</span></button>
+        <button class="irisx-policy-card" onclick="openStatic('buyer-protection')"><strong>${langText("Protezione acquirente", "Buyer Protection")}</strong><span>${langText("Supporto, timeline e protezione buyer.", "Support, timeline, and buyer protection.")}</span></button>
         <button class="irisx-policy-card" onclick="openStatic('seller-protection')"><strong>${langText("Seller Protection", "Seller Protection")}</strong><span>${langText("Payout, queue operativa e seller safeguards.", "Payout, operational queue, and seller safeguards.")}</span></button>
       </div>`;
     }
@@ -7235,7 +7265,7 @@
 
     if (section === "help_accessibility") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Accessibility Statement", "Accessibility Statement")}</h3><span>${langText("Impegni di struttura e supporto del prototipo.", "Prototype structure and support commitments.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Accessibilità", "Accessibility Statement")}</h3><span>${langText("Impegni di struttura e supporto del prototipo.", "Prototype structure and support commitments.")}</span></div>
         <div class="irisx-card-stack">
           <div class="irisx-inline-card"><div><strong>${langText("Responsive baseline", "Responsive baseline")}</strong><span>${langText("Layout account e messaging adattati a desktop e mobile.", "Account and messaging layouts are adapted for desktop and mobile.")}</span></div></div>
           <div class="irisx-inline-card"><div><strong>${langText("Assistive support path", "Assistive support path")}</strong><span>${langText("Per richieste specifiche usa Contact Support o apri il documento dedicato.", "Use Contact Support or open the dedicated statement for specific needs.")}</span></div><button class="irisx-secondary" onclick="openStatic('accessibility-statement')">${langText("Apri statement", "Open statement")}</button></div>
@@ -7245,7 +7275,7 @@
 
     if (section === "help_contact") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Contact Support", "Contact Support")}</h3><span>${langText("Ticket, dispute e issue reporting.", "Tickets, disputes, and issue reporting.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Assistenza", "Contact Support")}</h3><span>${langText("Ticket, dispute e issue reporting.", "Tickets, disputes, and issue reporting.")}</span></div>
         <div class="irisx-card-stack">
           <div class="irisx-inline-card"><div><strong>${PLATFORM_CONFIG.supportEmail}</strong><span>${langText("Inbox support proprietario / team.", "Owner / team support inbox.")}</span></div></div>
         </div>
@@ -7256,7 +7286,7 @@
 
     if (section === "help_about") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("About", "About")}</h3><span>${langText("Contesto del marketplace, fiducia e linee guida community.", "Marketplace context, trust, and community guidelines.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Chi siamo", "About")}</h3><span>${langText("Contesto del marketplace, fiducia e linee guida community.", "Marketplace context, trust, and community guidelines.")}</span></div>
         <div class="irisx-card-stack">
           <div class="irisx-inline-card"><div><strong>IRIS</strong><span>${langText("Marketplace prototype strutturato per buyer, seller e owner.", "Structured marketplace prototype for buyers, sellers, and owner.")}</span></div><button class="irisx-secondary" onclick="openStatic('about')">${langText("Apri about", "Open about")}</button></div>
           <div class="irisx-inline-card"><div><strong>${langText("Community Guidelines", "Community Guidelines")}</strong><span>${langText("Regole di comportamento e moderazione.", "Conduct and moderation rules.")}</span></div><button class="irisx-secondary" onclick="openStatic('community-guidelines')">${langText("Apri", "Open")}</button></div>
@@ -7669,10 +7699,10 @@
       }).join("")}</div><div class="irisx-workspace-card"><div class="irisx-section-head"><h3>${langText("Email outbox", "Email outbox")}</h3><span>${langText("Template e trigger mock in coda.", "Queued mock templates and triggers.")}</span></div>${state.emailOutbox.length ? `<div class="irisx-card-stack">${state.emailOutbox.slice(0, 8).map(function (mail) { return `<div class="irisx-inline-card"><div><strong>${escapeHtml(mail.subject)}</strong><span>${escapeHtml(mail.to)}</span></div><em>${escapeHtml(mail.type)}</em></div>`; }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessuna email in coda.", "No queued emails.")}</div>`}</div>`;
     } else if (state.adminSection === "settings") {
       content = `<div class="irisx-summary-grid">
-        <div class="irisx-summary-card"><strong>${Math.round(PLATFORM_CONFIG.selfServeFeeRate * 100)}%</strong><span>${langText("Self-serve fee", "Self-serve fee")}</span></div>
-        <div class="irisx-summary-card"><strong>${Math.round(PLATFORM_CONFIG.conciergeFeeRate * 100)}%</strong><span>${langText("Concierge fee", "Concierge fee")}</span></div>
-        <div class="irisx-summary-card"><strong>${escapeHtml(formatCurrency(PLATFORM_CONFIG.shippingCost))}</strong><span>${langText("Shipping fee", "Shipping fee")}</span></div>
-        <div class="irisx-summary-card"><strong>${PLATFORM_CONFIG.ownerEmail}</strong><span>${langText("Owner inbox", "Owner inbox")}</span></div>
+        <div class="irisx-summary-card"><strong>${Math.round(PLATFORM_CONFIG.selfServeFeeRate * 100)}%</strong><span>${langText("Commissione self-serve", "Self-serve fee")}</span></div>
+        <div class="irisx-summary-card"><strong>${Math.round(PLATFORM_CONFIG.conciergeFeeRate * 100)}%</strong><span>${langText("Commissione concierge", "Concierge fee")}</span></div>
+        <div class="irisx-summary-card"><strong>${escapeHtml(formatCurrency(PLATFORM_CONFIG.shippingCost))}</strong><span>${langText("Costo spedizione", "Shipping fee")}</span></div>
+        <div class="irisx-summary-card"><strong>${PLATFORM_CONFIG.ownerEmail}</strong><span>${langText("Email proprietario", "Owner inbox")}</span></div>
       </div>`;
     } else {
       content = `<div class="irisx-summary-grid">
@@ -7724,7 +7754,7 @@
     badge.style.display = unread ? "flex" : "none";
     badge.textContent = unread;
     panel.innerHTML = `<div class="irisx-notif-panel-head">
-      <strong>${langText("Notifications", "Notifications")}</strong>
+      <strong>${langText("Notifiche", "Notifications")}</strong>
       <button onclick="markAllRead()">${langText("Mark all", "Mark all")}</button>
     </div>
     ${visible.length ? visible.slice(0, 6).map(function (notification) {
@@ -8225,7 +8255,7 @@
     const seller = buildListingSeller(product);
     const sellerIdExpr = inlineJsValue(seller.id);
     if (!isProductPurchasable(product)) {
-      return `<div class="irisx-note">${langText("Questo articolo risulta gia' venduto o non disponibile per nuovi acquisti.", "This item is already sold or unavailable.")}</div><div class="irisx-detail-actions"><button class="det-fav" onclick="toggleFav(${productIdExpr},null)">${liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")}</button><button class="irisx-secondary" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button></div>`;
+      return `<div class="irisx-note">${langText("Questo articolo risulta gia' venduto o non disponibile per nuovi acquisti.", "This item is already sold or unavailable.")}</div><div class="irisx-detail-actions"><div class="det-icon-row"><button class="det-icon-btn${liked ? " det-icon-active" : ""}" onclick="toggleFav(${productIdExpr},null)" title="${liked ? t("saved_fav") : t("add_fav")}"><svg width="16" height="16" viewBox="0 0 24 24" fill="${liked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></button><button class="det-icon-btn" onclick="reportListing(${productIdExpr})" title="${langText("Segnala", "Report")}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></button></div></div>`;
     }
     const offerButton = product.offersEnabled
       ? `<button class="det-offer" onclick="openOffer(${productIdExpr})">${t("make_offer")}</button>`
@@ -8235,11 +8265,15 @@
       : `<div class="irisx-note">${langText("Questo seller ha disattivato le offerte su questo articolo.", "This seller has disabled offers for this listing.")}</div>`;
     return `<div class="irisx-detail-actions">
       <button class="det-buy" onclick="buyNow(${productIdExpr})">${t("buy_now")} · ${formatCurrency(product.price)}</button>
-      <button class="irisx-secondary" onclick="addToCart(${productIdExpr})">${t("add_to_cart")}</button>
-      ${offerButton}
-      <button class="irisx-secondary" onclick="openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>
-      <button class="det-fav" onclick="toggleFav(${productIdExpr},null)">${liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")}</button>
-      <button class="irisx-secondary" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button>
+      <div class="det-row-pair">
+        <button class="irisx-secondary det-half" onclick="addToCart(${productIdExpr})">${t("add_to_cart")}</button>
+        ${offerButton.replace('class="det-offer"', 'class="det-offer det-half"').replace('class="det-offer" disabled', 'class="det-offer det-half" disabled')}
+      </div>
+      <div class="det-icon-row">
+        <button class="det-icon-btn${liked ? " det-icon-active" : ""}" onclick="toggleFav(${productIdExpr},null)" title="${liked ? t("saved_fav") : t("add_fav")}"><svg width="16" height="16" viewBox="0 0 24 24" fill="${liked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+        <button class="det-icon-btn" onclick="openChat(${sellerIdExpr},${productIdExpr})" title="${t("chat")}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+        <button class="det-icon-btn" onclick="reportListing(${productIdExpr})" title="${langText("Segnala", "Report")}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></button>
+      </div>
     </div>${offerNote}`;
   };
 
@@ -8275,14 +8309,13 @@
         <div class="det-brand">${escapeHtml(product.brand)}</div>
         <div class="det-name">${escapeHtml(product.name)}</div>
         <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
+        ${getDetailActionsMarkup(product, liked)}
         <div class="det-div"></div>
         <div class="det-section"><div class="det-section-title">${t("details")}</div><div class="det-chips">${chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div></div>
         <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(product.sz)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
         <div class="det-section"><div class="det-section-title">${t("description")}</div><div class="det-desc">${escapeHtml(product.desc)}</div></div>
-        <div class="det-section"><div class="det-section-title">${langText("Shipping info", "Shipping info")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Shipping fee", "Shipping fee")}</strong><span>${formatCurrency(SHIPPING_COST)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Method", "Method")}</strong><span>${langText("Insured and tracked", "Insured and tracked")}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Trust", "Trust")}</strong><span>${langText("Authentication queue prepared", "Authentication queue prepared")}</span></div><button class="irisx-secondary" onclick="openStatic('trust-authentication')">${langText("Learn more", "Learn more")}</button></div></div></div>
         <div class="det-section"><div class="det-section-title">${t("seller")}</div><div class="seller-card" onclick="showSeller('${escapeHtml(seller.id)}')"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta"><span>★ ${escapeHtml(seller.rating)}</span> ${escapeHtml(seller.sales)} ${t("sales")} · ${escapeHtml(seller.city)}</div></div><button class="seller-chat" onclick="event.stopPropagation();openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button></div></div>
-        ${getDetailActionsMarkup(product, liked)}
-        <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Buyer Protection", "Buyer Protection")}</button></li></ul></div>
+        <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Protezione acquirente", "Buyer Protection")}</button></li></ul></div>
         ${similar.length ? `<div class="det-similar"><div class="det-similar-title">${t("similar")}</div><div class="det-similar-grid">${similar.map(function (item) { return `<div class="pc" onclick="showDetail(${inlineJsValue(item.id)})" style="min-width:160px">${productVisualMarkup(item, true)}<div class="pinfo" style="padding:.8rem"><div class="p-brand">${escapeHtml(item.brand)}</div><div class="p-name" style="font-size:.78rem">${escapeHtml(item.name)}</div><div class="p-price" style="font-size:.78rem;margin-top:.3rem">${formatCurrency(item.price)}</div></div></div>`; }).join("")}</div></div>` : ""}
       </div>
     </div>`;
@@ -8296,12 +8329,12 @@
   footerHTML = function () {
     return `<footer class="site-footer">
       <div class="footer-grid">
-        <div><div class="footer-brand">IRIS</div><div class="footer-desc">${langText("Marketplace prototype strutturato per buyer, seller e owner.", "Structured marketplace prototype for buyers, sellers, and owners.")}</div></div>
-        <div><div class="footer-col-title">${langText("Marketplace", "Marketplace")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();showBuyView('shop')">${langText("Shop", "Shop")}</a></li><li><a href="#" onclick="event.preventDefault();showPage('sell')">${langText("Sell", "Sell")}</a></li><li><a href="#" onclick="event.preventDefault();showBuyView('profile');setProfileArea('buyer','orders')">${langText("Buyer area", "Buyer area")}</a></li><li><a href="#" onclick="event.preventDefault();showBuyView('profile');setProfileArea('seller','dashboard')">${langText("Seller area", "Seller area")}</a></li></ul></div>
-        <div><div class="footer-col-title">${langText("Trust", "Trust")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();openStatic('trust-authentication')">${langText("Trust / Authentication", "Trust / Authentication")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('buyer-protection')">${langText("Buyer Protection", "Buyer Protection")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('seller-protection')">${langText("Seller Protection", "Seller Protection")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('community-guidelines')">${langText("Community Guidelines", "Community Guidelines")}</a></li></ul></div>
-        <div><div class="footer-col-title">${langText("Policies", "Policies")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();openStatic('shipping-policy')">${langText("Shipping Policy", "Shipping Policy")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('refund-policy')">${langText("Refund / Return Policy", "Refund / Return Policy")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('prohibited-items')">${langText("Prohibited Items", "Prohibited Items")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a></li></ul></div>
+        <div><div class="footer-brand">IRIS</div><div class="footer-desc">${langText("Il marketplace italiano per la moda di lusso. Compra e vendi pezzi firmati autenticati.", "The Italian marketplace for luxury fashion. Buy and sell authenticated designer pieces.")}</div></div>
+        <div><div class="footer-col-title">${langText("Marketplace", "Marketplace")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();showBuyView('shop')">${langText("Shop", "Shop")}</a></li><li><a href="#" onclick="event.preventDefault();showPage('sell')">${langText("Vendi", "Sell")}</a></li><li><a href="#" onclick="event.preventDefault();showBuyView('profile');setProfileArea('buyer','orders')">${langText("Area acquirente", "Buyer area")}</a></li><li><a href="#" onclick="event.preventDefault();showBuyView('profile');setProfileArea('seller','dashboard')">${langText("Area venditore", "Seller area")}</a></li></ul></div>
+        <div><div class="footer-col-title">${langText("Fiducia", "Trust")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();openStatic('trust-authentication')">${langText("Autenticazione", "Authentication")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('buyer-protection')">${langText("Protezione acquirente", "Buyer Protection")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('seller-protection')">${langText("Protezione venditore", "Seller Protection")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('community-guidelines')">${langText("Linee guida", "Community Guidelines")}</a></li></ul></div>
+        <div><div class="footer-col-title">${langText("Normative", "Policies")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();openStatic('shipping-policy')">${langText("Politica spedizioni", "Shipping Policy")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('refund-policy')">${langText("Resi e rimborsi", "Refund / Return Policy")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('prohibited-items')">${langText("Articoli vietati", "Prohibited Items")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a></li></ul></div>
       </div>
-      <div class="footer-bottom"><div class="footer-copy">© 2026 IRIS S.r.l.</div><div class="footer-legal"><a href="#" onclick="event.preventDefault();openStatic('terms')">${t("footer_terms")}</a><a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a><a href="#" onclick="event.preventDefault();openStatic('community-guidelines')">${langText("Community Guidelines", "Community Guidelines")}</a></div></div>
+      <div class="footer-bottom"><div class="footer-copy">© 2026 IRIS S.r.l.</div><div class="footer-legal"><a href="#" onclick="event.preventDefault();openStatic('terms')">${t("footer_terms")}</a><a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a><a href="#" onclick="event.preventDefault();openStatic('community-guidelines')">${langText("Linee guida", "Community Guidelines")}</a></div></div>
     </footer>`;
   };
 

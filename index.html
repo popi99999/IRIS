@@ -14,9 +14,13 @@
 <meta property="og:description" content="Il marketplace italiano per la moda di lusso. Compra e vendi pezzi firmati autenticati.">
 <meta property="og:url" content="https://popi99999.github.io/IRIS/">
 <meta property="og:site_name" content="IRIS">
+<meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'%3E%3Crect width='1200' height='630' fill='%23060310'/%3E%3Crect x='70' y='70' width='1060' height='490' rx='28' fill='%23110826' stroke='%237C3AED' stroke-opacity='.35'/%3E%3Ctext x='600' y='290' text-anchor='middle' fill='%23C4A06A' font-family='Georgia, serif' font-size='136'%3EIRIS%3C/text%3E%3Ctext x='600' y='370' text-anchor='middle' fill='%23F5F0EB' font-family='Arial, sans-serif' font-size='36' letter-spacing='6'%3ELUXURY FASHION MARKETPLACE%3C/text%3E%3C/svg%3E">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="IRIS — Luxury Fashion Marketplace">
 <meta name="twitter:description" content="Il marketplace italiano per la moda di lusso.">
+<meta name="twitter:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'%3E%3Crect width='1200' height='630' fill='%23060310'/%3E%3Crect x='70' y='70' width='1060' height='490' rx='28' fill='%23110826' stroke='%237C3AED' stroke-opacity='.35'/%3E%3Ctext x='600' y='290' text-anchor='middle' fill='%23C4A06A' font-family='Georgia, serif' font-size='136'%3EIRIS%3C/text%3E%3Ctext x='600' y='370' text-anchor='middle' fill='%23F5F0EB' font-family='Arial, sans-serif' font-size='36' letter-spacing='6'%3ELUXURY FASHION MARKETPLACE%3C/text%3E%3C/svg%3E">
 <link rel="canonical" href="https://popi99999.github.io/IRIS/">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23060310' width='100' height='100' rx='20'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-size='36' font-family='serif' font-style='italic' fill='%23A78BFA'%3EIRIS%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="./manifest.json">
@@ -25,7 +29,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Il marketplace italiano per la moda di lusso.","potentialAction":{"@type":"SearchAction","target":"https://popi99999.github.io/IRIS/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Luxury Fashion Marketplace italiano"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=Outfit:wght@200;300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -40,6 +44,28 @@ body{background:var(--deep);color:rgba(253,250,255,.78);font-family:'Outfit',san
 a{color:inherit;text-decoration:none}
 button{font-family:inherit}
 .container{width:100%;max-width:1200px;margin:0 auto;padding:0 2rem}
+.skip-link,.skip-to-content{position:fixed;top:1rem;left:1rem;z-index:3000;padding:.75rem 1rem;background:#111;color:#fff;border:1px solid rgba(167,139,250,.35);transform:translateY(-160%);transition:transform .25s ease}
+.skip-link:focus,.skip-to-content:focus{transform:translateY(0)}
+.visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.cookie-banner{position:fixed;left:0;right:0;bottom:0;z-index:9999;display:none;align-items:flex-start;justify-content:space-between;gap:1.5rem;padding:1.25rem 1.5rem;background:rgba(6,3,16,.92);backdrop-filter:blur(18px);border-top:1px solid rgba(167,139,250,.35);box-shadow:0 -20px 50px rgba(0,0,0,.25)}
+.cookie-text{display:flex;flex-direction:column;gap:.45rem;max-width:860px}
+.cookie-text strong{font-size:.95rem;font-weight:500;color:#fff}
+.cookie-text p{font-size:.92rem;line-height:1.65;color:rgba(253,250,255,.76)}
+.cookie-text a{color:var(--lavender);text-decoration:underline;text-underline-offset:3px}
+.cookie-actions{display:flex;align-items:center;gap:.75rem;flex-shrink:0}
+.cookie-actions button{min-width:150px}
+body.light-mode .cookie-banner{background:rgba(255,255,255,.95);border-top-color:rgba(124,58,237,.22);box-shadow:0 -18px 46px rgba(10,10,10,.12)}
+body.light-mode .cookie-text strong{color:#14092b}
+body.light-mode .cookie-text p{color:rgba(20,9,43,.78)}
+body.light-mode .cookie-text a{color:#6d28d9}
+@media (max-width:600px){
+  .cookie-banner{flex-direction:column;align-items:stretch;padding:1rem}
+  .cookie-actions{flex-direction:column;align-items:stretch;width:100%}
+  .cookie-actions button{width:100%}
+}
+@media (max-width:1100px){
+  #authBadge{display:none !important}
+}
 
 /* ═══════ INTRO ═══════ */
 #intro{position:fixed;inset:0;z-index:2000;overflow:hidden;background:#02000A;cursor:pointer}
@@ -160,7 +186,7 @@ a:active,button:focus-visible{outline:1px solid rgba(196,160,106,.35);outline-of
 
 /* Filter sidebar */
 .filters{padding:1.5rem;border-right:1px solid var(--border);background:rgba(6,3,16,.5);position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
-@media(max-width:900px){.filters{display:none}.filters.open{display:block;position:fixed;inset:0;top:54px;z-index:400;background:rgba(6,3,16,.98);border:none;width:100%}}
+@media(max-width:900px){body:not(.irisx-luxury) .filters{display:none}body:not(.irisx-luxury) .filters.open{display:block;position:fixed;inset:0;top:54px;z-index:400;background:rgba(6,3,16,.98);border:none;width:100%}}
 .f-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
 .f-title{font-size:.52rem;letter-spacing:.35em;text-transform:uppercase;color:var(--lavender);opacity:.4}
 .f-clear{background:none;border:none;color:rgba(255,255,255,.45);font-size:.65rem;cursor:pointer;font-family:inherit;transition:color .3s}
@@ -459,7 +485,7 @@ a:active,button:focus-visible{outline:1px solid rgba(196,160,106,.35);outline-of
 .st-l em{font-style:italic;color:var(--purple)}
 
 /* Offer modal */
-.offer-modal{position:fixed;inset:0;background:rgba(6,3,16,.88);backdrop-filter:blur(20px);z-index:700;display:none;align-items:center;justify-content:center;padding:1rem}
+.offer-modal{position:fixed;inset:0;background:rgba(6,3,16,.88);backdrop-filter:blur(20px);z-index:700;display:none;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto}
 .offer-modal.open{display:flex}
 .offer-box{background:rgba(12,6,28,.98);border:1px solid rgba(167,139,250,.12);padding:2.5rem 2rem;max-width:380px;width:100%;text-align:center;border-radius:4px}
 .offer-title{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--white);margin-bottom:.5rem;font-weight:300}
@@ -584,7 +610,7 @@ body.light-mode .skel-img,body.light-mode .skel-line{background:linear-gradient(
 .notif-bell:hover{color:var(--lavender)}
 body.light-mode .notif-bell{color:rgba(26,10,53,.4)}
 body.light-mode .notif-bell:hover{color:var(--purple)}
-.notif-badge{position:absolute;top:2px;right:2px;width:16px;height:16px;background:#e74c6f;border-radius:50%;font-size:.5rem;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Outfit',sans-serif;letter-spacing:0;pointer-events:none}
+.notif-badge{position:absolute;top:2px;right:2px;width:16px;height:16px;background:#e74c6f;border-radius:50%;font-size:.5rem;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Inter',sans-serif;letter-spacing:0;pointer-events:none}
 .notif-panel{position:absolute;top:100%;right:0;width:340px;max-height:420px;overflow-y:auto;background:rgba(14,7,32,.98);backdrop-filter:blur(24px);border:1px solid rgba(167,139,250,.1);display:none;z-index:600;border-radius:2px;box-shadow:0 12px 48px rgba(0,0,0,.5)}
 .notif-panel.open{display:block}
 body.light-mode .notif-panel{background:rgba(255,255,255,.98);border-color:rgba(124,58,237,.1);box-shadow:0 12px 48px rgba(0,0,0,.1)}
@@ -599,7 +625,7 @@ body.light-mode .notif-clear{color:rgba(26,10,53,.3)}
 body.light-mode .notif-item{border-color:rgba(124,58,237,.03)}
 body.light-mode .notif-item.unread{background:rgba(124,58,237,.04)}
 body.light-mode .notif-item:hover{background:rgba(124,58,237,.06)}
-.notif-icon{width:26px;height:26px;border-radius:0;background:transparent;border:1px solid rgba(167,139,250,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.6rem;color:var(--lavender);font-family:'Outfit',sans-serif;letter-spacing:0}
+.notif-icon{width:26px;height:26px;border-radius:0;background:transparent;border:1px solid rgba(167,139,250,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.6rem;color:var(--lavender);font-family:'Inter',sans-serif;letter-spacing:0}
 .notif-content{flex:1;min-width:0}
 .notif-text{font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.5}
 body.light-mode .notif-text{color:rgba(26,10,53,.55)}
@@ -738,11 +764,1357 @@ body.light-mode .pwa-banner-text{color:rgba(26,10,53,.55)}
 .pwa-banner-close{background:none;border:none;color:rgba(255,255,255,.45);cursor:pointer;font-size:.9rem}
 body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
 </style>
+<style id="iris-luxury-redesign">
+:root{
+  --iris-black:#0A0A0A;
+  --iris-anthracite:#111111;
+  --iris-white:#F5F0EB;
+  --iris-white-strong:#FFFFFF;
+  --iris-text-soft:rgba(245,240,235,.74);
+  --iris-text-faint:rgba(245,240,235,.46);
+  --iris-violet:#2D1B4E;
+  --iris-violet-mid:#4A2777;
+  --iris-violet-accent:#7B2FBE;
+  --iris-gold:#C9A96E;
+  --iris-border:rgba(255,255,255,.06);
+  --iris-border-strong:rgba(255,255,255,.12);
+  --iris-panel:rgba(255,255,255,.03);
+  --iris-panel-strong:rgba(255,255,255,.05);
+  --iris-shadow:0 28px 80px rgba(0,0,0,.38);
+  --iris-shadow-soft:0 0 32px rgba(123,47,190,.12);
+  --iris-section-space:clamp(7rem,12vw,10rem);
+  --iris-shell:1380px;
+}
+
+html{scroll-behavior:smooth}
+body.irisx-luxury,
+body.irisx-luxury.light-mode{
+  background:
+    radial-gradient(circle at top left, rgba(123,47,190,.12), transparent 28%),
+    radial-gradient(circle at 85% 12%, rgba(45,27,78,.28), transparent 22%),
+    linear-gradient(180deg, #090909 0%, #0a0a0a 32%, #111111 100%);
+  color:var(--iris-white);
+  font-family:"Outfit",sans-serif;
+}
+
+body.irisx-luxury ::selection{
+  background:rgba(123,47,190,.26);
+  color:var(--iris-white-strong);
+}
+
+body.irisx-luxury .container{
+  max-width:var(--iris-shell);
+  padding-inline:clamp(1.5rem,4vw,3rem);
+}
+
+body.irisx-luxury .page{background:transparent}
+body.irisx-luxury #intro,
+body.irisx-luxury #choice{display:none !important}
+
+body.irisx-luxury .topnav,
+body.irisx-luxury.light-mode .topnav{
+  background:rgba(10,10,10,.58);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--iris-border);
+  padding-inline:clamp(1.5rem,4vw,3rem) !important;
+  box-shadow:none;
+}
+
+body.irisx-luxury .tn-row{
+  height:auto !important;
+  gap:1rem !important;
+  align-items:center !important;
+  flex-wrap:nowrap !important;
+}
+
+body.irisx-luxury .tn-logo,
+body.irisx-luxury.light-mode .tn-logo{
+  font-family:"Playfair Display",serif;
+  font-size:1.15rem;
+  font-style:normal;
+  letter-spacing:.24em;
+  color:var(--iris-white);
+}
+
+body.irisx-luxury .tn-logo em{color:inherit}
+
+body.irisx-luxury #authBadge,
+body.irisx-luxury .mode-toggle,
+body.irisx-luxury .lang-toggle{
+  display:none !important;
+}
+
+body.irisx-luxury .tn-links{
+  margin-left:auto;
+  gap:.18rem;
+  align-items:center;
+  flex-wrap:nowrap;
+}
+
+body.irisx-luxury .tn-btn,
+body.irisx-luxury .notif-bell,
+body.irisx-luxury.light-mode .tn-btn,
+body.irisx-luxury.light-mode .notif-bell{
+  color:rgba(245,240,235,.62);
+  font-size:.67rem;
+  font-weight:300;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  padding:.55rem .7rem;
+  border:none;
+  background:transparent;
+}
+
+body.irisx-luxury .tn-btn svg,
+body.irisx-luxury .notif-bell svg{
+  width:18px;
+  height:18px;
+}
+
+body.irisx-luxury .tn-btn.active,
+body.irisx-luxury .tn-btn:hover,
+body.irisx-luxury .notif-bell:hover{
+  color:var(--iris-white-strong) !important;
+}
+
+body.irisx-luxury .tn-btn.active::after{
+  left:.7rem;
+  right:.7rem;
+  bottom:.1rem;
+  background:linear-gradient(90deg, transparent, rgba(123,47,190,.85), transparent);
+}
+
+body.irisx-luxury .tn-sell{
+  background:linear-gradient(135deg, rgba(45,27,78,.86), rgba(123,47,190,.52)) !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  color:var(--iris-white-strong) !important;
+  padding:.9rem 1.55rem !important;
+  border-radius:0 !important;
+}
+
+body.irisx-luxury .tn-fav,
+body.irisx-luxury .tn-chat,
+body.irisx-luxury .tn-profile,
+body.irisx-luxury #cartBtn,
+body.irisx-luxury .notif-wrap{
+  margin-left:.15rem;
+}
+
+body.irisx-luxury .tn-fav,
+body.irisx-luxury .tn-chat,
+body.irisx-luxury .tn-profile,
+body.irisx-luxury #cartBtn,
+body.irisx-luxury .notif-bell{
+  padding:.5rem;
+}
+
+body.irisx-luxury .badge,
+body.irisx-luxury .notif-badge{
+  min-width:15px;
+  width:15px;
+  height:15px;
+  border-radius:999px;
+  background:var(--iris-gold);
+  color:#111;
+  font-size:.48rem;
+  font-weight:600;
+}
+
+body.irisx-luxury .irisx-home{
+  padding-top:0 !important;
+  min-height:100vh;
+}
+
+body.irisx-luxury .irisx-home-shell{
+  padding:0;
+}
+
+body.irisx-luxury .irisx-home-hero{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:8.5rem clamp(1.5rem,4vw,3rem) 4rem;
+  border:none;
+  background:transparent;
+  border-radius:0;
+}
+
+body.irisx-luxury .irisx-hero-video{
+  inset:0;
+  width:100%;
+  height:100%;
+  filter:saturate(.42) brightness(.42) contrast(1.02);
+  transition:opacity 1.6s ease;
+}
+
+body.irisx-luxury .irisx-hero-lux{
+  inset:0;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.44) 0%, rgba(0,0,0,.58) 25%, rgba(0,0,0,.76) 72%, rgba(0,0,0,.9) 100%),
+    radial-gradient(circle at 50% 18%, rgba(123,47,190,.22), transparent 30%),
+    radial-gradient(circle at 16% 84%, rgba(45,27,78,.3), transparent 26%),
+    linear-gradient(180deg, rgba(0,0,0,.82), rgba(0,0,0,.3));
+  animation:none;
+}
+
+body.irisx-luxury .irisx-hero-shine,
+body.irisx-luxury .irisx-ambient,
+body.irisx-luxury .irisx-hero-grain{
+  display:none;
+}
+
+body.irisx-luxury .irisx-home-copy{
+  max-width:860px;
+  width:100%;
+  padding:0;
+  border:none;
+  background:none;
+  text-align:center;
+  backdrop-filter:none;
+  box-shadow:none;
+}
+
+body.irisx-luxury .irisx-home-kicker{
+  margin-bottom:1rem;
+  color:rgba(245,240,235,.5);
+  font-size:.72rem;
+  letter-spacing:.34em;
+  font-weight:500;
+}
+
+body.irisx-luxury .irisx-home-rule{
+  width:44px;
+  height:1px;
+  margin:0 auto 1.4rem;
+  background:linear-gradient(90deg, transparent, rgba(123,47,190,.96), transparent);
+}
+
+body.irisx-luxury .irisx-home-title{
+  max-width:13ch;
+  margin:0 auto;
+  font-family:"Playfair Display",serif;
+  font-size:clamp(2.85rem,6vw,5.5rem);
+  font-weight:300;
+  font-style:normal;
+  line-height:1.02;
+  letter-spacing:.02em;
+  color:var(--iris-white-strong);
+}
+
+body.irisx-luxury .irisx-home-proof{
+  margin-top:1.35rem;
+  color:rgba(245,240,235,.6);
+  font-size:.76rem;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+
+body.irisx-luxury .irisx-home-text,
+body.irisx-luxury .irisx-home-side{
+  display:none;
+}
+
+body.irisx-luxury .irisx-home-actions{
+  justify-content:center;
+  gap:1rem;
+  margin-top:2rem;
+}
+
+body.irisx-luxury .irisx-home-action,
+body.irisx-luxury .irisx-primary,
+body.irisx-luxury .irisx-secondary,
+body.irisx-luxury .irisx-danger,
+body.irisx-luxury .det-buy,
+body.irisx-luxury .det-offer,
+body.irisx-luxury .det-fav,
+body.irisx-luxury .sort-btn,
+body.irisx-luxury .prof-tab,
+body.irisx-luxury .sv-tab,
+body.irisx-luxury .load-more-btn,
+body.irisx-luxury .sell-submit,
+body.irisx-luxury .cm-send,
+body.irisx-luxury .seller-chat,
+body.irisx-luxury .sp-cta,
+body.irisx-luxury .tn-sell{
+  border-radius:0 !important;
+  transition:background .35s ease, border-color .35s ease, color .35s ease, box-shadow .35s ease, transform .35s ease;
+}
+
+body.irisx-luxury .irisx-home-action{
+  min-width:220px;
+  padding:1rem 2.1rem;
+  font-size:.72rem;
+  letter-spacing:.24em;
+}
+
+body.irisx-luxury .irisx-home-action.primary,
+body.irisx-luxury .irisx-primary,
+body.irisx-luxury .det-buy,
+body.irisx-luxury .sell-submit,
+body.irisx-luxury .cm-send{
+  background:linear-gradient(135deg, rgba(45,27,78,.92), rgba(123,47,190,.62));
+  border:1px solid rgba(255,255,255,.12);
+  color:var(--iris-white-strong);
+  box-shadow:none;
+}
+
+body.irisx-luxury .irisx-home-action.secondary,
+body.irisx-luxury .irisx-secondary,
+body.irisx-luxury .det-offer,
+body.irisx-luxury .det-fav,
+body.irisx-luxury .sort-btn,
+body.irisx-luxury .prof-tab,
+body.irisx-luxury .sv-tab,
+body.irisx-luxury .load-more-btn,
+body.irisx-luxury .seller-chat,
+body.irisx-luxury .sp-cta--diy{
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.14);
+  color:rgba(245,240,235,.78);
+}
+
+body.irisx-luxury .irisx-home-action:hover,
+body.irisx-luxury .irisx-primary:hover,
+body.irisx-luxury .irisx-secondary:hover,
+body.irisx-luxury .det-buy:hover,
+body.irisx-luxury .det-offer:hover,
+body.irisx-luxury .det-fav:hover,
+body.irisx-luxury .sort-btn:hover,
+body.irisx-luxury .prof-tab:hover,
+body.irisx-luxury .sv-tab:hover,
+body.irisx-luxury .load-more-btn:hover,
+body.irisx-luxury .seller-chat:hover,
+body.irisx-luxury .sp-cta:hover,
+body.irisx-luxury .tn-sell:hover{
+  transform:translateY(-1px);
+  box-shadow:0 0 24px rgba(123,47,190,.14);
+  border-color:rgba(201,169,110,.34) !important;
+  background:
+    linear-gradient(135deg, rgba(45,27,78,.98), rgba(123,47,190,.72));
+  color:var(--iris-white-strong) !important;
+}
+
+body.irisx-luxury .irisx-home-scroll{
+  position:absolute;
+  left:50%;
+  bottom:2.1rem;
+  transform:translateX(-50%);
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  border:none;
+  background:none;
+  color:rgba(245,240,235,.48);
+  cursor:pointer;
+}
+
+body.irisx-luxury .irisx-home-scroll::before{
+  content:"";
+  width:1px;
+  height:26px;
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(123,47,190,.8), rgba(255,255,255,.05));
+  animation:irisScrollPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes irisScrollPulse{
+  0%,100%{transform:translateY(0);opacity:.45}
+  50%{transform:translateY(7px);opacity:1}
+}
+
+body.irisx-luxury .irisx-home-trust{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:1rem;
+  padding:3.2rem clamp(1.5rem,4vw,3rem);
+  border-top:1px solid var(--iris-border);
+  border-bottom:1px solid var(--iris-border);
+  background:rgba(255,255,255,.02);
+}
+
+body.irisx-luxury .irisx-home-trust-item{
+  display:grid;
+  place-items:center;
+  gap:.8rem;
+  text-align:center;
+}
+
+body.irisx-luxury .irisx-home-trust-item strong{
+  font-size:.7rem;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:rgba(245,240,235,.54);
+  font-weight:500;
+}
+
+body.irisx-luxury .irisx-home-trust-glyph{
+  width:24px;
+  height:24px;
+  position:relative;
+  color:var(--iris-gold);
+  opacity:.92;
+}
+
+body.irisx-luxury .irisx-home-trust-glyph::before,
+body.irisx-luxury .irisx-home-trust-glyph::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border:1px solid currentColor;
+}
+
+body.irisx-luxury .irisx-home-trust-glyph--shipping::after{
+  inset:5px 3px 7px;
+  border-top:none;
+  transform:skewX(-14deg);
+}
+
+body.irisx-luxury .irisx-home-trust-glyph--payment::before{
+  border-radius:50%;
+}
+
+body.irisx-luxury .irisx-home-trust-glyph--payment::after{
+  inset:6px;
+  background:currentColor;
+  border:none;
+  border-radius:50%;
+}
+
+body.irisx-luxury .irisx-home-trust-glyph--auth::after{
+  inset:4px;
+  transform:rotate(45deg) scale(.72);
+}
+
+body.irisx-luxury .irisx-home-manifesto,
+body.irisx-luxury .irisx-home-process,
+body.irisx-luxury .irisx-home-featured{
+  padding:var(--iris-section-space) clamp(1.5rem,4vw,3rem) 0;
+}
+
+body.irisx-luxury .irisx-home-manifesto{
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(340px,.95fr);
+  gap:clamp(2rem,5vw,5rem);
+  align-items:center;
+}
+
+body.irisx-luxury .irisx-home-editorial{
+  min-height:min(74vh,860px);
+  border:1px solid var(--iris-border);
+  background:rgba(255,255,255,.02);
+  overflow:hidden;
+  position:relative;
+}
+
+body.irisx-luxury .irisx-home-editorial img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  filter:saturate(.82) contrast(1.02) brightness(.88);
+}
+
+body.irisx-luxury .irisx-home-editorial-fallback{
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(123,47,190,.2), transparent 28%),
+    linear-gradient(135deg, rgba(255,255,255,.02), rgba(255,255,255,.01)),
+    linear-gradient(180deg, #131313, #0c0c0c);
+}
+
+body.irisx-luxury .irisx-home-editorial-fallback span{
+  font-family:"Playfair Display",serif;
+  font-size:clamp(2rem,7vw,4rem);
+  color:rgba(255,255,255,.16);
+  letter-spacing:.18em;
+}
+
+body.irisx-luxury .irisx-home-manifesto-copy{
+  max-width:520px;
+}
+
+body.irisx-luxury .irisx-home-section-kicker{
+  margin-bottom:1.2rem;
+  color:rgba(245,240,235,.46);
+}
+
+body.irisx-luxury .irisx-home-section-title{
+  font-family:"Playfair Display",serif;
+  font-size:clamp(2rem,4vw,3.7rem);
+  font-weight:300;
+  line-height:1.06;
+  color:var(--iris-white-strong);
+  max-width:12ch;
+}
+
+body.irisx-luxury .irisx-home-section-note,
+body.irisx-luxury .irisx-home-manifesto-copy p{
+  margin-top:1.25rem;
+  color:var(--iris-text-soft);
+  font-size:1rem;
+  line-height:1.85;
+  max-width:48ch;
+}
+
+body.irisx-luxury .irisx-home-link{
+  margin-top:1.6rem;
+  display:inline-flex;
+  align-items:center;
+  gap:.45rem;
+  color:var(--iris-white);
+  font-size:.74rem;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  border:none;
+  background:none;
+  padding:0;
+  cursor:pointer;
+}
+
+body.irisx-luxury .irisx-home-link::after{
+  content:"";
+  width:0;
+  height:1px;
+  background:rgba(123,47,190,.88);
+  transition:width .35s ease;
+}
+
+body.irisx-luxury .irisx-home-link:hover::after{
+  width:32px;
+}
+
+body.irisx-luxury .irisx-home-process-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:1.5rem;
+  margin-top:2.1rem;
+}
+
+body.irisx-luxury .irisx-home-process-card{
+  min-height:100%;
+  padding:3.25rem;
+  border:1px solid var(--iris-border);
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  backdrop-filter:blur(20px);
+  box-shadow:var(--iris-shadow);
+  position:relative;
+}
+
+body.irisx-luxury .irisx-home-process-card h3{
+  font-family:"Playfair Display",serif;
+  font-size:2rem;
+  font-weight:300;
+  color:var(--iris-white-strong);
+}
+
+body.irisx-luxury .irisx-home-process-card p{
+  margin-top:1rem;
+  color:var(--iris-text-soft);
+  line-height:1.8;
+  font-size:.98rem;
+}
+
+body.irisx-luxury .irisx-home-process-card ul{
+  list-style:none;
+  display:grid;
+  gap:.7rem;
+  margin-top:1.5rem;
+}
+
+body.irisx-luxury .irisx-home-process-card li{
+  color:var(--iris-text-soft);
+  font-size:.9rem;
+  line-height:1.7;
+}
+
+body.irisx-luxury .irisx-home-process-card li::before{
+  content:"—";
+  margin-right:.55rem;
+  color:var(--iris-gold);
+}
+
+body.irisx-luxury .irisx-home-process-card .irisx-home-link{
+  margin-top:1.8rem;
+}
+
+body.irisx-luxury .irisx-home-process-card:hover,
+body.irisx-luxury .sell-path:hover,
+body.irisx-luxury .side-card:hover,
+body.irisx-luxury .seller-card:hover,
+body.irisx-luxury .irisx-account-card:hover,
+body.irisx-luxury .irisx-workspace-card:hover{
+  border-color:rgba(123,47,190,.28);
+  box-shadow:0 0 20px rgba(123,47,190,.15), 0 28px 80px rgba(0,0,0,.3);
+}
+
+body.irisx-luxury .irisx-home-featured-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:1rem;
+  margin-bottom:2rem;
+}
+
+body.irisx-luxury .irisx-home-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:1.8rem;
+}
+
+body.irisx-luxury .shop-layout{
+  grid-template-columns:280px 1fr;
+  gap:0;
+  min-height:calc(100vh - 82px);
+}
+
+body.irisx-luxury #shop-view,
+body.irisx-luxury #fav-view,
+body.irisx-luxury #profile-view,
+body.irisx-luxury #seller-view{
+  padding-top:82px !important;
+}
+
+body.irisx-luxury #chat-view{
+  padding-top:82px !important;
+  height:calc(100vh - 82px);
+}
+
+body.irisx-luxury .filters,
+body.irisx-luxury.light-mode .filters{
+  top:82px;
+  height:calc(100vh - 82px);
+  padding:2rem 1.6rem;
+  background:rgba(255,255,255,.02);
+  border-right:1px solid var(--iris-border);
+  backdrop-filter:blur(16px);
+}
+
+body.irisx-luxury .f-title,
+body.irisx-luxury .det-section-title,
+body.irisx-luxury .cl-title,
+body.irisx-luxury .footer-col-title,
+body.irisx-luxury .fl,
+body.irisx-luxury .sl-l{
+  color:rgba(245,240,235,.44) !important;
+  font-size:.68rem !important;
+  letter-spacing:.32em !important;
+}
+
+body.irisx-luxury .f-label,
+body.irisx-luxury .f-clear,
+body.irisx-luxury .f-opt,
+body.irisx-luxury .f-search::placeholder{
+  color:rgba(245,240,235,.6);
+}
+
+body.irisx-luxury .f-search,
+body.irisx-luxury .f-range input,
+body.irisx-luxury .fi,
+body.irisx-luxury .fsel,
+body.irisx-luxury .fta,
+body.irisx-luxury .cm-input input,
+body.irisx-luxury .irisx-field input,
+body.irisx-luxury .irisx-field textarea,
+body.irisx-luxury .irisx-field select,
+body.irisx-luxury.light-mode .fi,
+body.irisx-luxury.light-mode .fsel,
+body.irisx-luxury.light-mode .fta{
+  background:transparent;
+  border:none;
+  border-bottom:1px solid rgba(255,255,255,.14);
+  color:var(--iris-white-strong);
+  border-radius:0;
+  padding:.95rem 0 .85rem;
+}
+
+body.irisx-luxury .f-search:focus,
+body.irisx-luxury .f-range input:focus,
+body.irisx-luxury .fi:focus,
+body.irisx-luxury .fsel:focus,
+body.irisx-luxury .fta:focus,
+body.irisx-luxury .cm-input input:focus,
+body.irisx-luxury .irisx-field input:focus,
+body.irisx-luxury .irisx-field textarea:focus,
+body.irisx-luxury .irisx-field select:focus{
+  outline:none;
+  box-shadow:none !important;
+  border-bottom-color:rgba(123,47,190,.9) !important;
+}
+
+body.irisx-luxury .fsel{
+  background-position:right 0 center;
+  background-color:transparent;
+}
+
+body.irisx-luxury .shop-main{
+  padding:2.4rem clamp(1.5rem,4vw,3rem) 5rem;
+}
+
+body.irisx-luxury .shop-bar{
+  margin-bottom:2rem;
+}
+
+body.irisx-luxury .shop-count,
+body.irisx-luxury .shop-count span{
+  color:rgba(245,240,235,.6);
+  font-size:.75rem;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+}
+
+body.irisx-luxury .sort-btn{
+  padding:.7rem 1rem;
+  font-size:.66rem;
+}
+
+body.irisx-luxury .pgrid,
+body.irisx-luxury .irisx-favorites-grid{
+  gap:1.8rem;
+}
+
+body.irisx-luxury .pc{
+  background:none;
+  border:none;
+  box-shadow:none;
+  overflow:visible;
+}
+
+body.irisx-luxury .pi{
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--iris-border);
+  overflow:hidden;
+}
+
+body.irisx-luxury .pi,
+body.irisx-luxury .pi-bg,
+body.irisx-luxury .irisx-media{
+  border-radius:0;
+}
+
+body.irisx-luxury .pi-bg{
+  background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+}
+
+body.irisx-luxury .pc:hover{
+  transform:none;
+  box-shadow:none !important;
+}
+
+body.irisx-luxury .pc:hover .pi-bg{
+  transform:scale(1.03);
+}
+
+body.irisx-luxury .pc:hover .pi{
+  box-shadow:0 0 20px rgba(123,47,190,.15), 0 26px 60px rgba(0,0,0,.26);
+}
+
+body.irisx-luxury .pc-heart{
+  background:rgba(10,10,10,.58);
+  backdrop-filter:blur(14px);
+  color:rgba(245,240,235,.66);
+  border:1px solid rgba(255,255,255,.12);
+  width:34px;
+  height:34px;
+  border-radius:999px;
+}
+
+body.irisx-luxury .pinfo{
+  padding:1.05rem .1rem 0;
+}
+
+body.irisx-luxury .p-brand{
+  font-size:.7rem;
+  letter-spacing:.22em;
+  color:rgba(245,240,235,.42);
+  margin-bottom:.45rem;
+}
+
+body.irisx-luxury .p-name{
+  font-family:"Playfair Display",serif;
+  font-size:1.08rem;
+  line-height:1.28;
+  color:var(--iris-white);
+  white-space:normal;
+  overflow:visible;
+  text-overflow:unset;
+}
+
+body.irisx-luxury .p-meta,
+body.irisx-luxury .p-orig{
+  color:var(--iris-text-faint);
+  font-size:.78rem;
+}
+
+body.irisx-luxury .p-price{
+  color:var(--iris-white-strong);
+  font-size:.92rem;
+  font-weight:500;
+}
+
+body.irisx-luxury .p-disc{
+  font-size:.68rem;
+  color:var(--iris-gold);
+}
+
+body.irisx-luxury #detail-view{
+  padding-top:82px !important;
+}
+
+body.irisx-luxury .det-layout{
+  grid-template-columns:minmax(0,1.08fr) minmax(420px,.92fr);
+  min-height:calc(100vh - 82px);
+}
+
+body.irisx-luxury .det-imgs{
+  top:82px;
+  min-height:calc(100vh - 82px);
+  padding:3rem;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(123,47,190,.18), transparent 28%),
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)),
+    #0d0d0d;
+}
+
+body.irisx-luxury .irisx-detail-stage{
+  max-width:720px;
+  aspect-ratio:3 / 4;
+  border:1px solid var(--iris-border);
+  background:rgba(255,255,255,.03);
+}
+
+body.irisx-luxury .det-body{
+  max-height:calc(100vh - 82px);
+  padding:2.6rem clamp(1.6rem,3vw,3rem) 5rem;
+  background:transparent;
+}
+
+body.irisx-luxury .irisx-detail-breadcrumb,
+body.irisx-luxury .det-back{
+  color:rgba(245,240,235,.42);
+}
+
+body.irisx-luxury .det-brand{
+  color:rgba(201,169,110,.72);
+  font-size:.72rem;
+  letter-spacing:.28em;
+}
+
+body.irisx-luxury .det-name{
+  font-family:"Playfair Display",serif;
+  font-size:clamp(2.2rem,4vw,4.35rem);
+  line-height:1.02;
+  color:var(--iris-white-strong);
+  max-width:11ch;
+}
+
+body.irisx-luxury .det-price{
+  font-size:2.2rem;
+  color:var(--iris-white-strong);
+}
+
+body.irisx-luxury .det-orig{
+  color:var(--iris-text-faint);
+}
+
+body.irisx-luxury .det-save{
+  padding:.32rem .8rem;
+  border:1px solid rgba(123,47,190,.24);
+  background:rgba(123,47,190,.1);
+  color:rgba(245,240,235,.74);
+}
+
+body.irisx-luxury .det-div{
+  background:var(--iris-border);
+}
+
+body.irisx-luxury .det-fit,
+body.irisx-luxury .irisx-trust-grid{
+  gap:.9rem;
+}
+
+body.irisx-luxury .det-fit-item,
+body.irisx-luxury .seller-card,
+body.irisx-luxury .det-auth,
+body.irisx-luxury .irisx-inline-card,
+body.irisx-luxury .irisx-summary-card,
+body.irisx-luxury .irisx-order-card,
+body.irisx-luxury .irisx-account-card,
+body.irisx-luxury .irisx-account-stat,
+body.irisx-luxury .review-card,
+body.irisx-luxury .irisx-workspace-sidebar,
+body.irisx-luxury .irisx-workspace-main,
+body.irisx-luxury .irisx-workspace-card,
+body.irisx-luxury .irisx-checkout-summary,
+body.irisx-luxury .irisx-chat-product-card,
+body.irisx-luxury .irisx-static-field,
+body.irisx-luxury .faq-item,
+body.irisx-luxury .pwa-banner,
+body.irisx-luxury .offer-box{
+  border:1px solid var(--iris-border);
+  background:rgba(255,255,255,.03);
+  backdrop-filter:blur(20px);
+  box-shadow:none;
+  border-radius:0 !important;
+}
+
+body.irisx-luxury .det-fit-label,
+body.irisx-luxury .seller-meta,
+body.irisx-luxury .irisx-inline-card span,
+body.irisx-luxury .irisx-summary-card span,
+body.irisx-luxury .irisx-account-card p,
+body.irisx-luxury .review-text,
+body.irisx-luxury .cm-prod,
+body.irisx-luxury .notif-text,
+body.irisx-luxury .faq-a p,
+body.irisx-luxury .sm-subtitle,
+body.irisx-luxury .sm-section p{
+  color:var(--iris-text-soft);
+}
+
+body.irisx-luxury .det-fit-value,
+body.irisx-luxury .seller-name,
+body.irisx-luxury .irisx-inline-card strong,
+body.irisx-luxury .irisx-summary-card strong,
+body.irisx-luxury .irisx-account-card h3,
+body.irisx-luxury .review-buyer,
+body.irisx-luxury .cm-name,
+body.irisx-luxury .notif-item.unread .notif-text,
+body.irisx-luxury .sm-title,
+body.irisx-luxury .sm-section h3{
+  color:var(--iris-white-strong);
+}
+
+body.irisx-luxury .det-similar{
+  margin-top:3rem;
+}
+
+body.irisx-luxury .det-similar-grid{
+  gap:1rem;
+}
+
+body.irisx-luxury .det-similar-grid .pc{
+  min-width:190px !important;
+}
+
+body.irisx-luxury #page-sell,
+body.irisx-luxury.light-mode #page-sell{
+  background:
+    radial-gradient(circle at 15% 15%, rgba(123,47,190,.12), transparent 24%),
+    linear-gradient(180deg, #0a0a0a 0%, #111111 100%);
+  color:var(--iris-white);
+  padding-top:82px;
+}
+
+body.irisx-luxury .sell-topbar,
+body.irisx-luxury.light-mode .sell-topbar{
+  height:82px;
+  background:rgba(10,10,10,.6);
+  border-bottom:1px solid var(--iris-border);
+  backdrop-filter:blur(24px);
+  padding-inline:clamp(1.5rem,4vw,3rem);
+}
+
+body.irisx-luxury .st-logo,
+body.irisx-luxury.light-mode .st-logo{
+  font-family:"Playfair Display",serif;
+  color:var(--iris-white);
+  font-style:normal;
+}
+
+body.irisx-luxury .st-logo em{color:inherit}
+
+body.irisx-luxury .st-back,
+body.irisx-luxury .st-nav a{
+  color:rgba(245,240,235,.62);
+}
+
+body.irisx-luxury .sh{
+  min-height:74vh;
+  display:grid;
+  place-items:center;
+  padding:9rem 0 6rem;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.56), rgba(0,0,0,.8)),
+    radial-gradient(circle at 50% 20%, rgba(123,47,190,.2), transparent 28%),
+    #0a0a0a;
+}
+
+body.irisx-luxury .sh-label{
+  color:rgba(245,240,235,.46);
+  font-size:.72rem;
+  letter-spacing:.34em;
+  margin-bottom:1rem;
+}
+
+body.irisx-luxury .sh-title{
+  font-family:"Playfair Display",serif;
+  font-size:clamp(3rem,6vw,5rem);
+  font-style:normal;
+  text-shadow:none;
+  color:var(--iris-white-strong);
+}
+
+body.irisx-luxury .sh-sub{
+  color:var(--iris-text-soft);
+  font-size:1rem;
+}
+
+body.irisx-luxury .sell-steps,
+body.irisx-luxury .sell-form,
+body.irisx-luxury.light-mode .sell-steps,
+body.irisx-luxury.light-mode .sell-form{
+  background:transparent;
+}
+
+body.irisx-luxury .steps-grid{
+  gap:1.5rem;
+}
+
+body.irisx-luxury .step-card{
+  padding:2rem 1.5rem;
+  border:1px solid var(--iris-border);
+  background:rgba(255,255,255,.03);
+  backdrop-filter:blur(20px);
+  text-align:left;
+}
+
+body.irisx-luxury .step-n{
+  width:auto;
+  height:auto;
+  margin:0 0 1.2rem;
+  background:none;
+  border:none;
+  color:rgba(123,47,190,.82);
+  font-family:"Playfair Display",serif;
+  font-size:2.8rem;
+  border-radius:0;
+}
+
+body.irisx-luxury .step-t,
+body.irisx-luxury .sp-title,
+body.irisx-luxury .form-title,
+body.irisx-luxury .sc-t,
+body.irisx-luxury .st-l,
+body.irisx-luxury.light-mode .step-t,
+body.irisx-luxury.light-mode .sp-title,
+body.irisx-luxury.light-mode .form-title,
+body.irisx-luxury.light-mode .sc-t,
+body.irisx-luxury.light-mode .st-l{
+  font-family:"Playfair Display",serif;
+  color:var(--iris-white-strong);
+  font-weight:300;
+}
+
+body.irisx-luxury .step-d,
+body.irisx-luxury .sp-desc,
+body.irisx-luxury .form-sub,
+body.irisx-luxury .fee-note,
+body.irisx-luxury .ab-text,
+body.irisx-luxury .pu-s,
+body.irisx-luxury.light-mode .step-d,
+body.irisx-luxury.light-mode .sp-desc,
+body.irisx-luxury.light-mode .form-sub,
+body.irisx-luxury.light-mode .fee-note,
+body.irisx-luxury.light-mode .ab-text,
+body.irisx-luxury.light-mode .pu-s{
+  color:var(--iris-text-soft);
+}
+
+body.irisx-luxury .sell-path,
+body.irisx-luxury .side-card,
+body.irisx-luxury .photo-upload{
+  border:1px solid var(--iris-border);
+  background:rgba(255,255,255,.03);
+  padding:clamp(2rem,4vw,3rem);
+  border-radius:0;
+}
+
+body.irisx-luxury .sell-path--featured{
+  background:linear-gradient(180deg, rgba(45,27,78,.84), rgba(17,17,17,.96));
+  border-color:rgba(123,47,190,.32);
+  box-shadow:none;
+}
+
+body.irisx-luxury .sp-badge,
+body.irisx-luxury .sp-badge--diy,
+body.irisx-luxury .sp-badge--concierge{
+  border-radius:0;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(201,169,110,.24);
+  color:var(--iris-gold);
+}
+
+body.irisx-luxury .sp-commission,
+body.irisx-luxury .sp-commission--gold{
+  font-family:"Playfair Display",serif;
+  color:var(--iris-white-strong);
+}
+
+body.irisx-luxury .sp-list li,
+body.irisx-luxury.light-mode .sp-list li{
+  color:var(--iris-text-soft);
+}
+
+body.irisx-luxury .sp-list li::before{content:""}
+
+body.irisx-luxury #lbl-diy,
+body.irisx-luxury #lbl-concierge{
+  border-radius:0 !important;
+  border:1px solid var(--iris-border) !important;
+  background:rgba(255,255,255,.03) !important;
+}
+
+body.irisx-luxury #lbl-concierge{
+  border-color:rgba(201,169,110,.28) !important;
+}
+
+body.irisx-luxury .pu-icon{
+  opacity:.2;
+}
+
+body.irisx-luxury .pu-t,
+body.irisx-luxury.light-mode .pu-t{
+  font-family:"Playfair Display",serif;
+  color:var(--iris-white-strong);
+}
+
+body.irisx-luxury .form-grid{
+  gap:3rem;
+}
+
+body.irisx-luxury .fg{
+  gap:.55rem;
+}
+
+body.irisx-luxury .cond-btn{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.12);
+  color:rgba(245,240,235,.68);
+  border-radius:0;
+}
+
+body.irisx-luxury .cond-btn.sel,
+body.irisx-luxury .cond-btn:hover{
+  background:rgba(123,47,190,.12);
+  border-color:rgba(201,169,110,.3);
+  color:var(--iris-white-strong);
+}
+
+body.irisx-luxury .fee-row{
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+body.irisx-luxury .fee-l,
+body.irisx-luxury .ab-text,
+body.irisx-luxury .ab-text strong,
+body.irisx-luxury.light-mode .fee-l,
+body.irisx-luxury.light-mode .ab-text,
+body.irisx-luxury.light-mode .ab-text strong{
+  color:var(--iris-text-soft);
+}
+
+body.irisx-luxury .fee-v,
+body.irisx-luxury .fee-total .fee-v,
+body.irisx-luxury.light-mode .fee-v,
+body.irisx-luxury.light-mode .fee-total .fee-v{
+  color:var(--iris-white-strong);
+}
+
+body.irisx-luxury .ab-icon{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(201,169,110,.2);
+  border-radius:0;
+}
+
+body.irisx-luxury .chat-list,
+body.irisx-luxury .chat-main,
+body.irisx-luxury .cl-head,
+body.irisx-luxury .cm-head,
+body.irisx-luxury .cm-input{
+  border-color:var(--iris-border);
+  background:rgba(255,255,255,.02);
+}
+
+body.irisx-luxury .cl-item,
+body.irisx-luxury .notif-item{
+  border-color:rgba(255,255,255,.03);
+}
+
+body.irisx-luxury .cl-item:hover,
+body.irisx-luxury .cl-item.on,
+body.irisx-luxury .notif-item:hover,
+body.irisx-luxury .notif-item.unread{
+  background:rgba(123,47,190,.08);
+}
+
+body.irisx-luxury .site-footer{
+  margin-top:var(--iris-section-space);
+  padding:4.5rem 0 2.2rem;
+  background:rgba(8,8,8,.84);
+  border-top:1px solid var(--iris-border);
+}
+
+body.irisx-luxury .irisx-footer-minimal{
+  max-width:980px;
+  margin:0 auto;
+  padding:0 clamp(1.5rem,4vw,3rem);
+  display:grid;
+  gap:1.4rem;
+  justify-items:center;
+  text-align:center;
+}
+
+body.irisx-luxury .irisx-footer-brand{
+  font-family:"Playfair Display",serif;
+  font-size:1.8rem;
+  letter-spacing:.22em;
+  color:var(--iris-white-strong);
+}
+
+body.irisx-luxury .irisx-footer-links{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:1.25rem;
+}
+
+body.irisx-luxury .irisx-footer-links a{
+  color:rgba(245,240,235,.56);
+  font-size:.68rem;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+}
+
+body.irisx-luxury .irisx-footer-links a:hover{
+  color:var(--iris-white);
+}
+
+body.irisx-luxury .irisx-footer-copy{
+  color:rgba(245,240,235,.28);
+  font-size:.74rem;
+  line-height:1.8;
+}
+
+body.irisx-luxury .static-modal,
+body.irisx-luxury .offer-modal{
+  background:rgba(0,0,0,.78);
+  backdrop-filter:blur(24px);
+}
+
+body.irisx-luxury .sm-inner{
+  max-width:860px;
+}
+
+body.irisx-luxury .sm-close{
+  border-radius:0;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--iris-border);
+}
+
+body.irisx-luxury .irisx-modal-card,
+body.irisx-luxury .offer-box{
+  margin-top:4vh;
+  background:rgba(17,17,17,.92);
+  border:1px solid var(--iris-border);
+  box-shadow:var(--iris-shadow);
+}
+
+body.irisx-luxury .irisx-reveal-section{
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .8s ease, transform .8s ease;
+}
+
+body.irisx-luxury .irisx-reveal-section.is-visible{
+  opacity:1;
+  transform:translateY(0);
+}
+
+@media (max-width: 1100px){
+  body.irisx-luxury .irisx-home-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+@media (max-width: 900px){
+  body.irisx-luxury .shop-layout,
+  body.irisx-luxury .irisx-home-manifesto,
+  body.irisx-luxury .irisx-home-process-grid,
+  body.irisx-luxury .det-layout,
+  body.irisx-luxury .form-grid,
+  body.irisx-luxury .irisx-home-grid{
+    grid-template-columns:1fr;
+  }
+
+  body.irisx-luxury .irisx-home-hero{
+    min-height:84vh;
+    padding-top:9rem;
+  }
+
+  body.irisx-luxury .irisx-home-title{
+    max-width:11ch;
+  }
+
+  body.irisx-luxury .irisx-home-trust{
+    grid-template-columns:1fr;
+  }
+
+  body.irisx-luxury .filters{
+    top:0;
+    height:100vh;
+    padding-top:7rem;
+    background:rgba(10,10,10,.92);
+  }
+
+  body.irisx-luxury .shop-main,
+  body.irisx-luxury .det-body{
+    padding-inline:1.5rem;
+  }
+
+  body.irisx-luxury .det-imgs{
+    position:relative;
+    top:auto;
+    min-height:auto;
+    padding:1.5rem;
+  }
+
+  body.irisx-luxury .det-body{
+    max-height:none;
+  }
+
+  body.irisx-luxury #shop-view,
+  body.irisx-luxury #fav-view,
+  body.irisx-luxury #profile-view,
+  body.irisx-luxury #seller-view,
+  body.irisx-luxury #chat-view,
+  body.irisx-luxury #page-sell{
+    padding-top:132px !important;
+  }
+
+  body.irisx-luxury #detail-view{
+    padding-top:calc(var(--iris-nav-height, 64px) + 18px) !important;
+  }
+
+  body.irisx-luxury .sell-topbar{
+    height:72px;
+  }
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+</style>
 </head>
-<body>
+<body class="irisx-luxury">
+<noscript><div style="padding:2rem;text-align:center;color:#fff;background:#060310">Per utilizzare IRIS è necessario abilitare JavaScript.</div></noscript>
+<a class="skip-link" href="#main-content">Vai al contenuto</a>
+<h1 class="visually-hidden">IRIS — Luxury Fashion Marketplace</h1>
+<main id="main-content">
 
 <!-- ═══════ INTRO ═══════ -->
-<div id="intro" onclick="skipIntro()">
+<div id="intro" onclick="skipIntro()" style="display:none">
   <!-- 4K luxury video background -->
   <video id="i-vid" autoplay muted loop playsinline preload="auto">
     <source src="https://videos.pexels.com/video-files/6649983/6649983-hd_2048_1080_25fps.mp4" type="video/mp4">
@@ -801,15 +2173,16 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
     <div class="tn-row">
       <span class="tn-logo" onclick="showBuyView('home')"><em>IRIS</em></span>
       <div class="tn-search">
-        <input type="text" placeholder="Cerca brand, articoli, stili..." id="searchInput" oninput="handleSearch(this.value)">
+        <input type="text" placeholder="Cerca brand, articoli, stili..." id="searchInput" oninput="handleSearch(this.value)" aria-label="Cerca prodotti">
+        <div class="ac-dropdown" id="acDropdown"></div>
       </div>
-      <div class="ac-dropdown" id="acDropdown"></div>
       <div class="tn-links">
-        <button class="tn-btn tn-home" data-nav-view="home" onclick="showBuyView('home')">Home</button>
-        <button class="tn-btn tn-shop" data-nav-view="shop" onclick="showBuyView('shop')">Shop</button>
-        <button class="tn-btn tn-fav" data-nav-view="fav" onclick="showBuyView('fav')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13.7C8 13.7 1.5 9.5 1.5 5.5A3 3 0 018 4a3 3 0 016.5 1.5c0 4-6.5 8.2-6.5 8.2z"/></svg><span class="badge" id="fav-badge" style="display:none">0</span></button>
+        <button class="tn-btn tn-icon" id="cartBtn" onclick="openCart()" aria-label="Apri carrello">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1h2l1.5 8h8L15 3.5H4"/><circle cx="6" cy="12.5" r="1"/><circle cx="11" cy="12.5" r="1"/></svg>
+          <span class="badge" id="cart-badge" style="display:none">0</span>
+        </button>
         <div class="notif-wrap">
-          <button class="notif-bell" onclick="toggleNotifs()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6a4 4 0 018 0c0 4 1.5 5.5 1.5 5.5H2.5S4 10 4 6z"/><path d="M6.5 13a1.5 1.5 0 003 0"/></svg><span class="notif-badge" id="notifBadge">3</span></button>
+          <button class="notif-bell tn-btn tn-icon" onclick="toggleNotifs()" aria-label="Notifiche"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6a4 4 0 018 0c0 4 1.5 5.5 1.5 5.5H2.5S4 10 4 6z"/><path d="M6.5 13a1.5 1.5 0 003 0"/></svg><span class="notif-badge" id="notifBadge" style="display:none">0</span></button>
           <div class="notif-panel" id="notifPanel"></div>
         </div>
         <button class="tn-btn tn-chat" data-nav-view="chat" onclick="showBuyView('chat')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5h11v8h-7l-4 3v-3z"/></svg><span class="badge" id="chat-badge">2</span></button>
@@ -818,7 +2191,49 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
         <button class="tn-btn tn-sell" onclick="showPage('sell')">Vendi</button>
       </div>
     </div>
-  </div>
+    <div class="tn-row tn-row--sub">
+      <div class="tn-secondary-nav">
+        <button class="tn-btn tn-home" id="tnHomeBtn" data-nav-view="home" onclick="showBuyView('home')">Home</button>
+        <button class="tn-btn tn-shop" id="tnShopBtn" data-nav-view="shop" onclick="showBuyView('shop')">Shop</button>
+        <button class="tn-btn" id="tnAboutBtn" onclick="showBuyView('home');setTimeout(function(){var manifesto=document.getElementById('irisManifesto');if(manifesto){manifesto.scrollIntoView({behavior:'smooth',block:'start'});}},120)">Chi siamo</button>
+      </div>
+    </div>
+    <div class="tn-profile-menu" id="tnProfileMenu">
+      <div class="tn-menu-section">
+        <button class="tn-menu-link tn-profile" id="tnMenuProfileBtn" data-nav-view="profile" onclick="closeProfileMenu();showBuyView('profile')" aria-label="Apri profilo">Profilo</button>
+        <button class="tn-menu-link tn-fav" id="tnMenuFavBtn" data-nav-view="fav" onclick="closeProfileMenu();showBuyView('fav')" aria-label="Apri preferiti">Preferiti <span class="badge" id="fav-badge" style="display:none">0</span></button>
+        <button class="tn-menu-link tn-chat" id="tnMenuChatBtn" data-nav-view="chat" onclick="closeProfileMenu();showBuyView('chat')" aria-label="Apri messaggi">Messaggi <span class="badge" id="chat-badge" style="display:none">0</span></button>
+      </div>
+      <div class="tn-menu-divider"></div>
+      <div class="tn-menu-section">
+        <button class="tn-menu-link" id="modeToggle" onclick="toggleDarkLight()" aria-label="Cambia tema">Tema</button>
+        <button class="tn-menu-link" id="langToggle" onclick="switchLang()" aria-label="Cambia lingua">EN</button>
+        <button class="tn-menu-link" id="authBtn">Accedi</button>
+        <button class="tn-menu-link" id="opsBtn" style="display:none" onclick="closeProfileMenu();showBuyView('ops')">Ops</button>
+      </div>
+    </div>
+    <div class="tn-mobile-menu" id="tnMobileMenu">
+      <div class="tn-mobile-menu__panel">
+        <div class="tn-mobile-menu__head">
+          <div class="tn-mobile-menu__brand">IRIS</div>
+          <button class="tn-mobile-menu__close" onclick="closeMobileNav()" aria-label="Chiudi">✕</button>
+        </div>
+        <div class="tn-mobile-menu__links">
+          <button class="tn-mobile-link" id="tnMobileHomeBtn" onclick="closeMobileNav();showBuyView('home')">Home</button>
+          <button class="tn-mobile-link" id="tnMobileShopBtn" onclick="closeMobileNav();showBuyView('shop')">Shop</button>
+          <button class="tn-mobile-link" id="tnMobileAboutBtn" onclick="closeMobileNav();showBuyView('home');setTimeout(function(){var manifesto=document.getElementById('irisManifesto');if(manifesto){manifesto.scrollIntoView({behavior:'smooth',block:'start'});}},120)">Chi siamo</button>
+          <button class="tn-mobile-link" id="tnMobileProfileBtn" onclick="closeMobileNav();showBuyView('profile')" aria-label="Apri profilo">Profilo</button>
+          <button class="tn-mobile-link" id="tnMobileFavBtn" onclick="closeMobileNav();showBuyView('fav')" aria-label="Apri preferiti">Preferiti</button>
+          <button class="tn-mobile-link" id="tnMobileChatBtn" onclick="closeMobileNav();showBuyView('chat')" aria-label="Apri messaggi">Messaggi</button>
+          <button class="tn-mobile-link" id="tnMobileCartBtn" onclick="closeMobileNav();openCart()">Carrello</button>
+          <button class="tn-mobile-link tn-mobile-link--primary" id="tnMobileSellBtn" onclick="closeMobileNav();showPage('sell')">Vendi</button>
+          <button class="tn-mobile-link" id="tnMobileThemeBtn" onclick="toggleDarkLight()" aria-label="Cambia tema">Tema</button>
+          <button class="tn-mobile-link" id="tnMobileLangBtn" onclick="switchLang()" aria-label="Cambia lingua">Lingua</button>
+          <button class="tn-mobile-link" id="tnMobileAuthBtn" onclick="handleAuthButtonClick()">Accedi / Esci</button>
+        </div>
+      </div>
+    </div>
+  </nav>
 
   <!-- SHOP VIEW -->
   <div id="shop-view" class="active">
@@ -827,7 +2242,10 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
       <aside class="filters" id="filtersPanel">
         <div class="f-head">
           <span class="f-title">Filtri</span>
-          <button class="f-clear" onclick="clearFilters()">Resetta</button>
+          <div class="f-head-actions">
+            <button class="f-clear" type="button" onclick="clearFilters()">Resetta</button>
+            <button class="f-close" type="button" onclick="closeMobileFilters()">Chiudi</button>
+          </div>
         </div>
 
         <!-- Category -->
@@ -893,6 +2311,7 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
         <div class="active-filters" id="activeFilters"></div>
         <div class="shop-bar">
           <div class="shop-count"><span id="resultCount">0</span> risultati</div>
+          <button class="mob-filter-btn" onclick="toggleMobileFilters()">☰ Filtri</button>
           <div class="shop-sort">
             <button class="sort-btn on" onclick="setSort('recent',this)">Recenti</button>
             <button class="sort-btn" onclick="setSort('price_asc',this)">Prezzo ↑</button>
@@ -903,7 +2322,6 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
         <div class="pgrid" id="grid"></div>
       </div>
     </div>
-    <button class="mob-filter-btn" onclick="toggleMobileFilters()">Filtri</button>
   </div>
 
   <!-- DETAIL VIEW -->
@@ -953,7 +2371,7 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
         <div class="prof-av"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="15" r="6"/><path d="M8 36c0-6.6 5.4-12 12-12s12 5.4 12 12"/></svg></div>
         <div class="prof-info">
           <div class="prof-name">Il tuo profilo</div>
-          <div class="prof-bio">Milano, Italia · Membro dal 2026</div>
+          <div class="prof-bio" id="profBio">Completa il tuo profilo per personalizzare questa sezione.</div>
           <div class="prof-stats">
             <div class="prof-stat"><div class="prof-stat-n" id="myListings">0</div><div class="prof-stat-l">In vendita</div></div>
             <div class="prof-stat"><div class="prof-stat-n">0</div><div class="prof-stat-l">Venduti</div></div>
@@ -982,7 +2400,7 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
   <div class="sell-topbar" id="sellTopbar">
     <button class="st-back" onclick="backToChoice()">← Torna</button>
     <span class="st-logo"><em>IRIS</em> · Vendi</span>
-    <ul class="st-nav"><li><a href="#sell-form-sec">Pubblica</a></li><li><a href="#sell-why">Perché IRIS</a></li></ul>
+    <ul class="st-nav"><li><a href="#sell-form-sec">Pubblica</a></li><li><a href="#concierge-form">Perché IRIS</a></li></ul>
   </div>
   <div class="sh">
     <div style="position:relative;z-index:2">
@@ -991,7 +2409,7 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
       <div class="sh-sub">Da solo al 9% · Oppure affidaci tutto al 22% · Pagamento garantito</div>
     </div>
   </div>
-  <section class="sell-steps">
+  <section class="sell-steps irisx-reveal-section">
     <div class="container">
       <div class="sl-l">Scegli il tuo percorso</div>
       <div class="st-l">Due modi di vendere. <em>Zero compromessi.</em></div>
@@ -1047,9 +2465,9 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
       </div>
     </div>
   </section>
-  <section class="sell-form" id="sell-form-sec">
+  <section class="sell-form irisx-reveal-section" id="sell-form-sec">
     <div class="container">
-      <div class="form-grid">
+      <form id="sellForm" class="form-grid" novalidate>
         <div>
           <!-- Mode selector -->
           <div style="display:flex;gap:.8rem;margin-bottom:2rem">
@@ -1073,38 +2491,52 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
             <div class="pu-t">Aggiungi fino a 8 foto</div>
             <div class="pu-s">JPG o PNG · Max 10MB · La prima sarà la copertina</div>
           </div>
-          <input type="file" id="fileIn" multiple accept="image/*" style="display:none">
+          <input type="file" id="fileIn" multiple accept="image/*" style="display:none" required>
           <div class="form-fields">
-            <div class="fg"><label class="fl">Categoria *</label><select class="fsel" id="sf-cat" onchange="updateFee()"><option value="">Seleziona</option><option>Borse</option><option>Scarpe</option><option>Abbigliamento donna</option><option>Abbigliamento uomo</option><option>Accessori</option><option>Gioielli</option><option>Orologi</option></select></div>
-            <div class="fg"><label class="fl">Brand / Designer *</label><select class="fsel"><option value="">Seleziona brand</option><optgroup label="Ultra Lusso"><option>Hermès</option><option>Chanel</option><option>Louis Vuitton</option><option>Dior</option><option>Bottega Veneta</option></optgroup><optgroup label="Lusso"><option>Gucci</option><option>Prada</option><option>Valentino</option><option>Versace</option><option>Fendi</option><option>Burberry</option><option>Moncler</option><option>Stone Island</option></optgroup><optgroup label="Contemporary"><option>Balenciaga</option><option>Off-White</option><option>Jacquemus</option><option>Amiri</option><option>Rick Owens</option><option>Maison Margiela</option></optgroup><option>Altro</option></select></div>
-            <div class="fg"><label class="fl">Nome articolo *</label><input class="fi" placeholder="es. Gucci GG Marmont Shoulder Bag"></div>
+            <div class="fg"><label class="fl" for="sf-cat">Categoria *</label><select class="fsel" id="sf-cat" required onchange="handleSellTaxonomyChange('category');updateFee()"><option value="">Seleziona</option></select></div>
+            <div class="fg"><label class="fl" for="sf-brand">Brand / Designer *</label><select class="fsel" id="sf-brand" required><option value="">Seleziona brand</option><optgroup label="Ultra Lusso"><option>Hermès</option><option>Chanel</option><option>Louis Vuitton</option><option>Dior</option><option>Bottega Veneta</option></optgroup><optgroup label="Lusso"><option>Gucci</option><option>Prada</option><option>Valentino</option><option>Versace</option><option>Fendi</option><option>Burberry</option><option>Moncler</option><option>Stone Island</option></optgroup><optgroup label="Contemporary"><option>Balenciaga</option><option>Off-White</option><option>Jacquemus</option><option>Amiri</option><option>Rick Owens</option><option>Maison Margiela</option></optgroup><option>Altro</option></select></div>
+            <div class="fg"><label class="fl" for="sf-name">Nome articolo *</label><input class="fi" id="sf-name" placeholder="es. Gucci GG Marmont Shoulder Bag" required></div>
             <div class="fr">
-              <div class="fg"><label class="fl">Taglia</label><input class="fi" placeholder="es. 42, M"></div>
-              <div class="fg"><label class="fl">Colore</label><input class="fi" placeholder="es. Nero"></div>
+              <div class="fg" id="irisxSubcategoryGroup"><label class="fl" id="sf-subcat-label" for="sf-subcat">Sottocategoria *</label><select class="fsel" id="sf-subcat" required onchange="handleSellTaxonomyChange('subcategory')"><option value="">Seleziona</option></select></div>
+              <div class="fg" id="irisxTypeGroup"><label class="fl" id="sf-type-label" for="sf-type">Tipo</label><select class="fsel" id="sf-type" onchange="handleSellTaxonomyChange('type')"><option value="">Seleziona</option></select></div>
+            </div>
+            <div class="irisx-note" id="irisxSellTaxonomyHint">Scegli prima il tipo di articolo: cosi il form ti mostra solo taglie e campi coerenti.</div>
+            <div class="fr">
+              <div class="fg" id="irisxSizeGroup"><label class="fl" id="sf-size-label" for="sf-size">Taglia</label><select class="fsel" id="sf-size"><option value="">Seleziona</option></select><div class="irisx-note" id="irisxSizeHint">La taglia si adatta alla categoria che scegli.</div></div>
+              <div class="fg" id="irisxSizeOriginalGroup"><label class="fl" id="sf-size-original-label" for="sf-size-original">Taglia etichetta originale</label><input class="fi" id="sf-size-original" placeholder="es. 2, US 9, 30"></div>
             </div>
             <div class="fr">
-              <div class="fg"><label class="fl">Vestibilità</label><select class="fsel"><option>Regular</option><option>Slim</option><option>Oversize</option></select></div>
-              <div class="fg"><label class="fl">Materiale</label><input class="fi" placeholder="es. Pelle, Cotone"></div>
+              <div class="fg"><label class="fl" for="sf-color">Colore</label><input class="fi" id="sf-color" placeholder="es. Nero"></div>
+              <div class="fg" id="irisxFitGroup"><label class="fl" for="sf-fit">Vestibilità</label><select class="fsel" id="sf-fit"><option>Regular</option><option>Slim</option><option>Oversize</option></select></div>
             </div>
-            <div class="fg"><label class="fl">Dimensioni</label><input class="fi" placeholder="es. 30 x 22 x 16 cm"></div>
-            <div class="fg"><label class="fl">Condizione *</label><div class="cond-grid"><button class="cond-btn" onclick="selCond(this)">Nuovo con tag</button><button class="cond-btn" onclick="selCond(this)">Nuovo senza tag</button><button class="cond-btn" onclick="selCond(this)">Molto buono</button><button class="cond-btn" onclick="selCond(this)">Buono</button><button class="cond-btn" onclick="selCond(this)">Accettabile</button><button class="cond-btn" onclick="selCond(this)">Da restauro</button></div></div>
-            <div class="fg"><label class="fl">Descrizione *</label><textarea class="fta" placeholder="Materiale, colore, hardware, segni di usura, cosa è incluso..."></textarea></div>
-            <div class="fg"><label class="fl">Il tuo prezzo (€) *</label><input class="fi" type="number" id="sf-price" placeholder="es. 450" oninput="updateFee()"></div>
+            <div class="fr">
+              <div class="fg"><label class="fl" for="sf-material">Materiale</label><input class="fi" id="sf-material" placeholder="es. Pelle, Cotone"></div>
+              <div class="fg" id="irisxDimensionsGroup"><label class="fl" id="sf-dims-label" for="sf-dims">Dimensioni</label><input class="fi" id="sf-dims" placeholder="es. 30 x 22 x 16 cm"></div>
+            </div>
+            <div class="fg irisx-measurement-block" id="irisxMeasurementsGroup">
+              <label class="fl" id="irisxMeasurementsTitle">Misure principali</label>
+              <div class="irisx-note" id="irisxMeasurementsHint">Inserisci le misure seller piu importanti. Le immagini guida le aggiungeremo dopo.</div>
+              <div class="irisx-measurement-grid" id="irisxMeasurementsFields"></div>
+            </div>
+            <div class="fg"><label class="fl" for="sf-condition">Condizione *</label><input type="hidden" id="sf-condition" required><div class="cond-grid" role="group" aria-label="Condizione"><button type="button" class="cond-btn" onclick="selCond(this)">Nuovo con tag</button><button type="button" class="cond-btn" onclick="selCond(this)">Nuovo senza tag</button><button type="button" class="cond-btn" onclick="selCond(this)">Eccellente</button><button type="button" class="cond-btn" onclick="selCond(this)">Molto buono</button><button type="button" class="cond-btn" onclick="selCond(this)">Buono</button><button type="button" class="cond-btn" onclick="selCond(this)">Accettabile</button><button type="button" class="cond-btn" onclick="selCond(this)">Da restauro</button></div></div>
+            <div class="fg"><label class="fl" for="sf-desc">Descrizione *</label><textarea class="fta" id="sf-desc" placeholder="Materiale, colore, hardware, segni di usura, cosa è incluso..." required minlength="10"></textarea></div>
+            <div class="fg"><label class="fl" for="sf-price">Il tuo prezzo (€) *</label><input class="fi" type="number" id="sf-price" placeholder="es. 450" oninput="updateFee()" required min="1" step="0.01"></div>
           </div>
         </div>
         <div class="sell-side">
           <div class="side-card"><div class="sc-t">💜 Il tuo guadagno</div><div class="fee-row"><span class="fee-l">Prezzo</span><span class="fee-v" id="fee-p">€ —</span></div><div class="fee-row"><span class="fee-l">Commissione</span><span class="fee-v" id="fee-c">— %</span></div><div class="fee-row fee-total"><span class="fee-l">Guadagno netto</span><span class="fee-v" id="fee-n">€ —</span></div><div class="fee-note">La commissione si paga solo al venduto.</div></div>
           <div class="side-card"><div class="sc-t">✦ Incluso</div><div class="auth-badge"><div class="ab-icon">🔍</div><div class="ab-text"><strong>Autenticazione gratuita</strong>Verificato da esperti.</div></div><div class="auth-badge"><div class="ab-icon">🚚</div><div class="ab-text"><strong>Spedizione inclusa</strong>Etichetta prepagata.</div></div><div class="auth-badge"><div class="ab-icon">💳</div><div class="ab-text"><strong>Pagamento garantito</strong>Bonifico in 48h.</div></div></div>
-          <button class="sell-submit" onclick="publishListing()">Pubblica il tuo articolo</button>
+          <button class="sell-submit" id="sf-submit" type="submit">Pubblica il tuo articolo</button>
         </div>
-      </div>
+      </form>
     </div>
   </section>
 </div>
+</main>
 
 <!-- ═══════ STATIC PAGE MODALS ═══════ -->
-<div class="static-modal" id="modal-about">
-  <button class="sm-close" onclick="closeStatic('about')">✕</button>
+<div class="static-modal" id="modal-about" role="dialog" aria-modal="true" aria-label="Chi siamo">
+  <button class="sm-close" onclick="closeStatic('about')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Chi siamo</div>
     <div class="sm-subtitle">IRIS nasce dalla passione per la moda di lusso e dalla volont&agrave; di creare il primo marketplace italiano dedicato.</div>
@@ -1113,8 +2545,8 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
     <div class="sm-section"><h3>I numeri</h3><p>+1.000 articoli autenticati &middot; +500 venditori verificati &middot; 98% soddisfazione clienti &middot; Spedizioni in tutta Europa</p></div>
   </div>
 </div>
-<div class="static-modal" id="modal-howto">
-  <button class="sm-close" onclick="closeStatic('howto')">✕</button>
+<div class="static-modal" id="modal-howto" role="dialog" aria-modal="true" aria-label="Come funziona">
+  <button class="sm-close" onclick="closeStatic('howto')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Come funziona</div>
     <div class="sm-subtitle">Comprare e vendere su IRIS &egrave; semplice, sicuro e veloce.</div>
@@ -1122,8 +2554,8 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
     <div class="sm-section"><h3>Per chi vende</h3><p>1. Fotografa il tuo articolo da pi&ugrave; angolazioni<br>2. Crea l'annuncio: brand, condizione, prezzo. Gratis!<br>3. Il compratore acquista, tu ricevi l'etichetta prepagata<br>4. Spedisci, noi autentichiamo<br>5. Ricevi il pagamento entro 48h dalla conferma</p></div>
   </div>
 </div>
-<div class="static-modal" id="modal-faq">
-  <button class="sm-close" onclick="closeStatic('faq')">✕</button>
+<div class="static-modal" id="modal-faq" role="dialog" aria-modal="true" aria-label="Domande frequenti">
+  <button class="sm-close" onclick="closeStatic('faq')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Domande frequenti</div>
     <div class="sm-subtitle">Tutto quello che devi sapere su IRIS.</div>
@@ -1139,8 +2571,8 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
     </div>
   </div>
 </div>
-<div class="static-modal" id="modal-terms">
-  <button class="sm-close" onclick="closeStatic('terms')">✕</button>
+<div class="static-modal" id="modal-terms" role="dialog" aria-modal="true" aria-label="Termini e condizioni">
+  <button class="sm-close" onclick="closeStatic('terms')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Termini e Condizioni</div>
     <div class="sm-subtitle">Ultimo aggiornamento: Marzo 2026</div>
@@ -1151,16 +2583,33 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
     <div class="sm-section"><h3>5. Responsabilit&agrave;</h3><p>IRIS si impegna a verificare l'autenticit&agrave; degli articoli ma non pu&ograve; garantire al 100% l'assenza di errori. In caso di articolo non autentico, rimborso totale garantito.</p></div>
   </div>
 </div>
-<div class="static-modal" id="modal-privacy">
-  <button class="sm-close" onclick="closeStatic('privacy')">✕</button>
+<div class="static-modal" id="modal-privacy" role="dialog" aria-modal="true" aria-label="Privacy policy">
+  <button class="sm-close" onclick="closeStatic('privacy')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Privacy Policy</div>
     <div class="sm-subtitle">Ultimo aggiornamento: Marzo 2026 &middot; Conforme al GDPR (Reg. UE 2016/679)</div>
     <div class="sm-section"><h3>Titolare del trattamento</h3><p>IRIS S.r.l. con sede in Milano, Italia. Email: privacy@iris-fashion.it</p></div>
-    <div class="sm-section"><h3>Dati raccolti</h3><p>Raccogliamo dati necessari al funzionamento del servizio: nome, email, indirizzo di spedizione, cronologia acquisti e preferenze. I dati di pagamento saranno gestiti dal provider di pagamento integrato quando il backend live sara' attivo.</p></div>
+    <div class="sm-section"><h3>Dati raccolti</h3><p>Raccogliamo dati necessari al funzionamento del servizio: nome, email, indirizzo di spedizione, cronologia acquisti e preferenze. I dati di pagamento sono gestiti in modo sicuro tramite provider certificati PCI-DSS.</p></div>
     <div class="sm-section"><h3>Finalit&agrave;</h3><p>I dati sono utilizzati per: erogazione del servizio, autenticazione, comunicazioni transazionali, miglioramento dell'esperienza utente, obblighi di legge.</p></div>
     <div class="sm-section"><h3>I tuoi diritti</h3><p>Hai diritto di accesso, rettifica, cancellazione, portabilit&agrave; e opposizione al trattamento dei tuoi dati personali. Puoi esercitare i tuoi diritti scrivendo a privacy@iris-fashion.it.</p></div>
     <div class="sm-section"><h3>Cookie</h3><p>Utilizziamo cookie tecnici necessari e cookie analitici anonimi per migliorare il servizio. Nessun cookie di profilazione senza consenso esplicito.</p></div>
+  </div>
+</div>
+<div class="static-modal" id="modal-contact" role="dialog" aria-modal="true" aria-label="Contattaci">
+  <button class="sm-close" onclick="closeStatic('contact')" aria-label="Chiudi">✕</button>
+  <div class="sm-inner">
+    <div class="sm-title">Contattaci</div>
+    <div class="sm-subtitle">Supporto clienti IRIS</div>
+    <div class="sm-section"><h3>Email</h3><p><a href="mailto:support@iris-fashion.it">support@iris-fashion.it</a></p></div>
+  </div>
+</div>
+<div class="static-modal" id="modal-cookie" role="dialog" aria-modal="true" aria-label="Cookie policy">
+  <button class="sm-close" onclick="closeStatic('cookie')" aria-label="Chiudi">✕</button>
+  <div class="sm-inner">
+    <div class="sm-title">Cookie Policy</div>
+    <div class="sm-subtitle">Informativa sintetica sui cookie tecnici</div>
+    <div class="sm-section"><h3>Cookie tecnici</h3><p>IRIS utilizza cookie tecnici e storage locale per ricordare preferenze e mantenere il funzionamento della demo. Nessun dato viene condiviso con terze parti.</p></div>
+    <div class="sm-section"><h3>Scelta utente</h3><p>Puoi accettare o rifiutare il salvataggio delle preferenze dal banner cookie. In caso di rifiuto il sito continua a funzionare, ma non salva preferenze persistenti.</p></div>
   </div>
 </div>
 
@@ -1172,12 +2621,23 @@ body.light-mode .pwa-banner-close{color:rgba(26,10,53,.25)}
 </div>
 
 <!-- Offer modal -->
-<div class="offer-modal" id="offerModal">
+<div class="offer-modal" id="offerModal" role="dialog" aria-modal="true" aria-label="Fai un'offerta">
   <div class="offer-box">
     <div class="offer-title">Fai un'offerta</div>
     <div class="offer-amount-row"><span class="offer-currency">€</span><input class="offer-input" type="number" placeholder="0" id="offerInput"></div>
     <button class="offer-send" onclick="sendOffer()">Invia offerta</button>
     <button class="offer-cancel" onclick="closeOffer()">Annulla</button>
+  </div>
+</div>
+
+<div id="cookieBanner" class="cookie-banner" style="display:none" role="dialog" aria-modal="true" aria-label="Cookie banner">
+  <div class="cookie-text">
+    <strong id="cookieBannerTitle">Questo sito utilizza cookie</strong>
+    <p id="cookieBannerMessage">Utilizziamo cookie tecnici e analitici per migliorare l'esperienza. Puoi consultare la nostra <a href="#" onclick="event.preventDefault();openStatic('privacy')">Privacy Policy</a>.</p>
+  </div>
+  <div class="cookie-actions">
+    <button class="irisx-primary" id="cookieAcceptAllBtn" onclick="acceptCookies('all')">Accetta tutti</button>
+    <button class="irisx-secondary" id="cookieNecessaryBtn" onclick="acceptCookies('necessary')">Solo necessari</button>
   </div>
 </div>
 
@@ -1205,6 +2665,19 @@ const prods=[
   {id:12,name:'Serpenti Forever Crossbody',brand:'Bvlgari',cat:'Borse',sz:'Small',cond:'Nuovo',fit:'—',dims:'20 × 14 × 5 cm',price:1800,orig:2700,color:'Rosa',material:'Pelle Karung',emoji:'🐍',desc:'Serpenti Forever crossbody in pelle Karung rosa con chiusura testa serpente in ottone palladio. Mai usata, con scatola e certificato.',chips:['Karung','Serpenti','Palladio HW','Con box'],seller:sellers[3],date:Date.now()-950000000},
 ];
 
+const placeholderImagesByCategory={
+  Borse:'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400&h=500&fit=crop',
+  Scarpe:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=500&fit=crop',
+  Orologi:'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=400&h=500&fit=crop',
+  Abbigliamento:'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=500&fit=crop',
+  Accessori:'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=400&h=500&fit=crop',
+  Gioielli:'https://images.unsplash.com/photo-1515562141589-67f0d569b6f5?w=400&h=500&fit=crop'
+};
+prods.forEach(p=>{
+  if(!p.image){p.image=placeholderImagesByCategory[p.cat]||placeholderImagesByCategory.Accessori}
+  if(!Array.isArray(p.images)||!p.images.length){p.images=[p.image]}
+});
+
 let favorites=new Set();
 let curSort='recent';
 let filters={cats:[],brands:[],conds:[],fits:[],colors:[],size:'',pmin:'',pmax:'',search:''};
@@ -1212,7 +2685,7 @@ let curChat=null;
 
 const allBrands=[...new Set(prods.map(p=>p.brand))].sort();
 const allCats=[...new Set(prods.map(p=>p.cat))].sort();
-const allConds=['Nuovo','Eccellente','Molto buono','Buono','Accettabile'];
+const allConds=['Nuovo con tag','Nuovo senza tag','Eccellente','Molto buono','Buono','Accettabile','Da restauro'];
 const allFits=['Slim','Regular','Oversize'];
 const colorMap={Nero:'#111',Bianco:'#f5f5f5',Marrone:'#8B4513',Beige:'#D2B48C',Verde:'#2E8B57',Rosa:'#DB7093',Grigio:'#808080',Argento:'#C0C0C0',Blu:'#2255AA',Rosso:'#CC3333'};
 const allColors=Object.keys(colorMap);

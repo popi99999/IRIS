@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">IRIS app icon</title>
+  <desc id="desc">Dark luxury square icon with IRIS wordmark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#060310"/>
+      <stop offset="100%" stop-color="#12081f"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#C4A06A"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.38"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
+  <rect x="24" y="24" width="464" height="464" rx="92" fill="none" stroke="rgba(255,255,255,0.08)"/>
+  <circle cx="112" cy="112" r="8" fill="#C4A06A" opacity="0.72"/>
+  <circle cx="400" cy="400" r="6" fill="#7C3AED" opacity="0.62"/>
+  <path d="M88 404h336" stroke="url(#glow)" stroke-opacity="0.4" stroke-width="2"/>
+  <g filter="url(#shadow)">
+    <text x="256" y="290" text-anchor="middle" fill="#F5F0EB" font-size="112" font-family="Georgia, 'Times New Roman', serif" font-style="italic" letter-spacing="16">IRIS</text>
+  </g>
+</svg>

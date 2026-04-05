@@ -11,12 +11,18 @@
 
 /* Layout fixes */
 #shop-view { padding-top: 54px !important; }
+/* Override the luxury theme's excessive 82px/132px padding-top on shop */
+html body.irisx-luxury #shop-view { padding-top: 20px !important; }
 .shop-layout { min-height: auto !important; }
 .det-layout { min-height: 0 !important; }
 .det-body { padding-bottom: 2rem !important; }
 .det-similar { margin-bottom: 0 !important; }
 .tn-row { flex-wrap: nowrap !important; }
 .tn-search { max-width: 280px !important; }
+
+/* Fix detail view: emoji placeholder was 12rem/opacity 0.08 → barely visible in 300px dark box */
+.det-img-main { font-size: 5rem !important; opacity: 0.35 !important; }
+.det-imgs:has(.det-img-main) { min-height: 0 !important; max-height: 180px !important; padding: 1.5rem !important; }
 
 /* Offer modal redesign — clean, no box/line */
 .offer-modal.open {

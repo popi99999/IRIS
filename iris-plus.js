@@ -998,10 +998,6 @@
     if (listing && listing.image && sources.indexOf(listing.image) === -1) {
       sources.push(listing.image);
     }
-    const fallback = getPlaceholderImageByCategory(listing && listing.cat);
-    if (!sources.length && fallback) {
-      sources.push(fallback);
-    }
     return sources;
   }
 

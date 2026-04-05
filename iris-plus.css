@@ -20,9 +20,11 @@ html body.irisx-luxury #shop-view { padding-top: 20px !important; }
 .tn-row { flex-wrap: nowrap !important; }
 .tn-search { max-width: 280px !important; }
 
-/* Fix detail view: emoji placeholder was 12rem/opacity 0.08 → barely visible in 300px dark box */
+/* Fix detail view image area */
 .det-img-main { font-size: 5rem !important; opacity: 0.35 !important; }
-.det-imgs:has(.det-img-main) { min-height: 0 !important; max-height: 180px !important; padding: 1.5rem !important; }
+.det-imgs { min-height: 0 !important; }
+.det-imgs:has(.det-img-main) { max-height: 180px !important; padding: 1.5rem !important; }
+body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 3/4 !important; }
 
 /* Offer modal redesign — clean, no box/line */
 .offer-modal.open {

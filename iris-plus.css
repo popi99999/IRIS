@@ -21,9 +21,10 @@ html body.irisx-luxury #shop-view { padding-top: 20px !important; }
 .tn-search { max-width: 280px !important; }
 
 /* Fix detail view image area */
-.det-img-main { font-size: 5rem !important; opacity: 0.35 !important; }
+.det-img-main { font-size: 8rem !important; opacity: 0.55 !important; filter: drop-shadow(0 0 40px rgba(196,160,106,.18)) drop-shadow(0 8px 32px rgba(0,0,0,.5)) !important; }
 .det-imgs { min-height: 0 !important; }
-.det-imgs:has(.det-img-main) { max-height: 180px !important; padding: 1.5rem !important; }
+.det-imgs:has(.det-img-main) { min-height: 280px !important; max-height: none !important; padding: 2.5rem !important; }
+body.irisx-luxury .det-img-main { font-size: 10rem !important; opacity: 0.6 !important; filter: drop-shadow(0 0 50px rgba(196,160,106,.22)) drop-shadow(0 12px 40px rgba(0,0,0,.6)) !important; }
 body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 3/4 !important; }
 
 /* Offer modal redesign — clean, no box/line */
@@ -4679,8 +4680,9 @@ body.irisx-luxury .pi-bg {
 }
 
 body.irisx-luxury .pi-bg {
-  aspect-ratio: 3 / 4;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(255,255,255,.03);
 }
 

@@ -11426,6 +11426,31 @@
     finalizeCheckout(true);
   };
 
+  function renderMeasurementsSection(listing) {
+    if (!listing || !listing.measurements || typeof listing.measurements !== "object") {
+      return "";
+    }
+    const categoryKey = (listing.categoryKey) || inferSellCategoryKey(listing);
+    const subcategoryKey = (listing.subcategoryKey) || inferSellSubcategoryKey(listing, categoryKey);
+    const schema = getMeasurementSchema(categoryKey, subcategoryKey);
+    if (!schema || !Array.isArray(schema.fields) || !schema.fields.length) {
+      return "";
+    }
+    const rows = schema.fields
+      .filter(function (field) {
+        const val = listing.measurements[field.id];
+        return val !== undefined && val !== null && String(val).trim() !== "";
+      })
+      .map(function (field) {
+        return `<div class="det-fit-item"><div class="det-fit-label">${escapeHtml(langText(field.it, field.en))}</div><div class="det-fit-value">${escapeHtml(String(listing.measurements[field.id]))} cm</div></div>`;
+      });
+    if (!rows.length) {
+      return "";
+    }
+    const title = schema.title ? langText(schema.title.it, schema.title.en) : langText("Misure", "Measurements");
+    return `<div class="det-section"><div class="det-section-title">${escapeHtml(title)}</div><div class="det-fit">${rows.join("")}</div></div>`;
+  }
+
   function reportListing(productId) {
     const product = getListingById(productId);
     if (!product) {

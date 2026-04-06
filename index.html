@@ -2128,8 +2128,74 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
 </style>
+
+<!-- ═══════ CINEMATIC INTRO STYLES ═══════ -->
+<style id="iris-cinematic-styles">
+#iris-cinematic-intro{
+  position:fixed;inset:0;background:#000;z-index:99999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;cursor:default;
+  transition:opacity 1.5s cubic-bezier(.4,0,.2,1);
+}
+#iris-cinematic-intro.irisci-fading{opacity:0;pointer-events:none}
+#iris-cinematic-canvas{
+  position:absolute;inset:0;width:100%;height:100%;
+  display:block;
+}
+.irisci-bottom{
+  position:absolute;bottom:8vh;left:0;right:0;
+  display:flex;flex-direction:column;align-items:center;gap:1.8rem;
+  opacity:0;transform:translateY(10px);
+  transition:opacity 1.4s ease,transform 1.4s ease;
+  pointer-events:none;
+}
+#iris-cinematic-intro.irisci-ready .irisci-bottom{opacity:1;transform:translateY(0);pointer-events:all}
+.irisci-tagline{
+  font-family:'Cormorant Garamond',serif;font-weight:300;
+  font-size:clamp(.55rem,1.1vw,.82rem);letter-spacing:.48em;
+  color:rgba(255,255,255,.22);text-transform:uppercase;
+  text-align:center;line-height:2;margin:0;
+  animation:irisci-pulse 4s ease-in-out infinite;
+}
+.irisci-enter{
+  background:transparent;border:1px solid rgba(196,160,106,.3);
+  color:rgba(196,160,106,.65);
+  font-family:'Outfit',sans-serif;font-weight:300;
+  font-size:clamp(.42rem,.8vw,.6rem);letter-spacing:.38em;text-transform:uppercase;
+  padding:.7rem 2.2rem;cursor:pointer;
+  transition:border-color .5s,color .5s,background .5s,letter-spacing .5s;
+}
+.irisci-enter:hover{
+  border-color:rgba(196,160,106,.65);color:rgba(220,185,120,1);
+  background:rgba(196,160,106,.06);letter-spacing:.44em;
+}
+/* corner brackets */
+.irisci-corner{position:absolute;width:22px;height:22px;opacity:.25}
+.irisci-corner--tl{top:28px;left:32px;border-top:1px solid rgba(196,160,106,.7);border-left:1px solid rgba(196,160,106,.7)}
+.irisci-corner--tr{top:28px;right:32px;border-top:1px solid rgba(196,160,106,.7);border-right:1px solid rgba(196,160,106,.7)}
+.irisci-corner--bl{bottom:28px;left:32px;border-bottom:1px solid rgba(196,160,106,.7);border-left:1px solid rgba(196,160,106,.7)}
+.irisci-corner--br{bottom:28px;right:32px;border-bottom:1px solid rgba(196,160,106,.7);border-right:1px solid rgba(196,160,106,.7)}
+@keyframes irisci-pulse{0%,100%{opacity:.22}50%{opacity:.38}}
+@media(prefers-reduced-motion:reduce){
+  #iris-cinematic-intro{display:none!important}
+}
+</style>
 </head>
 <body class="irisx-luxury">
+
+<!-- ═══════ CINEMATIC INTRO ═══════ -->
+<div id="iris-cinematic-intro" aria-hidden="true">
+  <canvas id="iris-cinematic-canvas"></canvas>
+  <div class="irisci-bottom">
+    <p class="irisci-tagline">WHERE LUXURY FINDS ITS NEXT LIFE</p>
+    <button class="irisci-enter" id="irisci-enter-btn" onclick="dismissIrisCinematicIntro()">ENTER &nbsp;↗</button>
+  </div>
+  <div class="irisci-corner irisci-corner--tl"></div>
+  <div class="irisci-corner irisci-corner--tr"></div>
+  <div class="irisci-corner irisci-corner--bl"></div>
+  <div class="irisci-corner irisci-corner--br"></div>
+</div>
+
 <noscript><div style="padding:2rem;text-align:center;color:#fff;background:#060310">Per utilizzare IRIS è necessario abilitare JavaScript.</div></noscript>
 <a class="skip-link" href="#main-content">Vai al contenuto</a>
 <h1 class="visually-hidden">IRIS — Luxury Fashion Marketplace</h1>
@@ -3442,5 +3508,246 @@ setTimeout(()=>renderFooters(),500);
 </script>
 <script src="./iris-i18n-config.js"></script>
 <script src="./iris-plus.js"></script>
+
+<!-- ═══════ CINEMATIC INTRO ENGINE ═══════ -->
+<script>
+(function(){
+'use strict';
+var overlay=document.getElementById('iris-cinematic-intro');
+var canvas=document.getElementById('iris-cinematic-canvas');
+if(!overlay||!canvas)return;
+var ctx=canvas.getContext('2d');
+var W=0,H=0,FS=0;
+var raf=null,t0=null,dismissed=false;
+var off=document.createElement('canvas'),offCtx=off.getContext('2d');
+
+var SCENE_MS=920,FADE_FRAC=0.18,TOTAL_MS=7200,FOOTER_MS=1800;
+
+function resize(){
+  W=canvas.width=off.width=overlay.clientWidth||window.innerWidth;
+  H=canvas.height=off.height=overlay.clientHeight||window.innerHeight;
+  FS=Math.min(W*0.44,H*0.48,420);
+}
+window.addEventListener('resize',resize);
+resize();
+
+/* ─ SCENE 1: liquid gold sweep ─ */
+function sGold(c,w,h,sec){
+  var sweep=sec*210%((w+w)*1.0)-w*0.5;
+  c.fillStyle='#070400';c.fillRect(0,0,w,h);
+  var g=c.createLinearGradient(sweep-w*.7,h*.1,sweep+w*.7,h*.9);
+  g.addColorStop(0,'#060300');g.addColorStop(.12,'#2E1800');
+  g.addColorStop(.28,'#8B5C00');g.addColorStop(.40,'#C9960C');
+  g.addColorStop(.46,'#D4AF37');g.addColorStop(.50,'#FFF5CC');
+  g.addColorStop(.54,'#D4AF37');g.addColorStop(.62,'#B8860B');
+  g.addColorStop(.78,'#4A2C00');g.addColorStop(1,'#060300');
+  c.fillStyle=g;c.fillRect(0,0,w,h);
+  for(var i=0;i<6;i++){
+    var sx=((sec*170+i*w*.18)%(w*1.7))-w*.2;
+    var sg=c.createLinearGradient(sx-28,0,sx+28,h);
+    sg.addColorStop(0,'rgba(255,248,170,0)');
+    sg.addColorStop(.5,'rgba(255,248,160,.10)');
+    sg.addColorStop(1,'rgba(255,248,170,0)');
+    c.fillStyle=sg;c.fillRect(sx-28,0,56,h);
+  }
+}
+
+/* ─ SCENE 2: cognac leather ─ */
+function sLeather(c,w,h,sec){
+  c.fillStyle='#1E0C04';c.fillRect(0,0,w,h);
+  var cs=Math.max(w,h)*.055,sh=(sec*22)%(cs*2);
+  c.save();c.translate(sh,sh);
+  c.strokeStyle='rgba(215,148,78,.08)';c.lineWidth=.55;
+  for(var i=-w;i<w*2;i+=cs){
+    c.beginPath();c.moveTo(i,0);c.lineTo(i+h,h);c.stroke();
+    c.beginPath();c.moveTo(i+h,0);c.lineTo(i,h);c.stroke();
+  }
+  c.restore();
+  var lg=c.createRadialGradient(w*.32,h*.28,0,w*.32,h*.28,w*.9);
+  lg.addColorStop(0,'rgba(195,118,52,.28)');
+  lg.addColorStop(.5,'rgba(130,72,24,.12)');
+  lg.addColorStop(1,'rgba(8,3,0,0)');
+  c.fillStyle=lg;c.fillRect(0,0,w,h);
+}
+
+/* ─ SCENE 3: silver chrome ─ */
+function sChrome(c,w,h,sec){
+  c.fillStyle='#050507';c.fillRect(0,0,w,h);
+  for(var i=0;i<6;i++){
+    var ang=sec*.35+i*Math.PI*.34;
+    var rx=w*.5+Math.cos(ang)*w*.26,ry=h*.5+Math.sin(ang*.65)*h*.22;
+    var br=.06+Math.sin(sec*.85+i*1.3)*.035;
+    var rg=c.createRadialGradient(rx,ry,0,rx,ry,Math.sqrt(w*w+h*h)*.6);
+    rg.addColorStop(0,'rgba(210,215,228,'+br+')');
+    rg.addColorStop(.35,'rgba(155,160,172,'+(br*.5)+')');
+    rg.addColorStop(1,'rgba(0,0,0,0)');
+    c.fillStyle=rg;c.fillRect(0,0,w,h);
+  }
+  var sp=((sec*300)%(w*1.8))-w*.35;
+  var sk=c.createLinearGradient(sp-55,0,sp+55,h);
+  sk.addColorStop(0,'rgba(255,255,255,0)');
+  sk.addColorStop(.45,'rgba(215,220,232,.09)');
+  sk.addColorStop(.5,'rgba(255,255,255,.20)');
+  sk.addColorStop(.55,'rgba(215,220,232,.09)');
+  sk.addColorStop(1,'rgba(255,255,255,0)');
+  c.fillStyle=sk;c.fillRect(0,0,w,h);
+}
+
+/* ─ SCENE 4: cream monogram ─ */
+function sMonogram(c,w,h,sec){
+  c.fillStyle='#EEE4C8';c.fillRect(0,0,w,h);
+  var cs=Math.max(w,h)*.062,dr=(sec*16)%(cs*2);
+  c.save();c.translate(-dr,-dr);
+  var cols=Math.ceil(w/cs)+4,rows=Math.ceil(h/cs)+4;
+  for(var r=0;r<rows;r++){
+    for(var cc=0;cc<cols;cc++){
+      var x=cc*cs,y=r*cs;
+      if((r+cc)%2===0){
+        c.beginPath();
+        c.moveTo(x+cs*.5,y);c.lineTo(x+cs,y+cs*.5);
+        c.lineTo(x+cs*.5,y+cs);c.lineTo(x,y+cs*.5);
+        c.closePath();
+        c.fillStyle='rgba(165,125,42,.16)';c.fill();
+        c.strokeStyle='rgba(140,100,28,.30)';c.lineWidth=.45;c.stroke();
+      }else{
+        c.strokeStyle='rgba(150,110,35,.14)';c.lineWidth=.45;
+        c.beginPath();c.moveTo(x+cs*.28,y+cs*.28);c.lineTo(x+cs*.72,y+cs*.72);c.stroke();
+        c.beginPath();c.moveTo(x+cs*.72,y+cs*.28);c.lineTo(x+cs*.28,y+cs*.72);c.stroke();
+      }
+    }
+  }
+  c.restore();
+  var mt=c.createLinearGradient(0,0,w,h);
+  mt.addColorStop(0,'rgba(195,155,65,.28)');
+  mt.addColorStop(.5,'rgba(210,170,80,.12)');
+  mt.addColorStop(1,'rgba(175,135,50,.22)');
+  c.fillStyle=mt;c.fillRect(0,0,w,h);
+}
+
+/* ─ SCENE 5: python scales ─ */
+function sPython(c,w,h,sec){
+  c.fillStyle='#0A0C08';c.fillRect(0,0,w,h);
+  var sw=Math.max(w,h)*.048,sh=sw*.62,dr=(sec*18)%(sh*2);
+  var cols=Math.ceil(w/sw)+3,rows=Math.ceil(h/sh)+5;
+  for(var r=0;r<rows;r++){
+    for(var cc=0;cc<cols;cc++){
+      var ox=(r%2)*sw*.5;
+      var x=cc*sw+ox-sw,y=r*sh-dr;
+      c.beginPath();
+      c.ellipse(x+sw*.5,y+sh*.5,sw*.44,sh*.44,0,0,Math.PI*2);
+      var hue=28+((r*7+cc*11)%38),l=20+((r*3+cc*5)%20);
+      c.fillStyle='hsl('+hue+',32%,'+l+'%)';c.fill();
+      c.strokeStyle='rgba(196,160,106,.16)';c.lineWidth=.35;c.stroke();
+    }
+  }
+  var pg=c.createLinearGradient(0,0,w,h);
+  pg.addColorStop(0,'rgba(196,160,106,.11)');
+  pg.addColorStop(.5,'rgba(220,175,95,.05)');
+  pg.addColorStop(1,'rgba(160,120,55,.09)');
+  c.fillStyle=pg;c.fillRect(0,0,w,h);
+}
+
+/* ─ SCENE 6: Chanel tweed ─ */
+function sTweed(c,w,h,sec){
+  c.fillStyle='#0E0C0A';c.fillRect(0,0,w,h);
+  var tw=Math.max(w,h)*.013;
+  var cols=['rgba(218,212,198,.55)','rgba(175,28,28,.22)','rgba(196,160,106,.32)',
+            'rgba(48,46,40,.72)','rgba(200,194,182,.28)','rgba(130,18,18,.18)'];
+  var dr=(sec*12)%(tw*cols.length);
+  for(var y=0;y<h;y+=tw){
+    c.fillStyle=cols[Math.floor(y/tw)%cols.length];
+    c.fillRect(0,y,w,tw*.68);
+  }
+  for(var x=-dr;x<w;x+=tw*cols.length){
+    cols.forEach(function(col,i){
+      var alpha=parseFloat(col.match(/[\d.]+\)$/)[0])*.48;
+      var rgba=col.replace(/[\d.]+\)$/,alpha.toFixed(2)+')');
+      c.fillStyle=rgba;
+      c.fillRect(x+i*tw,0,tw*.55,h);
+    });
+  }
+  c.fillStyle='rgba(0,0,0,.48)';c.fillRect(0,0,w,h);
+}
+
+var SCENES=[sGold,sLeather,sChrome,sMonogram,sPython,sTweed];
+
+/* ─ RENDER FRAME ─ */
+function eio(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+
+function frame(elapsed){
+  var sec=elapsed/1000;
+  var si=Math.floor(elapsed/SCENE_MS)%SCENES.length;
+  var ni=(si+1)%SCENES.length;
+  var phi=(elapsed%SCENE_MS)/SCENE_MS;
+
+  /* 1 — draw scene(s) on offscreen */
+  SCENES[si](offCtx,W,H,sec);
+  if(phi>1-FADE_FRAC){
+    var fa=(phi-(1-FADE_FRAC))/FADE_FRAC;
+    offCtx.save();offCtx.globalAlpha=fa;
+    SCENES[ni](offCtx,W,H,sec);
+    offCtx.restore();
+  }
+
+  /* 2 — clip to IRIS text using destination-in */
+  var entry=Math.min(1,elapsed/900);
+  offCtx.globalCompositeOperation='destination-in';
+  offCtx.save();
+  offCtx.translate(W/2,H/2);
+  offCtx.scale(.97+entry*.03,.97+entry*.03);
+  offCtx.font='italic 300 '+FS+'px "Cormorant Garamond",serif';
+  offCtx.textAlign='center';offCtx.textBaseline='middle';
+  offCtx.fillStyle='rgba(255,255,255,'+eio(entry)+')';
+  offCtx.fillText('IRIS',0,0);
+  offCtx.restore();
+  offCtx.globalCompositeOperation='source-over';
+
+  /* 3 — paint onto main canvas */
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+  ctx.drawImage(off,0,0);
+
+  /* 4 — soft gold halo around text (tasteful) */
+  if(elapsed>500){
+    var ha=Math.min(1,(elapsed-500)/1000)*.055;
+    var hg=ctx.createRadialGradient(W/2,H/2,FS*.15,W/2,H/2,FS*.72);
+    hg.addColorStop(0,'rgba(196,160,106,0)');
+    hg.addColorStop(.65,'rgba(196,160,106,'+ha+')');
+    hg.addColorStop(1,'rgba(196,160,106,0)');
+    ctx.fillStyle=hg;ctx.fillRect(0,0,W,H);
+  }
+}
+
+/* ─ ANIMATION LOOP ─ */
+function tick(ts){
+  if(dismissed)return;
+  if(!t0)t0=ts;
+  var el=ts-t0;
+  frame(el);
+  if(el>FOOTER_MS)overlay.classList.add('irisci-ready');
+  if(el>TOTAL_MS){dismissIrisCinematicIntro();return;}
+  raf=requestAnimationFrame(tick);
+}
+
+/* ─ PUBLIC DISMISS ─ */
+window.dismissIrisCinematicIntro=function(){
+  if(dismissed)return;dismissed=true;
+  if(raf)cancelAnimationFrame(raf);
+  overlay.classList.add('irisci-fading');
+  setTimeout(function(){overlay.style.display='none';},1500);
+};
+
+/* ─ CLICK ANYWHERE TO SKIP ─ */
+overlay.addEventListener('click',function(e){
+  if(e.target.id==='irisci-enter-btn'||e.target.closest('.irisci-enter'))return;
+  dismissIrisCinematicIntro();
+});
+
+/* ─ START WHEN FONTS READY ─ */
+(document.fonts?document.fonts.ready:Promise.resolve()).then(function(){
+  setTimeout(function(){raf=requestAnimationFrame(tick);},80);
+});
+
+})();
+</script>
 </body>
 </html>

@@ -263,9 +263,9 @@ a:active,button:focus-visible{outline:1px solid rgba(196,160,106,.35);outline-of
 #detail-view.active{display:block}
 .det-layout{display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:0}
 @media(max-width:800px){.det-layout{grid-template-columns:1fr}}
-.det-imgs{background:linear-gradient(135deg,#0D0520,#160830);display:flex;align-items:center;justify-content:center;min-height:70vh;position:sticky;top:54px;padding:3rem}
-@media(max-width:800px){.det-imgs{position:relative;min-height:50vh}}
-.det-img-main{font-size:12rem;opacity:.08;user-select:none}
+.det-imgs{background:linear-gradient(135deg,#0D0520,#160830);display:flex;align-items:center;justify-content:center;min-height:0;position:sticky;top:54px;padding:1.5rem}
+@media(max-width:800px){.det-imgs{position:relative;min-height:0}}
+.det-img-main{font-size:5rem;opacity:.35;user-select:none}
 .det-img-dots{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);display:flex;gap:.5rem}
 .det-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.45);cursor:pointer;transition:background .3s}
 .det-dot.on{background:var(--lavender)}

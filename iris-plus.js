@@ -5509,7 +5509,7 @@
       box.innerHTML = `
         <div class="offer-title">${langText("Fai un'offerta", "Make an offer")}</div>
         <div class="offer-note">${escapeHtml(product.brand)} ${escapeHtml(product.name)} · ${escapeHtml(formatCurrency(product.price))}</div>
-        <div class="offer-meta">${escapeHtml(minimumText)}</div>
+        <div class="offer-meta">${escapeHtml(amountValidation.minimumText || '')}</div>
         ${statusBox}
         <div class="offer-amount-row"><span class="offer-currency">€</span><input class="offer-input" type="number" placeholder="0" id="offerInput" value="${escapeHtml(amountValue)}"></div>
         <div class="offer-meta">${langText("Se il seller accetta, il pagamento autorizzato verra' catturato automaticamente.", "If the seller accepts, the authorized payment will be captured automatically.")}</div>
@@ -5520,9 +5520,11 @@
       if (input) {
         input.focus();
         const length = input.value.length;
-        if (typeof input.setSelectionRange === "function") {
-          input.setSelectionRange(length, length);
-        }
+        try {
+          if (typeof input.setSelectionRange === "function") {
+            input.setSelectionRange(length, length);
+          }
+        } catch(e) {}
       }
     }
 

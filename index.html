@@ -2481,7 +2481,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div class="container" id="sellerContent"></div>
   </div>
 
-</div><!-- /page-buy -->
+</div></div><!-- /page-buy -->
 
 <!-- ═══════ SELL PAGE ═══════ -->
 <div class="page" id="page-sell">
@@ -2804,8 +2804,8 @@ if(introVid){
 }
 // Show text
 setTimeout(()=>{if(!introDone)itext.classList.add('v')},700);
-// Auto-skip after 9s (longer for cinematic feel)
-setTimeout(()=>{if(!introDone)skipIntro()},9000);
+// Auto-skip after 5s (safety fallback)
+setTimeout(()=>{if(!introDone)skipIntro()},5000);
 function skipIntro(){
   if(introDone)return;introDone=true;
   itext.classList.add('out');
@@ -3535,7 +3535,7 @@ var W=0,H=0,FS=0;
 var raf=null,t0=null,dismissed=false;
 var off=document.createElement('canvas'),offCtx=off.getContext('2d');
 
-var SCENE_MS=920,FADE_FRAC=0.18,TOTAL_MS=7200,FOOTER_MS=1800;
+var SCENE_MS=920,FADE_FRAC=0.18,TOTAL_MS=2800,FOOTER_MS=600;
 
 function resize(){
   W=canvas.width=off.width=overlay.clientWidth||window.innerWidth;
@@ -3748,6 +3748,7 @@ window.dismissIrisCinematicIntro=function(){
   if(raf)cancelAnimationFrame(raf);
   overlay.classList.add('irisci-fading');
   setTimeout(function(){overlay.style.display='none';},1500);
+  if(typeof skipIntro==='function')skipIntro();
 };
 
 /* ─ CLICK ANYWHERE TO SKIP ─ */

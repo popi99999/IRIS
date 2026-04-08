@@ -63,6 +63,7 @@
   let supabaseClient = null;
   let supabaseBridgeInitialized = false;
   let supabaseListingsInitialized = false;
+  let supabaseOffersInitialized = false;
   const SELL_TAXONOMY = {
     clothing: {
       it: "Abbigliamento",
@@ -486,6 +487,7 @@
   normalizeMarketState();
   hydrateLocalListings();
   initializeSupabaseListings();
+  initializeSupabaseOffers();
   ensureOpsShell();
   syncCurrentUserSeller();
   overrideMarketplaceFunctions();
@@ -1339,6 +1341,75 @@
     });
   }
 
+  function buildSupabaseOfferPayload(offer) {
+    const normalized = normalizeOfferRecord(offer);
+    return {
+      id: String(normalized.id),
+      listing_id: normalized.listingId || null,
+      product_id: normalized.productId || normalized.listingId || null,
+      product_name: normalized.productName || "",
+      product_brand: normalized.productBrand || "",
+      buyer_id: normalized.buyerId || (state.currentUser && state.currentUser.id) || null,
+      buyer_email: normalizeEmail(normalized.buyerEmail),
+      buyer_name: normalized.buyerName || "",
+      seller_id: normalized.sellerId || null,
+      seller_email: normalizeEmail(normalized.sellerEmail),
+      seller_name: normalized.sellerName || "",
+      offer_amount: Number(normalized.offerAmount || normalized.amount || 0),
+      currency: normalized.currency || getLocaleConfig().currency,
+      status: normalized.status || "pending",
+      created_at_ms: Number(normalized.createdAt || Date.now()),
+      updated_at_ms: Number(normalized.updatedAt || normalized.createdAt || Date.now()),
+      expires_at_ms: Number(normalized.expiresAt || (Date.now() + OFFER_EXPIRY_MS)),
+      payment_authorization_status: normalized.paymentAuthorizationStatus || "payment_authorized",
+      payment_intent_reference: normalized.paymentIntentReference || "",
+      authorization_reference: normalized.authorizationReference || "",
+      order_id: normalized.orderId || null,
+      shipping_snapshot: normalized.shippingSnapshot || {},
+      payment_method_snapshot: normalized.paymentMethodSnapshot || {},
+      minimum_offer_amount: normalized.minimumOfferAmount === null || normalized.minimumOfferAmount === undefined ? null : Number(normalized.minimumOfferAmount),
+      captured_at_ms: normalized.capturedAt || null,
+      released_at_ms: normalized.releasedAt || null,
+      release_reason: normalized.reason || ""
+    };
+  }
+
+  function buildOfferFromSupabaseRow(row) {
+    if (!row) {
+      return null;
+    }
+    return normalizeOfferRecord({
+      id: row.id,
+      listingId: row.listing_id || row.product_id || null,
+      productId: row.product_id || row.listing_id || null,
+      productName: row.product_name || "",
+      productBrand: row.product_brand || "",
+      buyerId: row.buyer_id || "",
+      buyerEmail: row.buyer_email || "",
+      buyerName: row.buyer_name || "",
+      sellerId: row.seller_id || "",
+      sellerEmail: row.seller_email || "",
+      sellerName: row.seller_name || "",
+      offerAmount: Number(row.offer_amount || 0),
+      amount: Number(row.offer_amount || 0),
+      currency: row.currency || getLocaleConfig().currency,
+      status: row.status || "pending",
+      createdAt: Number(row.created_at_ms || Date.now()),
+      updatedAt: Number(row.updated_at_ms || row.created_at_ms || Date.now()),
+      expiresAt: Number(row.expires_at_ms || (Date.now() + OFFER_EXPIRY_MS)),
+      paymentAuthorizationStatus: row.payment_authorization_status || "payment_authorized",
+      paymentIntentReference: row.payment_intent_reference || "",
+      authorizationReference: row.authorization_reference || "",
+      orderId: row.order_id || null,
+      shippingSnapshot: row.shipping_snapshot || null,
+      paymentMethodSnapshot: row.payment_method_snapshot || null,
+      minimumOfferAmount: row.minimum_offer_amount === null || row.minimum_offer_amount === undefined ? null : Number(row.minimum_offer_amount),
+      capturedAt: row.captured_at_ms || null,
+      releasedAt: row.released_at_ms || null,
+      reason: row.release_reason || ""
+    });
+  }
+
   async function fetchSupabaseListings() {
     const client = getSupabaseClient();
     if (!client) {
@@ -1366,6 +1437,77 @@
       throw response.error;
     }
     return buildListingFromSupabaseRow(response.data);
+  }
+
+  async function fetchSupabaseOffers() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return [];
+    }
+    let query = client
+      .from("offers")
+      .select("*")
+      .order("created_at_ms", { ascending: false })
+      .limit(250);
+    if (!isCurrentUserAdmin()) {
+      query = query.or(`buyer_id.eq.${state.currentUser.id},seller_id.eq.${state.currentUser.id}`);
+    }
+    const response = await query;
+    if (response.error) {
+      throw response.error;
+    }
+    return Array.isArray(response.data) ? response.data.map(buildOfferFromSupabaseRow).filter(Boolean) : [];
+  }
+
+  async function saveOfferToSupabase(offer) {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return normalizeOfferRecord(offer);
+    }
+    const payload = buildSupabaseOfferPayload(offer);
+    const response = await client.from("offers").upsert(payload, { onConflict: "id" }).select("*").single();
+    if (response.error) {
+      throw response.error;
+    }
+    return buildOfferFromSupabaseRow(response.data);
+  }
+
+  async function refreshSupabaseOffers() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    const remoteOffers = await fetchSupabaseOffers();
+    const remoteIds = new Set(remoteOffers.map(function (offer) { return String(offer.id); }));
+    const localOnly = state.offers.filter(function (offer) {
+      return !remoteIds.has(String(offer.id));
+    });
+    state.offers = remoteOffers.concat(localOnly.map(normalizeOfferRecord));
+    persistOffers();
+    if (typeof render === "function") {
+      render();
+    }
+    renderProfilePanel();
+    renderNotifications();
+    renderOpsView();
+  }
+
+  async function initializeSupabaseOffers() {
+    if (supabaseOffersInitialized) {
+      return;
+    }
+    if (!isSupabaseEnabled()) {
+      return;
+    }
+    supabaseOffersInitialized = true;
+    if (!state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    try {
+      await refreshSupabaseOffers();
+    } catch (error) {
+      console.warn("[IRIS] Unable to load offers from Supabase", error);
+    }
   }
 
   async function refreshSupabaseListings() {
@@ -1526,6 +1668,9 @@
     const applied = applyAuthenticatedUser(nextUser);
     refreshSupabaseListings().catch(function (error) {
       console.warn("[IRIS] Unable to refresh listings after auth sync", error);
+    });
+    refreshSupabaseOffers().catch(function (error) {
+      console.warn("[IRIS] Unable to refresh offers after auth sync", error);
     });
     return applied;
   }
@@ -6321,7 +6466,7 @@
       renderOfferModal();
     };
 
-    sendOffer = function () {
+    sendOffer = async function () {
       const product = getListingById(offerProdId);
       if (!product) {
         closeOffer();
@@ -6349,7 +6494,7 @@
           shippingSnapshot: readiness.shipping,
           paymentMethodSnapshot: readiness.payment
         });
-        const result = offerApiCreate(payload);
+        const result = await offerApiCreate(payload);
         if (!result.ok) {
           state.offerError = result.error;
           renderOfferModal();
@@ -9530,20 +9675,30 @@
 
   function syncOfferStates() {
     let mutated = false;
+    const changedOffers = [];
     state.offers = state.offers.map(function (offer) {
       const normalized = normalizeOfferRecord(offer);
       if (!isOfferExpired(normalized)) {
         return normalized;
       }
       mutated = true;
-      return Object.assign({}, normalized, {
+      const expiredOffer = Object.assign({}, normalized, {
         status: "expired",
         paymentAuthorizationStatus: "authorization_released",
         updatedAt: Date.now()
       });
+      changedOffers.push(expiredOffer);
+      return expiredOffer;
     });
     if (mutated) {
       persistOffers();
+      if (isSupabaseEnabled() && state.currentUser && state.currentUser.id && changedOffers.length) {
+        Promise.all(changedOffers.map(function (offer) {
+          return saveOfferToSupabase(offer);
+        })).catch(function (error) {
+          console.warn("[IRIS] Unable to sync expired offers to Supabase", error);
+        });
+      }
     }
   }
 
@@ -9818,20 +9973,24 @@
   }
 
   function releaseCompetingOffers(listingId, acceptedOfferId) {
+    const releasedOffers = [];
     state.offers = state.offers.map(function (offer) {
       if (String(offer.listingId || offer.productId) !== String(listingId) || offer.id === acceptedOfferId || offer.status !== "pending") {
         return offer;
       }
-      return Object.assign({}, offer, {
+      const releasedOffer = Object.assign({}, offer, {
         status: "declined",
         paymentAuthorizationStatus: "authorization_released",
         updatedAt: Date.now()
       });
+      releasedOffers.push(releasedOffer);
+      return releasedOffer;
     });
     persistOffers();
+    return releasedOffers;
   }
 
-  function offerApiCreate(payload) {
+  async function offerApiCreate(payload) {
     const validation = validateOfferSubmission(payload);
     if (!validation.ok) {
       return validation;
@@ -9872,6 +10031,16 @@
     });
     state.offers.unshift(offer);
     persistOffers();
+    try {
+      const remoteOffer = await saveOfferToSupabase(offer);
+      state.offers = state.offers.map(function (candidate) {
+        return candidate.id === offer.id ? remoteOffer : candidate;
+      });
+      persistOffers();
+      offer = remoteOffer;
+    } catch (error) {
+      console.warn("[IRIS] Unable to save offer to Supabase", error);
+    }
     createNotification({
       audience: "user",
       kind: "offer",
@@ -9896,7 +10065,7 @@
     return { ok: true, offer: offer };
   }
 
-  function offerApiRespond(offerId, decision) {
+  async function offerApiRespond(offerId, decision) {
     syncOfferStates();
     const current = state.offers.find(function (offer) { return offer.id === offerId; });
     if (!current) {
@@ -9915,15 +10084,30 @@
 
     if (decision === "declined") {
       const released = releaseOfferAuthorization(current, "declined");
+      let declinedOffer = null;
       state.offers = state.offers.map(function (offer) {
         if (offer.id !== offerId) return offer;
-        return Object.assign({}, offer, {
+        declinedOffer = Object.assign({}, offer, {
           status: "declined",
           paymentAuthorizationStatus: released.paymentAuthorizationStatus,
+          releasedAt: released.releasedAt,
+          reason: released.reason,
           updatedAt: Date.now()
         });
+        return declinedOffer;
       });
       persistOffers();
+      if (declinedOffer) {
+        try {
+          const remoteDeclinedOffer = await saveOfferToSupabase(declinedOffer);
+          state.offers = state.offers.map(function (offer) {
+            return offer.id === offerId ? remoteDeclinedOffer : offer;
+          });
+          persistOffers();
+        } catch (error) {
+          console.warn("[IRIS] Unable to sync declined offer to Supabase", error);
+        }
+      }
       createNotification({
         audience: "user",
         kind: "offer",
@@ -9952,6 +10136,7 @@
     const paidOffer = normalizeOfferRecord(Object.assign({}, current, {
       status: "paid",
       paymentAuthorizationStatus: capture.paymentAuthorizationStatus,
+      capturedAt: capture.capturedAt,
       updatedAt: Date.now()
     }));
     const order = createOrderFromAcceptedOffer(paidOffer);
@@ -9962,12 +10147,20 @@
     state.orders.unshift(order);
     notifyNewOrder(order);
     persistOrders();
-    releaseCompetingOffers(order.items[0].productId, offerId);
+    const releasedOffers = releaseCompetingOffers(order.items[0].productId, offerId);
     state.offers = state.offers.map(function (offer) {
       if (offer.id !== offerId) return offer;
       return Object.assign({}, paidOffer, { orderId: order.id });
     });
     persistOffers();
+    const acceptedOffer = state.offers.find(function (offer) { return offer.id === offerId; }) || Object.assign({}, paidOffer, { orderId: order.id });
+    try {
+      await Promise.all([acceptedOffer].concat(releasedOffers).map(function (offer) {
+        return saveOfferToSupabase(offer);
+      }));
+    } catch (error) {
+      console.warn("[IRIS] Unable to sync offer response to Supabase", error);
+    }
     syncInventoryFromOrders();
     createNotification({
       audience: "user",
@@ -10311,9 +10504,9 @@
     }
   }
 
-  function respondToOffer(offerId, decision) {
+  async function respondToOffer(offerId, decision) {
     const normalizedDecision = decision === "rejected" ? "declined" : decision;
-    const result = offerApiRespond(offerId, normalizedDecision);
+    const result = await offerApiRespond(offerId, normalizedDecision);
     if (!result.ok) {
       showToast(result.error);
       renderProfilePanel();

@@ -62,6 +62,7 @@
   const I18N_PACKS = window.IRIS_I18N_PACKS || {};
   let supabaseClient = null;
   let supabaseBridgeInitialized = false;
+  let supabaseListingsInitialized = false;
   const SELL_TAXONOMY = {
     clothing: {
       it: "Abbigliamento",
@@ -484,6 +485,7 @@
   initializeSupabaseBridge();
   normalizeMarketState();
   hydrateLocalListings();
+  initializeSupabaseListings();
   ensureOpsShell();
   syncCurrentUserSeller();
   overrideMarketplaceFunctions();
@@ -1224,6 +1226,183 @@
     });
   }
 
+  function buildSupabaseListingPayload(listing) {
+    const normalized = normalizeListingRecord(listing);
+    return {
+      id: String(normalized.id),
+      owner_id: state.currentUser && state.currentUser.id ? state.currentUser.id : null,
+      owner_email: normalizeEmail(normalized.ownerEmail),
+      name: normalized.name || "",
+      brand: normalized.brand || "",
+      category_label: normalized.cat || "",
+      category_key: normalized.categoryKey || "",
+      subcategory_label: normalized.subcategory || "",
+      subcategory_key: normalized.subcategoryKey || "",
+      product_type_label: normalized.productType || "",
+      product_type_key: normalized.productTypeKey || "",
+      size_label: normalized.sz || "",
+      size_original: normalized.sizeOriginal || "",
+      size_schema: normalized.sizeSchema || "",
+      condition_label: normalized.cond || "",
+      fit: normalized.fit || "",
+      dimensions: normalized.dims || "",
+      measurements: normalized.measurements || {},
+      price: Number(normalized.price || 0),
+      original_price: Number(normalized.orig || normalized.compareAt || 0),
+      color: normalized.color || "",
+      material: normalized.material || "",
+      emoji: normalized.emoji || "",
+      description: normalized.desc || "",
+      chips: Array.isArray(normalized.chips) ? normalized.chips : [],
+      seller_snapshot: normalized.seller || {},
+      image_url: normalized.image || "",
+      images: Array.isArray(normalized.images) ? normalized.images : [],
+      is_user_listing: normalized.isUserListing !== false,
+      inventory_status: normalized.inventoryStatus || "active",
+      listing_status: normalized.listingStatus || "published",
+      order_id: normalized.orderId || null,
+      sold_at: normalized.soldAt || null,
+      offers_enabled: normalized.offersEnabled !== false,
+      minimum_offer_amount: normalized.minimumOfferAmount === null || normalized.minimumOfferAmount === undefined ? null : Number(normalized.minimumOfferAmount),
+      gender: normalized.gender || "",
+      verified: Boolean(normalized.verified),
+      verified_seller: Boolean(normalized.verifiedSeller),
+      iris_guaranteed: Boolean(normalized.irisGuaranteed),
+      certificate_code: normalized.certificateCode || "",
+      authenticated_at: normalized.authenticatedAt || null,
+      relist_source_order_id: normalized.relistSourceOrderId || null,
+      relist_source_product_id: normalized.relistSourceProductId || null,
+      relist_source_listing_id: normalized.relistSourceListingId || null,
+      relist_source_receipt_number: normalized.relistSourceReceiptNumber || "",
+      relist_source_purchased_at: normalized.relistSourcePurchasedAt || null,
+      relist_source_certified: Boolean(normalized.relistSourceCertified),
+      relist_source_platform: normalized.relistSourcePlatform || "",
+      date_created_ms: Number(normalized.date || Date.now())
+    };
+  }
+
+  function buildListingFromSupabaseRow(row) {
+    if (!row) {
+      return null;
+    }
+    return normalizeListingRecord({
+      id: row.id,
+      ownerId: row.owner_id || null,
+      ownerEmail: row.owner_email || "",
+      name: row.name || "",
+      brand: row.brand || "",
+      cat: row.category_label || "",
+      categoryKey: row.category_key || "",
+      subcategory: row.subcategory_label || "",
+      subcategoryKey: row.subcategory_key || "",
+      productType: row.product_type_label || "",
+      productTypeKey: row.product_type_key || "",
+      sz: row.size_label || "",
+      sizeOriginal: row.size_original || "",
+      sizeSchema: row.size_schema || "",
+      cond: row.condition_label || "",
+      fit: row.fit || "",
+      dims: row.dimensions || "",
+      measurements: row.measurements || {},
+      price: Number(row.price || 0),
+      orig: Number(row.original_price || 0),
+      compareAt: Number(row.original_price || 0),
+      color: row.color || "",
+      material: row.material || "",
+      emoji: row.emoji || "",
+      desc: row.description || "",
+      chips: row.chips || [],
+      seller: row.seller_snapshot || {},
+      image: row.image_url || "",
+      images: row.images || [],
+      isUserListing: row.is_user_listing !== false,
+      inventoryStatus: row.inventory_status || "active",
+      listingStatus: row.listing_status || "published",
+      orderId: row.order_id || null,
+      soldAt: row.sold_at || null,
+      offersEnabled: row.offers_enabled !== false,
+      minimumOfferAmount: row.minimum_offer_amount,
+      gender: row.gender || "",
+      verified: Boolean(row.verified),
+      verifiedSeller: Boolean(row.verified_seller),
+      irisGuaranteed: Boolean(row.iris_guaranteed),
+      certificateCode: row.certificate_code || "",
+      authenticatedAt: row.authenticated_at || null,
+      relistSourceOrderId: row.relist_source_order_id || null,
+      relistSourceProductId: row.relist_source_product_id || null,
+      relistSourceListingId: row.relist_source_listing_id || null,
+      relistSourceReceiptNumber: row.relist_source_receipt_number || "",
+      relistSourcePurchasedAt: row.relist_source_purchased_at || null,
+      relistSourceCertified: Boolean(row.relist_source_certified),
+      relistSourcePlatform: row.relist_source_platform || "",
+      date: Number(row.date_created_ms || Date.now())
+    });
+  }
+
+  async function fetchSupabaseListings() {
+    const client = getSupabaseClient();
+    if (!client) {
+      return [];
+    }
+    const response = await client
+      .from("listings")
+      .select("*")
+      .order("date_created_ms", { ascending: false })
+      .limit(250);
+    if (response.error) {
+      throw response.error;
+    }
+    return Array.isArray(response.data) ? response.data.map(buildListingFromSupabaseRow).filter(Boolean) : [];
+  }
+
+  async function saveListingToSupabase(listing) {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return normalizeListingRecord(listing);
+    }
+    const payload = buildSupabaseListingPayload(listing);
+    const response = await client.from("listings").upsert(payload, { onConflict: "id" }).select("*").single();
+    if (response.error) {
+      throw response.error;
+    }
+    return buildListingFromSupabaseRow(response.data);
+  }
+
+  async function refreshSupabaseListings() {
+    const client = getSupabaseClient();
+    if (!client) {
+      return;
+    }
+    const remoteListings = await fetchSupabaseListings();
+    const remoteIds = new Set(remoteListings.map(function (listing) { return String(listing.id); }));
+    const localOnly = state.listings.filter(function (listing) {
+      return !remoteIds.has(String(listing.id));
+    });
+    state.listings = remoteListings.concat(localOnly.map(normalizeListingRecord));
+    saveJson(STORAGE_KEYS.listings, state.listings);
+    hydrateLocalListings();
+    if (typeof render === "function") {
+      render();
+    }
+    renderProfilePanel();
+    renderOpsView();
+  }
+
+  async function initializeSupabaseListings() {
+    if (supabaseListingsInitialized) {
+      return;
+    }
+    if (!isSupabaseEnabled()) {
+      return;
+    }
+    supabaseListingsInitialized = true;
+    try {
+      await refreshSupabaseListings();
+    } catch (error) {
+      console.warn("[IRIS] Unable to load listings from Supabase", error);
+    }
+  }
+
   async function fetchSupabaseProfile(userId) {
     const client = getSupabaseClient();
     if (!client || !userId) {
@@ -1344,7 +1523,11 @@
       clearAuthenticatedUser();
       return null;
     }
-    return applyAuthenticatedUser(nextUser);
+    const applied = applyAuthenticatedUser(nextUser);
+    refreshSupabaseListings().catch(function (error) {
+      console.warn("[IRIS] Unable to refresh listings after auth sync", error);
+    });
+    return applied;
   }
 
   async function initializeSupabaseBridge() {
@@ -4220,6 +4403,11 @@
   }
 
   function hydrateLocalListings() {
+    for (let index = prods.length - 1; index >= 0; index -= 1) {
+      if (prods[index] && prods[index].isUserListing) {
+        prods.splice(index, 1);
+      }
+    }
     state.listings.forEach((listing) => {
       if (!prods.some((product) => product.id === listing.id)) {
         prods.unshift(listing);
@@ -8315,7 +8503,7 @@
     status.classList.toggle("error", Boolean(isError));
   }
 
-  function publishListing() {
+  async function publishListing() {
     const taxonomy = collectSellTaxonomySelection();
     const measurements = collectSellMeasurements();
     const brand = readSellField("#sf-brand");
@@ -8356,8 +8544,9 @@
         prods.find(function (listing) { return String(listing.id) === String(state.editingListingId); })
       : null;
 
-    const listing = syncListingIntoCatalog({
+    const listingPayload = {
       id: existingListing ? existingListing.id : Date.now(),
+      ownerId: state.currentUser.id || null,
       ownerEmail: state.currentUser.email,
       name: name,
       brand: brand,
@@ -8391,7 +8580,16 @@
       soldAt: existingListing ? existingListing.soldAt || null : null,
       offersEnabled: offerPolicy.offersEnabled,
       minimumOfferAmount: offerValidation.minimumOfferAmount
-    });
+    };
+
+    let listing = syncListingIntoCatalog(listingPayload);
+    try {
+      const remoteListing = await saveListingToSupabase(listingPayload);
+      listing = syncListingIntoCatalog(remoteListing);
+    } catch (error) {
+      console.warn("[IRIS] Unable to persist published listing to Supabase", error);
+      updateSellStatus(langText("Annuncio salvato solo in locale. Controlla Supabase e riprova.", "Listing saved locally only. Check Supabase and try again."), true);
+    }
 
     if (!existingListing) {
       notifyNewListing(listing);
@@ -9902,6 +10100,14 @@
 
   function startRelistFromOrderItem(orderId, productId) {
     requireAuth(function () {
+      startRelistFromOrderItemInternal(orderId, productId).catch(function (error) {
+        console.warn("[IRIS] Unable to create assisted relist draft", error);
+        showToast(langText("Impossibile creare la rivendita ora.", "Unable to create the resale right now."));
+      });
+    });
+  }
+
+  async function startRelistFromOrderItemInternal(orderId, productId) {
       const order = getOrderById(orderId);
       if (!order) {
         showToast(langText("Ordine non trovato.", "Order not found."));
@@ -9941,8 +10147,9 @@
         categoryKey: categoryKey,
         subcategoryKey: subcategoryKey
       }));
-      const relistDraft = syncListingIntoCatalog({
+      const relistDraftPayload = {
         id: createId("relist"),
+        ownerId: user.id || null,
         ownerEmail: user.email,
         seller: seller,
         name: (sourceListing && sourceListing.name) || item.name || langText("Articolo IRIS", "IRIS item"),
@@ -9985,7 +10192,14 @@
         relistSourcePurchasedAt: order.createdAt,
         relistSourceCertified: sourceListing ? isListingVerified(sourceListing) : true,
         relistSourcePlatform: "IRIS"
-      });
+      };
+      let relistDraft = syncListingIntoCatalog(relistDraftPayload);
+      try {
+        const remoteRelistDraft = await saveListingToSupabase(relistDraftPayload);
+        relistDraft = syncListingIntoCatalog(remoteRelistDraft);
+      } catch (error) {
+        console.warn("[IRIS] Unable to persist assisted relist draft to Supabase", error);
+      }
 
       recordAuditEvent("relist_draft_created", `${relistDraft.brand} ${relistDraft.name}`, {
         orderId: order.id,
@@ -9997,7 +10211,6 @@
       loadDraftIntoSellForm(relistDraft.id);
       updateSellStatus(langText("Bozza di rivendita pronta. Aggiorna condizione, foto e prezzo prima di pubblicare.", "Resale draft ready. Update condition, photos, and price before publishing."));
       showToast(langText("Rivendita precompilata creata da acquisto IRIS.", "Prefilled resale draft created from your IRIS purchase."));
-    });
   }
 
   function renderOrderSummaryCard(order, scope) {
@@ -10409,86 +10622,112 @@
 
   function saveListingDraft() {
     requireAuth(function () {
-      const seller = getCurrentUserSeller();
-      if (!seller) {
-        showToast(langText("Accedi per salvare una bozza.", "Sign in to save a draft."));
-        return;
-      }
-      const draftPrice = Number(readSellField("#sf-price") || 0);
-      const offerPolicy = getListingOfferPolicyFromForm();
-      const offerValidation = validateListingOfferPolicy(offerPolicy, draftPrice);
-      const taxonomy = collectSellTaxonomySelection();
-      const measurements = collectSellMeasurements();
-      if (!offerValidation.ok) {
-        updateSellStatus(offerValidation.error, true);
-        return;
-      }
-      if (!taxonomy.ok && readSellField("#sf-cat")) {
-        updateSellStatus(taxonomy.error, true);
-        return;
-      }
-      const brand = readSellField("#sf-brand") || "IRIS";
-      const name = readSellField("#sf-name") || langText("Bozza annuncio", "Draft listing");
-      const existingListing = state.editingListingId
-        ? state.listings.find(function (listing) { return String(listing.id) === String(state.editingListingId); }) ||
-          prods.find(function (listing) { return String(listing.id) === String(state.editingListingId); })
-        : null;
-      const draft = syncListingIntoCatalog({
-        id: existingListing ? existingListing.id : Date.now(),
-        ownerEmail: state.currentUser.email,
-        name: name,
-        brand: brand,
-        cat: taxonomy.ok ? taxonomy.categoryLabel : langText("Da definire", "To define"),
-        categoryKey: taxonomy.ok ? taxonomy.categoryKey : "",
-        subcategory: taxonomy.ok ? taxonomy.subcategoryLabel : "",
-        subcategoryKey: taxonomy.ok ? taxonomy.subcategoryKey : "",
-        productType: taxonomy.ok ? taxonomy.typeLabel : "",
-        productTypeKey: taxonomy.ok ? taxonomy.typeKey : "",
-        sz: taxonomy.ok ? taxonomy.sizeDisplay : langText("Taglia unica", "One size"),
-        sizeOriginal: taxonomy.ok ? taxonomy.sizeOriginal : "",
-        sizeSchema: taxonomy.ok ? taxonomy.sizeMode : "one_size",
-        cond: qsa(".cond-btn.sel").map(function (button) { return button.textContent.trim(); })[0] || langText("Da definire", "To define"),
-        fit: taxonomy.ok ? taxonomy.fit : "—",
-        dims: readSellField("#sf-dims") || "",
-        measurements: measurements,
-        price: Number(readSellField("#sf-price") || 0),
-        orig: Math.round(Number(readSellField("#sf-price") || 0) * 1.35),
-        color: readSellField("#sf-color") || "",
-        material: readSellField("#sf-material") || "",
-        emoji: taxonomy.ok ? taxonomy.emoji : "👜",
-        desc: readSellField("#sf-desc") || "",
-        chips: [taxonomy.ok ? taxonomy.categoryLabel : "", taxonomy.ok ? taxonomy.subcategoryLabel : "", brand].filter(Boolean),
-        seller: seller,
-        date: Date.now(),
-        images: state.sellPhotos.map(function (photo) { return photo.src; }),
-        inventoryStatus: "draft",
-        listingStatus: "draft",
-        isUserListing: true,
-        orderId: existingListing ? existingListing.orderId || null : null,
-        soldAt: existingListing ? existingListing.soldAt || null : null,
-        offersEnabled: offerPolicy.offersEnabled,
-        minimumOfferAmount: offerValidation.minimumOfferAmount
+      saveListingDraftInternal().catch(function (error) {
+        console.warn("[IRIS] Unable to save listing draft", error);
+        updateSellStatus(langText("Impossibile salvare la bozza ora.", "Unable to save the draft right now."), true);
       });
-      renderProfilePanel();
-      renderOpsView();
-      updateSellStatus(langText("Bozza salvata nella seller area.", "Draft saved inside seller area."));
-      showToast(langText("Bozza salvata.", "Draft saved."));
     });
   }
 
-  function publishDraftListing(listingId) {
+  async function saveListingDraftInternal() {
+    const seller = getCurrentUserSeller();
+    if (!seller) {
+      showToast(langText("Accedi per salvare una bozza.", "Sign in to save a draft."));
+      return;
+    }
+    const draftPrice = Number(readSellField("#sf-price") || 0);
+    const offerPolicy = getListingOfferPolicyFromForm();
+    const offerValidation = validateListingOfferPolicy(offerPolicy, draftPrice);
+    const taxonomy = collectSellTaxonomySelection();
+    const measurements = collectSellMeasurements();
+    if (!offerValidation.ok) {
+      updateSellStatus(offerValidation.error, true);
+      return;
+    }
+    if (!taxonomy.ok && readSellField("#sf-cat")) {
+      updateSellStatus(taxonomy.error, true);
+      return;
+    }
+    const brand = readSellField("#sf-brand") || "IRIS";
+    const name = readSellField("#sf-name") || langText("Bozza annuncio", "Draft listing");
+    const existingListing = state.editingListingId
+      ? state.listings.find(function (listing) { return String(listing.id) === String(state.editingListingId); }) ||
+        prods.find(function (listing) { return String(listing.id) === String(state.editingListingId); })
+      : null;
+    const draftPayload = {
+      id: existingListing ? existingListing.id : Date.now(),
+      ownerId: state.currentUser.id || null,
+      ownerEmail: state.currentUser.email,
+      name: name,
+      brand: brand,
+      cat: taxonomy.ok ? taxonomy.categoryLabel : langText("Da definire", "To define"),
+      categoryKey: taxonomy.ok ? taxonomy.categoryKey : "",
+      subcategory: taxonomy.ok ? taxonomy.subcategoryLabel : "",
+      subcategoryKey: taxonomy.ok ? taxonomy.subcategoryKey : "",
+      productType: taxonomy.ok ? taxonomy.typeLabel : "",
+      productTypeKey: taxonomy.ok ? taxonomy.typeKey : "",
+      sz: taxonomy.ok ? taxonomy.sizeDisplay : langText("Taglia unica", "One size"),
+      sizeOriginal: taxonomy.ok ? taxonomy.sizeOriginal : "",
+      sizeSchema: taxonomy.ok ? taxonomy.sizeMode : "one_size",
+      cond: qsa(".cond-btn.sel").map(function (button) { return button.textContent.trim(); })[0] || langText("Da definire", "To define"),
+      fit: taxonomy.ok ? taxonomy.fit : "—",
+      dims: readSellField("#sf-dims") || "",
+      measurements: measurements,
+      price: Number(readSellField("#sf-price") || 0),
+      orig: Math.round(Number(readSellField("#sf-price") || 0) * 1.35),
+      color: readSellField("#sf-color") || "",
+      material: readSellField("#sf-material") || "",
+      emoji: taxonomy.ok ? taxonomy.emoji : "👜",
+      desc: readSellField("#sf-desc") || "",
+      chips: [taxonomy.ok ? taxonomy.categoryLabel : "", taxonomy.ok ? taxonomy.subcategoryLabel : "", brand].filter(Boolean),
+      seller: seller,
+      date: Date.now(),
+      images: state.sellPhotos.map(function (photo) { return photo.src; }),
+      inventoryStatus: "draft",
+      listingStatus: "draft",
+      isUserListing: true,
+      orderId: existingListing ? existingListing.orderId || null : null,
+      soldAt: existingListing ? existingListing.soldAt || null : null,
+      offersEnabled: offerPolicy.offersEnabled,
+      minimumOfferAmount: offerValidation.minimumOfferAmount
+    };
+    let draft = syncListingIntoCatalog(draftPayload);
+    try {
+      const remoteDraft = await saveListingToSupabase(draftPayload);
+      draft = syncListingIntoCatalog(remoteDraft);
+    } catch (error) {
+      console.warn("[IRIS] Unable to persist draft to Supabase", error);
+      updateSellStatus(langText("Bozza salvata solo in locale.", "Draft saved locally only."), true);
+    }
+    renderProfilePanel();
+    renderOpsView();
+    updateSellStatus(langText("Bozza salvata nella seller area.", "Draft saved inside seller area."));
+    showToast(langText("Bozza salvata.", "Draft saved."));
+  }
+
+  async function publishDraftListing(listingId) {
+    let updatedListing = null;
     state.listings = state.listings.map(function (listing) {
       if (String(listing.id) !== String(listingId)) {
         return listing;
       }
-      return normalizeListingRecord(Object.assign({}, listing, {
+      updatedListing = normalizeListingRecord(Object.assign({}, listing, {
         inventoryStatus: "active",
         listingStatus: "published",
         date: Date.now()
       }));
+      return updatedListing;
     });
     saveJson(STORAGE_KEYS.listings, state.listings);
     hydrateLocalListings();
+    if (updatedListing) {
+      try {
+        const remoteListing = await saveListingToSupabase(updatedListing);
+        syncListingIntoCatalog(remoteListing);
+      } catch (error) {
+        console.warn("[IRIS] Unable to publish draft on Supabase", error);
+      }
+    }
     render();
     renderProfilePanel();
     renderOpsView();
@@ -10554,32 +10793,52 @@
     updateSellStatus(langText("Annuncio caricato. Puoi aggiornarlo e ripubblicarlo.", "Listing loaded. You can update and republish it."));
   }
 
-  function archiveListing(listingId) {
+  async function archiveListing(listingId) {
+    let updatedListing = null;
     state.listings = state.listings.map(function (listing) {
       if (String(listing.id) !== String(listingId)) {
         return listing;
       }
-      return Object.assign({}, listing, {
+      updatedListing = normalizeListingRecord(Object.assign({}, listing, {
         inventoryStatus: "archived",
         listingStatus: "archived"
-      });
+      }));
+      return updatedListing;
     });
     saveJson(STORAGE_KEYS.listings, state.listings);
     hydrateLocalListings();
+    if (updatedListing) {
+      try {
+        const remoteListing = await saveListingToSupabase(updatedListing);
+        syncListingIntoCatalog(remoteListing);
+      } catch (error) {
+        console.warn("[IRIS] Unable to archive listing on Supabase", error);
+      }
+    }
     render();
     renderProfilePanel();
   }
 
-  function toggleListingOffers(listingId) {
+  async function toggleListingOffers(listingId) {
+    let updatedListing = null;
     state.listings = state.listings.map(function (listing) {
       if (String(listing.id) !== String(listingId)) {
         return listing;
       }
       const nowEnabled = listing.offersEnabled !== false;
-      return Object.assign({}, listing, { offersEnabled: !nowEnabled });
+      updatedListing = normalizeListingRecord(Object.assign({}, listing, { offersEnabled: !nowEnabled }));
+      return updatedListing;
     });
     saveJson(STORAGE_KEYS.listings, state.listings);
     hydrateLocalListings();
+    if (updatedListing) {
+      try {
+        const remoteListing = await saveListingToSupabase(updatedListing);
+        syncListingIntoCatalog(remoteListing);
+      } catch (error) {
+        console.warn("[IRIS] Unable to update listing offer policy on Supabase", error);
+      }
+    }
     renderProfilePanel();
     showToast(langText("Impostazione offerte aggiornata.", "Offer setting updated."));
   }

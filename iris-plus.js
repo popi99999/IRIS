@@ -56,9 +56,12 @@
     it: { label: "IT", nativeLabel: "Italiano", locale: "it-IT", currency: "EUR", rate: 1, dir: "ltr" },
     en: { label: "UK", nativeLabel: "English", locale: "en-GB", currency: "GBP", rate: 0.86, dir: "ltr" }
   };
+  const SUPABASE_PUBLIC_CONFIG = window.IRIS_SUPABASE_CONFIG || null;
   const HOME_COPY = window.IRIS_HOME_COPY || {};
   const FACET_TRANSLATIONS = window.IRIS_FACET_TRANSLATIONS || {};
   const I18N_PACKS = window.IRIS_I18N_PACKS || {};
+  let supabaseClient = null;
+  let supabaseBridgeInitialized = false;
   const SELL_TAXONOMY = {
     clothing: {
       it: "Abbigliamento",
@@ -478,6 +481,7 @@
   bindShellMenus();
   ensureLanguageSelector();
   rebindMarketplaceSearch();
+  initializeSupabaseBridge();
   normalizeMarketState();
   hydrateLocalListings();
   ensureOpsShell();
@@ -1104,6 +1108,267 @@
       return;
     }
     localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function hasSupabasePublicConfig() {
+    return Boolean(
+      SUPABASE_PUBLIC_CONFIG &&
+      SUPABASE_PUBLIC_CONFIG.url &&
+      SUPABASE_PUBLIC_CONFIG.anonKey &&
+      window.supabase &&
+      typeof window.supabase.createClient === "function"
+    );
+  }
+
+  function getSupabaseClient() {
+    if (supabaseClient) {
+      return supabaseClient;
+    }
+    if (!hasSupabasePublicConfig()) {
+      return null;
+    }
+    supabaseClient = window.supabase.createClient(
+      SUPABASE_PUBLIC_CONFIG.url,
+      SUPABASE_PUBLIC_CONFIG.anonKey,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storageKey: "iris-supabase-auth"
+        }
+      }
+    );
+    return supabaseClient;
+  }
+
+  function isSupabaseEnabled() {
+    return Boolean(getSupabaseClient());
+  }
+
+  function getSupabaseRedirectUrl() {
+    return window.location.origin + window.location.pathname;
+  }
+
+  function buildSupabaseProfilePayload(user, authUser) {
+    const normalizedUser = normalizeUserWorkspace(Object.assign({}, user || {}, {
+      id: (authUser && authUser.id) || (user && user.id) || ""
+    }));
+    return {
+      id: (authUser && authUser.id) || normalizedUser.id,
+      email: normalizeEmail((authUser && authUser.email) || normalizedUser.email),
+      full_name: normalizedUser.name || "",
+      phone: normalizedUser.phone || "",
+      role: normalizedUser.role || deriveUserRole(normalizedUser.email),
+      city: normalizedUser.city || "",
+      country: normalizedUser.country || getWorkspaceDefaultCountry(),
+      bio: normalizedUser.bio || "",
+      member_since: normalizedUser.memberSince || String(new Date().getFullYear()),
+      avatar_url: normalizedUser.avatar || "",
+      addresses: normalizedUser.addresses || [],
+      payment_methods: normalizedUser.paymentMethods || [],
+      payout_settings: normalizedUser.payoutSettings || {},
+      security: normalizedUser.security || {},
+      verification: normalizedUser.verification || {},
+      notification_settings: normalizedUser.notificationSettings || {},
+      shopping_preferences: normalizedUser.shoppingPreferences || {},
+      size_profile: normalizedUser.sizeProfile || {},
+      saved_searches: normalizedUser.savedSearches || [],
+      selling_preferences: normalizedUser.sellingPreferences || {},
+      vacation_mode: normalizedUser.vacationMode || {},
+      listing_preferences: normalizedUser.listingPreferences || {},
+      privacy_settings: normalizedUser.privacySettings || {},
+      account_status: normalizedUser.accountStatus || "active",
+      ban_reason: normalizedUser.banReason || "",
+      banned_at: normalizedUser.bannedAt || null
+    };
+  }
+
+  function buildWorkspaceUserFromSupabase(authUser, profile) {
+    const rawProfile = profile || {};
+    const profileVerification = rawProfile.verification || {};
+    return normalizeUserWorkspace({
+      id: authUser && authUser.id,
+      name: rawProfile.full_name || (authUser && authUser.user_metadata && (authUser.user_metadata.full_name || authUser.user_metadata.name)) || "",
+      email: normalizeEmail((authUser && authUser.email) || rawProfile.email || ""),
+      phone: normalizePhoneNumber(rawProfile.phone || (authUser && authUser.phone) || ((authUser && authUser.user_metadata && authUser.user_metadata.phone) || "")),
+      role: rawProfile.role || ((authUser && authUser.user_metadata && authUser.user_metadata.role) || deriveUserRole((authUser && authUser.email) || rawProfile.email || "")),
+      city: rawProfile.city || "",
+      country: rawProfile.country || getWorkspaceDefaultCountry(),
+      bio: rawProfile.bio || "",
+      memberSince: rawProfile.member_since || (authUser && authUser.created_at ? String(new Date(authUser.created_at).getFullYear()) : String(new Date().getFullYear())),
+      avatar: rawProfile.avatar_url || (authUser && authUser.user_metadata && (authUser.user_metadata.avatar_url || authUser.user_metadata.picture)) || "",
+      addresses: rawProfile.addresses || [],
+      paymentMethods: rawProfile.payment_methods || [],
+      payoutSettings: rawProfile.payout_settings || {},
+      security: rawProfile.security || {},
+      verification: Object.assign({}, profileVerification, {
+        emailVerified: Boolean((authUser && authUser.email_confirmed_at) || profileVerification.emailVerified),
+        emailVerifiedAt: (authUser && authUser.email_confirmed_at) || profileVerification.emailVerifiedAt || null,
+        verifiedEmail: (authUser && authUser.email_confirmed_at) ? normalizeEmail(authUser.email) : (profileVerification.verifiedEmail || ""),
+        phoneVerified: Boolean((authUser && authUser.phone_confirmed_at) || profileVerification.phoneVerified),
+        phoneVerifiedAt: (authUser && authUser.phone_confirmed_at) || profileVerification.phoneVerifiedAt || null
+      }),
+      notificationSettings: rawProfile.notification_settings || {},
+      shoppingPreferences: rawProfile.shopping_preferences || {},
+      sizeProfile: rawProfile.size_profile || {},
+      savedSearches: rawProfile.saved_searches || [],
+      sellingPreferences: rawProfile.selling_preferences || {},
+      vacationMode: rawProfile.vacation_mode || {},
+      listingPreferences: rawProfile.listing_preferences || {},
+      privacySettings: rawProfile.privacy_settings || {},
+      accountStatus: rawProfile.account_status || "active",
+      banReason: rawProfile.ban_reason || "",
+      bannedAt: rawProfile.banned_at || null,
+      authProvider: (authUser && authUser.app_metadata && authUser.app_metadata.provider) || "supabase"
+    });
+  }
+
+  async function fetchSupabaseProfile(userId) {
+    const client = getSupabaseClient();
+    if (!client || !userId) {
+      return null;
+    }
+    const response = await client.from("profiles").select("*").eq("id", userId).maybeSingle();
+    if (response.error) {
+      throw response.error;
+    }
+    return response.data || null;
+  }
+
+  async function upsertSupabaseProfile(user, authUser) {
+    const client = getSupabaseClient();
+    if (!client) {
+      return null;
+    }
+    const effectiveAuthUser = authUser || (await client.auth.getUser()).data.user;
+    if (!effectiveAuthUser) {
+      return null;
+    }
+    const payload = buildSupabaseProfilePayload(user || state.currentUser, effectiveAuthUser);
+    const response = await client.from("profiles").upsert(payload, { onConflict: "id" }).select("*").single();
+    if (response.error) {
+      throw response.error;
+    }
+    return response.data || null;
+  }
+
+  function mergeUserIntoLocalCache(user, password) {
+    if (!user || !user.email) {
+      return;
+    }
+    const normalized = normalizeUserWorkspace(user);
+    let found = false;
+    state.users = state.users.map(function (entry) {
+      if (normalizeEmail(entry.email) !== normalized.email) {
+        return entry;
+      }
+      found = true;
+      return Object.assign({}, entry, normalized, {
+        password: password !== undefined ? password : (entry.password || ""),
+        authProvider: normalized.authProvider || entry.authProvider || "supabase"
+      });
+    });
+    if (!found) {
+      state.users.push(Object.assign({}, normalized, {
+        password: password !== undefined ? password : "",
+        authProvider: normalized.authProvider || "supabase"
+      }));
+    }
+    saveJson(STORAGE_KEYS.users, state.users);
+  }
+
+  function applyAuthenticatedUser(nextUser) {
+    const normalized = normalizeUserWorkspace(nextUser);
+    state.currentUser = normalized;
+    saveJson(STORAGE_KEYS.session, state.currentUser);
+    mergeUserIntoLocalCache(normalized);
+    syncCurrentUserSeller();
+    syncSessionUi();
+    renderProfilePanel();
+    renderNotifications();
+    renderOpsView();
+    if (typeof syncTopnavChrome === "function") {
+      syncTopnavChrome();
+    }
+    return normalized;
+  }
+
+  function clearAuthenticatedUser() {
+    state.currentUser = null;
+    saveJson(STORAGE_KEYS.session, null);
+    syncSessionUi();
+    renderProfilePanel();
+    renderNotifications();
+    renderOpsView();
+    if (typeof syncTopnavChrome === "function") {
+      syncTopnavChrome();
+    }
+  }
+
+  async function syncCurrentUserFromSupabaseSession(session) {
+    if (!session || !session.user) {
+      clearAuthenticatedUser();
+      return null;
+    }
+    let profile = null;
+    try {
+      profile = await fetchSupabaseProfile(session.user.id);
+    } catch (error) {
+      console.warn("[IRIS] Unable to fetch Supabase profile", error);
+    }
+    if (!profile) {
+      try {
+        profile = await upsertSupabaseProfile({
+          email: session.user.email || "",
+          name: (session.user.user_metadata && (session.user.user_metadata.full_name || session.user.user_metadata.name)) || "",
+          phone: (session.user.user_metadata && session.user.user_metadata.phone) || "",
+          role: deriveUserRole(session.user.email || ""),
+          country: getWorkspaceDefaultCountry()
+        }, session.user);
+      } catch (error) {
+        console.warn("[IRIS] Unable to bootstrap Supabase profile", error);
+      }
+    }
+    const nextUser = buildWorkspaceUserFromSupabase(session.user, profile);
+    const blockedMessage = getBlockedIdentityMessage(nextUser.email, nextUser.phone);
+    if (nextUser.accountStatus === "banned" || blockedMessage) {
+      try {
+        const client = getSupabaseClient();
+        if (client) {
+          await client.auth.signOut();
+        }
+      } catch (error) {
+        console.warn("[IRIS] Unable to sign out blocked user", error);
+      }
+      clearAuthenticatedUser();
+      return null;
+    }
+    return applyAuthenticatedUser(nextUser);
+  }
+
+  async function initializeSupabaseBridge() {
+    if (supabaseBridgeInitialized) {
+      return;
+    }
+    const client = getSupabaseClient();
+    if (!client) {
+      return;
+    }
+    supabaseBridgeInitialized = true;
+    client.auth.onAuthStateChange(function (event, session) {
+      setTimeout(function () {
+        syncCurrentUserFromSupabaseSession(session).catch(function (error) {
+          console.warn("[IRIS] Auth state sync failed", error);
+        });
+      }, 0);
+    });
+    try {
+      const sessionResponse = await client.auth.getSession();
+      await syncCurrentUserFromSupabaseSession(sessionResponse && sessionResponse.data ? sessionResponse.data.session : null);
+    } catch (error) {
+      console.warn("[IRIS] Initial Supabase session bootstrap failed", error);
+    }
   }
 
   function getLocaleConfig() {
@@ -7044,7 +7309,35 @@
       "</button></div><div class=\"irisx-status irisx-hidden\" id=\"irisxAuthStatus\"></div></div></div>";
   }
 
-  function signInWithGoogle() {
+  async function signInWithGoogle() {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const status = qs("#irisxAuthStatus");
+      try {
+        const response = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: getSupabaseRedirectUrl()
+          }
+        });
+        if (response.error) {
+          throw response.error;
+        }
+        setInlineStatus(
+          status,
+          langText("Reindirizzamento a Google in corso...", "Redirecting to Google..."),
+          false
+        );
+      } catch (error) {
+        setInlineStatus(
+          status,
+          error && error.message ? error.message : langText("Accesso Google non disponibile.", "Google sign-in is currently unavailable."),
+          true
+        );
+      }
+      return;
+    }
+
     // Check if Firebase is configured
     if (typeof firebase !== "undefined" && firebase.apps && firebase.apps.length > 0) {
       var provider = new firebase.auth.GoogleAuthProvider();
@@ -7268,7 +7561,7 @@
       : langText("Telefono verificato.", "Phone verified."));
   }
 
-  function submitAuth() {
+  async function submitAuth() {
     const isLogin = state.authMode === "login";
     const status = qs("#irisxAuthStatus");
     const nameField = qs("#irisxAuthName");
@@ -7295,6 +7588,100 @@
     if (blockedIdentityMessage) {
       setInlineStatus(status, blockedIdentityMessage, true);
       return;
+    }
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        if (isLogin) {
+          const signInResponse = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+          });
+          if (signInResponse.error) {
+            throw signInResponse.error;
+          }
+          const session = signInResponse.data && signInResponse.data.session;
+          const authUser = signInResponse.data && signInResponse.data.user;
+          let profile = authUser ? await fetchSupabaseProfile(authUser.id) : null;
+          if (!profile && authUser) {
+            profile = await upsertSupabaseProfile({
+              email: email,
+              name: (authUser.user_metadata && (authUser.user_metadata.full_name || authUser.user_metadata.name)) || "",
+              phone: phone,
+              role: deriveUserRole(email)
+            }, authUser);
+          }
+          const profilePhone = normalizePhoneNumber(profile && profile.phone);
+          if (profilePhone && profilePhone !== phone) {
+            await supabase.auth.signOut();
+            setInlineStatus(status, curLang === "it" ? "Numero di telefono non corretto." : "Incorrect phone number.", true);
+            return;
+          }
+          const nextUser = buildWorkspaceUserFromSupabase(authUser, profile);
+          applyAuthenticatedUser(nextUser);
+          showToast(t("login_success"));
+          finalizeAuthSuccess(state.authReturnView);
+          return;
+        }
+
+        const signUpResponse = await supabase.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            emailRedirectTo: getSupabaseRedirectUrl(),
+            data: {
+              full_name: name,
+              phone: phone,
+              role: deriveUserRole(email)
+            }
+          }
+        });
+        if (signUpResponse.error) {
+          throw signUpResponse.error;
+        }
+
+        if (signUpResponse.data && signUpResponse.data.user && signUpResponse.data.session) {
+          await upsertSupabaseProfile({
+            id: signUpResponse.data.user.id,
+            name: name,
+            email: email,
+            phone: phone,
+            role: deriveUserRole(email),
+            city: curLang === "it" ? "Italia" : "Italy",
+            country: curLang === "it" ? "Italia" : "Italy",
+            bio: "",
+            memberSince: String(new Date().getFullYear()),
+            avatar: ""
+          }, signUpResponse.data.user);
+        }
+
+        if (signUpResponse.data && signUpResponse.data.session && signUpResponse.data.user) {
+          const nextUser = buildWorkspaceUserFromSupabase(signUpResponse.data.user, await fetchSupabaseProfile(signUpResponse.data.user.id));
+          applyAuthenticatedUser(nextUser);
+          notifyNewUser(nextUser);
+          showToast(t("register_success"));
+          finalizeAuthSuccess(state.authReturnView);
+          return;
+        }
+
+        setInlineStatus(
+          status,
+          langText(
+            "Account creato. Controlla la tua email per confermare l'accesso e poi entra su IRIS.",
+            "Account created. Check your email to confirm access, then sign in to IRIS."
+          ),
+          false
+        );
+        return;
+      } catch (error) {
+        setInlineStatus(
+          status,
+          error && error.message ? error.message : langText("Autenticazione non disponibile.", "Authentication is currently unavailable."),
+          true
+        );
+        return;
+      }
     }
 
     if (isLogin) {
@@ -7344,19 +7731,8 @@
       renderProfilePanel();
       renderNotifications();
       renderOpsView();
-      const returnView = state.authReturnView;
-      closeAuthModal();
       showToast(t("login_success"));
-      if (state.pendingAction) {
-        flushPendingAction();
-        return;
-      }
-      if (returnView === "sell") {
-        showPage("sell");
-        return;
-      }
-      showPage("buy");
-      showBuyView(returnView || "profile");
+      finalizeAuthSuccess(state.authReturnView);
       return;
     }
 
@@ -7404,19 +7780,8 @@
     notifyNewUser(newUser);
     renderNotifications();
     renderOpsView();
-    const returnView = state.authReturnView;
-    closeAuthModal();
     showToast(t("register_success"));
-    if (state.pendingAction) {
-      flushPendingAction();
-      return;
-    }
-    if (returnView === "sell") {
-      showPage("sell");
-      return;
-    }
-    showPage("buy");
-    showBuyView(returnView || "profile");
+    finalizeAuthSuccess(state.authReturnView);
   }
 
   function setInlineStatus(element, message, isError) {
@@ -7439,13 +7804,31 @@
     callback();
   }
 
-  function logout() {
-    state.currentUser = null;
-    saveJson(STORAGE_KEYS.session, null);
-    syncSessionUi();
-    renderProfilePanel();
-    renderOpsView();
-    renderNotifications();
+  function finalizeAuthSuccess(returnView) {
+    const nextView = returnView || state.authReturnView;
+    closeAuthModal();
+    if (state.pendingAction) {
+      flushPendingAction();
+      return;
+    }
+    if (nextView === "sell") {
+      showPage("sell");
+      return;
+    }
+    showPage("buy");
+    showBuyView(nextView || "profile");
+  }
+
+  async function logout() {
+    const client = getSupabaseClient();
+    if (client) {
+      try {
+        await client.auth.signOut();
+      } catch (error) {
+        console.warn("[IRIS] Supabase sign out failed", error);
+      }
+    }
+    clearAuthenticatedUser();
     syncTopnavChrome();
     showToast(t("logout_success"));
   }
@@ -8715,6 +9098,9 @@
     }
     syncCurrentUserSeller();
     syncSessionUi();
+    upsertSupabaseProfile(state.currentUser).catch(function (error) {
+      console.warn("[IRIS] Unable to sync profile patch to Supabase", error);
+    });
     return state.currentUser;
   }
 

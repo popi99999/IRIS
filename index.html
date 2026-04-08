@@ -118,7 +118,7 @@ body.light-mode .cookie-text a{color:#6d28d9}
 @keyframes pulse-enter{0%,100%{border-color:rgba(196,160,106,.18);box-shadow:none}50%{border-color:rgba(196,160,106,.45);box-shadow:0 0 28px rgba(196,160,106,.12)}}
 .i-t.out .i-n{opacity:0;transform:translateY(-24px) scale(.97);transition:opacity .35s,transform .35s}
 .i-t.out .i-s,.i-t.out .i-tag,.i-t.out .i-tap{opacity:0;transition:opacity .35s}
-#intro.out{opacity:0;pointer-events:none;transition:opacity .45s ease .02s}
+#intro.out{opacity:0;pointer-events:none;transition:opacity .24s ease}
 /* ═══ GOLD INTERACTION SYSTEM ═══ */
 button:active{filter:brightness(1.15)}
 .tn-btn:active,.notif-bell:active{color:var(--gold)!important;transition:color .05s}
@@ -2135,7 +2135,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
   position:fixed;inset:0;background:#000;z-index:99999;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   overflow:hidden;cursor:default;
-  transition:opacity 1.5s cubic-bezier(.4,0,.2,1);
+  transition:opacity .28s cubic-bezier(.4,0,.2,1);
 }
 #iris-cinematic-intro.irisci-fading{opacity:0;pointer-events:none}
 #iris-cinematic-canvas{
@@ -2146,7 +2146,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
   position:absolute;bottom:8vh;left:0;right:0;
   display:flex;flex-direction:column;align-items:center;gap:1.8rem;
   opacity:0;transform:translateY(10px);
-  transition:opacity 1.4s ease,transform 1.4s ease;
+  transition:opacity .35s ease,transform .35s ease;
   pointer-events:none;
 }
 #iris-cinematic-intro.irisci-ready .irisci-bottom{opacity:1;transform:translateY(0);pointer-events:all}
@@ -2809,12 +2809,12 @@ if(introVid){
   introVid.removeAttribute('autoplay');
 }
 setTimeout(()=>{if(!introDone)itext.classList.add('v')},120);
-setTimeout(()=>{if(!introDone)skipIntro()},2000);
+setTimeout(()=>{if(!introDone)skipIntro()},1600);
 function skipIntro(){
   if(introDone)return;introDone=true;
   itext.classList.add('out');
   introEl.classList.add('out');
-  setTimeout(()=>{introEl.style.display='none';showChoiceScreen()},420);
+  setTimeout(()=>{introEl.style.display='none';showChoiceScreen()},240);
 }
 
 /* ═══════ NAVIGATION ═══════ */
@@ -3556,7 +3556,7 @@ var W=0,H=0,FS=0;
 var raf=null,t0=null,dismissed=false;
 var off=document.createElement('canvas'),offCtx=off.getContext('2d');
 
-var SCENE_MS=920,FADE_FRAC=0.18,TOTAL_MS=2800,FOOTER_MS=600;
+var SCENE_MS=700,FADE_FRAC=0.14,TOTAL_MS=1550,FOOTER_MS=260;
 
 function resize(){
   W=canvas.width=off.width=overlay.clientWidth||window.innerWidth;
@@ -3768,7 +3768,7 @@ window.dismissIrisCinematicIntro=function(){
   if(dismissed)return;dismissed=true;
   if(raf)cancelAnimationFrame(raf);
   overlay.classList.add('irisci-fading');
-  setTimeout(function(){overlay.style.display='none';},1500);
+  setTimeout(function(){overlay.style.display='none';},280);
   if(typeof skipIntro==='function')skipIntro();
 };
 

@@ -6162,6 +6162,7 @@
     }
 
     function renderHorizontalFilterRail() {
+      ensureExtendedFilters();
       const host = qs("#activeFilters");
       if (!host) {
         return;
@@ -6468,6 +6469,7 @@
           if (state.viewSyncToken !== viewToken || !qs("#shop-view") || !qs("#shop-view").classList.contains("active")) {
             return;
           }
+          initFilters();
           render();
           renderFooters();
           syncTopnavChrome(targetView);

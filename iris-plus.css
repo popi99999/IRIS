@@ -34,7 +34,7 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
   inset: 0 !important;
   background: rgba(6,3,16,.88) !important;
   backdrop-filter: blur(20px) !important;
-  z-index: 700 !important;
+  z-index: 2000 !important;
   align-items: center !important;
   justify-content: center !important;
 }

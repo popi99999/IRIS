@@ -3508,6 +3508,20 @@ setTimeout(()=>renderFooters(),500);
 </script>
 <script src="./iris-i18n-config.js"></script>
 <script src="./iris-plus.js"></script>
+<script>
+/* ═══ RESTORE DIRECT OFFER FLOW (no auth gate) ═══ */
+window.openOffer = function(id) {
+  offerProdId = id;
+  var modal = document.getElementById('offerModal');
+  var input = document.getElementById('offerInput');
+  if (modal) { modal.classList.add('open'); }
+  if (input) { input.value = ''; setTimeout(function(){ input.focus(); }, 50); }
+};
+window.closeOffer = function() {
+  var modal = document.getElementById('offerModal');
+  if (modal) { modal.classList.remove('open'); }
+};
+</script>
 
 <!-- ═══════ CINEMATIC INTRO ENGINE ═══════ -->
 <script>

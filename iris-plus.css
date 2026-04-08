@@ -6026,14 +6026,29 @@ body.irisx-luxury .irisx-workspace-main{
   background:rgba(255,255,255,.02);
 }
 
+body.irisx-luxury .shop-layout{
+  display:block !important;
+  min-height:auto !important;
+}
+
+body.irisx-luxury .shop-main{
+  width:100%;
+  max-width:none;
+  padding:22px 24px 40px;
+}
+
 body.irisx-luxury .active-filters{
   display:block;
+  width:100%;
   margin:0 0 18px;
 }
 
 body.irisx-luxury .irisx-filter-rail{
-  display:grid;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-end;
   gap:16px;
+  width:100%;
   padding:18px 18px 16px;
   border:1px solid rgba(255,255,255,.06);
   background:rgba(255,255,255,.02);
@@ -6042,11 +6057,16 @@ body.irisx-luxury .irisx-filter-rail{
 body.irisx-luxury .irisx-filter-group{
   display:grid;
   gap:10px;
+  align-content:start;
+  min-width:max-content;
 }
 
 body.irisx-luxury .irisx-filter-group--trust{
   padding-bottom:2px;
-  border-bottom:1px solid rgba(255,255,255,.06);
+  padding-right:18px;
+  margin-right:2px;
+  border-right:1px solid rgba(255,255,255,.06);
+  border-bottom:0;
 }
 
 body.irisx-luxury .irisx-filter-label{
@@ -6118,6 +6138,24 @@ body.irisx-luxury .irisx-active-filter-row{
   display:flex;
   flex-wrap:wrap;
   gap:8px;
+  flex:0 0 100%;
+  padding-top:4px;
+}
+
+body.irisx-luxury .shop-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:18px;
+  margin-bottom:22px;
+}
+
+body.irisx-luxury .shop-count{
+  flex:0 0 auto;
+}
+
+body.irisx-luxury .shop-sort{
+  margin-left:auto;
 }
 
 body.irisx-luxury .pc-trust-badge{
@@ -6293,7 +6331,7 @@ body.irisx-luxury .irisx-modal-card--support{
 
 @media (min-width:1101px){
   body.irisx-luxury .shop-layout > .filters{
-    display:none;
+    display:none !important;
   }
 }
 
@@ -6305,10 +6343,26 @@ body.irisx-luxury .irisx-modal-card--support{
 }
 
 @media (max-width:900px){
+  body.irisx-luxury .shop-main{
+    padding:18px 18px 28px;
+  }
+
   body.irisx-luxury .irisx-filter-chip-row{
     flex-wrap:nowrap;
     overflow:auto hidden;
     padding-bottom:2px;
+  }
+
+  body.irisx-luxury .irisx-filter-group{
+    min-width:100%;
+  }
+
+  body.irisx-luxury .irisx-filter-group--trust{
+    padding-right:0;
+    margin-right:0;
+    border-right:0;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    padding-bottom:10px;
   }
 
   body.irisx-luxury .irisx-filter-chip{
@@ -6328,5 +6382,14 @@ body.irisx-luxury .irisx-modal-card--support{
   body.irisx-luxury .irisx-detail-secondary-actions--sold{
     display:grid;
     grid-template-columns:1fr;
+  }
+
+  body.irisx-luxury .shop-bar{
+    flex-wrap:wrap;
+  }
+
+  body.irisx-luxury .shop-sort{
+    width:100%;
+    margin-left:0;
   }
 }

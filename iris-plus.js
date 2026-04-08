@@ -2688,7 +2688,7 @@
       sell_status_ready: "Le foto sono state caricate e il form è pronto.",
       sell_status_auth: "Per pubblicare davvero serve autenticarti.",
       shipping: "Spedizione",
-      prototype_mode: "Modalità prototipo avanzata",
+      prototype_mode: "ACQUISTO SICURO · IRIS",
       search_short: "Ricerca",
       size_placeholder: "es. M, 42, 30cm...",
       price_min: "Min",
@@ -2787,7 +2787,7 @@
       sell_status_ready: "Photos uploaded and form ready to publish.",
       sell_status_auth: "You need to sign in before publishing.",
       shipping: "Shipping",
-      prototype_mode: "Advanced prototype mode",
+      prototype_mode: "SECURE CHECKOUT · IRIS",
       search_short: "Search",
       size_placeholder: "e.g. M, 42, 30cm...",
       price_min: "Min",
@@ -10223,6 +10223,19 @@
   function setSellerSection(section) {
     state.profileArea = "seller";
     state.sellerSection = section;
+    renderProfilePanel();
+  }
+
+  function renderSellerProfileView() {
+    const sellerView = qs("#seller-view");
+    if (!sellerView || !sellerView.classList.contains("active")) {
+      return;
+    }
+    const container = qs("#sellerContent");
+    if (!container) {
+      return;
+    }
+    state.profileArea = "seller";
     renderProfilePanel();
   }
 

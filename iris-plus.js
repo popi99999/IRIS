@@ -11,6 +11,7 @@
     notifications: "iris-notifications",
     emailOutbox: "iris-email-outbox",
     supportTickets: "iris-support-tickets",
+    measurementRequests: "iris-measurement-requests",
     auditLog: "iris-audit-log",
     chats: "iris-chats",
     reviews: "iris-reviews"
@@ -433,6 +434,7 @@
     notifications: loadJson(STORAGE_KEYS.notifications, []),
     emailOutbox: loadJson(STORAGE_KEYS.emailOutbox, []),
     supportTickets: loadJson(STORAGE_KEYS.supportTickets, []),
+    measurementRequests: loadJson(STORAGE_KEYS.measurementRequests, []),
     auditLog: loadJson(STORAGE_KEYS.auditLog, []),
     reviews: loadJson(STORAGE_KEYS.reviews, []),
     pendingAction: null,
@@ -964,10 +966,48 @@
     return (listing && listing.sz) || langText("N/A", "N/A");
   }
 
+  function inferListingGender(listing) {
+    const explicit = String((listing && (listing.gender || listing.genderLabel)) || "").trim();
+    if (explicit) {
+      const normalizedExplicit = normalizeSearchText(explicit);
+      if (normalizedExplicit.includes("uomo") || normalizedExplicit.includes("men")) return "Men";
+      if (normalizedExplicit.includes("donna") || normalizedExplicit.includes("women")) return "Women";
+      return "Unisex";
+    }
+    const haystack = normalizeSearchText([
+      listing && listing.cat,
+      listing && listing.category,
+      listing && listing.subcategory,
+      listing && listing.productType,
+      listing && listing.name,
+      listing && listing.desc
+    ].join(" "));
+    if (haystack.includes("uomo") || haystack.includes("men")) return "Men";
+    if (haystack.includes("donna") || haystack.includes("women")) return "Women";
+    return "Unisex";
+  }
+
+  function getListingTrustMeta(listing) {
+    const verified = isListingVerified(listing);
+    return {
+      verified: verified,
+      authenticated: verified || String((listing && listing.authenticationStatus) || "").toLowerCase() === "authenticated",
+      guaranteed: Boolean(verified || (listing && listing.inventoryStatus !== "draft")),
+      certificateCode: (listing && listing.certificateCode) || (verified ? `IRIS-CERT-${String(listing.id || "").slice(-6).toUpperCase()}` : ""),
+      authenticatedAt: (listing && listing.authenticatedAt) || (verified ? Date.now() - 1000 * 60 * 60 * 24 * 7 : null)
+    };
+  }
+
+  function isVerifiedSellerProfile(seller) {
+    return Boolean((seller && seller.verified) || Number((seller && seller.sales) || 0) >= 5);
+  }
+
   function getProductMetaSummary(listing) {
     const seller = buildListingSeller(listing || {});
     const colorLabel = getFacetLabel("colors", (listing && listing.color) || "");
+    const gender = inferListingGender(listing);
     return [
+      gender !== "Unisex" ? langText(gender === "Men" ? "Uomo" : "Donna", gender) : langText("Unisex", "Unisex"),
       getListingDisplaySize(listing),
       colorLabel,
       seller.name
@@ -1167,6 +1207,22 @@
 
   function getAvailableColors() {
     return [...new Set(getVisibleCatalogProducts().map((product) => product.color))];
+  }
+
+  function getAvailableGenders() {
+    return ["Men", "Women", "Unisex"].filter(function (gender) {
+      return getVisibleCatalogProducts().some(function (product) {
+        return inferListingGender(product) === gender;
+      });
+    });
+  }
+
+  function getAvailableMaterials() {
+    return [...new Set(
+      getVisibleCatalogProducts()
+        .map(function (product) { return String(product.material || "").trim(); })
+        .filter(Boolean)
+    )].sort();
   }
 
   function getColorSwatch(value) {
@@ -2160,6 +2216,8 @@
     const measurements = listing && listing.measurements && typeof listing.measurements === "object"
       ? listing.measurements
       : null;
+    const trustMeta = getListingTrustMeta(listing);
+    const gender = inferListingGender(listing);
 
     return Object.assign(
       {
@@ -2187,6 +2245,11 @@
         soldAt: null,
         offersEnabled: true,
         minimumOfferAmount: null,
+        gender: gender,
+        verifiedSeller: isVerifiedSellerProfile(seller),
+        irisGuaranteed: trustMeta.guaranteed,
+        certificateCode: trustMeta.certificateCode,
+        authenticatedAt: trustMeta.authenticatedAt,
         ownerEmail: normalizeEmail(((listing && listing.ownerEmail) || seller.email)),
         relistSourceOrderId: null,
         relistSourceProductId: null,
@@ -2216,6 +2279,11 @@
         sizeOriginal: (listing && listing.sizeOriginal) || "",
         sizeSchema: inferSellSizeSchema(listing),
         verified: isListingVerified(listing),
+        gender: (listing && listing.gender) || gender,
+        verifiedSeller: listing && listing.verifiedSeller !== undefined ? Boolean(listing.verifiedSeller) : isVerifiedSellerProfile(seller),
+        irisGuaranteed: listing && listing.irisGuaranteed !== undefined ? Boolean(listing.irisGuaranteed) : trustMeta.guaranteed,
+        certificateCode: (listing && listing.certificateCode) || trustMeta.certificateCode,
+        authenticatedAt: (listing && listing.authenticatedAt) || trustMeta.authenticatedAt,
         measurements: measurements,
         image: getListingImageSources(listing)[0] || "",
         images: getListingImageSources(listing),
@@ -2520,6 +2588,7 @@
     state.notifications = Array.isArray(state.notifications) ? state.notifications : [];
     state.emailOutbox = Array.isArray(state.emailOutbox) ? state.emailOutbox : [];
     state.supportTickets = Array.isArray(state.supportTickets) ? state.supportTickets : [];
+    state.measurementRequests = Array.isArray(state.measurementRequests) ? state.measurementRequests : [];
     state.auditLog = Array.isArray(state.auditLog) ? state.auditLog : [];
     state.reviews = Array.isArray(state.reviews) ? state.reviews : [];
 
@@ -2548,6 +2617,7 @@
     saveJson(STORAGE_KEYS.notifications, state.notifications);
     saveJson(STORAGE_KEYS.emailOutbox, state.emailOutbox);
     saveJson(STORAGE_KEYS.supportTickets, state.supportTickets);
+    saveJson(STORAGE_KEYS.measurementRequests, state.measurementRequests);
     saveJson(STORAGE_KEYS.auditLog, state.auditLog);
     saveJson(STORAGE_KEYS.reviews, state.reviews);
   }
@@ -3967,6 +4037,10 @@
     saveJson(STORAGE_KEYS.supportTickets, state.supportTickets);
   }
 
+  function persistMeasurementRequests() {
+    saveJson(STORAGE_KEYS.measurementRequests, state.measurementRequests);
+  }
+
   function persistAuditLog() {
     saveJson(STORAGE_KEYS.auditLog, state.auditLog);
   }
@@ -4404,25 +4478,42 @@
     }
 
     if (state.opsModalMode === "support") {
+      const supportContext = buildSupportContext(state.opsModalPayload && state.opsModalPayload.orderId, state.opsModalPayload || {});
+      const issueOptions = getIssueOptions();
       modal.innerHTML =
-        "<div class=\"irisx-modal-backdrop\"></div><div class=\"irisx-modal-card\"><div class=\"irisx-card-head\"><div><div class=\"irisx-title\">" +
-        langText("Richiedi supporto", "Request support") +
+        "<div class=\"irisx-modal-backdrop\"></div><div class=\"irisx-modal-card irisx-modal-card--support\"><div class=\"irisx-card-head\"><div><div class=\"irisx-title\">" +
+        ((supportContext && supportContext.issueSeverity) === "dispute" ? langText("Apri disputa", "Open dispute") : langText("Richiedi supporto", "Request support")) +
         "</div><div class=\"irisx-subtitle\">" +
         langText("Apri un ticket legato all'ordine selezionato.", "Open a ticket for the selected order.") +
-        "</div></div><button class=\"irisx-close\" onclick=\"closeOpsModal()\">✕</button></div><div class=\"irisx-card-body\"><div class=\"irisx-form-grid\"><div class=\"irisx-field\"><label for=\"opsTicketReason\">" +
+        "</div></div><button class=\"irisx-close\" onclick=\"closeOpsModal()\">✕</button></div><div class=\"irisx-card-body\">" +
+        (supportContext && supportContext.order ? `<div class="irisx-support-context-card">
+          <div class="irisx-support-context-kicker">${langText("Contesto collegato automaticamente", "Context linked automatically")}</div>
+          <div class="irisx-support-context-grid">
+            <div><strong>${langText("Ordine", "Order")}</strong><span>${escapeHtml(supportContext.order.number)}</span></div>
+            <div><strong>${langText("Lato", "Side")}</strong><span>${escapeHtml(langText(supportContext.role === "buyer" ? "Acquirente" : "Venditore", supportContext.role === "buyer" ? "Buyer" : "Seller"))}</span></div>
+            <div><strong>${langText("Articolo", "Item")}</strong><span>${escapeHtml(supportContext.product ? supportContext.product.brand + " " + supportContext.product.name : langText("Ordine completo", "Full order"))}</span></div>
+            <div><strong>${langText("Riferimento", "Reference")}</strong><span>${escapeHtml(supportContext.product ? String(supportContext.product.productId || "—") : supportContext.order.id)}</span></div>
+          </div>
+        </div>` : "") +
+        "<div class=\"irisx-form-grid irisx-form-grid--support\"><div class=\"irisx-field\"><label for=\"opsTicketReason\">" +
         langText("Motivo", "Reason") +
-        "</label><select id=\"opsTicketReason\"><option value=\"shipping\">" +
-        langText("Problema spedizione", "Shipping issue") +
-        "</option><option value=\"item_not_as_described\">" +
-        langText("Articolo non conforme", "Item not as described") +
-        "</option><option value=\"payment\">" +
-        langText("Problema pagamento", "Payment issue") +
-        "</option><option value=\"other\">" +
-        langText("Altro", "Other") +
-        "</option></select></div><div class=\"irisx-field\"><label for=\"opsTicketMessage\">" +
+        "</label><select id=\"opsTicketReason\">" +
+        issueOptions.map(function (option) {
+          const selected = supportContext && supportContext.issueType === option.id ? " selected" : "";
+          return `<option value="${escapeHtml(option.id)}"${selected}>${escapeHtml(langText(option.it, option.en))}</option>`;
+        }).join("") +
+        "</select></div><div class=\"irisx-field\"><label for=\"opsTicketSeverity\">" +
+        langText("Tipo richiesta", "Request type") +
+        "</label><select id=\"opsTicketSeverity\"><option value=\"support\"" +
+        (((supportContext && supportContext.issueSeverity) || "support") === "support" ? " selected" : "") +
+        ">" + langText("Supporto assistito", "Guided support") + "</option><option value=\"dispute\"" +
+        (((supportContext && supportContext.issueSeverity) || "support") === "dispute" ? " selected" : "") +
+        ">" + langText("Disputa / escalation", "Dispute / escalation") + "</option></select></div><div class=\"irisx-field irisx-field--full\"><label for=\"opsTicketMessage\">" +
         langText("Dettagli", "Details") +
-        "</label><textarea id=\"opsTicketMessage\"></textarea></div></div><div class=\"irisx-actions\"><button class=\"irisx-primary\" onclick=\"submitOpsModal()\">" +
-        langText("Apri ticket", "Open ticket") +
+        "</label><textarea id=\"opsTicketMessage\" placeholder=\"" +
+        escapeHtml(langText("Spiega il problema: spedizione, autenticità, condizioni, accessori mancanti o altro.", "Explain the issue: shipping, authenticity, condition, missing accessories, or anything else.")) +
+        "\"></textarea></div></div><div class=\"irisx-actions\"><button class=\"irisx-primary\" onclick=\"submitOpsModal()\">" +
+        ((supportContext && supportContext.issueSeverity) === "dispute" ? langText("Apri disputa", "Open dispute") : langText("Apri ticket", "Open ticket")) +
         "</button><button class=\"irisx-secondary\" onclick=\"closeOpsModal()\">" +
         langText("Annulla", "Cancel") +
         "</button></div></div></div>";
@@ -4977,14 +5068,16 @@
     }
   }
 
-  function openSupportModal(orderId) {
-    openOpsModal("support", { orderId: orderId });
+  function openSupportModal(orderId, options) {
+    openOpsModal("support", Object.assign({ orderId: orderId }, options || {}));
   }
 
   function submitSupportTicket(orderId) {
     const reasonField = qs("#opsTicketReason");
     const messageField = qs("#opsTicketMessage");
+    const severityField = qs("#opsTicketSeverity");
     const reason = reasonField ? reasonField.value.trim() : "other";
+    const severity = severityField ? severityField.value.trim() : "support";
     const message = messageField ? messageField.value.trim() : "";
 
     if (!message) {
@@ -4992,18 +5085,25 @@
       return;
     }
 
-    const order = state.orders.find(function (candidate) { return candidate.id === orderId; });
-    if (!order) {
+    const supportContext = buildSupportContext(orderId, state.opsModalPayload || {});
+    if (!supportContext || !supportContext.order) {
       return;
     }
+    const order = supportContext.order;
+    const product = supportContext.product;
 
     const ticket = {
       id: createId("tkt"),
       orderId: order.id,
       orderNumber: order.number,
+      productId: product ? product.productId : "",
+      productTitle: product ? `${product.brand} ${product.name}` : "",
       buyerEmail: order.buyerEmail,
       sellerEmail: order.items[0] ? order.items[0].sellerEmail : "",
-      status: "open",
+      requesterEmail: normalizeEmail((state.currentUser && state.currentUser.email) || ""),
+      requesterRole: supportContext.role,
+      severity: severity,
+      status: severity === "dispute" ? "in_review" : "open",
       reason: reason,
       message: message,
       createdAt: Date.now(),
@@ -5030,14 +5130,14 @@
     createNotification({
       audience: "admin",
       kind: "support",
-      title: langText("Nuovo ticket supporto", "New support ticket"),
-      body: order.number + " - " + reason,
+      title: severity === "dispute" ? langText("Nuova disputa", "New dispute") : langText("Nuovo ticket supporto", "New support ticket"),
+      body: order.number + " - " + getIssueLabel(reason),
       recipientEmail: PLATFORM_CONFIG.ownerEmail
     });
     createNotification({
       audience: "user",
       kind: "support",
-      title: langText("Ticket aperto", "Ticket opened"),
+      title: severity === "dispute" ? langText("Disputa aperta", "Dispute opened") : langText("Ticket aperto", "Ticket opened"),
       body: order.number,
       recipientEmail: order.buyerEmail
     });
@@ -5048,7 +5148,9 @@
     closeOpsModal();
     renderProfilePanel();
     renderOpsView();
-    showToast(langText("Ticket creato.", "Ticket created."));
+    showToast(severity === "dispute"
+      ? langText("Disputa aperta con il contesto ordine già collegato.", "Dispute opened with the order context already attached.")
+      : langText("Ticket creato con il contesto dell'ordine collegato.", "Ticket created with the order context attached."));
   }
 
   function resolveSupportTicket(ticketId) {
@@ -6020,7 +6122,85 @@
         .join("");
     };
 
+    function ensureExtendedFilters() {
+      filters = Object.assign({
+        cats: [],
+        brands: [],
+        conds: [],
+        fits: [],
+        colors: [],
+        genders: [],
+        materials: [],
+        trust: [],
+        size: "",
+        pmin: "",
+        pmax: "",
+        search: ""
+      }, filters || {});
+    }
+
+    function getTrustFilterOptions() {
+      return [
+        { id: "verified", label: langText("IRIS Verified", "IRIS Verified") },
+        { id: "authenticated", label: langText("Authenticated by IRIS", "Authenticated by IRIS") },
+        { id: "guaranteed", label: langText("IRIS Guaranteed", "IRIS Guaranteed") }
+      ];
+    }
+
+    function getFilterTokenLabel(kind, value) {
+      if (kind === "genders") {
+        return langText(value === "Men" ? "Uomo" : value === "Women" ? "Donna" : "Unisex", value);
+      }
+      if (kind === "materials") {
+        return value;
+      }
+      if (kind === "trust") {
+        const option = getTrustFilterOptions().find(function (item) { return item.id === value; });
+        return option ? option.label : value;
+      }
+      return getFacetLabel(kind, value);
+    }
+
+    function renderHorizontalFilterRail() {
+      const host = qs("#activeFilters");
+      if (!host) {
+        return;
+      }
+      const groups = [
+        { key: "brands", label: langText("Brand", "Brand"), values: getAvailableBrands().slice(0, 10) },
+        { key: "genders", label: langText("Genere", "Gender"), values: getAvailableGenders() },
+        { key: "cats", label: langText("Categoria", "Category"), values: getAvailableCategories() },
+        { key: "conds", label: langText("Condizione", "Condition"), values: getAvailableConditions() },
+        { key: "materials", label: langText("Materiale", "Material"), values: getAvailableMaterials().slice(0, 8) }
+      ];
+      const trustChips = getTrustFilterOptions().map(function (option) {
+        return `<button class="irisx-filter-chip irisx-filter-chip--trust${filters.trust.includes(option.id) ? " is-active" : ""}" onclick="toggleFilterChip('trust', '${escapeHtml(option.id)}')">${escapeHtml(option.label)}</button>`;
+      }).join("");
+      const groupMarkup = groups.map(function (group) {
+        if (!group.values.length) {
+          return "";
+        }
+        return `<div class="irisx-filter-group"><span class="irisx-filter-label">${escapeHtml(group.label)}</span><div class="irisx-filter-chip-row">${group.values.map(function (value) {
+          return `<button class="irisx-filter-chip${filters[group.key].includes(value) ? " is-active" : ""}" onclick="toggleFilterChip('${group.key}','${escapeHtml(value)}')">${escapeHtml(getFilterTokenLabel(group.key, value))}</button>`;
+        }).join("")}</div></div>`;
+      }).join("");
+      host.innerHTML = `<div class="irisx-filter-rail">
+        <div class="irisx-filter-group irisx-filter-group--trust"><span class="irisx-filter-label">${escapeHtml(langText("Fiducia IRIS", "IRIS trust"))}</span><div class="irisx-filter-chip-row">${trustChips}</div></div>
+        ${groupMarkup}
+        <div class="irisx-filter-group irisx-filter-group--price">
+          <span class="irisx-filter-label">${escapeHtml(langText("Prezzo", "Price"))}</span>
+          <div class="irisx-filter-price-row">
+            <input id="irisxFilterMin" class="irisx-filter-input" type="text" inputmode="decimal" placeholder="${escapeHtml(t("price_min"))}" value="${escapeHtml(filters.pmin || "")}" onblur="applyFilters()">
+            <input id="irisxFilterMax" class="irisx-filter-input" type="text" inputmode="decimal" placeholder="${escapeHtml(t("price_max"))}" value="${escapeHtml(filters.pmax || "")}" onblur="applyFilters()">
+            <button class="irisx-filter-reset" onclick="clearFilters()">${escapeHtml(langText("Reset", "Reset"))}</button>
+          </div>
+        </div>
+        <div class="active-filters irisx-active-filter-row" id="activeFilterChips"></div>
+      </div>`;
+    }
+
     initFilters = function () {
+      ensureExtendedFilters();
       const brandSearch = qs(".filters .f-search");
       const brandQuery = brandSearch ? brandSearch.value : "";
       qs("#f-cats").innerHTML = getAvailableCategories()
@@ -6076,10 +6256,11 @@
       if (qs("#f-pmax")) {
         qs("#f-pmax").value = filters.pmax || "";
       }
+      renderHorizontalFilterRail();
     };
 
     clearFilters = function () {
-      filters = { cats: [], brands: [], conds: [], fits: [], colors: [], size: "", pmin: "", pmax: "", search: "" };
+      filters = { cats: [], brands: [], conds: [], fits: [], colors: [], genders: [], materials: [], trust: [], size: "", pmin: "", pmax: "", search: "" };
       const searchInput = qs("#searchInput");
       if (searchInput) {
         searchInput.value = "";
@@ -6094,8 +6275,8 @@
 
     applyFilters = function () {
       const sizeInput = qs("#f-size");
-      const minInput = qs("#f-pmin");
-      const maxInput = qs("#f-pmax");
+      const minInput = qs("#irisxFilterMin") || qs("#f-pmin");
+      const maxInput = qs("#irisxFilterMax") || qs("#f-pmax");
       filters.size = sizeInput ? sizeInput.value.trim() : "";
       filters.pmin = minInput ? minInput.value.trim() : "";
       filters.pmax = maxInput ? maxInput.value.trim() : "";
@@ -6112,6 +6293,7 @@
     };
 
     getFiltered = function () {
+      ensureExtendedFilters();
       const minPrice = parseLocalizedNumberInput(filters.pmin);
       const maxPrice = parseLocalizedNumberInput(filters.pmax);
       const sizeQuery = normalizeSearchText(filters.size);
@@ -6121,12 +6303,20 @@
         const normalizedCategory = normalizeCategoryValue(product.cat);
         const convertedPrice = convertBaseEurAmount(product.price);
         const searchable = getProductSearchIndex(product);
+        const trustMeta = getListingTrustMeta(product);
+        const gender = inferListingGender(product);
+        const material = String(product.material || "").trim();
 
         if (filters.cats.length && !filters.cats.includes(normalizedCategory)) return false;
         if (filters.brands.length && !filters.brands.includes(product.brand)) return false;
         if (filters.conds.length && !filters.conds.includes(product.cond)) return false;
         if (filters.fits.length && !filters.fits.includes(product.fit)) return false;
         if (filters.colors.length && !filters.colors.includes(product.color)) return false;
+        if (filters.genders.length && !filters.genders.includes(gender)) return false;
+        if (filters.materials.length && !filters.materials.includes(material)) return false;
+        if (filters.trust.includes("verified") && !trustMeta.verified) return false;
+        if (filters.trust.includes("authenticated") && !trustMeta.authenticated) return false;
+        if (filters.trust.includes("guaranteed") && !trustMeta.guaranteed) return false;
         if (sizeQuery && !normalizeSearchText(product.sz + " " + product.dims).includes(sizeQuery)) return false;
         if (minPrice !== null && convertedPrice < minPrice) return false;
         if (maxPrice !== null && convertedPrice > maxPrice) return false;
@@ -6142,6 +6332,7 @@
     };
 
     removeChip = function (type, value) {
+      ensureExtendedFilters();
       if (type === "size" || type === "pmin" || type === "pmax" || type === "search") {
         filters[type] = "";
         if (type === "search" && qs("#searchInput")) {
@@ -6156,6 +6347,22 @@
       initFilters();
       render();
     };
+
+    toggleFilterChip = function (type, value) {
+      ensureExtendedFilters();
+      if (!Array.isArray(filters[type])) {
+        return;
+      }
+      const idx = filters[type].indexOf(value);
+      if (idx > -1) {
+        filters[type].splice(idx, 1);
+      } else {
+        filters[type].push(value);
+      }
+      initFilters();
+      render();
+    };
+    window.toggleFilterChip = toggleFilterChip;
 
     const originalToggleFav = toggleFav;
     toggleFav = function (id, button) {
@@ -6324,14 +6531,17 @@
     render = function () {
       const items = getFiltered().filter(isProductPurchasable);
       const grid = qs("#grid");
-      const activeFilters = qs("#activeFilters");
+      const activeFilters = qs("#activeFilterChips") || qs("#activeFilters");
 
       qs("#resultCount").textContent = items.length;
 
       const chips = [];
+      filters.genders.forEach((value) => chips.push({ label: getFilterTokenLabel("genders", value), type: "genders", value: value }));
       filters.cats.forEach((value) => chips.push({ label: getFacetLabel("cats", value), type: "cats", value: value }));
       filters.brands.forEach((value) => chips.push({ label: value, type: "brands", value: value }));
       filters.conds.forEach((value) => chips.push({ label: getFacetLabel("conds", value), type: "conds", value: value }));
+      filters.materials.forEach((value) => chips.push({ label: value, type: "materials", value: value }));
+      filters.trust.forEach((value) => chips.push({ label: getFilterTokenLabel("trust", value), type: "trust", value: value }));
       filters.fits.forEach((value) => chips.push({ label: getFacetLabel("fits", value), type: "fits", value: value }));
       filters.colors.forEach((value) => chips.push({ label: getFacetLabel("colors", value), type: "colors", value: value }));
       if (filters.size) chips.push({ label: t("size") + ": " + filters.size, type: "size", value: filters.size });
@@ -6339,18 +6549,20 @@
       if (filters.pmax) chips.push({ label: t("price_max") + ": " + formatLocalCurrencyValue(filters.pmax), type: "pmax", value: filters.pmax });
       if (filters.search) chips.push({ label: t("search_short") + ": " + filters.search, type: "search", value: filters.search });
 
-      activeFilters.innerHTML = chips
-        .map(
-          (chip) =>
-            "<div class=\"af-chip\">" +
-            escapeHtml(chip.label) +
-            "<button onclick=\"removeChip('" +
-            chip.type +
-            "','" +
-            escapeHtml(chip.value) +
-            "')\">✕</button></div>"
-        )
-        .join("");
+      if (activeFilters) {
+        activeFilters.innerHTML = chips
+          .map(
+            (chip) =>
+              "<div class=\"af-chip\">" +
+              escapeHtml(chip.label) +
+              "<button onclick=\"removeChip('" +
+              chip.type +
+              "','" +
+              escapeHtml(chip.value) +
+              "')\">✕</button></div>"
+          )
+          .join("");
+      }
 
       grid.innerHTML = items.map((product) => productCardMarkup(product)).join("");
       renderHomeView();
@@ -6648,8 +6860,12 @@
     const liked = favorites.has(product.id);
     const productIdExpr = inlineJsValue(product.id);
     const seller = buildListingSeller(product);
+    const trustMeta = getListingTrustMeta(product);
     const vacationBadge = isSellerOnVacation(product)
       ? "<span class=\"pc-vacation-badge\">🏖 " + langText("In vacanza", "On vacation") + "</span>"
+      : "";
+    const trustBadge = trustMeta.verified
+      ? "<span class=\"pc-trust-badge\">" + escapeHtml(langText("IRIS Verified", "IRIS Verified")) + "</span>"
       : "";
     return (
       "<div class=\"pc\" onclick=\"showDetail(" +
@@ -6664,6 +6880,7 @@
       (liked ? "♥" : "♡") +
       "</button>" +
       vacationBadge +
+      trustBadge +
       productVisualMarkup(product) +
       "<div class=\"pinfo\"><div class=\"p-brand\">" +
       escapeHtml(product.brand) +
@@ -7884,6 +8101,7 @@
             actions.push("<button class=\"irisx-secondary\" onclick=\"confirmOrderDelivered('" + order.id + "')\">" + langText("Conferma consegna", "Confirm delivery") + "</button>");
           }
           actions.push("<button class=\"irisx-secondary\" onclick=\"openSupportModal('" + order.id + "')\">" + langText("Supporto", "Support") + "</button>");
+          actions.push("<button class=\"irisx-secondary\" onclick=\"openSupportModal('" + order.id + "', { issueSeverity: 'dispute', role: 'buyer', issueType: 'item_not_as_described' })\">" + langText("Segnala problema", "Report problem") + "</button>");
           if (order.status === "delivered" && order.reviewStatus !== "submitted") {
             actions.push("<button class=\"irisx-secondary\" onclick=\"openReviewModal('" + order.id + "')\">" + langText("Lascia recensione", "Leave review") + "</button>");
           }
@@ -7928,6 +8146,8 @@
           if (order.status === "shipped") {
             actions.push("<button class=\"irisx-secondary\" disabled>" + langText("In transito", "In transit") + "</button>");
           }
+          actions.push("<button class=\"irisx-secondary\" onclick=\"openSupportModal('" + order.id + "', { role: 'seller', issueType: 'order_problem' })\">" + langText("Supporto ordine", "Order support") + "</button>");
+          actions.push("<button class=\"irisx-secondary\" onclick=\"openSupportModal('" + order.id + "', { role: 'seller', issueSeverity: 'dispute', issueType: 'shipping_delay' })\">" + langText("Segnala problema", "Report problem") + "</button>");
 
           return "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" +
             escapeHtml(order.number) +
@@ -7958,17 +8178,18 @@
     return "<div class=\"irisx-order-list\">" +
       tickets
         .map(function (ticket) {
-          return "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" +
-            escapeHtml(ticket.orderNumber || ticket.orderId) +
-            "</strong><span>" +
-            escapeHtml(ticket.status) +
-            "</span></div><div class=\"irisx-order-items\"><div>" +
-            escapeHtml(ticket.reason) +
-            "</div><div>" +
-            escapeHtml(ticket.message) +
-            "</div><div>" +
-            escapeHtml(formatDateTime(ticket.createdAt)) +
-            "</div></div></div>";
+          return `<div class="irisx-order-card irisx-order-card--support">
+            <div class="irisx-order-head">
+              <strong>${escapeHtml(ticket.orderNumber || ticket.orderId)}</strong>
+              <span class="irisx-badge ${ticket.severity === "dispute" ? "irisx-badge--warning" : ""}">${escapeHtml(getTicketStatusLabel(ticket.status))}</span>
+            </div>
+            <div class="irisx-support-ticket-meta">
+              <span>${escapeHtml(getIssueLabel(ticket.reason))}</span>
+              <span>${escapeHtml(ticket.productTitle || langText("Ordine completo", "Full order"))}</span>
+              <span>${escapeHtml(langText(ticket.requesterRole === "seller" ? "Lato venditore" : "Lato acquirente", ticket.requesterRole === "seller" ? "Seller side" : "Buyer side"))}</span>
+            </div>
+            <div class="irisx-order-items"><div>${escapeHtml(ticket.message)}</div><div>${escapeHtml(formatDateTime(ticket.createdAt))}</div></div>
+          </div>`;
         })
         .join("") +
       "</div>";
@@ -9396,6 +9617,7 @@
       return `<div class="irisx-empty-state">${langText("Nessun ordine selezionato.", "No order selected.")}</div>`;
     }
     const actions = getOrderLifecycleActions(order, scope).join("");
+    const supportRole = scope === "seller" ? "seller" : "buyer";
     return `<div class="irisx-order-card irisx-order-card--expanded">
       <div class="irisx-order-head">
         <strong>${escapeHtml(order.number)}</strong>
@@ -9425,6 +9647,16 @@
             <div>${langText("Payout status", "Payout status")}: ${escapeHtml(order.payment.payoutStatus || "pending")}</div>
             <div>${langText("Ricevuta", "Receipt")}: ${escapeHtml(order.payment.receiptNumber || "—")}</div>
           </div>
+        </div>
+      </div>
+      <div class="irisx-order-support-strip">
+        <div>
+          <strong>${langText("Assistenza IRIS collegata a questo ordine", "IRIS support linked to this order")}</strong>
+          <span>${langText("Supporto, escalation e dispute mantengono automaticamente riferimento a ordine e articolo.", "Support, escalation, and disputes automatically keep order and item context attached.")}</span>
+        </div>
+        <div class="irisx-order-support-actions">
+          <button class="irisx-secondary" onclick="openSupportModal('${order.id}', { role: '${supportRole}', issueType: 'order_problem' })">${langText("Supporto", "Support")}</button>
+          <button class="irisx-secondary" onclick="openSupportModal('${order.id}', { role: '${supportRole}', issueSeverity: 'dispute', issueType: 'item_not_as_described' })">${langText("Apri disputa", "Open dispute")}</button>
         </div>
       </div>
       ${renderOrderTimeline(order)}
@@ -11664,28 +11896,160 @@
     finalizeCheckout(true);
   };
 
-  function renderMeasurementsSection(listing) {
-    if (!listing || !listing.measurements || typeof listing.measurements !== "object") {
-      return "";
+  function getMeasurementRequestRecord(listingId) {
+    if (!state.currentUser || !listingId) {
+      return null;
     }
+    return state.measurementRequests.find(function (request) {
+      return String(request.listingId) === String(listingId) &&
+        normalizeEmail(request.requesterEmail) === normalizeEmail(state.currentUser.email);
+    }) || null;
+  }
+
+  function requestMeasurementsForListing(listingId) {
+    requireAuth(function () {
+      const listing = getListingById(listingId);
+      if (!listing || (listing.measurements && Object.keys(listing.measurements || {}).length)) {
+        return;
+      }
+      const existing = getMeasurementRequestRecord(listingId);
+      if (existing) {
+        showToast(langText("Richiesta misure già inviata.", "Measurements request already sent."));
+        return;
+      }
+      const request = {
+        id: createId("msr"),
+        listingId: listing.id,
+        requesterEmail: normalizeEmail(state.currentUser.email),
+        requesterName: state.currentUser.name || langText("Cliente IRIS", "IRIS customer"),
+        sellerEmail: normalizeEmail((listing.ownerEmail || (listing.seller && listing.seller.email) || "")),
+        status: "open",
+        createdAt: Date.now()
+      };
+      state.measurementRequests.unshift(request);
+      persistMeasurementRequests();
+      createNotification({
+        audience: "user",
+        kind: "support",
+        title: langText("Richiesta misure ricevuta", "Measurements request received"),
+        body: `${listing.brand} ${listing.name}`,
+        recipientEmail: request.requesterEmail
+      });
+      createNotification({
+        audience: "user",
+        kind: "support",
+        title: langText("Un buyer ha chiesto le misure", "A buyer requested measurements"),
+        body: `${listing.brand} ${listing.name}`,
+        recipientEmail: request.sellerEmail
+      });
+      if (qs("#detail-view.active")) {
+        showDetail(listing.id);
+      }
+      renderProfilePanel();
+      showToast(langText("Richiesta misure inviata al seller.", "Measurements request sent to the seller."));
+    });
+  }
+
+  function getIssueOptions() {
+    return [
+      { id: "order_problem", it: "Problema ordine", en: "Order problem", severity: "support" },
+      { id: "shipping_delay", it: "Ritardo spedizione", en: "Shipping delay", severity: "support" },
+      { id: "lost_parcel", it: "Pacco smarrito", en: "Lost parcel", severity: "dispute" },
+      { id: "wrong_item", it: "Articolo sbagliato", en: "Wrong item", severity: "dispute" },
+      { id: "damaged_item", it: "Articolo danneggiato", en: "Item damaged", severity: "dispute" },
+      { id: "item_not_as_described", it: "Articolo non conforme", en: "Item not as described", severity: "dispute" },
+      { id: "missing_measurements", it: "Misure o dettagli mancanti", en: "Missing measurements or details", severity: "support" },
+      { id: "payment_issue", it: "Problema pagamento", en: "Payment issue", severity: "support" },
+      { id: "return_refund", it: "Reso o rimborso", en: "Return or refund issue", severity: "dispute" },
+      { id: "authenticity_concern", it: "Dubbi di autenticità", en: "Authenticity concern", severity: "dispute" },
+      { id: "other", it: "Altro", en: "Other support request", severity: "support" }
+    ];
+  }
+
+  function getIssueLabel(issueId) {
+    const issue = getIssueOptions().find(function (option) { return option.id === issueId; });
+    return issue ? langText(issue.it, issue.en) : langText("Supporto", "Support");
+  }
+
+  function getTicketStatusLabel(status) {
+    const labels = {
+      open: { it: "Aperto", en: "Open" },
+      in_review: { it: "In revisione", en: "In review" },
+      resolved: { it: "Risolto", en: "Resolved" }
+    };
+    const meta = labels[status] || labels.open;
+    return langText(meta.it, meta.en);
+  }
+
+  function getRelevantOrderForListing(listing) {
+    if (!listing || !state.currentUser) {
+      return null;
+    }
+    const currentEmail = normalizeEmail(state.currentUser.email);
+    return state.orders.find(function (order) {
+      return (normalizeEmail(order.buyerEmail) === currentEmail || order.sellerEmails.includes(currentEmail)) &&
+        Array.isArray(order.items) &&
+        order.items.some(function (item) { return String(item.productId) === String(listing.id); });
+    }) || null;
+  }
+
+  function buildSupportContext(orderId, options) {
+    const order = state.orders.find(function (candidate) { return String(candidate.id) === String(orderId); });
+    if (!order) {
+      return null;
+    }
+    const opts = options || {};
+    const currentEmail = normalizeEmail((state.currentUser && state.currentUser.email) || "");
+    const role = opts.role || (normalizeEmail(order.buyerEmail) === currentEmail ? "buyer" : "seller");
+    const productRef = opts.productId
+      ? (order.items || []).find(function (item) { return String(item.productId) === String(opts.productId); })
+      : (order.items || [])[0];
+    return {
+      order: order,
+      role: role,
+      issueType: opts.issueType || "order_problem",
+      issueSeverity: opts.issueSeverity || "support",
+      product: productRef || null
+    };
+  }
+
+  function renderMeasurementsSection(listing) {
     const categoryKey = (listing.categoryKey) || inferSellCategoryKey(listing);
     const subcategoryKey = (listing.subcategoryKey) || inferSellSubcategoryKey(listing, categoryKey);
     const schema = getMeasurementSchema(categoryKey, subcategoryKey);
     if (!schema || !Array.isArray(schema.fields) || !schema.fields.length) {
       return "";
     }
+    const hasMeasurements = listing && listing.measurements && typeof listing.measurements === "object";
+    const request = getMeasurementRequestRecord(listing && listing.id);
     const rows = schema.fields
       .filter(function (field) {
-        const val = listing.measurements[field.id];
+        const val = hasMeasurements ? listing.measurements[field.id] : "";
         return val !== undefined && val !== null && String(val).trim() !== "";
       })
       .map(function (field) {
         return `<div class="det-fit-item"><div class="det-fit-label">${escapeHtml(langText(field.it, field.en))}</div><div class="det-fit-value">${escapeHtml(String(listing.measurements[field.id]))} cm</div></div>`;
       });
-    if (!rows.length) {
-      return "";
-    }
     const title = schema.title ? langText(schema.title.it, schema.title.en) : langText("Misure", "Measurements");
+    if (!rows.length) {
+      const ownListing = isCurrentUserListingOwner(listing);
+      return `<div class="det-section det-section--measurement-request">
+        <div class="det-section-title">${escapeHtml(title)}</div>
+        <div class="irisx-measurement-request-card">
+          <div>
+            <strong>${langText("Misure non ancora disponibili", "Measurements not available yet")}</strong>
+            <span>${ownListing
+              ? langText("Aggiungi misure precise per aumentare fiducia, conversione e qualità dell'annuncio.", "Add precise measurements to improve trust, conversion, and listing quality.")
+              : langText("Possiamo chiedere al seller misure precise del capo o dell'accessorio.", "We can ask the seller for precise garment or accessory measurements.")}</span>
+          </div>
+          ${ownListing
+            ? `<button class="irisx-secondary irisx-secondary--wide" onclick="loadDraftIntoSellForm(${inlineJsValue(listing.id)})">${langText("Aggiungi misure", "Add measurements")}</button>`
+            : request
+            ? `<div class="irisx-measurement-request-status">${langText("Richiesta inviata", "Request sent")} · ${escapeHtml(formatRelativeTime(request.createdAt))}</div>`
+            : `<button class="irisx-secondary irisx-secondary--wide" onclick="requestMeasurementsForListing(${inlineJsValue(listing.id)})">${langText("Richiedi misure", "Request measurements")}</button>`}
+        </div>
+      </div>`;
+    }
     return `<div class="det-section"><div class="det-section-title">${escapeHtml(title)}</div><div class="det-fit">${rows.join("")}</div></div>`;
   }
 
@@ -11709,13 +12073,25 @@
     const seller = buildListingSeller(product);
     const sellerIdExpr = inlineJsValue(seller.id);
     const ownListing = isCurrentUserListingOwner(product);
+    const relatedOrder = getRelevantOrderForListing(product);
     const favoriteLabel = liked ? t("saved_fav") : t("add_fav");
     const favoriteIcon = liked ? "♥" : "♡";
     const minimumOfferLine = product.minimumOfferAmount !== null && product.minimumOfferAmount !== undefined
       ? `${langText("Offerta minima", "Minimum offer")}: ${formatCurrency(product.minimumOfferAmount)}`
       : langText("Il seller accetta offerte vincolanti con pre-autorizzazione pagamento.", "The seller accepts binding offers with payment pre-authorization.");
     if (!isProductPurchasable(product)) {
-      return `<div class="irisx-note">${langText("Questo articolo risulta già venduto o non disponibile per nuovi acquisti.", "This item is already sold or unavailable.")}</div><div class="irisx-detail-action-stack irisx-detail-action-stack--compact"><div class="irisx-detail-utility-actions irisx-detail-utility-actions--compact"><button class="det-fav irisx-detail-fav-pill" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button><button class="irisx-secondary" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button></div></div>`;
+      return `<div class="irisx-sold-state-card">
+        <div class="irisx-kicker">${langText("Articolo venduto", "Item sold")}</div>
+        <strong>${langText("Questa inserzione resta disponibile come riferimento e storico IRIS.", "This listing remains available as a reference and part of the IRIS history.")}</strong>
+        <span>${langText("Troverai dettagli, seller card, protezioni e assistenza collegata se l'ordine ti appartiene.", "You can still view details, seller information, protections, and linked support if the order belongs to you.")}</span>
+      </div>
+      <div class="irisx-detail-action-stack irisx-detail-action-stack--compact">
+        <div class="irisx-detail-secondary-actions irisx-detail-secondary-actions--sold">
+          <button class="det-fav irisx-detail-fav-pill" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button>
+          ${relatedOrder ? `<button class="irisx-secondary" onclick="openSupportModal('${escapeHtml(relatedOrder.id)}', { productId: '${escapeHtml(product.id)}', issueType: 'order_problem' })">${langText("Supporto ordine", "Order support")}</button>` : `<button class="irisx-secondary" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button>`}
+        </div>
+        ${relatedOrder ? `<div class="irisx-note irisx-note--compact">${langText("Hai acquistato o gestito questo ordine su IRIS: puoi aprire assistenza o disputa senza reinserire i dati del prodotto.", "You bought or handled this order on IRIS: support and disputes already include the product context.")}</div>` : ""}
+      </div>`;
     }
     if (ownListing) {
       return `<div class="irisx-note irisx-note--owner">${langText("Stai guardando un tuo annuncio. Da qui puoi gestirlo, ma non comprarlo o fare offerte.", "You are viewing your own listing. From here you can manage it, but not buy it or make offers.")}</div>
@@ -11781,6 +12157,8 @@
     const viewerOwnsListing = isCurrentUserListingOwner(product);
     const chips = getListingChips(product);
     const seller = buildListingSeller(product);
+    const trustMeta = getListingTrustMeta(product);
+    const relatedOrder = getRelevantOrderForListing(product);
     const sellerIdExpr = inlineJsValue(seller.id);
     const productIdExpr = inlineJsValue(product.id);
     const sellerPrimaryAction = viewerOwnsListing
@@ -11791,10 +12169,27 @@
       : `showSeller('${escapeHtml(seller.id)}')`;
     const similar = prods.filter(function (item) { return !sameEntityId(item.id, product.id) && (item.brand === product.brand || item.cat === product.cat); }).slice(0, 4);
     const detailShippingTrustMarkup = `<div class="irisx-detail-core-grid">
-      <div class="irisx-inline-card"><div><strong>${langText("Spedizione", "Shipping")}</strong><span>${langText("Assicurata e tracciata", "Insured and tracked")}</span></div><em>${formatCurrency(SHIPPING_COST)}</em></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Spedizione tracciata", "Tracked shipping")}</strong><span>${langText("Assicurata e monitorata da IRIS.", "Insured and monitored by IRIS.")}</span></div><em>${formatCurrency(SHIPPING_COST)}</em></div>
       <div class="irisx-inline-card"><div><strong>${langText("Offerte", "Offers")}</strong><span>${product.offersEnabled ? (product.minimumOfferAmount ? `${langText("Offerta minima", "Minimum offer")}: ${formatCurrency(product.minimumOfferAmount)}` : langText("Offerte attive", "Offers active")) : langText("Offerte disattivate", "Offers disabled")}</span></div></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Garanzia", "Trust")}</strong><span>${langText("Autenticazione e protezione acquisto incluse.", "Authentication and purchase protection included.")}</span></div></div>
+      <div class="irisx-inline-card irisx-inline-card--trust"><div><strong>${langText("Trust IRIS", "IRIS trust")}</strong><span>${trustMeta.verified ? langText("Autenticato da IRIS con protezione acquisto.", "Authenticated by IRIS with purchase protection.") : langText("Checkout protetto e assistenza premium disponibili.", "Protected checkout and premium support available.")}</span></div></div>
     </div>`;
+    const sellerTrustBadges = [
+      isVerifiedSellerProfile(seller) ? langText("Seller verificato", "Verified seller") : "",
+      `${seller.sales} ${t("sales")}`,
+      `★ ${seller.rating}`
+    ].filter(Boolean).map(function (label) {
+      return `<span class="irisx-seller-badge">${escapeHtml(label)}</span>`;
+    }).join("");
+    const soldSupportMarkup = !isProductPurchasable(product) && relatedOrder
+      ? `<div class="irisx-detail-service-card irisx-detail-service-card--issue">
+          <div class="det-section-title">${langText("Supporto post-vendita", "Post-sale support")}</div>
+          <p>${langText("Questo articolo è legato a un ordine IRIS. Supporto e dispute vengono agganciati automaticamente a ordine, prodotto e controparte.", "This item is linked to an IRIS order. Support and disputes automatically attach order, product, and counterparty context.")}</p>
+          <div class="irisx-actions">
+            <button class="irisx-primary" onclick="openSupportModal('${escapeHtml(relatedOrder.id)}', { productId: '${escapeHtml(product.id)}', issueType: 'order_problem' })">${langText("Contatta supporto", "Contact support")}</button>
+            <button class="irisx-secondary" onclick="openSupportModal('${escapeHtml(relatedOrder.id)}', { productId: '${escapeHtml(product.id)}', issueSeverity: 'dispute', issueType: 'authenticity_concern' })">${langText("Apri disputa", "Open dispute")}</button>
+          </div>
+        </div>`
+      : "";
     const detailView = qs("#detail-view");
     detailView.innerHTML = `<div class="irisx-detail-page view-enter">
       <section class="det-layout det-layout--hero">
@@ -11808,7 +12203,7 @@
             <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
             ${getDetailActionsMarkup(product, liked)}
             ${detailShippingTrustMarkup}
-            <div class="det-section det-section--seller"><div class="det-section-title">${viewerOwnsListing ? langText("Gestione annuncio", "Listing management") : t("seller")}</div><div class="seller-card" onclick="${sellerCardClick}"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta"><span>★ ${escapeHtml(seller.rating)}</span> ${escapeHtml(seller.sales)} ${t("sales")} · ${escapeHtml(seller.city)}</div></div>${sellerPrimaryAction}</div></div>
+            <div class="det-section det-section--seller"><div class="det-section-title">${viewerOwnsListing ? langText("Gestione annuncio", "Listing management") : t("seller")}</div><div class="seller-card seller-card--elevated" onclick="${sellerCardClick}"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta">${escapeHtml(seller.city)} · ${escapeHtml(langText("Risposta premium IRIS", "Premium IRIS support"))}</div><div class="irisx-seller-badges">${sellerTrustBadges}</div></div>${sellerPrimaryAction}</div></div>
           </section>
         </div>
       </section>
@@ -11821,8 +12216,9 @@
             <div class="det-section"><div class="det-section-title">${t("description")}</div><div class="det-desc">${escapeHtml(product.desc)}</div></div>
           </div>
           <aside class="irisx-detail-lower-side">
-            <div class="det-section"><div class="det-section-title">${langText("Spedizione", "Shipping")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Costo spedizione", "Shipping fee")}</strong><span>${formatCurrency(SHIPPING_COST)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Metodo", "Method")}</strong><span>${langText("Assicurata e tracciata", "Insured and tracked")}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Garanzia", "Trust")}</strong><span>${langText("In coda per autenticazione", "Authentication queue prepared")}</span></div><button class="irisx-secondary" onclick="openStatic('trust-authentication')">${langText("SCOPRI DI PIÙ", "LEARN MORE")}</button></div></div></div>
-            <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Protezione Acquirente", "Buyer Protection")}</button></li></ul></div>
+            <div class="det-section"><div class="det-section-title">${langText("Servizi IRIS", "IRIS services")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Autenticazione standard", "Standard authentication")}</strong><span>${formatCurrency(15)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Autenticazione premium", "Premium authentication")}</strong><span>${formatCurrency(20)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Certificato digitale", "Digital certificate")}</strong><span>${trustMeta.certificateCode ? escapeHtml(trustMeta.certificateCode) : langText("Disponibile dopo autenticazione", "Available after authentication")}</span></div></div></div></div>
+            <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li>${langText("Seller verification, assistenza veloce e concierge selling pronti a supporto del venduto.", "Seller verification, fast support, and concierge selling ready to support each order.")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Protezione Acquirente", "Buyer Protection")}</button></li></ul></div>
+            ${soldSupportMarkup}
           </aside>
         </div>
         ${similar.length ? `<div class="det-similar"><div class="det-similar-title">${t("similar")}</div><div class="det-similar-grid">${similar.map(function (item) { return `<div class="pc" onclick="showDetail(${inlineJsValue(item.id)})" style="min-width:160px">${productVisualMarkup(item, true)}<div class="pinfo" style="padding:.8rem"><div class="p-brand">${escapeHtml(item.brand)}</div><div class="p-name" style="font-size:.78rem">${escapeHtml(item.name)}</div><div class="p-price" style="font-size:.78rem;margin-top:.3rem">${formatCurrency(item.price)}</div></div></div>`; }).join("")}</div></div>` : ""}
@@ -11972,6 +12368,7 @@
   window.showSeller = showSeller;
   window.showSellerTab = showSellerTab;
   window.stepDetailImage = stepDetailImage;
+  window.requestMeasurementsForListing = requestMeasurementsForListing;
   window.setAdminSection = setAdminSection;
   window.setChatScope = setChatScope;
   window.openMessagingInbox = openMessagingInbox;

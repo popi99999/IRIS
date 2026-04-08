@@ -6005,3 +6005,328 @@ body.irisx-luxury .offer-cancel {
     margin: 0 20px;
   }
 }
+
+body.irisx-luxury #shop-view .container{
+  max-width:1540px;
+}
+
+body.irisx-luxury .irisx-workspace{
+  max-width:1540px;
+  grid-template-columns:minmax(280px,320px) minmax(0,1fr);
+  gap:24px;
+}
+
+body.irisx-luxury .irisx-workspace-sidebar{
+  padding:24px;
+  background:rgba(255,255,255,.02);
+}
+
+body.irisx-luxury .irisx-workspace-main{
+  padding:30px 32px 36px;
+  background:rgba(255,255,255,.02);
+}
+
+body.irisx-luxury .active-filters{
+  display:block;
+  margin:0 0 18px;
+}
+
+body.irisx-luxury .irisx-filter-rail{
+  display:grid;
+  gap:16px;
+  padding:18px 18px 16px;
+  border:1px solid rgba(255,255,255,.06);
+  background:rgba(255,255,255,.02);
+}
+
+body.irisx-luxury .irisx-filter-group{
+  display:grid;
+  gap:10px;
+}
+
+body.irisx-luxury .irisx-filter-group--trust{
+  padding-bottom:2px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+body.irisx-luxury .irisx-filter-label{
+  font-size:.68rem;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:rgba(245,240,235,.52);
+}
+
+body.irisx-luxury .irisx-filter-chip-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+body.irisx-luxury .irisx-filter-chip{
+  min-height:42px;
+  padding:0 15px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.02);
+  color:rgba(245,240,235,.84);
+  font-size:.78rem;
+  letter-spacing:.04em;
+}
+
+body.irisx-luxury .irisx-filter-chip.is-active{
+  border-color:rgba(196,160,106,.34);
+  background:rgba(196,160,106,.08);
+  color:#fff;
+}
+
+body.irisx-luxury .irisx-filter-chip--trust{
+  min-height:44px;
+  border-color:rgba(124,58,237,.26);
+  background:rgba(124,58,237,.1);
+  color:rgba(245,240,235,.94);
+}
+
+body.irisx-luxury .irisx-filter-chip--trust.is-active{
+  border-color:rgba(196,160,106,.4);
+  background:linear-gradient(135deg, rgba(124,58,237,.16), rgba(196,160,106,.12));
+}
+
+body.irisx-luxury .irisx-filter-price-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+body.irisx-luxury .irisx-filter-input{
+  min-width:120px;
+  min-height:42px;
+  padding:0 13px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.02);
+  color:#fff;
+}
+
+body.irisx-luxury .irisx-filter-reset{
+  min-height:42px;
+  padding:0 16px;
+  border:1px solid rgba(255,255,255,.08);
+  background:transparent;
+  color:rgba(245,240,235,.72);
+}
+
+body.irisx-luxury .irisx-active-filter-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+body.irisx-luxury .pc-trust-badge{
+  position:absolute;
+  left:12px;
+  bottom:12px;
+  z-index:2;
+  min-height:30px;
+  padding:0 10px;
+  display:inline-flex;
+  align-items:center;
+  border:1px solid rgba(196,160,106,.32);
+  background:rgba(6,3,16,.72);
+  color:rgba(245,240,235,.94);
+  font-size:.62rem;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+
+body.irisx-luxury .det-layout{
+  grid-template-columns:minmax(0,1.12fr) minmax(430px,.88fr);
+  gap:34px;
+}
+
+body.irisx-luxury .det-imgs{
+  position:sticky;
+}
+
+body.irisx-luxury .irisx-detail-hero-panel{
+  gap:18px;
+}
+
+body.irisx-luxury .seller-card--elevated{
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:16px;
+  padding:22px;
+  border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.018));
+}
+
+body.irisx-luxury .irisx-seller-badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:8px;
+}
+
+body.irisx-luxury .irisx-seller-badge{
+  min-height:28px;
+  padding:0 10px;
+  display:inline-flex;
+  align-items:center;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.025);
+  color:rgba(245,240,235,.8);
+  font-size:.66rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+body.irisx-luxury .irisx-sold-state-card,
+body.irisx-luxury .irisx-detail-service-card,
+body.irisx-luxury .irisx-support-context-card,
+body.irisx-luxury .irisx-order-support-strip,
+body.irisx-luxury .irisx-measurement-request-card{
+  display:grid;
+  gap:12px;
+  padding:18px 20px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.025);
+}
+
+body.irisx-luxury .irisx-sold-state-card strong,
+body.irisx-luxury .irisx-detail-service-card strong,
+body.irisx-luxury .irisx-order-support-strip strong,
+body.irisx-luxury .irisx-measurement-request-card strong{
+  font-size:.98rem;
+  color:#fff;
+}
+
+body.irisx-luxury .irisx-sold-state-card span,
+body.irisx-luxury .irisx-detail-service-card p,
+body.irisx-luxury .irisx-order-support-strip span,
+body.irisx-luxury .irisx-measurement-request-card span,
+body.irisx-luxury .irisx-support-context-grid span{
+  color:rgba(245,240,235,.66);
+  line-height:1.6;
+}
+
+body.irisx-luxury .irisx-order-support-strip{
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  margin:18px 0 0;
+}
+
+body.irisx-luxury .irisx-order-support-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+body.irisx-luxury .irisx-support-context-kicker{
+  font-size:.66rem;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:rgba(196,160,106,.78);
+}
+
+body.irisx-luxury .irisx-support-context-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+
+body.irisx-luxury .irisx-support-context-grid strong{
+  display:block;
+  margin-bottom:4px;
+  color:#fff;
+  font-size:.78rem;
+}
+
+body.irisx-luxury .irisx-form-grid--support{
+  gap:16px;
+}
+
+body.irisx-luxury .irisx-field--full{
+  grid-column:1 / -1;
+}
+
+body.irisx-luxury .irisx-measurement-request-status,
+body.irisx-luxury .irisx-support-ticket-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  color:rgba(245,240,235,.62);
+  font-size:.72rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+body.irisx-luxury .irisx-support-ticket-meta span{
+  min-height:28px;
+  padding:0 10px;
+  display:inline-flex;
+  align-items:center;
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.02);
+}
+
+body.irisx-luxury .irisx-badge--warning{
+  border-color:rgba(196,160,106,.34);
+  color:rgba(196,160,106,.92);
+}
+
+body.irisx-luxury .irisx-inline-card--trust{
+  border-color:rgba(124,58,237,.24);
+}
+
+body.irisx-luxury .irisx-detail-secondary-actions--sold{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+
+body.irisx-luxury .irisx-detail-service-card--issue .irisx-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+body.irisx-luxury .irisx-modal-card--support{
+  max-width:820px;
+}
+
+@media (min-width:1101px){
+  body.irisx-luxury .shop-layout > .filters{
+    display:none;
+  }
+}
+
+@media (max-width:1100px){
+  body.irisx-luxury .irisx-order-support-strip,
+  body.irisx-luxury .irisx-support-context-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width:900px){
+  body.irisx-luxury .irisx-filter-chip-row{
+    flex-wrap:nowrap;
+    overflow:auto hidden;
+    padding-bottom:2px;
+  }
+
+  body.irisx-luxury .irisx-filter-chip{
+    white-space:nowrap;
+  }
+
+  body.irisx-luxury .det-layout,
+  body.irisx-luxury .irisx-detail-lower-grid{
+    grid-template-columns:1fr;
+  }
+
+  body.irisx-luxury .det-imgs{
+    position:static;
+  }
+
+  body.irisx-luxury .irisx-order-support-actions,
+  body.irisx-luxury .irisx-detail-secondary-actions--sold{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+}

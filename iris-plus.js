@@ -53,7 +53,7 @@
 
   const LOCALE_SETTINGS = window.IRIS_LOCALE_SETTINGS || {
     it: { label: "IT", nativeLabel: "Italiano", locale: "it-IT", currency: "EUR", rate: 1, dir: "ltr" },
-    en: { label: "EN", nativeLabel: "English", locale: "en-US", currency: "USD", rate: 1.09, dir: "ltr" }
+    en: { label: "UK", nativeLabel: "English", locale: "en-GB", currency: "GBP", rate: 0.86, dir: "ltr" }
   };
   const HOME_COPY = window.IRIS_HOME_COPY || {};
   const FACET_TRANSLATIONS = window.IRIS_FACET_TRANSLATIONS || {};
@@ -1141,6 +1141,14 @@
     }).format(Number(value || 0));
   }
 
+  function convertLocalAmountToBase(value) {
+    const rate = Number(getLocaleConfig().rate || 1);
+    if (!rate) {
+      return Number(value || 0);
+    }
+    return Number(value || 0) / rate;
+  }
+
   function getAvailableBrands() {
     return [...new Set(getVisibleCatalogProducts().map((product) => product.brand))].sort();
   }
@@ -1184,6 +1192,87 @@
     if (typeof applyLang === "function") {
       applyLang();
     }
+  }
+
+  function getLocaleMenuLabel(code) {
+    const locale = LOCALE_SETTINGS[code];
+    if (!locale) {
+      return code.toUpperCase();
+    }
+    return `${locale.nativeLabel} · ${locale.currency}`;
+  }
+
+  function syncLocaleTrigger() {
+    const locale = getLocaleConfig();
+    const trigger = qs("#tnLocaleTrigger");
+    const triggerLabel = qs("#tnLocaleTriggerLabel");
+    const mobileTrigger = qs("#tnMobileLangBtn");
+    const profileTrigger = qs("#langToggle");
+
+    if (triggerLabel) {
+      triggerLabel.textContent = `${locale.label} · ${locale.currency}`;
+    }
+    if (trigger) {
+      trigger.setAttribute("aria-label", langText("Cambia lingua e valuta", "Change language and currency"));
+      trigger.setAttribute("title", `${locale.nativeLabel} · ${locale.currency}`);
+    }
+    if (mobileTrigger) {
+      mobileTrigger.textContent = `${langText("Lingua", "Language")} · ${locale.label} · ${locale.currency}`;
+    }
+    if (profileTrigger && profileTrigger.tagName !== "SELECT") {
+      profileTrigger.textContent = `${langText("Lingua", "Language")} · ${locale.label} · ${locale.currency}`;
+      profileTrigger.setAttribute("title", `${locale.nativeLabel} · ${locale.currency}`);
+    }
+  }
+
+  function renderLocaleMenu() {
+    const menu = qs("#tnLocaleMenu");
+    if (!menu) {
+      return;
+    }
+    menu.setAttribute("role", "menu");
+    menu.setAttribute("aria-label", langText("Selettore lingua e valuta", "Language and currency selector"));
+    menu.innerHTML = Object.keys(LOCALE_SETTINGS).map(function (code) {
+      const locale = LOCALE_SETTINGS[code];
+      const active = code === curLang;
+      return `<button class="tn-locale-option${active ? " is-active" : ""}" onclick="switchLang('${code}')" type="button" role="menuitemradio" aria-checked="${active ? "true" : "false"}">
+        <strong>${escapeHtml(locale.label)}</strong>
+        <span>${escapeHtml(getLocaleMenuLabel(code))}</span>
+      </button>`;
+    }).join("");
+  }
+
+  function closeLocaleMenu() {
+    const menu = qs("#tnLocaleMenu");
+    const trigger = qs("#tnLocaleTrigger");
+    if (menu) {
+      menu.classList.remove("open");
+    }
+    if (trigger) {
+      trigger.setAttribute("aria-expanded", "false");
+      trigger.classList.remove("is-open");
+    }
+  }
+
+  function toggleLocaleMenu(forceOpen) {
+    const menu = qs("#tnLocaleMenu");
+    const trigger = qs("#tnLocaleTrigger");
+    const nav = qs("#topnav");
+    if (!menu || !trigger) {
+      return;
+    }
+    closeProfileMenu();
+    closeMobileNav();
+    const willOpen = typeof forceOpen === "boolean" ? forceOpen : !menu.classList.contains("open");
+    if (willOpen && nav) {
+      const maxWidth = 240;
+      const left = Math.max(16, trigger.offsetLeft + trigger.offsetWidth - maxWidth);
+      menu.style.left = left + "px";
+      menu.style.top = `calc(var(--iris-nav-height) - 2px)`;
+    }
+    menu.classList.toggle("open", willOpen);
+    trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    trigger.classList.toggle("is-open", willOpen);
   }
 
   function ensureLanguageSelector() {
@@ -3249,7 +3338,6 @@
     const themeLabel = darkMode
       ? langText("Tema scuro", "Dark mode")
       : langText("Tema chiaro", "Light mode");
-    const languageLabel = `${langText("Lingua", "Language")} · ${locale.label}`;
 
     setNodeText("#tnHomeBtn", langText("Home", "Home"));
     setNodeText("#tnShopBtn", langText("Shop", "Shop"));
@@ -3259,7 +3347,6 @@
     setButtonLabelWithBadge("#tnMenuFavBtn", langText("Preferiti", "Favorites"), "fav-badge");
     setButtonLabelWithBadge("#tnMenuChatBtn", langText("Messaggi", "Messages"), "chat-badge");
     setNodeText("#modeToggle", themeLabel);
-    setNodeText("#langToggle", languageLabel);
 
     setNodeText("#tnMobileHomeBtn", langText("Home", "Home"));
     setNodeText("#tnMobileShopBtn", langText("Shop", "Shop"));
@@ -3270,7 +3357,7 @@
     setNodeText("#tnMobileCartBtn", langText("Carrello", "Cart"));
     setNodeText("#tnMobileSellBtn", langText("Vendi", "Sell"));
     setNodeText("#tnMobileThemeBtn", themeLabel);
-    setNodeText("#tnMobileLangBtn", languageLabel);
+    syncLocaleTrigger();
   }
 
   function syncProfileMenuState(forceOpen, activeViewOverride) {
@@ -3342,6 +3429,7 @@
       return;
     }
     closeProfileMenu();
+    closeLocaleMenu();
     const willOpen = !menu.classList.contains("open");
     menu.classList.toggle("open", willOpen);
     trigger.classList.toggle("is-open", willOpen);
@@ -3364,6 +3452,17 @@
         !profileTrigger.contains(event.target)
       ) {
         closeProfileMenu();
+      }
+      const localeMenu = qs("#tnLocaleMenu");
+      const localeTrigger = qs("#tnLocaleTrigger");
+      if (
+        localeMenu &&
+        localeTrigger &&
+        localeMenu.classList.contains("open") &&
+        !localeMenu.contains(event.target) &&
+        !localeTrigger.contains(event.target)
+      ) {
+        closeLocaleMenu();
       }
       const mobileMenu = qs("#tnMobileMenu");
       const mobileToggle = qs("#tnMobileToggle");
@@ -3390,6 +3489,7 @@
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape") {
         closeProfileMenu();
+        closeLocaleMenu();
         closeMobileNav();
         closeMobileFilters();
       }
@@ -5121,15 +5221,22 @@
     }
 
     function getOfferDraftAmountValue() {
-      if (!state.offerDraft || state.offerDraft.offerAmount === undefined || state.offerDraft.offerAmount === null) {
+      if (!state.offerDraft) {
         return "";
       }
-      return String(state.offerDraft.offerAmount);
+      if (state.offerDraft.offerAmountLocal !== undefined && state.offerDraft.offerAmountLocal !== null) {
+        return String(state.offerDraft.offerAmountLocal);
+      }
+      if (state.offerDraft.offerAmount === undefined || state.offerDraft.offerAmount === null || state.offerDraft.offerAmount === "") {
+        return "";
+      }
+      return String(Math.round(convertBaseEurAmount(state.offerDraft.offerAmount)));
     }
 
     function getOfferAmountValidation(product, rawValue) {
       const sanitized = String(rawValue || "").replace(/[^\d]/g, "").replace(/^0+(?=\d)/, "");
-      const amount = sanitized ? Number(sanitized) : NaN;
+      const localAmount = sanitized ? Number(sanitized) : NaN;
+      const amount = Number.isFinite(localAmount) ? convertLocalAmountToBase(localAmount) : NaN;
       const minimum = product.minimumOfferAmount !== null && product.minimumOfferAmount !== undefined
         ? Number(product.minimumOfferAmount)
         : null;
@@ -5139,6 +5246,7 @@
       if (!sanitized) {
         return {
           rawValue: "",
+          localAmount: NaN,
           amount: NaN,
           canContinue: false,
           errorMessage: "",
@@ -5148,6 +5256,7 @@
       if (!Number.isFinite(amount) || amount <= 0) {
         return {
           rawValue: sanitized,
+          localAmount: NaN,
           amount: NaN,
           canContinue: false,
           errorMessage: langText("Inserisci un importo valido.", "Enter a valid amount."),
@@ -5157,6 +5266,7 @@
       if (minimum !== null && amount < minimum) {
         return {
           rawValue: sanitized,
+          localAmount: localAmount,
           amount: amount,
           canContinue: false,
           errorMessage: `${langText("La tua offerta è troppo bassa.", "Your offer is too low.")} ${minimumText}`,
@@ -5165,11 +5275,23 @@
       }
       return {
         rawValue: sanitized,
+        localAmount: localAmount,
         amount: amount,
         canContinue: true,
         errorMessage: "",
         minimumText: minimumText
       };
+    }
+
+    function getOfferStepIncrement(product) {
+      const price = Number(product && product.price || 0);
+      if (price >= 5000) {
+        return 100;
+      }
+      if (price >= 1500) {
+        return 50;
+      }
+      return 25;
     }
 
     function getOfferProductMediaMarkup(product) {
@@ -5233,7 +5355,7 @@
       const shipping = Object.assign({}, defaults.shippingSnapshot, draft && draft.shippingSnapshot ? draft.shippingSnapshot : {});
       const payment = draft && draft.paymentMethodSnapshot ? draft.paymentMethodSnapshot : defaults.paymentMethodSnapshot;
       const phone = normalizePhoneNumber((shipping && shipping.phone) || (state.currentUser && state.currentUser.phone) || "");
-      const amountState = getOfferAmountValidation(product, draft && draft.offerAmount);
+      const amountState = getOfferAmountValidation(product, draft && (draft.offerAmountLocal !== undefined ? draft.offerAmountLocal : draft.offerAmount));
       if (!amountState.canContinue) {
         return {
           ok: false,
@@ -5241,7 +5363,8 @@
           shipping: shipping,
           payment: payment,
           phone: phone,
-          amount: amountState.amount
+          amount: amountState.amount,
+          missingAmount: true
         };
       }
       if (!shipping.address || !shipping.city || !shipping.country) {
@@ -5251,7 +5374,8 @@
           shipping: shipping,
           payment: payment,
           phone: phone,
-          amount: amountState.amount
+          amount: amountState.amount,
+          missingShipping: true
         };
       }
       if (!phone || !isValidPhoneNumber(phone)) {
@@ -5261,7 +5385,8 @@
           shipping: shipping,
           payment: payment,
           phone: phone,
-          amount: amountState.amount
+          amount: amountState.amount,
+          missingPhone: true
         };
       }
       if (!payment || !payment.label) {
@@ -5271,7 +5396,8 @@
           shipping: shipping,
           payment: payment,
           phone: phone,
-          amount: amountState.amount
+          amount: amountState.amount,
+          missingPayment: true
         };
       }
       return {
@@ -5313,11 +5439,46 @@
         input.value = sanitized;
       }
       state.offerDraft = Object.assign({}, state.offerDraft || {}, {
-        offerAmount: sanitized
+        offerAmountLocal: sanitized
       });
       state.offerError = "";
       refreshOfferAmountUi();
     };
+
+    function bumpOfferAmount(delta) {
+      const current = Number(getOfferDraftAmountValue() || 0);
+      const nextValue = Math.max(0, current + Number(delta || 0));
+      state.offerDraft = Object.assign({}, state.offerDraft || {}, {
+        offerAmountLocal: nextValue ? String(nextValue) : ""
+      });
+      state.offerError = "";
+      renderOfferModal();
+    }
+
+    function handleOfferAmountKeydown(event) {
+      if (!event) {
+        return;
+      }
+      const listing = offerProdId ? getListingById(offerProdId) : null;
+      const increment = getOfferStepIncrement(listing || {});
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        bumpOfferAmount(increment);
+        return;
+      }
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        bumpOfferAmount(-increment);
+        return;
+      }
+      if (event.key === "Enter") {
+        const validation = getOfferAmountValidation(listing || {}, getOfferDraftAmountValue());
+        if (validation.canContinue) {
+          event.preventDefault();
+          sendOffer();
+        }
+      }
+    }
 
     selectOfferPaymentMethod = function (paymentId) {
       const option = getOfferPaymentOptions().find(function (entry) { return entry.id === paymentId; });
@@ -5366,6 +5527,7 @@
       const phoneSnapshot = normalizePhoneNumber((shippingSnapshot && shippingSnapshot.phone) || (state.currentUser && state.currentUser.phone) || "");
       const termsAccepted = Boolean(state.offerDraft && state.offerDraft.termsAccepted);
       const canSubmitReview = reviewState.ok && termsAccepted;
+      const offerStepIncrement = getOfferStepIncrement(product);
       const stepLabel = state.offerStep === "authorization"
         ? langText("Step 2 di 2: Rivedi offerta", "Step 2 of 2: Review offer")
         : state.offerStep === "success"
@@ -5432,7 +5594,8 @@
                   <p>${langText("L'offerta resta attiva per 24 ore. Se il seller accetta, completiamo automaticamente il pagamento autorizzato.", "The offer stays active for 24 hours. If the seller accepts, we automatically complete the authorized payment.")}</p>
                 </section>
 
-                <section class="offer-review-section">
+                <div class="offer-review-contact-grid">
+                <section class="offer-review-section${reviewState.missingShipping ? " is-missing" : ""}">
                   <div class="offer-review-section__head">
                     <h3>${langText("Indirizzo di spedizione", "Shipping address")}</h3>
                     <button class="offer-inline-link" onclick="openOfferProfileSection('settings_account')">${langText("Aggiorna", "Update")}</button>
@@ -5446,7 +5609,7 @@
                   </div>
                 </section>
 
-                <section class="offer-review-section">
+                <section class="offer-review-section${reviewState.missingPhone ? " is-missing" : ""}">
                   <div class="offer-review-section__head">
                     <h3>${langText("Telefono", "Phone")}</h3>
                     <button class="offer-inline-link" onclick="openOfferProfileSection('settings_profile')">${langText("Aggiorna", "Update")}</button>
@@ -5458,8 +5621,9 @@
                     </div>
                   </div>
                 </section>
+                </div>
 
-                <section class="offer-review-section">
+                <section class="offer-review-section${reviewState.missingPayment ? " is-missing" : ""}">
                   <div class="offer-review-section__head">
                     <h3>${langText("Seleziona il metodo di autorizzazione", "Select your authorization method")}</h3>
                     <button class="offer-inline-link" onclick="openOfferProfileSection('settings_payment')">${langText("Apri pagamenti", "Open payments")}</button>
@@ -5488,13 +5652,15 @@
                   <div class="offer-summary-row"><span>${langText("Tasse stimate", "Estimated tax")}</span><strong>${escapeHtml(formatCurrency(0))}</strong></div>
                   <div class="offer-summary-row offer-summary-row--total"><span>${langText("Totale autorizzato", "Authorized total")}</span><strong>${escapeHtml(formatCurrency((reviewState.amount || 0) + SHIPPING_COST))}</strong></div>
                 </div>
-                <label class="offer-terms">
-                  <input type="checkbox" ${termsAccepted ? "checked" : ""} onchange="toggleOfferTermsAccepted()">
-                  <span>${langText("Accetto termini e buyer protection. Se il seller accetta, completiamo automaticamente il pagamento autorizzato.", "I accept the terms and buyer protection. If the seller accepts, we automatically complete the authorized payment.")}</span>
-                </label>
-                ${!reviewState.ok ? `<div class="offer-review-error">${escapeHtml(reviewState.error)}</div>` : ""}
-                ${statusBox}
-                <button class="offer-send" ${canSubmitReview ? "" : "disabled"} onclick="sendOffer()">${langText("Invia offerta vincolante", "Submit binding offer")}</button>
+                <div class="offer-review-card offer-review-card--commitment">
+                  <label class="offer-terms">
+                    <input type="checkbox" ${termsAccepted ? "checked" : ""} onchange="toggleOfferTermsAccepted()">
+                    <span>${langText("Accetto termini e buyer protection. Se il seller accetta, completiamo automaticamente il pagamento autorizzato.", "I accept the terms and buyer protection. If the seller accepts, we automatically complete the authorized payment.")}</span>
+                  </label>
+                  ${!reviewState.ok ? `<div class="offer-review-error">${escapeHtml(reviewState.error)}</div>` : ""}
+                  ${statusBox}
+                  <button class="offer-send" ${canSubmitReview ? "" : "disabled"} onclick="sendOffer()">${langText("Invia offerta vincolante", "Submit binding offer")}</button>
+                </div>
                 <div class="offer-protection">
                   <strong>${langText("Protezione acquisto IRIS", "IRIS purchase protection")}</strong>
                   <span>${escapeHtml(langText("L'offerta scade dopo 24 ore. Se il seller rifiuta o non risponde, l'autorizzazione viene rilasciata e non finalizziamo alcun addebito.", "The offer expires after 24 hours. If the seller declines or does not respond, the authorization is released and we do not finalize any charge."))}</span>
@@ -5507,14 +5673,35 @@
       }
 
       box.innerHTML = `
-        <div class="offer-title">${langText("Fai un'offerta", "Make an offer")}</div>
-        <div class="offer-note">${escapeHtml(product.brand)} ${escapeHtml(product.name)} · ${escapeHtml(formatCurrency(product.price))}</div>
-        <div class="offer-meta">${escapeHtml(amountValidation.minimumText || '')}</div>
-        ${statusBox}
-        <div class="offer-amount-row"><span class="offer-currency">€</span><input class="offer-input" type="number" placeholder="0" id="offerInput" value="${escapeHtml(amountValue)}"></div>
-        <div class="offer-meta">${langText("Se il seller accetta, il pagamento autorizzato verra' catturato automaticamente.", "If the seller accepts, the authorized payment will be captured automatically.")}</div>
-        <button class="offer-send" onclick="sendOffer()">${langText("Continua", "Continue")}</button>
-        <button class="offer-cancel" onclick="closeOffer()">${t("cancel")}</button>
+        <div class="offer-shell">
+          <div class="offer-shell__header">
+            <div class="offer-shell__spacer"></div>
+            <div class="offer-step-indicator">${escapeHtml(stepLabel)}</div>
+            <button class="offer-shell__icon" onclick="closeOffer()" aria-label="${escapeHtml(langText("Chiudi", "Close"))}">×</button>
+          </div>
+          ${productSummary}
+          <div class="offer-step-panel offer-step-panel--center offer-step-panel--amount">
+            <div class="offer-panel-kicker">${langText("Offerta vincolante", "Binding offer")}</div>
+            <div class="offer-amount-label">${langText("Quanto vuoi offrire?", "How much do you want to offer?")}</div>
+            <div class="offer-amount-shell">
+              <button class="offer-stepper" type="button" onclick="bumpOfferAmount(-${offerStepIncrement})" aria-label="${escapeHtml(langText("Riduci importo", "Decrease amount"))}">−</button>
+              <div class="offer-amount-field${amountValidation.errorMessage ? " is-error" : ""}">
+                <span class="offer-amount-currency">${escapeHtml(getOfferCurrencySymbol())}</span>
+                <input class="offer-input${state.offerError ? " offer-input--error" : ""}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${escapeHtml(String(Math.round(convertBaseEurAmount(Number(product.minimumOfferAmount || 0)) || 0)))}" id="offerInput" value="${escapeHtml(amountValue)}" oninput="sanitizeOfferAmountInput(this)" onkeydown="handleOfferAmountKeydown(event)">
+              </div>
+              <button class="offer-stepper" type="button" onclick="bumpOfferAmount(${offerStepIncrement})" aria-label="${escapeHtml(langText("Aumenta importo", "Increase amount"))}">+</button>
+            </div>
+            <div class="offer-inline-error${amountValidation.errorMessage ? " is-visible" : ""}" id="offerAmountError">${escapeHtml(amountValidation.errorMessage || "")}</div>
+            ${amountValidation.minimumText ? `<div class="offer-minimum-chip">${escapeHtml(amountValidation.minimumText)}</div>` : ""}
+            ${statusBox}
+            <div class="offer-inline-note">${escapeHtml(langText("Il seller ha 24 ore per rispondere. Autorizziamo solo il totale necessario e completiamo l'addebito solo se accetta.", "The seller has 24 hours to respond. We only authorize what is needed and complete the charge only if accepted."))}</div>
+            <div class="offer-inline-meta">${escapeHtml(langText("Prezzo attuale", "Current price"))}: ${escapeHtml(formatCurrency(product.price))} · ${escapeHtml(langText("Step suggerito", "Suggested step"))}: ${escapeHtml(formatCurrency(convertLocalAmountToBase(offerStepIncrement)))}</div>
+            <div class="offer-stage-actions">
+              <button class="offer-send" id="offerContinueButton" ${amountValidation.canContinue ? "" : "disabled"} onclick="sendOffer()">${langText("Continua", "Continue")}</button>
+              <button class="offer-cancel" onclick="closeOffer()">${t("cancel")}</button>
+            </div>
+          </div>
+        </div>
       `;
       const input = qs("#offerInput");
       if (input) {
@@ -5624,22 +5811,30 @@
       }
 
       const input = qs("#offerInput");
-      const amount = input ? Number(input.value) : Number(state.offerDraft && state.offerDraft.offerAmount);
+      const rawAmount = input ? input.value : getOfferDraftAmountValue();
       const draftPayload = {
         listingId: product.id,
         buyerEmail: normalizeEmail(state.currentUser && state.currentUser.email),
-        offerAmount: amount
+        offerAmountLocal: rawAmount
       };
       const validation = validateOfferSubmission(draftPayload);
       if (!validation.ok) {
         state.offerError = validation.error;
-        state.offerDraft = Object.assign({}, state.offerDraft || {}, { listingId: product.id, offerAmount: amount || "" });
+        state.offerDraft = Object.assign({}, state.offerDraft || {}, { listingId: product.id, offerAmountLocal: rawAmount || "" });
+        renderOfferModal();
+        return;
+      }
+      const amountValidation = getOfferAmountValidation(product, rawAmount);
+      if (!amountValidation.canContinue) {
+        state.offerError = amountValidation.errorMessage;
+        state.offerDraft = Object.assign({}, state.offerDraft || {}, { listingId: product.id, offerAmountLocal: rawAmount || "" });
         renderOfferModal();
         return;
       }
       state.offerDraft = Object.assign({}, state.offerDraft || {}, {
         listingId: product.id,
         offerAmount: validation.amount,
+        offerAmountLocal: amountValidation.rawValue,
         buyerEmail: normalizeEmail(state.currentUser && state.currentUser.email),
         buyerName: state.currentUser && state.currentUser.name,
         sellerEmail: normalizeEmail(product.seller && product.seller.email),
@@ -5666,11 +5861,13 @@
     window.closeOffer = closeOffer;
     window.backOfferStep = backOfferStep;
     window.sanitizeOfferAmountInput = sanitizeOfferAmountInput;
+    window.bumpOfferAmount = bumpOfferAmount;
     window.selectOfferPaymentMethod = selectOfferPaymentMethod;
     window.toggleOfferTermsAccepted = toggleOfferTermsAccepted;
     window.openOfferProfileSection = openOfferProfileSection;
     window.renderOfferModal = renderOfferModal;
     window.sendOffer = sendOffer;
+    window.handleOfferAmountKeydown = handleOfferAmountKeydown;
   }
 
   function overrideMarketplaceFunctions() {
@@ -5683,6 +5880,8 @@
       }
       const locale = getLocaleConfig();
       ensureLanguageSelector();
+      renderLocaleMenu();
+      syncLocaleTrigger();
       document.documentElement.lang = curLang;
       document.documentElement.dir = isRtlLocale() ? "rtl" : "ltr";
       document.body.classList.toggle("irisx-rtl", isRtlLocale());
@@ -5714,8 +5913,6 @@
       if (langSelect) {
         if (langSelect.tagName === "SELECT") {
           langSelect.value = curLang;
-        } else {
-          langSelect.textContent = curLang === "it" ? "EN" : "IT";
         }
         langSelect.setAttribute("title", locale.nativeLabel + " · " + locale.currency);
       }
@@ -5752,6 +5949,9 @@
       initFilters();
       syncSessionUi();
       syncNavigationLabels();
+      if (typeof render === "function") {
+        render();
+      }
       renderHomeView();
       if (typeof renderFooters === "function") {
         renderFooters();
@@ -5761,6 +5961,18 @@
       renderOpsModal();
       renderOpsView();
       renderProfilePanel();
+      if (qs("#chat-view") && qs("#chat-view").classList.contains("active")) {
+        renderChats();
+      }
+      if (qs("#seller-view") && qs("#seller-view").classList.contains("active") && typeof renderSellerProfileView === "function") {
+        renderSellerProfileView();
+      }
+      if (qs("#offerModal") && qs("#offerModal").classList.contains("open") && typeof renderOfferModal === "function") {
+        renderOfferModal();
+      }
+      if (state.activeDetailListingId && qs("#detail-view") && qs("#detail-view").classList.contains("active")) {
+        showDetail(state.activeDetailListingId);
+      }
       updateSellStatus(t("sell_status_idle"));
     };
 
@@ -5768,10 +5980,12 @@
       const localeCodes = Object.keys(LOCALE_SETTINGS);
       if (nextLang && LOCALE_SETTINGS[nextLang]) {
         setLanguage(nextLang);
+        closeLocaleMenu();
         return;
       }
       const currentIndex = Math.max(0, localeCodes.indexOf(curLang));
       setLanguage(localeCodes[(currentIndex + 1) % localeCodes.length]);
+      closeLocaleMenu();
     };
 
     toggleDarkLight = function () {
@@ -6473,6 +6687,10 @@
       return "<div class=\"det-img-main\">" + escapeHtml(product.emoji || "👜") + "</div>";
     }
     const activeIndex = Math.min(Math.max(Number(state.activeDetailImage || 0), 0), images.length - 1);
+    const navControls = images.length > 1
+      ? `<button class="irisx-detail-nav irisx-detail-nav--prev" type="button" onclick="stepDetailImage(-1)" aria-label="${escapeHtml(langText("Foto precedente", "Previous image"))}">‹</button>
+         <button class="irisx-detail-nav irisx-detail-nav--next" type="button" onclick="stepDetailImage(1)" aria-label="${escapeHtml(langText("Foto successiva", "Next image"))}">›</button>`
+      : "";
 
     const thumbs = images
       .map(function (src, index) {
@@ -6493,7 +6711,9 @@
       .join("");
 
     return (
-      "<div><div class=\"irisx-detail-stage\"><img class=\"irisx-detail-image\" id=\"detailMainImage\" src=\"" +
+      "<div class=\"irisx-detail-media\"><div class=\"irisx-detail-stage\">" +
+      navControls +
+      "<img class=\"irisx-detail-image\" id=\"detailMainImage\" src=\"" +
       images[activeIndex] +
       "\" alt=\"" +
       escapeHtml(product.name) +
@@ -6515,6 +6735,17 @@
     qsa(".irisx-detail-thumb").forEach(function (thumb, thumbIndex) {
       thumb.classList.toggle("on", thumbIndex === index);
     });
+  }
+
+  function stepDetailImage(direction) {
+    const currentProduct = state.activeDetailListingId ? getListingById(state.activeDetailListingId) : null;
+    const images = currentProduct && Array.isArray(currentProduct.images) ? currentProduct.images : [];
+    if (!images.length) {
+      return;
+    }
+    const currentIndex = Math.min(Math.max(Number(state.activeDetailImage || 0), 0), images.length - 1);
+    const nextIndex = (currentIndex + direction + images.length) % images.length;
+    setDetailImage(nextIndex);
   }
 
   function handleAuthButtonClick() {
@@ -8669,7 +8900,9 @@
     if (!listing.offersEnabled) {
       return { ok: false, error: langText("Le offerte non sono abilitate per questo articolo.", "Offers are disabled for this listing.") };
     }
-    const amount = Number(payload.offerAmount);
+    const amount = payload.offerAmountLocal !== undefined && payload.offerAmountLocal !== null && payload.offerAmountLocal !== ""
+      ? convertLocalAmountToBase(Number(payload.offerAmountLocal))
+      : Number(payload.offerAmount);
     if (!Number.isFinite(amount) || amount <= 0) {
       return { ok: false, error: langText("Inserisci un importo valido.", "Enter a valid amount.") };
     }
@@ -10820,6 +11053,9 @@
             <div class="irisx-subtitle">${escapeHtml(areaCopy.subtitle)}</div>
           </div>
         </div>
+        <div class="irisx-summary-grid irisx-summary-grid--main irisx-summary-grid--workspace">${summaryCards.map(function (card) {
+          return `<div class="irisx-summary-card"><strong>${escapeHtml(String(card.value))}</strong><span>${escapeHtml(card.label)}</span></div>`;
+        }).join("")}</div>
         ${showQuickActions ? renderProfileQuickActions(area, profileContext) : ""}
         <div class="irisx-workspace-content">${content}</div>
       </div>
@@ -11473,40 +11709,43 @@
     const seller = buildListingSeller(product);
     const sellerIdExpr = inlineJsValue(seller.id);
     const ownListing = isCurrentUserListingOwner(product);
+    const favoriteLabel = liked ? t("saved_fav") : t("add_fav");
+    const favoriteIcon = liked ? "♥" : "♡";
     const minimumOfferLine = product.minimumOfferAmount !== null && product.minimumOfferAmount !== undefined
       ? `${langText("Offerta minima", "Minimum offer")}: ${formatCurrency(product.minimumOfferAmount)}`
       : langText("Il seller accetta offerte vincolanti con pre-autorizzazione pagamento.", "The seller accepts binding offers with payment pre-authorization.");
     if (!isProductPurchasable(product)) {
-      return `<div class="irisx-note">${langText("Questo articolo risulta gia' venduto o non disponibile per nuovi acquisti.", "This item is already sold or unavailable.")}</div><div class="irisx-detail-actions"><div class="det-icon-row"><button class="det-icon-btn${liked ? " det-icon-active" : ""}" onclick="toggleFav(${productIdExpr},null)" title="${liked ? t("saved_fav") : t("add_fav")}"><svg width="16" height="16" viewBox="0 0 24 24" fill="${liked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></button><button class="det-icon-btn" onclick="reportListing(${productIdExpr})" title="${langText("Segnala", "Report")}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></button></div></div>`;
+      return `<div class="irisx-note">${langText("Questo articolo risulta già venduto o non disponibile per nuovi acquisti.", "This item is already sold or unavailable.")}</div><div class="irisx-detail-action-stack irisx-detail-action-stack--compact"><div class="irisx-detail-utility-actions irisx-detail-utility-actions--compact"><button class="det-fav irisx-detail-fav-pill" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button><button class="irisx-secondary" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button></div></div>`;
     }
     if (ownListing) {
       return `<div class="irisx-note irisx-note--owner">${langText("Stai guardando un tuo annuncio. Da qui puoi gestirlo, ma non comprarlo o fare offerte.", "You are viewing your own listing. From here you can manage it, but not buy it or make offers.")}</div>
       <div class="irisx-detail-action-stack">
         <button class="det-buy" onclick="loadDraftIntoSellForm(${productIdExpr})">${langText("Modifica annuncio", "Edit listing")}</button>
-        <div class="irisx-detail-secondary-actions">
+        <div class="irisx-detail-secondary-actions irisx-detail-secondary-actions--owner">
           <button class="irisx-secondary" onclick="showBuyView('profile');setProfileArea('seller','active')">${langText("Area vendite", "Seller area")}</button>
           <button class="irisx-secondary" onclick="toggleListingOffers(${productIdExpr})">${product.offersEnabled ? langText("Disattiva offerte", "Disable offers") : langText("Attiva offerte", "Enable offers")}</button>
-          <button class="det-fav" onclick="toggleFav(${productIdExpr},null)">${liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav")}</button>
         </div>
+        <div class="irisx-detail-utility-actions irisx-detail-utility-actions--compact"><button class="det-fav irisx-detail-fav-pill" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button></div>
         <div class="irisx-note irisx-note--compact">${product.offersEnabled ? minimumOfferLine : langText("Le offerte sono disattivate su questo annuncio.", "Offers are disabled on this listing.")}</div>
       </div>`;
     }
-    const offerButton = product.offersEnabled
-      ? `<button class="det-offer" onclick="openOffer(${productIdExpr})">${t("make_offer")}</button>`
-      : "";
+    const secondaryPrimaryButtons = [];
+    if (product.offersEnabled) {
+      secondaryPrimaryButtons.push(`<button class="det-offer" onclick="openOffer(${productIdExpr})">${t("make_offer")}</button>`);
+    }
+    secondaryPrimaryButtons.push(`<button class="irisx-secondary" onclick="addToCart(${productIdExpr})">${t("add_to_cart")}</button>`);
     const offerNote = product.offersEnabled
       ? minimumOfferLine
-      : langText("Questo seller ha disattivato le offerte su questo articolo.", "This seller has disabled offers for this listing.");
+      : langText("Questo seller ha disattivato le offerte su questo articolo.", "This seller has disabled offers on this listing.");
     return `<div class="irisx-detail-action-stack">
       <button class="det-buy" onclick="buyNow(${productIdExpr})">${t("buy_now")} · ${formatCurrency(product.price)}</button>
-      <div class="det-row-pair">
-        <button class="irisx-secondary det-half" onclick="addToCart(${productIdExpr})">${t("add_to_cart")}</button>
-        ${offerButton.replace('class="det-offer"', 'class="det-offer det-half"').replace('class="det-offer" disabled', 'class="det-offer det-half" disabled')}
+      <div class="irisx-detail-secondary-actions">
+        ${secondaryPrimaryButtons.join("")}
       </div>
-      <div class="det-icon-row">
-        <button class="det-icon-btn${liked ? " det-icon-active" : ""}" onclick="toggleFav(${productIdExpr},null)" title="${liked ? t("saved_fav") : t("add_fav")}"><svg width="16" height="16" viewBox="0 0 24 24" fill="${liked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-        <button class="det-icon-btn" onclick="openChat(${sellerIdExpr},${productIdExpr})" title="${t("chat")}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
-        <button class="det-icon-btn" onclick="reportListing(${productIdExpr})" title="${langText("Segnala", "Report")}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></button>
+      <div class="irisx-detail-utility-actions">
+        <button class="det-fav irisx-detail-fav-pill" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button>
+        <button class="irisx-secondary" onclick="openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>
+        <button class="irisx-link-btn" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button>
       </div>
     </div>${offerNote}`;
   };
@@ -11551,25 +11790,43 @@
       ? `showBuyView('profile');setProfileArea('seller','active')`
       : `showSeller('${escapeHtml(seller.id)}')`;
     const similar = prods.filter(function (item) { return !sameEntityId(item.id, product.id) && (item.brand === product.brand || item.cat === product.cat); }).slice(0, 4);
+    const detailShippingTrustMarkup = `<div class="irisx-detail-core-grid">
+      <div class="irisx-inline-card"><div><strong>${langText("Spedizione", "Shipping")}</strong><span>${langText("Assicurata e tracciata", "Insured and tracked")}</span></div><em>${formatCurrency(SHIPPING_COST)}</em></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Offerte", "Offers")}</strong><span>${product.offersEnabled ? (product.minimumOfferAmount ? `${langText("Offerta minima", "Minimum offer")}: ${formatCurrency(product.minimumOfferAmount)}` : langText("Offerte attive", "Offers active")) : langText("Offerte disattivate", "Offers disabled")}</span></div></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Garanzia", "Trust")}</strong><span>${langText("Autenticazione e protezione acquisto incluse.", "Authentication and purchase protection included.")}</span></div></div>
+    </div>`;
     const detailView = qs("#detail-view");
-    detailView.innerHTML = `<div class="det-layout view-enter">
-      <div class="det-imgs">${detailMediaMarkup(product)}</div>
-      <div class="det-body">
-        <div class="irisx-detail-breadcrumb"><button onclick="closeDetail()">${langText("Home", "Home")}</button><span>/</span><button onclick="showBuyView('shop')">${langText("Shop", "Shop")}</button><span>/</span><strong>${escapeHtml(product.brand)}</strong></div>
-        <button class="det-back" onclick="closeDetail()">${t("back_shop")}</button>
-        <div class="det-brand">${escapeHtml(product.brand)}</div>
-        <div class="det-name">${escapeHtml(product.name)}</div>
-        <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
-        ${getDetailActionsMarkup(product, liked)}
-        <div class="det-div"></div>
-        <div class="det-section"><div class="det-section-title">${t("details")}</div><div class="det-chips">${chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div></div>
-        <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(sizeDisplay)}</div></div>${sizeOriginalMarkup}<div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
-        ${renderMeasurementsSection(product)}
-        <div class="det-section"><div class="det-section-title">${t("description")}</div><div class="det-desc">${escapeHtml(product.desc)}</div></div>
-        <div class="det-section"><div class="det-section-title">${t("seller")}</div><div class="seller-card" onclick="showSeller('${escapeHtml(seller.id)}')"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta"><span>★ ${escapeHtml(seller.rating)}</span> ${escapeHtml(seller.sales)} ${t("sales")} · ${escapeHtml(seller.city)}</div></div><button class="seller-chat" onclick="event.stopPropagation();openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button></div></div>
-        <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Protezione acquirente", "Buyer Protection")}</button></li></ul></div>
+    detailView.innerHTML = `<div class="irisx-detail-page view-enter">
+      <section class="det-layout det-layout--hero">
+        <div class="det-imgs">${detailMediaMarkup(product)}</div>
+        <div class="det-body">
+          <section class="irisx-detail-hero-panel">
+            <div class="irisx-detail-breadcrumb"><button onclick="closeDetail()">${langText("Home", "Home")}</button><span>/</span><button onclick="showBuyView('shop')">${langText("Shop", "Shop")}</button><span>/</span><strong>${escapeHtml(product.brand)}</strong></div>
+            <button class="det-back" onclick="closeDetail()">${t("back_shop")}</button>
+            <div class="det-brand">${escapeHtml(product.brand)}</div>
+            <div class="det-name">${escapeHtml(product.name)}</div>
+            <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
+            ${getDetailActionsMarkup(product, liked)}
+            ${detailShippingTrustMarkup}
+            <div class="det-section det-section--seller"><div class="det-section-title">${viewerOwnsListing ? langText("Gestione annuncio", "Listing management") : t("seller")}</div><div class="seller-card" onclick="${sellerCardClick}"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta"><span>★ ${escapeHtml(seller.rating)}</span> ${escapeHtml(seller.sales)} ${t("sales")} · ${escapeHtml(seller.city)}</div></div>${sellerPrimaryAction}</div></div>
+          </section>
+        </div>
+      </section>
+      <section class="irisx-detail-lower">
+        <div class="irisx-detail-lower-grid">
+          <div class="irisx-detail-lower-main">
+            <div class="det-section"><div class="det-section-title">${t("details")}</div><div class="det-chips">${chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div></div>
+            <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(sizeDisplay)}</div></div>${sizeOriginalMarkup}<div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
+            ${renderMeasurementsSection(product)}
+            <div class="det-section"><div class="det-section-title">${t("description")}</div><div class="det-desc">${escapeHtml(product.desc)}</div></div>
+          </div>
+          <aside class="irisx-detail-lower-side">
+            <div class="det-section"><div class="det-section-title">${langText("Spedizione", "Shipping")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Costo spedizione", "Shipping fee")}</strong><span>${formatCurrency(SHIPPING_COST)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Metodo", "Method")}</strong><span>${langText("Assicurata e tracciata", "Insured and tracked")}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Garanzia", "Trust")}</strong><span>${langText("In coda per autenticazione", "Authentication queue prepared")}</span></div><button class="irisx-secondary" onclick="openStatic('trust-authentication')">${langText("SCOPRI DI PIÙ", "LEARN MORE")}</button></div></div></div>
+            <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Protezione Acquirente", "Buyer Protection")}</button></li></ul></div>
+          </aside>
+        </div>
         ${similar.length ? `<div class="det-similar"><div class="det-similar-title">${t("similar")}</div><div class="det-similar-grid">${similar.map(function (item) { return `<div class="pc" onclick="showDetail(${inlineJsValue(item.id)})" style="min-width:160px">${productVisualMarkup(item, true)}<div class="pinfo" style="padding:.8rem"><div class="p-brand">${escapeHtml(item.brand)}</div><div class="p-name" style="font-size:.78rem">${escapeHtml(item.name)}</div><div class="p-price" style="font-size:.78rem;margin-top:.3rem">${formatCurrency(item.price)}</div></div></div>`; }).join("")}</div></div>` : ""}
-      </div>
+      </section>
     </div>`;
     qs("#shop-view").style.display = "none";
     detailView.style.paddingTop = window.innerWidth > 900
@@ -11714,6 +11971,7 @@
   window.setSellerSection = setSellerSection;
   window.showSeller = showSeller;
   window.showSellerTab = showSellerTab;
+  window.stepDetailImage = stepDetailImage;
   window.setAdminSection = setAdminSection;
   window.setChatScope = setChatScope;
   window.openMessagingInbox = openMessagingInbox;
@@ -11756,6 +12014,8 @@
   window.reportListing = reportListing;
   window.toggleProfileMenu = toggleProfileMenu;
   window.closeProfileMenu = closeProfileMenu;
+  window.toggleLocaleMenu = toggleLocaleMenu;
+  window.closeLocaleMenu = closeLocaleMenu;
   window.toggleMobileNav = toggleMobileNav;
   window.closeMobileNav = closeMobileNav;
   window.handleAuthButtonClick = handleAuthButtonClick;

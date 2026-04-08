@@ -1,6 +1,6 @@
 window.IRIS_LOCALE_SETTINGS = {
   it: { label: "IT", nativeLabel: "Italiano", locale: "it-IT", currency: "EUR", rate: 1, dir: "ltr" },
-  en: { label: "EN", nativeLabel: "English", locale: "en-US", currency: "USD", rate: 1.09, dir: "ltr" },
+  en: { label: "UK", nativeLabel: "English", locale: "en-GB", currency: "GBP", rate: 0.86, dir: "ltr" },
   fr: { label: "FR", nativeLabel: "Français", locale: "fr-FR", currency: "EUR", rate: 1, dir: "ltr" },
   es: { label: "ES", nativeLabel: "Español", locale: "es-ES", currency: "EUR", rate: 1, dir: "ltr" },
   de: { label: "DE", nativeLabel: "Deutsch", locale: "de-DE", currency: "EUR", rate: 1, dir: "ltr" },

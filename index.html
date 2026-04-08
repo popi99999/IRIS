@@ -2265,6 +2265,13 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
         <div class="ac-dropdown" id="acDropdown"></div>
       </div>
       <div class="tn-links">
+        <button class="tn-btn tn-locale-trigger" id="tnLocaleTrigger" onclick="toggleLocaleMenu()" aria-label="Cambia lingua e valuta" aria-haspopup="menu" aria-controls="tnLocaleMenu" aria-expanded="false" type="button">
+          <span id="tnLocaleTriggerLabel">IT · EUR</span>
+        </button>
+        <button class="tn-btn tn-icon tn-favorites" id="tnFavBtn" data-nav-view="fav" onclick="showBuyView('fav')" aria-label="Apri preferiti">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13.2 2.9 8.5A3.2 3.2 0 0 1 7.7 4.2L8 4.5l.3-.3a3.2 3.2 0 0 1 4.8 4.3L8 13.2Z"/></svg>
+          <span class="badge" id="fav-top-badge" style="display:none">0</span>
+        </button>
         <button class="tn-btn tn-icon" id="cartBtn" onclick="openCart()" aria-label="Apri carrello">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1h2l1.5 8h8L15 3.5H4"/><circle cx="6" cy="12.5" r="1"/><circle cx="11" cy="12.5" r="1"/></svg>
           <span class="badge" id="cart-badge" style="display:none">0</span>
@@ -2286,6 +2293,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
         <button class="tn-btn" id="tnAboutBtn" onclick="showBuyView('home');setTimeout(function(){var manifesto=document.getElementById('irisManifesto');if(manifesto){manifesto.scrollIntoView({behavior:'smooth',block:'start'});}},120)">Chi siamo</button>
       </div>
     </div>
+    <div class="tn-locale-menu" id="tnLocaleMenu"></div>
     <div class="tn-profile-menu" id="tnProfileMenu">
       <div class="tn-menu-section">
         <button class="tn-menu-link tn-profile" id="tnMenuProfileBtn" data-nav-view="profile" onclick="closeProfileMenu();showBuyView('profile')" aria-label="Apri profilo">Profilo</button>
@@ -2921,9 +2929,26 @@ function closeDetail(){document.getElementById('detail-view').style.display='non
 function toggleFav(id,btn){
   if(favorites.has(id)){favorites.delete(id)}else{favorites.add(id)}
   updateFavBadge();render();
-  if(btn){btn.classList.toggle('liked');btn.textContent=favorites.has(id)?'♥':'♡'}
+  if(btn){
+    const liked=favorites.has(id);
+    btn.classList.toggle('liked',liked);
+    btn.setAttribute('aria-pressed',liked?'true':'false');
+    const icon=btn.querySelector('.det-fav__icon');
+    const label=btn.querySelector('.det-fav__label');
+    if(icon){icon.textContent=liked?'♥':'♡'}
+    if(label){
+      const onLabel=btn.getAttribute('data-label-on')||'Salvato';
+      const offLabel=btn.getAttribute('data-label-off')||'Preferiti';
+      label.textContent=liked?onLabel:offLabel;
+    }
+    if(!icon&&!label){btn.textContent=liked?'♥':'♡'}
+  }
 }
-function updateFavBadge(){const b=document.getElementById('fav-badge');if(favorites.size>0){b.style.display='flex';b.textContent=favorites.size}else{b.style.display='none'}}
+function updateFavBadge(){
+  [document.getElementById('fav-badge'),document.getElementById('fav-top-badge')].filter(Boolean).forEach(function(b){
+    if(favorites.size>0){b.style.display='flex';b.textContent=favorites.size}else{b.style.display='none'}
+  })
+}
 function renderFavorites(){
   const items=prods.filter(p=>favorites.has(p.id));
   document.getElementById('favCountText').textContent=items.length+' articoli salvati';

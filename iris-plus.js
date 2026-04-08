@@ -64,6 +64,7 @@
   let supabaseBridgeInitialized = false;
   let supabaseListingsInitialized = false;
   let supabaseOffersInitialized = false;
+  let supabaseOrdersInitialized = false;
   const SELL_TAXONOMY = {
     clothing: {
       it: "Abbigliamento",
@@ -488,6 +489,7 @@
   hydrateLocalListings();
   initializeSupabaseListings();
   initializeSupabaseOffers();
+  initializeSupabaseOrders();
   ensureOpsShell();
   syncCurrentUserSeller();
   overrideMarketplaceFunctions();
@@ -1410,6 +1412,60 @@
     });
   }
 
+  function buildSupabaseOrderPayload(order) {
+    const normalized = normalizeOrderRecord(order);
+    return {
+      id: String(normalized.id),
+      number: normalized.number || "",
+      buyer_id: normalized.buyerId || null,
+      buyer_email: normalizeEmail(normalized.buyerEmail),
+      buyer_name: normalized.buyerName || "",
+      seller_emails: Array.isArray(normalized.sellerEmails) ? normalized.sellerEmails.map(normalizeEmail).filter(Boolean) : [],
+      items: Array.isArray(normalized.items) ? normalized.items : [],
+      shipping: normalized.shipping || {},
+      status: normalized.status || "paid",
+      payment: normalized.payment || {},
+      timeline: Array.isArray(normalized.timeline) ? normalized.timeline : [],
+      support_ticket_ids: Array.isArray(normalized.supportTicketIds) ? normalized.supportTicketIds : [],
+      email_ids: Array.isArray(normalized.emailIds) ? normalized.emailIds : [],
+      notification_ids: Array.isArray(normalized.notificationIds) ? normalized.notificationIds : [],
+      review_status: normalized.reviewStatus || "pending",
+      created_at_ms: Number(normalized.createdAt || Date.now()),
+      subtotal: Number(normalized.subtotal || 0),
+      shipping_cost: Number(normalized.shippingCost || 0),
+      total: Number(normalized.total || 0),
+      offer_id: normalized.offerId || null
+    };
+  }
+
+  function buildOrderFromSupabaseRow(row) {
+    if (!row) {
+      return null;
+    }
+    return normalizeOrderRecord({
+      id: row.id,
+      number: row.number || "",
+      buyerId: row.buyer_id || "",
+      buyerEmail: row.buyer_email || "",
+      buyerName: row.buyer_name || "",
+      sellerEmails: row.seller_emails || [],
+      items: row.items || [],
+      shipping: row.shipping || {},
+      status: row.status || "paid",
+      payment: row.payment || {},
+      timeline: row.timeline || [],
+      supportTicketIds: row.support_ticket_ids || [],
+      emailIds: row.email_ids || [],
+      notificationIds: row.notification_ids || [],
+      reviewStatus: row.review_status || "pending",
+      createdAt: Number(row.created_at_ms || Date.now()),
+      subtotal: Number(row.subtotal || 0),
+      shippingCost: Number(row.shipping_cost || 0),
+      total: Number(row.total || 0),
+      offerId: row.offer_id || null
+    });
+  }
+
   async function fetchSupabaseListings() {
     const client = getSupabaseClient();
     if (!client) {
@@ -1470,6 +1526,74 @@
       throw response.error;
     }
     return buildOfferFromSupabaseRow(response.data);
+  }
+
+  async function fetchSupabaseOrders() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return [];
+    }
+    const response = await client
+      .from("orders")
+      .select("*")
+      .order("created_at_ms", { ascending: false })
+      .limit(250);
+    if (response.error) {
+      throw response.error;
+    }
+    return Array.isArray(response.data) ? response.data.map(buildOrderFromSupabaseRow).filter(Boolean) : [];
+  }
+
+  async function saveOrderToSupabase(order) {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return normalizeOrderRecord(order);
+    }
+    const payload = buildSupabaseOrderPayload(order);
+    const response = await client.from("orders").upsert(payload, { onConflict: "id" }).select("*").single();
+    if (response.error) {
+      throw response.error;
+    }
+    return buildOrderFromSupabaseRow(response.data);
+  }
+
+  async function refreshSupabaseOrders() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    const remoteOrders = await fetchSupabaseOrders();
+    const remoteIds = new Set(remoteOrders.map(function (order) { return String(order.id); }));
+    const localOnly = state.orders.filter(function (order) {
+      return !remoteIds.has(String(order.id));
+    });
+    state.orders = remoteOrders.concat(localOnly.map(normalizeOrderRecord));
+    persistOrders();
+    syncInventoryFromOrders();
+    if (typeof render === "function") {
+      render();
+    }
+    renderProfilePanel();
+    renderNotifications();
+    renderOpsView();
+  }
+
+  async function initializeSupabaseOrders() {
+    if (supabaseOrdersInitialized) {
+      return;
+    }
+    if (!isSupabaseEnabled()) {
+      return;
+    }
+    supabaseOrdersInitialized = true;
+    if (!state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    try {
+      await refreshSupabaseOrders();
+    } catch (error) {
+      console.warn("[IRIS] Unable to load orders from Supabase", error);
+    }
   }
 
   async function refreshSupabaseOffers() {
@@ -1671,6 +1795,9 @@
     });
     refreshSupabaseOffers().catch(function (error) {
       console.warn("[IRIS] Unable to refresh offers after auth sync", error);
+    });
+    refreshSupabaseOrders().catch(function (error) {
+      console.warn("[IRIS] Unable to refresh orders after auth sync", error);
     });
     return applied;
   }
@@ -2934,6 +3061,7 @@
     return Object.assign({}, order, {
       id: order.id || createId("ord"),
       number: order.number || ("IRIS-" + String(createdAt).slice(-8)),
+      buyerId: order.buyerId || "",
       buyerEmail: normalizeEmail(order.buyerEmail),
       buyerName: order.buyerName || (order.shipping && order.shipping.name) || langText("Cliente IRIS", "IRIS customer"),
       items: items,
@@ -5248,6 +5376,7 @@
     const order = {
       id: createId("ord"),
       number: "IRIS-" + String(createdAt).slice(-8),
+      buyerId: (context && context.buyerId) || (state.currentUser && state.currentUser.id) || "",
       buyerEmail: buyerEmail,
       buyerName: buyerName,
       items: normalizedItems,
@@ -5383,6 +5512,19 @@
     });
 
     persistOrders();
+    if (updatedOrder && isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+      saveOrderToSupabase(updatedOrder).then(function (remoteOrder) {
+        state.orders = state.orders.map(function (order) {
+          return order.id === orderId ? remoteOrder : order;
+        });
+        persistOrders();
+        syncInventoryFromOrders();
+        renderProfilePanel();
+        renderOpsView();
+      }).catch(function (error) {
+        console.warn("[IRIS] Unable to sync order update to Supabase", error);
+      });
+    }
     renderProfilePanel();
     renderOpsView();
     return updatedOrder;
@@ -9945,6 +10087,7 @@
       offer.shippingSnapshot || {}
     );
     const order = createOrderFromCheckout([{ product: listing, qty: 1 }], shipping, {
+      buyerId: offer.buyerId,
       buyerEmail: offer.buyerEmail,
       buyerName: offer.buyerName || shipping.name
     });
@@ -10147,6 +10290,15 @@
     state.orders.unshift(order);
     notifyNewOrder(order);
     persistOrders();
+    try {
+      const remoteOrder = await saveOrderToSupabase(order);
+      state.orders = state.orders.map(function (candidate) {
+        return candidate.id === order.id ? remoteOrder : candidate;
+      });
+      persistOrders();
+    } catch (error) {
+      console.warn("[IRIS] Unable to save accepted-offer order to Supabase", error);
+    }
     const releasedOffers = releaseCompetingOffers(order.items[0].productId, offerId);
     state.offers = state.offers.map(function (offer) {
       if (offer.id !== offerId) return offer;
@@ -12570,6 +12722,20 @@
     state.orders.unshift(order);
     notifyNewOrder(order);
     persistOrders();
+    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+      saveOrderToSupabase(order).then(function (remoteOrder) {
+        state.orders = state.orders.map(function (candidate) {
+          return candidate.id === order.id ? remoteOrder : candidate;
+        });
+        persistOrders();
+        syncInventoryFromOrders();
+        renderProfilePanel();
+        renderOpsView();
+        renderNotifications();
+      }).catch(function (error) {
+        console.warn("[IRIS] Unable to save checkout order to Supabase", error);
+      });
+    }
     syncInventoryFromOrders();
     if (state.checkoutSource === "cart") {
       state.cart = [];

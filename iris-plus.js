@@ -65,6 +65,7 @@
   let supabaseListingsInitialized = false;
   let supabaseOffersInitialized = false;
   let supabaseOrdersInitialized = false;
+  let supabaseSupportInitialized = false;
   const SELL_TAXONOMY = {
     clothing: {
       it: "Abbigliamento",
@@ -490,6 +491,7 @@
   initializeSupabaseListings();
   initializeSupabaseOffers();
   initializeSupabaseOrders();
+  initializeSupabaseSupportTickets();
   ensureOpsShell();
   syncCurrentUserSeller();
   overrideMarketplaceFunctions();
@@ -1466,6 +1468,56 @@
     });
   }
 
+  function buildSupabaseSupportTicketPayload(ticket) {
+    const normalized = normalizeSupportTicketRecord(ticket);
+    return {
+      id: String(normalized.id),
+      order_id: normalized.orderId || "",
+      order_number: normalized.orderNumber || "",
+      product_id: normalized.productId || "",
+      product_title: normalized.productTitle || "",
+      buyer_email: normalizeEmail(normalized.buyerEmail),
+      seller_email: normalizeEmail(normalized.sellerEmail),
+      requester_id: normalized.requesterId || (state.currentUser && state.currentUser.id) || null,
+      requester_email: normalizeEmail(normalized.requesterEmail),
+      requester_role: normalized.requesterRole || "buyer",
+      severity: normalized.severity || "support",
+      status: normalized.status || "open",
+      reason: normalized.reason || "other",
+      message: normalized.message || "",
+      attachments: Array.isArray(normalized.attachments) ? normalized.attachments : [],
+      context_snapshot: normalized.contextSnapshot || {},
+      created_at_ms: Number(normalized.createdAt || Date.now()),
+      updated_at_ms: Number(normalized.updatedAt || normalized.createdAt || Date.now())
+    };
+  }
+
+  function buildSupportTicketFromSupabaseRow(row) {
+    if (!row) {
+      return null;
+    }
+    return normalizeSupportTicketRecord({
+      id: row.id,
+      orderId: row.order_id || "",
+      orderNumber: row.order_number || "",
+      productId: row.product_id || "",
+      productTitle: row.product_title || "",
+      buyerEmail: row.buyer_email || "",
+      sellerEmail: row.seller_email || "",
+      requesterId: row.requester_id || "",
+      requesterEmail: row.requester_email || "",
+      requesterRole: row.requester_role || "buyer",
+      severity: row.severity || "support",
+      status: row.status || "open",
+      reason: row.reason || "other",
+      message: row.message || "",
+      attachments: row.attachments || [],
+      contextSnapshot: row.context_snapshot || {},
+      createdAt: Number(row.created_at_ms || Date.now()),
+      updatedAt: Number(row.updated_at_ms || row.created_at_ms || Date.now())
+    });
+  }
+
   async function fetchSupabaseListings() {
     const client = getSupabaseClient();
     if (!client) {
@@ -1555,6 +1607,73 @@
       throw response.error;
     }
     return buildOrderFromSupabaseRow(response.data);
+  }
+
+  async function fetchSupabaseSupportTickets() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return [];
+    }
+    const response = await client
+      .from("support_tickets")
+      .select("*")
+      .order("created_at_ms", { ascending: false })
+      .limit(250);
+    if (response.error) {
+      throw response.error;
+    }
+    return Array.isArray(response.data) ? response.data.map(buildSupportTicketFromSupabaseRow).filter(Boolean) : [];
+  }
+
+  async function saveSupportTicketToSupabase(ticket) {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return normalizeSupportTicketRecord(ticket);
+    }
+    const payload = buildSupabaseSupportTicketPayload(ticket);
+    const response = await client.from("support_tickets").upsert(payload, { onConflict: "id" }).select("*").single();
+    if (response.error) {
+      throw response.error;
+    }
+    return buildSupportTicketFromSupabaseRow(response.data);
+  }
+
+  async function refreshSupabaseSupportTickets() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    const remoteTickets = await fetchSupabaseSupportTickets();
+    const remoteIds = new Set(remoteTickets.map(function (ticket) { return String(ticket.id); }));
+    const localOnly = state.supportTickets.filter(function (ticket) {
+      return !remoteIds.has(String(ticket.id));
+    });
+    state.supportTickets = remoteTickets.concat(localOnly.map(normalizeSupportTicketRecord));
+    persistSupportTickets();
+    if (typeof render === "function") {
+      render();
+    }
+    renderProfilePanel();
+    renderNotifications();
+    renderOpsView();
+  }
+
+  async function initializeSupabaseSupportTickets() {
+    if (supabaseSupportInitialized) {
+      return;
+    }
+    if (!isSupabaseEnabled()) {
+      return;
+    }
+    supabaseSupportInitialized = true;
+    if (!state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    try {
+      await refreshSupabaseSupportTickets();
+    } catch (error) {
+      console.warn("[IRIS] Unable to load support tickets from Supabase", error);
+    }
   }
 
   async function refreshSupabaseOrders() {
@@ -1798,6 +1917,9 @@
     });
     refreshSupabaseOrders().catch(function (error) {
       console.warn("[IRIS] Unable to refresh orders after auth sync", error);
+    });
+    refreshSupabaseSupportTickets().catch(function (error) {
+      console.warn("[IRIS] Unable to refresh support tickets after auth sync", error);
     });
     return applied;
   }
@@ -2687,6 +2809,41 @@
     );
   }
 
+  function normalizeSupportTicketRecord(ticket) {
+    const createdAt = Number((ticket && ticket.createdAt) || Date.now());
+    return Object.assign(
+      {
+        id: createId("tkt"),
+        orderId: "",
+        orderNumber: "",
+        productId: "",
+        productTitle: "",
+        buyerEmail: "",
+        sellerEmail: "",
+        requesterId: "",
+        requesterEmail: "",
+        requesterRole: "buyer",
+        severity: "support",
+        status: "open",
+        reason: "other",
+        message: "",
+        attachments: [],
+        contextSnapshot: null,
+        createdAt: createdAt,
+        updatedAt: createdAt
+      },
+      ticket || {},
+      {
+        buyerEmail: normalizeEmail((ticket && ticket.buyerEmail) || ""),
+        sellerEmail: normalizeEmail((ticket && ticket.sellerEmail) || ""),
+        requesterEmail: normalizeEmail((ticket && ticket.requesterEmail) || ""),
+        attachments: Array.isArray(ticket && ticket.attachments) ? ticket.attachments : [],
+        createdAt: createdAt,
+        updatedAt: Number((ticket && ticket.updatedAt) || createdAt)
+      }
+    );
+  }
+
   function formatDateTime(value) {
     if (!value) {
       return t("not_available");
@@ -3308,7 +3465,7 @@
     state.offers = state.offers.map(normalizeOfferRecord);
     state.notifications = Array.isArray(state.notifications) ? state.notifications : [];
     state.emailOutbox = Array.isArray(state.emailOutbox) ? state.emailOutbox : [];
-    state.supportTickets = Array.isArray(state.supportTickets) ? state.supportTickets : [];
+    state.supportTickets = Array.isArray(state.supportTickets) ? state.supportTickets.map(normalizeSupportTicketRecord) : [];
     state.measurementRequests = Array.isArray(state.measurementRequests) ? state.measurementRequests : [];
     state.auditLog = Array.isArray(state.auditLog) ? state.auditLog : [];
     state.reviews = Array.isArray(state.reviews) ? state.reviews : [];
@@ -4760,6 +4917,7 @@
   }
 
   function persistSupportTickets() {
+    state.supportTickets = state.supportTickets.map(normalizeSupportTicketRecord);
     saveJson(STORAGE_KEYS.supportTickets, state.supportTickets);
   }
 
@@ -5812,7 +5970,7 @@
     openOpsModal("support", Object.assign({ orderId: orderId }, options || {}));
   }
 
-  function submitSupportTicket(orderId) {
+  async function submitSupportTicket(orderId) {
     const reasonField = qs("#opsTicketReason");
     const messageField = qs("#opsTicketMessage");
     const severityField = qs("#opsTicketSeverity");
@@ -5840,6 +5998,7 @@
       productTitle: product ? `${product.brand} ${product.name}` : "",
       buyerEmail: order.buyerEmail,
       sellerEmail: order.items[0] ? order.items[0].sellerEmail : "",
+      requesterId: (state.currentUser && state.currentUser.id) || "",
       requesterEmail: normalizeEmail((state.currentUser && state.currentUser.email) || ""),
       requesterRole: supportContext.role,
       severity: severity,
@@ -5852,6 +6011,15 @@
 
     state.supportTickets.unshift(ticket);
     persistSupportTickets();
+    try {
+      const remoteTicket = await saveSupportTicketToSupabase(ticket);
+      state.supportTickets = state.supportTickets.map(function (candidate) {
+        return candidate.id === ticket.id ? remoteTicket : candidate;
+      });
+      persistSupportTickets();
+    } catch (error) {
+      console.warn("[IRIS] Unable to save support ticket to Supabase", error);
+    }
 
     updateOrderRecord(orderId, function (currentOrder) {
       currentOrder.supportTicketIds.push(ticket.id);
@@ -5893,18 +6061,32 @@
       : langText("Ticket creato con il contesto dell'ordine collegato.", "Ticket created with the order context attached."));
   }
 
-  function resolveSupportTicket(ticketId) {
+  async function resolveSupportTicket(ticketId) {
+    let resolvedTicket = null;
     state.supportTickets = state.supportTickets.map(function (ticket) {
       if (ticket.id !== ticketId) {
         return ticket;
       }
 
-      return Object.assign({}, ticket, {
+      resolvedTicket = Object.assign({}, ticket, {
         status: "resolved",
         updatedAt: Date.now()
       });
+      return resolvedTicket;
     });
     persistSupportTickets();
+    if (resolvedTicket) {
+      try {
+        const remoteResolvedTicket = await saveSupportTicketToSupabase(resolvedTicket);
+        state.supportTickets = state.supportTickets.map(function (ticket) {
+          return ticket.id === ticketId ? remoteResolvedTicket : ticket;
+        });
+        persistSupportTickets();
+      } catch (error) {
+        console.warn("[IRIS] Unable to sync resolved support ticket to Supabase", error);
+      }
+    }
+    renderProfilePanel();
     renderOpsView();
   }
 

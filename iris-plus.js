@@ -1470,6 +1470,10 @@
       : null;
   }
 
+  function getCurrentSupabaseUserId() {
+    return normalizeSupabaseUuid(state.currentUser && state.currentUser.id);
+  }
+
   function buildSupabaseListingPayload(listing) {
     const normalized = normalizeListingRecord(listing);
     return {
@@ -1915,7 +1919,7 @@
   }
 
   function buildListingImagePath(listingId, photo, index) {
-    const safeUserId = (state.currentUser && state.currentUser.id) ? String(state.currentUser.id) : "anonymous";
+    const safeUserId = getCurrentSupabaseUserId() || slugify(state.currentUser && state.currentUser.email) || "anonymous";
     const safeListingId = String(listingId || createId("listing"));
     const baseName = (photo && photo.name ? String(photo.name) : `photo-${index + 1}`)
       .toLowerCase()
@@ -1927,7 +1931,7 @@
 
   async function uploadListingPhotosToSupabase(photos, listingId) {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id || !Array.isArray(photos) || !photos.length) {
+    if (!client || !getCurrentSupabaseUserId() || !Array.isArray(photos) || !photos.length) {
       return Array.isArray(photos) ? photos : [];
     }
     const bucket = SUPABASE_STORAGE_BUCKETS.listingImages;
@@ -1982,7 +1986,7 @@
 
   async function saveListingToSupabase(listing) {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return normalizeListingRecord(listing);
     }
     const payload = buildSupabaseListingPayload(listing);
@@ -1995,7 +1999,8 @@
 
   async function fetchSupabaseOffers() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    const currentSupabaseUserId = getCurrentSupabaseUserId();
+    if (!client || !currentSupabaseUserId) {
       return [];
     }
     let query = client
@@ -2004,7 +2009,7 @@
       .order("created_at_ms", { ascending: false })
       .limit(250);
     if (!isCurrentUserAdmin()) {
-      query = query.or(`buyer_id.eq.${state.currentUser.id},seller_id.eq.${state.currentUser.id}`);
+      query = query.or(`buyer_id.eq.${currentSupabaseUserId},seller_id.eq.${currentSupabaseUserId}`);
     }
     const response = await query;
     if (response.error) {
@@ -2015,7 +2020,7 @@
 
   async function saveOfferToSupabase(offer) {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return normalizeOfferRecord(offer);
     }
     const payload = buildSupabaseOfferPayload(offer);
@@ -2028,7 +2033,7 @@
 
   async function fetchSupabaseOrders() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return [];
     }
     const response = await client
@@ -2044,7 +2049,7 @@
 
   async function saveOrderToSupabase(order) {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return normalizeOrderRecord(order);
     }
     const payload = buildSupabaseOrderPayload(order);
@@ -2057,7 +2062,7 @@
 
   async function fetchSupabaseSupportTickets() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return [];
     }
     const response = await client
@@ -2073,7 +2078,7 @@
 
   async function saveSupportTicketToSupabase(ticket) {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return normalizeSupportTicketRecord(ticket);
     }
     const payload = buildSupabaseSupportTicketPayload(ticket);
@@ -2086,7 +2091,7 @@
 
   async function fetchSupabaseChats() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return [];
     }
     let query = client
@@ -2107,7 +2112,7 @@
 
   async function saveConversationToSupabase(thread) {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return normalizeChatThread(thread);
     }
     const normalized = normalizeChatThread(thread);
@@ -2142,7 +2147,7 @@
 
   async function appendChatMessageToSupabase(thread, message) {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return normalizeChatThread(thread);
     }
     const normalizedThread = normalizeChatThread(thread);
@@ -2171,7 +2176,7 @@
 
   async function refreshSupabaseChats() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id || typeof chats === "undefined") {
+    if (!client || !getCurrentSupabaseUserId() || typeof chats === "undefined") {
       return;
     }
     const remoteChats = await fetchSupabaseChats();
@@ -2210,7 +2215,7 @@
       return;
     }
     supabaseChatsInitialized = true;
-    if (!state.currentUser || !state.currentUser.id || typeof chats === "undefined") {
+    if (!getCurrentSupabaseUserId() || typeof chats === "undefined") {
       return;
     }
     try {
@@ -2236,7 +2241,7 @@
 
   async function fetchSupabaseFavorites() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return [];
     }
     const response = await client
@@ -2251,7 +2256,7 @@
 
   async function saveFavoriteToSupabase(productId, isFavorite) {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id || !productId) {
+    if (!client || !getCurrentSupabaseUserId() || !productId) {
       return;
     }
     if (isFavorite) {
@@ -2269,7 +2274,7 @@
 
   async function refreshSupabaseFavorites() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return;
     }
     const remoteFavorites = await fetchSupabaseFavorites();
@@ -2302,7 +2307,7 @@
       return;
     }
     supabaseFavoritesInitialized = true;
-    if (!state.currentUser || !state.currentUser.id) {
+    if (!getCurrentSupabaseUserId()) {
       return;
     }
     try {
@@ -2340,7 +2345,7 @@
 
   async function fetchSupabaseCart() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return [];
     }
     const response = await client
@@ -2355,7 +2360,7 @@
 
   async function syncCartToSupabase() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return;
     }
     const currentCart = Array.isArray(state.cart) ? state.cart.map(normalizeCartRecord).filter(function (item) { return item.productId; }) : [];
@@ -2379,7 +2384,7 @@
 
   async function refreshSupabaseCart() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return;
     }
     const remoteCart = await fetchSupabaseCart();
@@ -2413,7 +2418,7 @@
       return;
     }
     supabaseCartInitialized = true;
-    if (!state.currentUser || !state.currentUser.id) {
+    if (!getCurrentSupabaseUserId()) {
       return;
     }
     try {
@@ -2503,7 +2508,7 @@
 
   async function syncReviewsToSupabase() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return;
     }
     const currentReviews = Array.isArray(state.reviews) ? state.reviews.map(normalizeReviewRecord) : [];
@@ -2600,7 +2605,7 @@
 
   async function fetchSupabaseMeasurementRequests() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return [];
     }
     const response = await client
@@ -2616,7 +2621,7 @@
 
   async function syncMeasurementRequestsToSupabase() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return;
     }
     const currentRequests = Array.isArray(state.measurementRequests) ? state.measurementRequests.map(normalizeMeasurementRequestRecord) : [];
@@ -2631,7 +2636,7 @@
 
   async function refreshSupabaseMeasurementRequests() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return;
     }
     const remoteRequests = await fetchSupabaseMeasurementRequests();
@@ -2658,7 +2663,7 @@
       return;
     }
     supabaseMeasurementRequestsInitialized = true;
-    if (!state.currentUser || !state.currentUser.id) {
+    if (!getCurrentSupabaseUserId()) {
       return;
     }
     try {
@@ -2739,7 +2744,7 @@
 
   async function fetchSupabaseNotifications() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return [];
     }
     const response = await client
@@ -2755,7 +2760,7 @@
 
   async function syncNotificationsToSupabase() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return;
     }
     const currentNotifications = Array.isArray(state.notifications) ? state.notifications.map(normalizeNotificationRecord) : [];
@@ -2770,7 +2775,7 @@
 
   async function refreshSupabaseNotifications() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return;
     }
     const remoteNotifications = await fetchSupabaseNotifications();
@@ -2796,7 +2801,7 @@
       return;
     }
     supabaseNotificationsInitialized = true;
-    if (!state.currentUser || !state.currentUser.id) {
+    if (!getCurrentSupabaseUserId()) {
       return;
     }
     try {
@@ -2808,7 +2813,7 @@
 
   async function refreshSupabaseSupportTickets() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return;
     }
     const remoteTickets = await fetchSupabaseSupportTickets();
@@ -2842,7 +2847,7 @@
       return;
     }
     supabaseSupportInitialized = true;
-    if (!state.currentUser || !state.currentUser.id) {
+    if (!getCurrentSupabaseUserId()) {
       return;
     }
     try {
@@ -2854,7 +2859,7 @@
 
   async function refreshSupabaseOrders() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return;
     }
     const remoteOrders = await fetchSupabaseOrders();
@@ -2889,7 +2894,7 @@
       return;
     }
     supabaseOrdersInitialized = true;
-    if (!state.currentUser || !state.currentUser.id) {
+    if (!getCurrentSupabaseUserId()) {
       return;
     }
     try {
@@ -2901,7 +2906,7 @@
 
   async function refreshSupabaseOffers() {
     const client = getSupabaseClient();
-    if (!client || !state.currentUser || !state.currentUser.id) {
+    if (!client || !getCurrentSupabaseUserId()) {
       return;
     }
     const remoteOffers = await fetchSupabaseOffers();
@@ -2935,7 +2940,7 @@
       return;
     }
     supabaseOffersInitialized = true;
-    if (!state.currentUser || !state.currentUser.id) {
+    if (!getCurrentSupabaseUserId()) {
       return;
     }
     try {
@@ -3042,6 +3047,24 @@
     saveJson(STORAGE_KEYS.users, state.users);
   }
 
+  function getCachedUserByEmail(email) {
+    const normalizedEmail = normalizeEmail(email || "");
+    if (!normalizedEmail) {
+      return null;
+    }
+    return state.users.find(function (entry) {
+      return normalizeEmail(entry.email) === normalizedEmail;
+    }) || null;
+  }
+
+  function isLocalOnlySessionUser(user) {
+    if (!user || !user.email) {
+      return false;
+    }
+    const cachedUser = getCachedUserByEmail(user.email);
+    return Boolean(cachedUser && cachedUser.authProvider && cachedUser.authProvider !== "supabase");
+  }
+
   function applyAuthenticatedUser(nextUser) {
     const normalized = normalizeUserWorkspace(nextUser);
     state.currentUser = normalized;
@@ -3094,6 +3117,9 @@
 
   async function syncCurrentUserFromSupabaseSession(session) {
     if (!session || !session.user) {
+      if (state.currentUser && isLocalOnlySessionUser(state.currentUser)) {
+        return applyAuthenticatedUser(state.currentUser);
+      }
       clearAuthenticatedUser();
       return null;
     }
@@ -6180,7 +6206,7 @@
 
   function persistNotifications() {
     saveJson(STORAGE_KEYS.notifications, state.notifications);
-    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       syncNotificationsToSupabase().catch(function (error) {
         console.warn("[IRIS] Unable to sync notifications to Supabase", error);
       });
@@ -6203,7 +6229,7 @@
 
   function persistMeasurementRequests() {
     saveJson(STORAGE_KEYS.measurementRequests, state.measurementRequests);
-    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       syncMeasurementRequestsToSupabase().catch(function (error) {
         console.warn("[IRIS] Unable to sync measurement requests to Supabase", error);
       });
@@ -6283,7 +6309,7 @@
 
   function persistReviews() {
     saveJson(STORAGE_KEYS.reviews, state.reviews);
-    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       syncReviewsToSupabase().catch(function (error) {
         console.warn("[IRIS] Unable to sync reviews to Supabase", error);
       });
@@ -6563,6 +6589,56 @@
     return state.orders
       .filter(function (order) { return normalizeEmail(order.buyerEmail) === normalizeEmail(state.currentUser.email); })
       .sort(function (left, right) { return right.createdAt - left.createdAt; });
+  }
+
+  function getCurrentUserOrderScope(order) {
+    if (!order || !state.currentUser) {
+      return null;
+    }
+    if (isCurrentUserAdmin()) {
+      return "admin";
+    }
+    const currentEmail = normalizeEmail(state.currentUser.email || "");
+    if (!currentEmail) {
+      return null;
+    }
+    if (normalizeEmail(order.buyerEmail || "") === currentEmail) {
+      return "buyer";
+    }
+    const sellerEmails = Array.isArray(order.sellerEmails) ? order.sellerEmails.map(normalizeEmail) : [];
+    if (sellerEmails.includes(currentEmail)) {
+      return "seller";
+    }
+    const ownsLineItem = Array.isArray(order.items) && order.items.some(function (item) {
+      return normalizeEmail(item && item.sellerEmail) === currentEmail;
+    });
+    return ownsLineItem ? "seller" : null;
+  }
+
+  function isOrderAccessibleToCurrentUser(order, requestedScope) {
+    const actualScope = getCurrentUserOrderScope(order);
+    if (!actualScope) {
+      return false;
+    }
+    if (!requestedScope || requestedScope === "any") {
+      return true;
+    }
+    if (actualScope === "admin") {
+      return true;
+    }
+    return actualScope === requestedScope;
+  }
+
+  function getAccessibleOrderById(orderId, requestedScope) {
+    const order = getOrderById(orderId);
+    return isOrderAccessibleToCurrentUser(order, requestedScope) ? order : null;
+  }
+
+  function canCurrentUserManageListing(listing) {
+    if (!listing) {
+      return false;
+    }
+    return isCurrentUserAdmin() || isCurrentUserListingOwner(listing);
   }
 
   function getSellerOrdersForCurrentUser() {
@@ -6985,7 +7061,7 @@
     });
 
     persistOrders();
-    if (updatedOrder && isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+    if (updatedOrder && isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       saveOrderToSupabase(updatedOrder).then(function (remoteOrder) {
         state.orders = state.orders.map(function (order) {
           return order.id === orderId ? remoteOrder : order;
@@ -7004,6 +7080,10 @@
   }
 
   function openShipmentModal(orderId) {
+    if (!getAccessibleOrderById(orderId, "seller") && !isCurrentUserAdmin()) {
+      showToast(langText("Non puoi gestire la spedizione di questo ordine.", "You cannot manage shipping for this order."));
+      return;
+    }
     openOpsModal("ship", { orderId: orderId });
   }
 
@@ -7027,8 +7107,14 @@
       });
       return;
     }
+    const resolvedScope = scope || "buyer";
+    const order = getAccessibleOrderById(orderId, resolvedScope);
+    if (!order) {
+      showToast(langText("Non puoi aprire questo ordine.", "You cannot open this order."));
+      return;
+    }
     state.activeOrderId = orderId;
-    state.activeOrderScope = scope || "buyer";
+    state.activeOrderScope = resolvedScope;
     renderOrderDetailModal();
     const modal = qs("#irisxOrderModal");
     if (modal) {
@@ -7038,6 +7124,17 @@
 
   function setOrderStatus(orderId, nextStatus, eventType, eventLabel, options) {
     const payload = options || {};
+    const currentOrder = getOrderById(orderId);
+    const currentScope = getCurrentUserOrderScope(currentOrder);
+    const allowedScopes = Array.isArray(payload.allowedScopes) && payload.allowedScopes.length ? payload.allowedScopes : null;
+    if (!currentOrder || !currentScope) {
+      showToast(langText("Ordine non disponibile.", "Order unavailable."));
+      return null;
+    }
+    if (allowedScopes && currentScope !== "admin" && allowedScopes.indexOf(currentScope) === -1) {
+      showToast(langText("Non puoi modificare questo ordine.", "You cannot update this order."));
+      return null;
+    }
     const updated = updateOrderRecord(orderId, function (order) {
       order.status = nextStatus;
       order.shipping.shipmentStatus = nextStatus;
@@ -7078,7 +7175,7 @@
       "awaiting_shipment",
       "awaiting_shipment",
       langText("Ordine in preparazione", "Order awaiting shipment"),
-      { payoutStatus: "pending_shipment", labelStatus: "pending" }
+      { payoutStatus: "pending_shipment", labelStatus: "pending", allowedScopes: ["seller"] }
     );
 
     if (updated) {
@@ -7087,6 +7184,11 @@
   }
 
   async function submitShipmentForOrder(orderId) {
+    const order = getAccessibleOrderById(orderId, "seller");
+    if (!order && !isCurrentUserAdmin()) {
+      showToast(langText("Non puoi aggiornare la spedizione di questo ordine.", "You cannot update shipping for this order."));
+      return;
+    }
     const carrierField = qs("#opsCarrier");
     const trackingField = qs("#opsTracking");
     const carrier = carrierField ? carrierField.value.trim() : "";
@@ -7097,7 +7199,7 @@
       return;
     }
 
-    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       try {
         const response = await invokeSupabaseFunction("mark-order-shipped", {
           orderId: orderId,
@@ -7127,7 +7229,8 @@
         trackingNumber: trackingNumber,
         shippedAt: Date.now(),
         labelStatus: "generated",
-        payoutStatus: "pending_delivery"
+        payoutStatus: "pending_delivery",
+        allowedScopes: ["seller"]
       }
     );
 
@@ -7162,7 +7265,7 @@
       "in_authentication",
       "order_authenticated",
       langText("Articolo preso in carico dal team autenticazione", "Item received by authentication team"),
-      { payoutStatus: "pending_delivery" }
+      { payoutStatus: "pending_delivery", allowedScopes: ["admin"] }
     );
 
     if (updated) {
@@ -7178,8 +7281,9 @@
   }
 
   function dispatchOrderToBuyer(orderId) {
-    const order = getOrderById(orderId);
+    const order = getAccessibleOrderById(orderId, "admin");
     if (!order) {
+      showToast(langText("Non puoi gestire questo ordine.", "You cannot manage this order."));
       return;
     }
 
@@ -7191,7 +7295,8 @@
       {
         payoutStatus: "pending_delivery",
         carrier: order.shipping.carrier || "DHL",
-        trackingNumber: order.shipping.trackingNumber || ("IRIS-BUYER-" + String(Date.now()).slice(-6))
+        trackingNumber: order.shipping.trackingNumber || ("IRIS-BUYER-" + String(Date.now()).slice(-6)),
+        allowedScopes: ["admin"]
       }
     );
 
@@ -7208,7 +7313,12 @@
   }
 
   async function confirmOrderDelivered(orderId) {
-    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+    const order = getAccessibleOrderById(orderId, "buyer");
+    if (!order && !isCurrentUserAdmin()) {
+      showToast(langText("Non puoi confermare questo ordine.", "You cannot confirm this order."));
+      return;
+    }
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       try {
         const response = await invokeSupabaseFunction("confirm-order-delivery", {
           orderId: orderId,
@@ -7237,7 +7347,8 @@
       langText("Ordine consegnato", "Order delivered"),
       {
         deliveredAt: Date.now(),
-        payoutStatus: "ready"
+        payoutStatus: "ready",
+        allowedScopes: ["buyer"]
       }
     );
 
@@ -7272,7 +7383,7 @@
       "completed",
       "order_completed",
       langText("Ordine completato", "Order completed"),
-      { payoutStatus: "ready" }
+      { payoutStatus: "ready", allowedScopes: ["admin"] }
     );
 
     if (updated) {
@@ -7286,7 +7397,7 @@
       "refund_requested",
       "refund_requested",
       langText("Rimborso richiesto", "Refund requested"),
-      { refundStatus: "requested", payoutStatus: "on_hold" }
+      { refundStatus: "requested", payoutStatus: "on_hold", allowedScopes: ["buyer"] }
     );
 
     if (updated) {
@@ -7307,7 +7418,7 @@
       "refunded",
       "order_refunded",
       langText("Rimborso completato", "Refund completed"),
-      { refundStatus: "refunded", payoutStatus: "reversed" }
+      { refundStatus: "refunded", payoutStatus: "reversed", allowedScopes: ["admin"] }
     );
 
     if (updated) {
@@ -7321,7 +7432,7 @@
       "cancelled",
       "order_cancelled",
       langText("Ordine annullato", "Order cancelled"),
-      { refundStatus: "cancelled", payoutStatus: "cancelled" }
+      { refundStatus: "cancelled", payoutStatus: "cancelled", allowedScopes: ["buyer", "admin"] }
     );
 
     if (updated) {
@@ -7336,7 +7447,14 @@
       });
       return;
     }
-    openOpsModal("support", Object.assign({ orderId: orderId }, options || {}));
+    const opts = options || {};
+    const requestedScope = opts.role || "any";
+    const order = getAccessibleOrderById(orderId, requestedScope);
+    if (!order) {
+      showToast(langText("Non puoi aprire supporto per questo ordine.", "You cannot open support for this order."));
+      return;
+    }
+    openOpsModal("support", Object.assign({ orderId: order.id }, opts));
   }
 
   async function submitSupportTicket(orderId) {
@@ -7401,7 +7519,7 @@
     enqueueEmail("support-request", PLATFORM_CONFIG.supportEmail, {
       preview: order.number + " - " + message
     });
-    enqueueEmail("issue-reported", order.buyerEmail, {
+    enqueueEmail("issue-reported", ticket.requesterEmail, {
       preview: message
     });
     createNotification({
@@ -7416,7 +7534,7 @@
       kind: "support",
       title: severity === "dispute" ? langText("Disputa aperta", "Dispute opened") : langText("Ticket aperto", "Ticket opened"),
       body: order.number,
-      recipientEmail: order.buyerEmail
+      recipientEmail: ticket.requesterEmail
     });
     recordAuditEvent("support_ticket_opened", order.number, {
       ticketId: ticket.id
@@ -7431,6 +7549,21 @@
   }
 
   async function resolveSupportTicket(ticketId) {
+    const existingTicket = state.supportTickets.find(function (ticket) { return ticket.id === ticketId; }) || null;
+    if (!existingTicket) {
+      return;
+    }
+    if (!isCurrentUserAdmin()) {
+      const currentEmail = normalizeEmail((state.currentUser && state.currentUser.email) || "");
+      const canResolve = currentEmail && (
+        normalizeEmail(existingTicket.buyerEmail) === currentEmail ||
+        normalizeEmail(existingTicket.sellerEmail) === currentEmail
+      );
+      if (!canResolve) {
+        showToast(langText("Non puoi gestire questo ticket.", "You cannot manage this ticket."));
+        return;
+      }
+    }
     let resolvedTicket = null;
     state.supportTickets = state.supportTickets.map(function (ticket) {
       if (ticket.id !== ticketId) {
@@ -7509,6 +7642,10 @@
   }
 
   function markOrderPayoutPaid(orderId) {
+    if (!getAccessibleOrderById(orderId, "admin")) {
+      showToast(langText("Non puoi aggiornare questo payout.", "You cannot update this payout."));
+      return;
+    }
     const updated = updateOrderRecord(orderId, function (order) {
       order.payment.payoutStatus = "paid";
       appendOrderEvent(order, "seller_payout_paid", langText("Payout seller completato", "Seller payout completed"));
@@ -8637,7 +8774,7 @@
     toggleFav = function (id, button) {
       originalToggleFav(id, button);
       saveJson(STORAGE_KEYS.favorites, [...favorites]);
-      if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+      if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
         saveFavoriteToSupabase(id, favorites.has(id)).catch(function (error) {
           console.warn("[IRIS] Unable to sync favorite to Supabase", error);
         });
@@ -8683,7 +8820,7 @@
           curChat = normalizedThread.id;
           state.chatScope = getChatConversationScope(normalizedThread);
           persistChats();
-          if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+          if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
             saveConversationToSupabase(normalizedThread).then(function (remoteThread) {
               const remoteThreadIndex = chats.findIndex(function (candidate) { return String(candidate.id) === String(remoteThread.id); });
               if (remoteThreadIndex > -1) {
@@ -8801,10 +8938,11 @@
       }
 
       if (targetView === "seller") {
-        qs("#seller-view").classList.add("active", "view-enter");
-        renderSellerProfileView();
-        setActiveNav("");
-        syncTopnavChrome(targetView);
+        qs("#profile-view").classList.add("active", "view-enter");
+        state.profileArea = "seller";
+        renderProfilePanel();
+        setActiveNav("profile");
+        syncTopnavChrome("profile");
         window.scrollTo(0, 0);
         return;
       }
@@ -10065,7 +10203,7 @@
 
   function persistCart() {
     saveJson(STORAGE_KEYS.cart, state.cart);
-    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       syncCartToSupabase().catch(function (error) {
         console.warn("[IRIS] Unable to sync cart to Supabase", error);
       });
@@ -10509,7 +10647,7 @@
       : null;
     const listingId = existingListing ? existingListing.id : Date.now();
     let sellPhotosForSave = state.sellPhotos.slice();
-    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       try {
         updateSellStatus(langText("Caricamento foto su IRIS Storage in corso...", "Uploading photos to IRIS Storage..."));
         sellPhotosForSave = await uploadListingPhotosToSupabase(sellPhotosForSave, listingId);
@@ -11524,7 +11662,7 @@
     });
     if (mutated) {
       persistOffers();
-      if (isSupabaseEnabled() && state.currentUser && state.currentUser.id && changedOffers.length) {
+      if (isSupabaseEnabled() && getCurrentSupabaseUserId() && changedOffers.length) {
         Promise.all(changedOffers.map(function (offer) {
           return saveOfferToSupabase(offer);
         })).catch(function (error) {
@@ -12142,7 +12280,9 @@
     if (!source.length) {
       return null;
     }
-    return getOrderById(state.activeOrderId) || source[0];
+    return source.find(function (order) {
+      return String(order.id) === String(state.activeOrderId);
+    }) || source[0];
   }
 
   function getOrderLifecycleActions(order, scope) {
@@ -12444,7 +12584,7 @@
       return `<div class="irisx-empty-state">${langText("Nessun ordine selezionato.", "No order selected.")}</div>`;
     }
     const actions = getOrderLifecycleActions(order, scope).join("");
-    const supportRole = scope === "seller" ? "seller" : "buyer";
+    const supportRole = scope === "seller" ? "seller" : scope === "admin" ? "admin" : "buyer";
     return `<div class="irisx-order-card irisx-order-card--expanded">
       <div class="irisx-order-head">
         <strong>${escapeHtml(order.number)}</strong>
@@ -12963,7 +13103,7 @@
       : null;
     const draftId = existingListing ? existingListing.id : Date.now();
     let sellPhotosForDraft = state.sellPhotos.slice();
-    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id && sellPhotosForDraft.length) {
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId() && sellPhotosForDraft.length) {
       try {
         updateSellStatus(langText("Caricamento foto bozza in corso...", "Uploading draft photos..."));
         sellPhotosForDraft = await uploadListingPhotosToSupabase(sellPhotosForDraft, draftId);
@@ -13026,6 +13166,11 @@
   }
 
   async function publishDraftListing(listingId) {
+    const currentListing = state.listings.find(function (listing) { return String(listing.id) === String(listingId); });
+    if (!canCurrentUserManageListing(currentListing)) {
+      showToast(langText("Non puoi pubblicare questo annuncio.", "You cannot publish this listing."));
+      return;
+    }
     let updatedListing = null;
     state.listings = state.listings.map(function (listing) {
       if (String(listing.id) !== String(listingId)) {
@@ -13056,7 +13201,10 @@
 
   function loadDraftIntoSellForm(listingId) {
     const listing = state.listings.find(function (candidate) { return String(candidate.id) === String(listingId); });
-    if (!listing) {
+    if (!listing || !canCurrentUserManageListing(listing)) {
+      if (listing) {
+        showToast(langText("Non puoi modificare questo annuncio.", "You cannot edit this listing."));
+      }
       return;
     }
     showPage("sell");
@@ -13114,6 +13262,11 @@
   }
 
   async function archiveListing(listingId) {
+    const currentListing = state.listings.find(function (listing) { return String(listing.id) === String(listingId); });
+    if (!canCurrentUserManageListing(currentListing)) {
+      showToast(langText("Non puoi archiviare questo annuncio.", "You cannot archive this listing."));
+      return;
+    }
     let updatedListing = null;
     state.listings = state.listings.map(function (listing) {
       if (String(listing.id) !== String(listingId)) {
@@ -13140,6 +13293,11 @@
   }
 
   async function toggleListingOffers(listingId) {
+    const currentListing = state.listings.find(function (listing) { return String(listing.id) === String(listingId); });
+    if (!canCurrentUserManageListing(currentListing)) {
+      showToast(langText("Non puoi aggiornare questo annuncio.", "You cannot update this listing."));
+      return;
+    }
     let updatedListing = null;
     state.listings = state.listings.map(function (listing) {
       if (String(listing.id) !== String(listingId)) {
@@ -13198,12 +13356,9 @@
     if (!sellerView || !sellerView.classList.contains("active")) {
       return;
     }
-    const container = qs("#sellerContent");
-    if (!container) {
-      return;
-    }
     state.profileArea = "seller";
-    renderProfilePanel();
+    showBuyView("profile");
+    setProfileArea("seller", state.sellerSection || "dashboard");
   }
 
   function setAdminSection(section) {
@@ -14149,7 +14304,7 @@
 
   function renderOrderDetailModal() {
     const modal = qs("#irisxOrderModal");
-    const order = getOrderById(state.activeOrderId);
+    const order = getAccessibleOrderById(state.activeOrderId, state.activeOrderScope || "any");
     if (!modal) {
       return;
     }
@@ -14548,7 +14703,7 @@
     conversation.unreadCount = 0;
     chats[threadIndex] = conversation;
     persistChats();
-    if (hadUnread && isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+    if (hadUnread && isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       saveConversationToSupabase(conversation).catch(function (error) {
         console.warn("[IRIS] Unable to sync chat read state to Supabase", error);
       });
@@ -14617,7 +14772,7 @@
     input.value = "";
     persistChats();
     openChatById(curChat);
-    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       const lastMessage = conversation.msgs[conversation.msgs.length - 1];
       appendChatMessageToSupabase(conversation, lastMessage).then(function (remoteThread) {
         chats[conversationIndex] = remoteThread;
@@ -14803,7 +14958,7 @@
     state.orders.unshift(order);
     notifyNewOrder(order);
     persistOrders();
-    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       saveOrderToSupabase(order).then(function (remoteOrder) {
         state.orders = state.orders.map(function (candidate) {
           return candidate.id === order.id ? remoteOrder : candidate;
@@ -15104,13 +15259,14 @@
   }
 
   function buildSupportContext(orderId, options) {
-    const order = state.orders.find(function (candidate) { return String(candidate.id) === String(orderId); });
+    const opts = options || {};
+    const requestedRole = opts.role || "any";
+    const order = getAccessibleOrderById(orderId, requestedRole);
     if (!order) {
       return null;
     }
-    const opts = options || {};
     const currentEmail = normalizeEmail((state.currentUser && state.currentUser.email) || "");
-    const role = opts.role || (normalizeEmail(order.buyerEmail) === currentEmail ? "buyer" : "seller");
+    const role = opts.role || (normalizeEmail(order.buyerEmail) === currentEmail ? "buyer" : getCurrentUserOrderScope(order) || "seller");
     const productRef = opts.productId
       ? (order.items || []).find(function (item) { return String(item.productId) === String(opts.productId); })
       : (order.items || [])[0];

@@ -35,17 +35,21 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
   background: rgba(6,3,16,.88) !important;
   backdrop-filter: blur(20px) !important;
   z-index: 2000 !important;
-  align-items: center !important;
+  align-items: flex-start !important;
   justify-content: center !important;
+  overflow-y: auto !important;
+  padding: max(2.5vh, 1.5rem) 1rem !important;
 }
 .offer-box {
   background: rgba(12,6,28,.98) !important;
   border: 1px solid rgba(167,139,250,.12) !important;
-  padding: 2.5rem 2rem !important;
-  max-width: 380px !important;
+  padding: 0 !important;
+  max-width: 500px !important;
   width: 100% !important;
   text-align: center !important;
   border-radius: 4px !important;
+  overflow: hidden !important;
+  margin: 0 auto !important;
 }
 .offer-title {
   font-family: 'Playfair Display',serif !important;
@@ -2630,7 +2634,6 @@ body.light-mode .irisx-chat-role-badge {
 .offer-shell {
   display: flex;
   flex-direction: column;
-  min-height: min(780px, calc(100vh - 4rem));
   background: linear-gradient(180deg, rgba(10, 10, 10, 0.98), rgba(16, 16, 16, 0.98));
 }
 
@@ -4971,7 +4974,7 @@ body.irisx-luxury .irisx-cookie-banner {
   left: 24px;
   right: 24px;
   bottom: 24px;
-  z-index: 2300;
+  z-index: 1900;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -6045,28 +6048,25 @@ body.irisx-luxury .active-filters{
 
 body.irisx-luxury .irisx-filter-rail{
   display:flex;
+  flex-direction:row;
+  align-items:center;
   flex-wrap:wrap;
-  align-items:flex-end;
-  gap:16px;
-  width:100%;
-  padding:18px 18px 16px;
-  border:1px solid rgba(255,255,255,.06);
-  background:rgba(255,255,255,.02);
+  gap:12px;
+  padding:14px 0 12px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:transparent;
 }
 
 body.irisx-luxury .irisx-filter-group{
-  display:grid;
-  gap:10px;
-  align-content:start;
-  min-width:max-content;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:8px;
 }
 
 body.irisx-luxury .irisx-filter-group--trust{
-  padding-bottom:2px;
-  padding-right:18px;
-  margin-right:2px;
-  border-right:1px solid rgba(255,255,255,.06);
-  border-bottom:0;
+  padding-bottom:0;
+  border-bottom:none;
 }
 
 body.irisx-luxury .irisx-filter-label{
@@ -6083,13 +6083,15 @@ body.irisx-luxury .irisx-filter-chip-row{
 }
 
 body.irisx-luxury .irisx-filter-chip{
-  min-height:42px;
-  padding:0 15px;
+  min-height:34px;
+  padding:0 14px;
   border:1px solid rgba(255,255,255,.08);
   background:rgba(255,255,255,.02);
   color:rgba(245,240,235,.84);
-  font-size:.78rem;
+  font-size:.72rem;
   letter-spacing:.04em;
+  white-space:nowrap;
+  cursor:pointer;
 }
 
 body.irisx-luxury .irisx-filter-chip.is-active{
@@ -6099,7 +6101,7 @@ body.irisx-luxury .irisx-filter-chip.is-active{
 }
 
 body.irisx-luxury .irisx-filter-chip--trust{
-  min-height:44px;
+  min-height:34px;
   border-color:rgba(124,58,237,.26);
   background:rgba(124,58,237,.1);
   color:rgba(245,240,235,.94);

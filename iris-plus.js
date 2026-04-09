@@ -8090,35 +8090,11 @@
       if (!host) {
         return;
       }
-      const groups = [
-        { key: "brands", label: langText("Brand", "Brand"), values: getAvailableBrands().slice(0, 10) },
-        { key: "genders", label: langText("Genere", "Gender"), values: getAvailableGenders() },
-        { key: "cats", label: langText("Categoria", "Category"), values: getAvailableCategories() },
-        { key: "conds", label: langText("Condizione", "Condition"), values: getAvailableConditions() },
-        { key: "materials", label: langText("Materiale", "Material"), values: getAvailableMaterials().slice(0, 8) }
-      ];
       const trustChips = getTrustFilterOptions().map(function (option) {
         return `<button class="irisx-filter-chip irisx-filter-chip--trust${filters.trust.includes(option.id) ? " is-active" : ""}" onclick="toggleFilterChip('trust', '${escapeHtml(option.id)}')">${escapeHtml(option.label)}</button>`;
       }).join("");
-      const groupMarkup = groups.map(function (group) {
-        if (!group.values.length) {
-          return "";
-        }
-        return `<div class="irisx-filter-group"><span class="irisx-filter-label">${escapeHtml(group.label)}</span><div class="irisx-filter-chip-row">${group.values.map(function (value) {
-          return `<button class="irisx-filter-chip${filters[group.key].includes(value) ? " is-active" : ""}" onclick="toggleFilterChip('${group.key}','${escapeHtml(value)}')">${escapeHtml(getFilterTokenLabel(group.key, value))}</button>`;
-        }).join("")}</div></div>`;
-      }).join("");
       host.innerHTML = `<div class="irisx-filter-rail">
         <div class="irisx-filter-group irisx-filter-group--trust"><span class="irisx-filter-label">${escapeHtml(langText("Fiducia IRIS", "IRIS trust"))}</span><div class="irisx-filter-chip-row">${trustChips}</div></div>
-        ${groupMarkup}
-        <div class="irisx-filter-group irisx-filter-group--price">
-          <span class="irisx-filter-label">${escapeHtml(langText("Prezzo", "Price"))}</span>
-          <div class="irisx-filter-price-row">
-            <input id="irisxFilterMin" class="irisx-filter-input" type="text" inputmode="decimal" placeholder="${escapeHtml(t("price_min"))}" value="${escapeHtml(filters.pmin || "")}" onblur="applyFilters()">
-            <input id="irisxFilterMax" class="irisx-filter-input" type="text" inputmode="decimal" placeholder="${escapeHtml(t("price_max"))}" value="${escapeHtml(filters.pmax || "")}" onblur="applyFilters()">
-            <button class="irisx-filter-reset" onclick="clearFilters()">${escapeHtml(langText("Reset", "Reset"))}</button>
-          </div>
-        </div>
         <div class="active-filters irisx-active-filter-row" id="activeFilterChips"></div>
       </div>`;
     }

@@ -1176,7 +1176,24 @@
   }
 
   function getSupabaseRedirectUrl() {
-    return window.location.origin + window.location.pathname;
+    const localHostPattern = /^(localhost|127\.0\.0\.1)$/i;
+    const configuredSiteUrl =
+      SUPABASE_PUBLIC_CONFIG && typeof SUPABASE_PUBLIC_CONFIG.publicSiteUrl === "string"
+        ? SUPABASE_PUBLIC_CONFIG.publicSiteUrl.trim()
+        : "";
+    const canonicalHref = (function () {
+      const canonical = document.querySelector('link[rel="canonical"]');
+      return canonical && canonical.href ? canonical.href.trim() : "";
+    })();
+    const fallbackUrl = configuredSiteUrl || canonicalHref || (window.location.origin + window.location.pathname);
+    const preferredUrl = localHostPattern.test(window.location.hostname) ? fallbackUrl : (window.location.origin + window.location.pathname);
+    try {
+      const url = new URL(preferredUrl);
+      url.hash = "";
+      return url.toString();
+    } catch (_error) {
+      return window.location.origin + window.location.pathname;
+    }
   }
 
   function buildAppReturnUrl(params) {
@@ -7004,6 +7021,12 @@
   }
 
   function openOrderDetail(orderId, scope) {
+    if (!state.currentUser) {
+      requireAuth(function () {
+        openOrderDetail(orderId, scope);
+      });
+      return;
+    }
     state.activeOrderId = orderId;
     state.activeOrderScope = scope || "buyer";
     renderOrderDetailModal();
@@ -7307,6 +7330,12 @@
   }
 
   function openSupportModal(orderId, options) {
+    if (!state.currentUser) {
+      requireAuth(function () {
+        openSupportModal(orderId, options);
+      });
+      return;
+    }
     openOpsModal("support", Object.assign({ orderId: orderId }, options || {}));
   }
 
@@ -9318,6 +9347,34 @@
       "</button></div><div class=\"irisx-status irisx-hidden\" id=\"irisxAuthStatus\"></div></div></div>";
   }
 
+  function getReadableAuthErrorMessage(error, fallbackIt, fallbackEn) {
+    const rawMessage = error && error.message ? String(error.message).trim() : "";
+    const fallbackMessage = langText(fallbackIt, fallbackEn);
+    if (!rawMessage) {
+      return fallbackMessage;
+    }
+    const normalized = rawMessage.toLowerCase();
+    if (normalized.includes("email address") && normalized.includes("invalid")) {
+      return langText("Inserisci un indirizzo email valido.", "Enter a valid email address.");
+    }
+    if (normalized.includes("email not confirmed")) {
+      return langText("Conferma prima la tua email e poi accedi di nuovo.", "Confirm your email first, then sign in again.");
+    }
+    if (normalized.includes("invalid login credentials")) {
+      return langText("Email o password non corretti.", "Incorrect email or password.");
+    }
+    if (normalized.includes("signup") && normalized.includes("disabled")) {
+      return langText("La registrazione è momentaneamente non disponibile.", "Sign up is temporarily unavailable.");
+    }
+    if (normalized.includes("redirect") && normalized.includes("not allowed")) {
+      return langText("Il link di ritorno non è configurato correttamente. Contatta il supporto IRIS.", "The return URL is not configured correctly. Contact IRIS support.");
+    }
+    if (normalized.includes("rate limit") || normalized.includes("too many requests") || normalized.includes("429")) {
+      return langText("Hai fatto troppi tentativi in poco tempo. Aspetta un attimo e riprova.", "Too many attempts in a short time. Wait a moment and try again.");
+    }
+    return rawMessage;
+  }
+
   async function requestPasswordReset() {
     const status = qs("#irisxAuthStatus");
     const emailField = qs("#irisxAuthEmail");
@@ -9352,7 +9409,7 @@
     } catch (error) {
       setInlineStatus(
         status,
-        error && error.message ? error.message : langText("Impossibile inviare l'email di recupero.", "Unable to send the recovery email."),
+        getReadableAuthErrorMessage(error, "Impossibile inviare l'email di recupero.", "Unable to send the recovery email."),
         true
       );
     }
@@ -9380,7 +9437,7 @@
       } catch (error) {
         setInlineStatus(
           status,
-          error && error.message ? error.message : langText("Accesso Google non disponibile.", "Google sign-in is currently unavailable."),
+          getReadableAuthErrorMessage(error, "Accesso Google non disponibile.", "Google sign-in is currently unavailable."),
           true
         );
       }
@@ -9447,7 +9504,7 @@
         showBuyView("home");
       }).catch(function(error) {
         var status = qs("#irisxAuthStatus");
-        if (status) setInlineStatus(status, error.message, true);
+        if (status) setInlineStatus(status, getReadableAuthErrorMessage(error, "Accesso Google non disponibile.", "Google sign-in is currently unavailable."), true);
       });
       return;
     }
@@ -9761,7 +9818,7 @@
       } catch (error) {
         setInlineStatus(
           status,
-          error && error.message ? error.message : langText("Autenticazione non disponibile.", "Authentication is currently unavailable."),
+          getReadableAuthErrorMessage(error, "Autenticazione non disponibile.", "Authentication is currently unavailable."),
           true
         );
         return;
@@ -14583,6 +14640,18 @@
     });
     enqueueEmail("new-message", counterparty.email, { preview: messageText });
     renderNotifications();
+  };
+  window.renderChats = renderChats;
+  window.openChatById = openChatById;
+  window.openChat = openChat;
+  window.backToChats = backToChats;
+  window.sendChat = sendChat;
+  window.__irisModernChatFlow = {
+    render: renderChats,
+    openById: openChatById,
+    open: openChat,
+    back: backToChats,
+    send: sendChat
   };
 
   function buildCheckoutDraft() {

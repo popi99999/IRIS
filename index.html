@@ -2963,10 +2963,16 @@ function renderFavorites(){
 
 /* ═══════ CHAT ═══════ */
 function renderChats(){
+  if (window.__irisModernChatFlow && typeof window.__irisModernChatFlow.render === 'function') {
+    return window.__irisModernChatFlow.render();
+  }
   const list=document.getElementById('chatList');
   list.innerHTML=chats.map(c=>`<div class="cl-item${curChat===c.id?' on':''}" onclick="openChatById('${c.id}')"><div class="cl-av">${c.with.avatar}</div><div class="cl-info"><div class="cl-name">${c.with.name}</div><div class="cl-last">${c.msgs[c.msgs.length-1].text}</div></div><div class="cl-time">${c.msgs[c.msgs.length-1].time}</div></div>`).join('');
 }
 function openChatById(id){
+  if (window.__irisModernChatFlow && typeof window.__irisModernChatFlow.openById === 'function') {
+    return window.__irisModernChatFlow.openById(id);
+  }
   curChat=id;
   const c=chats.find(x=>x.id===id);if(!c)return;
   document.getElementById('chatLayout').classList.add('in-chat');
@@ -2978,13 +2984,24 @@ function openChatById(id){
   renderChats();
 }
 function openChat(sellerId,prodId){
+  if (window.__irisModernChatFlow && typeof window.__irisModernChatFlow.open === 'function') {
+    return window.__irisModernChatFlow.open(sellerId, prodId);
+  }
   showBuyView('chat');
   let existing=chats.find(c=>c.with.id===sellerId);
   if(!existing){existing={id:'c'+(chats.length+1),with:sellers.find(s=>s.id===sellerId),product:prods.find(p=>p.id===prodId),msgs:[]};chats.push(existing)}
   openChatById(existing.id);
 }
-function backToChats(){document.getElementById('chatLayout').classList.remove('in-chat');curChat=null;renderChats()}
+function backToChats(){
+  if (window.__irisModernChatFlow && typeof window.__irisModernChatFlow.back === 'function') {
+    return window.__irisModernChatFlow.back();
+  }
+  document.getElementById('chatLayout').classList.remove('in-chat');curChat=null;renderChats()
+}
 function sendChat(){
+  if (window.__irisModernChatFlow && typeof window.__irisModernChatFlow.send === 'function') {
+    return window.__irisModernChatFlow.send();
+  }
   if(!curChat)return;const input=document.getElementById('chatInput');if(!input.value.trim())return;
   const c=chats.find(x=>x.id===curChat);
   c.msgs.push({from:'me',text:input.value.trim(),time:'Ora'});

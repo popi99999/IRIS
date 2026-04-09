@@ -69,6 +69,12 @@
   let supabaseOffersInitialized = false;
   let supabaseOrdersInitialized = false;
   let supabaseSupportInitialized = false;
+  let supabaseChatsInitialized = false;
+  let supabaseFavoritesInitialized = false;
+  let supabaseCartInitialized = false;
+  let supabaseReviewsInitialized = false;
+  let supabaseMeasurementRequestsInitialized = false;
+  let supabaseNotificationsInitialized = false;
   const SELL_TAXONOMY = {
     clothing: {
       it: "Abbigliamento",
@@ -495,6 +501,12 @@
   initializeSupabaseOffers();
   initializeSupabaseOrders();
   initializeSupabaseSupportTickets();
+  initializeSupabaseChats();
+  initializeSupabaseFavorites();
+  initializeSupabaseCart();
+  initializeSupabaseReviews();
+  initializeSupabaseMeasurementRequests();
+  initializeSupabaseNotifications();
   ensureOpsShell();
   syncCurrentUserSeller();
   overrideMarketplaceFunctions();
@@ -1235,11 +1247,18 @@
     });
   }
 
+  function normalizeSupabaseUuid(value) {
+    const candidate = String(value || "").trim();
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(candidate)
+      ? candidate
+      : null;
+  }
+
   function buildSupabaseListingPayload(listing) {
     const normalized = normalizeListingRecord(listing);
     return {
       id: String(normalized.id),
-      owner_id: state.currentUser && state.currentUser.id ? state.currentUser.id : null,
+      owner_id: normalizeSupabaseUuid(state.currentUser && state.currentUser.id),
       owner_email: normalizeEmail(normalized.ownerEmail),
       name: normalized.name || "",
       brand: normalized.brand || "",
@@ -1356,10 +1375,10 @@
       product_id: normalized.productId || normalized.listingId || null,
       product_name: normalized.productName || "",
       product_brand: normalized.productBrand || "",
-      buyer_id: normalized.buyerId || (state.currentUser && state.currentUser.id) || null,
+      buyer_id: normalizeSupabaseUuid(normalized.buyerId || (state.currentUser && state.currentUser.id)),
       buyer_email: normalizeEmail(normalized.buyerEmail),
       buyer_name: normalized.buyerName || "",
-      seller_id: normalized.sellerId || null,
+      seller_id: normalizeSupabaseUuid(normalized.sellerId),
       seller_email: normalizeEmail(normalized.sellerEmail),
       seller_name: normalized.sellerName || "",
       offer_amount: Number(normalized.offerAmount || normalized.amount || 0),
@@ -1422,7 +1441,7 @@
     return {
       id: String(normalized.id),
       number: normalized.number || "",
-      buyer_id: normalized.buyerId || null,
+      buyer_id: normalizeSupabaseUuid(normalized.buyerId),
       buyer_email: normalizeEmail(normalized.buyerEmail),
       buyer_name: normalized.buyerName || "",
       seller_emails: Array.isArray(normalized.sellerEmails) ? normalized.sellerEmails.map(normalizeEmail).filter(Boolean) : [],
@@ -1481,7 +1500,7 @@
       product_title: normalized.productTitle || "",
       buyer_email: normalizeEmail(normalized.buyerEmail),
       seller_email: normalizeEmail(normalized.sellerEmail),
-      requester_id: normalized.requesterId || (state.currentUser && state.currentUser.id) || null,
+      requester_id: normalizeSupabaseUuid(normalized.requesterId || (state.currentUser && state.currentUser.id)),
       requester_email: normalizeEmail(normalized.requesterEmail),
       requester_role: normalized.requesterRole || "buyer",
       severity: normalized.severity || "support",
@@ -1519,6 +1538,94 @@
       createdAt: Number(row.created_at_ms || Date.now()),
       updatedAt: Number(row.updated_at_ms || row.created_at_ms || Date.now())
     });
+  }
+
+  function buildSupabaseConversationPayload(thread) {
+    const normalized = normalizeChatThread(thread);
+    const firstMessage = normalized.msgs[0];
+    return {
+      id: String(normalized.id),
+      listing_id: normalized.listingId || normalized.productId || null,
+      product_id: normalized.productId || normalized.listingId || null,
+      seller_id: normalizeSupabaseUuid(normalized.sellerId),
+      seller_email: normalizeEmail(normalized.sellerEmail),
+      seller_name: normalized.sellerName || "",
+      buyer_id: normalizeSupabaseUuid(normalized.buyerId),
+      buyer_email: normalizeEmail(normalized.buyerEmail),
+      buyer_name: normalized.buyerName || "",
+      unread_count: Number(normalized.unreadCount || 0),
+      updated_at_ms: Number(normalized.updatedAt || (firstMessage && firstMessage.at) || Date.now()),
+      created_at_ms: Number((firstMessage && firstMessage.at) || normalized.updatedAt || Date.now())
+    };
+  }
+
+  function buildSupabaseConversationMessagePayload(conversationId, message, thread) {
+    const normalized = normalizeChatMessageRecord(message);
+    const normalizedThread = normalizeChatThread(thread || { id: conversationId });
+    const conversationScope = getChatConversationScope(normalizedThread);
+    const senderRole = normalized.from === "me"
+      ? (conversationScope === "selling" ? "seller" : "buyer")
+      : (conversationScope === "selling" ? "buyer" : "seller");
+    const senderEmail = senderRole === "seller"
+      ? normalizeEmail(normalizedThread.sellerEmail || "")
+      : normalizeEmail(normalizedThread.buyerEmail || "");
+    return {
+      id: String(normalized.id),
+      conversation_id: String(conversationId),
+      sender_role: senderRole,
+      sender_email: senderEmail,
+      body: normalized.text || "",
+      sent_at_ms: Number(normalized.at || Date.now()),
+      time_label: normalized.time || ""
+    };
+  }
+
+  function buildChatMessageFromSupabaseRow(row, conversation) {
+    if (!row) {
+      return null;
+    }
+    const currentEmail = normalizeEmail((state.currentUser && state.currentUser.email) || "");
+    const senderEmail = normalizeEmail(row.sender_email || "");
+    const inferredFrom = senderEmail && currentEmail && senderEmail === currentEmail ? "me" : "them";
+    return normalizeChatMessageRecord({
+      id: row.id,
+      from: inferredFrom,
+      text: row.body || "",
+      time: row.time_label || formatRelativeTime(row.sent_at_ms || Date.now()),
+      at: Number(row.sent_at_ms || Date.now()),
+      senderRole: row.sender_role || "",
+      senderEmail: senderEmail,
+      conversationId: conversation && conversation.id ? conversation.id : row.conversation_id
+    });
+  }
+
+  function buildChatThreadFromSupabaseRow(row) {
+    if (!row) {
+      return null;
+    }
+    const baseThread = normalizeChatThread({
+      id: row.id,
+      listingId: row.listing_id || row.product_id || null,
+      productId: row.product_id || row.listing_id || null,
+      sellerId: row.seller_id || "",
+      sellerEmail: row.seller_email || "",
+      sellerName: row.seller_name || "",
+      buyerId: row.buyer_id || "",
+      buyerEmail: row.buyer_email || "",
+      buyerName: row.buyer_name || "",
+      unreadCount: Number(row.unread_count || 0),
+      updatedAt: Number(row.updated_at_ms || row.created_at_ms || Date.now()),
+      msgs: []
+    });
+    const messages = Array.isArray(row.conversation_messages)
+      ? row.conversation_messages.map(function (messageRow) {
+          return buildChatMessageFromSupabaseRow(messageRow, baseThread);
+        }).filter(Boolean).sort(function (left, right) { return Number(left.at || 0) - Number(right.at || 0); })
+      : [];
+    return normalizeChatThread(Object.assign({}, baseThread, {
+      msgs: messages,
+      updatedAt: Number(row.updated_at_ms || (messages[messages.length - 1] && messages[messages.length - 1].at) || Date.now())
+    }));
   }
 
   function dataUrlToBlob(dataUrl) {
@@ -1710,6 +1817,728 @@
     return buildSupportTicketFromSupabaseRow(response.data);
   }
 
+  async function fetchSupabaseChats() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return [];
+    }
+    let query = client
+      .from("conversations")
+      .select("*, conversation_messages(*)")
+      .order("updated_at_ms", { ascending: false })
+      .limit(250);
+    if (!isCurrentUserAdmin()) {
+      const currentEmail = normalizeEmail(state.currentUser.email);
+      query = query.or(`buyer_email.eq.${currentEmail},seller_email.eq.${currentEmail}`);
+    }
+    const response = await query;
+    if (response.error) {
+      throw response.error;
+    }
+    return Array.isArray(response.data) ? response.data.map(buildChatThreadFromSupabaseRow).filter(Boolean) : [];
+  }
+
+  async function saveConversationToSupabase(thread) {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return normalizeChatThread(thread);
+    }
+    const normalized = normalizeChatThread(thread);
+    const conversationPayload = buildSupabaseConversationPayload(normalized);
+    const conversationResponse = await client
+      .from("conversations")
+      .upsert(conversationPayload, { onConflict: "id" })
+      .select("*")
+      .single();
+    if (conversationResponse.error) {
+      throw conversationResponse.error;
+    }
+    const messages = Array.isArray(normalized.msgs) ? normalized.msgs.map(normalizeChatMessageRecord) : [];
+    if (messages.length) {
+      const messagePayloads = messages.map(function (message) {
+        return buildSupabaseConversationMessagePayload(normalized.id, message, normalized);
+      });
+      const messagesResponse = await client
+        .from("conversation_messages")
+        .upsert(messagePayloads, { onConflict: "id" });
+      if (messagesResponse.error) {
+        throw messagesResponse.error;
+      }
+    }
+    const conversationRow = Object.assign({}, conversationResponse.data, {
+      conversation_messages: messages.map(function (message) {
+        return buildSupabaseConversationMessagePayload(normalized.id, message, normalized);
+      })
+    });
+    return buildChatThreadFromSupabaseRow(conversationRow);
+  }
+
+  async function appendChatMessageToSupabase(thread, message) {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return normalizeChatThread(thread);
+    }
+    const normalizedThread = normalizeChatThread(thread);
+    const conversationResponse = await client
+      .from("conversations")
+      .upsert(buildSupabaseConversationPayload(normalizedThread), { onConflict: "id" })
+      .select("*")
+      .single();
+    if (conversationResponse.error) {
+      throw conversationResponse.error;
+    }
+    const payload = buildSupabaseConversationMessagePayload(normalizedThread.id, message, normalizedThread);
+    const messageResponse = await client.from("conversation_messages").upsert(payload, { onConflict: "id" }).select("*").single();
+    if (messageResponse.error) {
+      throw messageResponse.error;
+    }
+    const currentMessages = Array.isArray(normalizedThread.msgs) ? normalizedThread.msgs.map(normalizeChatMessageRecord) : [];
+    const remoteMessage = buildChatMessageFromSupabaseRow(messageResponse.data, normalizedThread);
+    const mergedThread = normalizeChatThread(Object.assign({}, normalizedThread, {
+      msgs: currentMessages.concat(remoteMessage),
+      updatedAt: Number(remoteMessage.at || Date.now())
+    }));
+    await client.from("conversations").upsert(buildSupabaseConversationPayload(mergedThread), { onConflict: "id" });
+    return mergedThread;
+  }
+
+  async function refreshSupabaseChats() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id || typeof chats === "undefined") {
+      return;
+    }
+    const remoteChats = await fetchSupabaseChats();
+    const remoteIds = new Set(remoteChats.map(function (thread) { return String(thread.id); }));
+    const localOnly = chats.filter(function (thread) {
+      return !remoteIds.has(String(thread.id));
+    });
+    chats.splice(0, chats.length);
+    remoteChats.concat(localOnly.map(normalizeChatThread)).forEach(function (thread) {
+      chats.push(normalizeChatThread(thread));
+    });
+    persistChats();
+    if (localOnly.length) {
+      Promise.all(localOnly.map(function (thread) {
+        return saveConversationToSupabase(thread).catch(function (error) {
+          console.warn("[IRIS] Unable to backfill local chat to Supabase", error);
+          return null;
+        });
+      })).then(function () {
+        renderChats();
+      });
+    }
+    if (typeof renderChats === "function") {
+      renderChats();
+    }
+    renderProfilePanel();
+    renderNotifications();
+    renderOpsView();
+  }
+
+  async function initializeSupabaseChats() {
+    if (supabaseChatsInitialized) {
+      return;
+    }
+    if (!isSupabaseEnabled()) {
+      return;
+    }
+    supabaseChatsInitialized = true;
+    if (!state.currentUser || !state.currentUser.id || typeof chats === "undefined") {
+      return;
+    }
+    try {
+      await refreshSupabaseChats();
+    } catch (error) {
+      console.warn("[IRIS] Unable to load chats from Supabase", error);
+    }
+  }
+
+  function buildSupabaseFavoritePayload(productId) {
+    return {
+      id: `${state.currentUser.id}:${productId}`,
+      user_id: state.currentUser.id,
+      user_email: normalizeEmail(state.currentUser.email || ""),
+      product_id: String(productId),
+      created_at_ms: Date.now()
+    };
+  }
+
+  function buildFavoriteFromSupabaseRow(row) {
+    return row && row.product_id ? String(row.product_id) : "";
+  }
+
+  async function fetchSupabaseFavorites() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return [];
+    }
+    const response = await client
+      .from("favorites")
+      .select("*")
+      .order("created_at_ms", { ascending: false });
+    if (response.error) {
+      throw response.error;
+    }
+    return Array.isArray(response.data) ? response.data.map(buildFavoriteFromSupabaseRow).filter(Boolean) : [];
+  }
+
+  async function saveFavoriteToSupabase(productId, isFavorite) {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id || !productId) {
+      return;
+    }
+    if (isFavorite) {
+      const response = await client.from("favorites").upsert(buildSupabaseFavoritePayload(productId), { onConflict: "id" });
+      if (response.error) {
+        throw response.error;
+      }
+      return;
+    }
+    const response = await client.from("favorites").delete().eq("id", `${state.currentUser.id}:${productId}`);
+    if (response.error) {
+      throw response.error;
+    }
+  }
+
+  async function refreshSupabaseFavorites() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    const remoteFavorites = await fetchSupabaseFavorites();
+    const localFavoriteIds = Array.from(favorites || new Set()).map(String);
+    const mergedFavorites = Array.from(new Set(remoteFavorites.concat(localFavoriteIds)));
+    favorites = new Set(mergedFavorites);
+    saveJson(STORAGE_KEYS.favorites, Array.from(favorites));
+    const remoteIds = new Set(remoteFavorites.map(String));
+    const localOnly = localFavoriteIds.filter(function (productId) { return !remoteIds.has(String(productId)); });
+    if (localOnly.length) {
+      Promise.all(localOnly.map(function (productId) {
+        return saveFavoriteToSupabase(productId, true).catch(function (error) {
+          console.warn("[IRIS] Unable to backfill local favorite to Supabase", error);
+          return null;
+        });
+      }));
+    }
+    updateFavBadge();
+    if (typeof render === "function") {
+      render();
+    }
+    renderProfilePanel();
+  }
+
+  async function initializeSupabaseFavorites() {
+    if (supabaseFavoritesInitialized) {
+      return;
+    }
+    if (!isSupabaseEnabled()) {
+      return;
+    }
+    supabaseFavoritesInitialized = true;
+    if (!state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    try {
+      await refreshSupabaseFavorites();
+    } catch (error) {
+      console.warn("[IRIS] Unable to load favorites from Supabase", error);
+    }
+  }
+
+  function normalizeCartRecord(item) {
+    return {
+      productId: item && item.productId ? String(item.productId) : "",
+      qty: Math.max(1, Number((item && item.qty) || 1))
+    };
+  }
+
+  function buildSupabaseCartPayload(item) {
+    const normalized = normalizeCartRecord(item);
+    return {
+      id: `${state.currentUser.id}:${normalized.productId}`,
+      user_id: state.currentUser.id,
+      user_email: normalizeEmail(state.currentUser.email || ""),
+      product_id: normalized.productId,
+      qty: normalized.qty,
+      updated_at_ms: Date.now()
+    };
+  }
+
+  function buildCartRecordFromSupabaseRow(row) {
+    return normalizeCartRecord({
+      productId: row.product_id,
+      qty: row.qty
+    });
+  }
+
+  async function fetchSupabaseCart() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return [];
+    }
+    const response = await client
+      .from("cart_items")
+      .select("*")
+      .order("updated_at_ms", { ascending: false });
+    if (response.error) {
+      throw response.error;
+    }
+    return Array.isArray(response.data) ? response.data.map(buildCartRecordFromSupabaseRow).filter(Boolean) : [];
+  }
+
+  async function syncCartToSupabase() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    const currentCart = Array.isArray(state.cart) ? state.cart.map(normalizeCartRecord).filter(function (item) { return item.productId; }) : [];
+    const existingRows = await fetchSupabaseCart();
+    const existingIds = existingRows.map(function (item) { return `${state.currentUser.id}:${item.productId}`; });
+    const nextIds = currentCart.map(function (item) { return `${state.currentUser.id}:${item.productId}`; });
+    const deletedIds = existingIds.filter(function (id) { return nextIds.indexOf(id) === -1; });
+    if (deletedIds.length) {
+      const deleteResponse = await client.from("cart_items").delete().in("id", deletedIds);
+      if (deleteResponse.error) {
+        throw deleteResponse.error;
+      }
+    }
+    if (currentCart.length) {
+      const upsertResponse = await client.from("cart_items").upsert(currentCart.map(buildSupabaseCartPayload), { onConflict: "id" });
+      if (upsertResponse.error) {
+        throw upsertResponse.error;
+      }
+    }
+  }
+
+  async function refreshSupabaseCart() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    const remoteCart = await fetchSupabaseCart();
+    const cartMap = {};
+    remoteCart.concat(Array.isArray(state.cart) ? state.cart.map(normalizeCartRecord) : []).forEach(function (item) {
+      if (!item || !item.productId) {
+        return;
+      }
+      cartMap[item.productId] = {
+        productId: item.productId,
+        qty: Math.max(item.qty || 1, cartMap[item.productId] ? cartMap[item.productId].qty : 0)
+      };
+    });
+    state.cart = Object.keys(cartMap).map(function (productId) { return cartMap[productId]; });
+    saveJson(STORAGE_KEYS.cart, state.cart);
+    if (state.cart.length) {
+      syncCartToSupabase().catch(function (error) {
+        console.warn("[IRIS] Unable to backfill local cart to Supabase", error);
+      });
+    }
+    updateCartBadge();
+    renderCartDrawer();
+    renderProfilePanel();
+  }
+
+  async function initializeSupabaseCart() {
+    if (supabaseCartInitialized) {
+      return;
+    }
+    if (!isSupabaseEnabled()) {
+      return;
+    }
+    supabaseCartInitialized = true;
+    if (!state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    try {
+      await refreshSupabaseCart();
+    } catch (error) {
+      console.warn("[IRIS] Unable to load cart from Supabase", error);
+    }
+  }
+
+  function normalizeReviewRecord(review) {
+    return Object.assign({
+      id: createId("rev"),
+      orderId: "",
+      productId: "",
+      product: "",
+      sellerId: "",
+      sellerEmail: "",
+      buyerId: state.currentUser && state.currentUser.id ? state.currentUser.id : "",
+      buyerEmail: normalizeEmail((state.currentUser && state.currentUser.email) || ""),
+      buyer: state.currentUser && state.currentUser.name ? state.currentUser.name : langText("Cliente IRIS", "IRIS customer"),
+      rating: 5,
+      text: "",
+      date: "",
+      createdAt: Date.now()
+    }, review || {}, {
+      rating: Math.max(1, Math.min(5, Number((review && review.rating) || 5))),
+      buyerEmail: normalizeEmail((review && review.buyerEmail) || (state.currentUser && state.currentUser.email) || ""),
+      createdAt: Number((review && review.createdAt) || Date.now())
+    });
+  }
+
+  function buildSupabaseReviewPayload(review) {
+    const normalized = normalizeReviewRecord(review);
+    return {
+      id: String(normalized.id),
+      order_id: normalized.orderId || "",
+      product_id: normalized.productId || "",
+      product_title: normalized.product || "",
+      seller_id: normalizeSupabaseUuid(normalized.sellerId),
+      seller_email: normalizeEmail(normalized.sellerEmail || ""),
+      buyer_id: normalizeSupabaseUuid(normalized.buyerId || (state.currentUser && state.currentUser.id)),
+      buyer_email: normalizeEmail(normalized.buyerEmail || ""),
+      buyer_name: normalized.buyer || "",
+      rating: normalized.rating,
+      body: normalized.text || "",
+      display_date: normalized.date || "",
+      created_at_ms: normalized.createdAt
+    };
+  }
+
+  function buildReviewFromSupabaseRow(row) {
+    if (!row) {
+      return null;
+    }
+    return normalizeReviewRecord({
+      id: row.id,
+      orderId: row.order_id || "",
+      productId: row.product_id || "",
+      product: row.product_title || "",
+      sellerId: row.seller_id || "",
+      sellerEmail: row.seller_email || "",
+      buyerId: row.buyer_id || "",
+      buyerEmail: row.buyer_email || "",
+      buyer: row.buyer_name || "",
+      rating: Number(row.rating || 5),
+      text: row.body || "",
+      date: row.display_date || "",
+      createdAt: Number(row.created_at_ms || Date.now())
+    });
+  }
+
+  async function fetchSupabaseReviews() {
+    const client = getSupabaseClient();
+    if (!client) {
+      return [];
+    }
+    const response = await client
+      .from("reviews")
+      .select("*")
+      .order("created_at_ms", { ascending: false })
+      .limit(500);
+    if (response.error) {
+      throw response.error;
+    }
+    return Array.isArray(response.data) ? response.data.map(buildReviewFromSupabaseRow).filter(Boolean) : [];
+  }
+
+  async function syncReviewsToSupabase() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    const currentReviews = Array.isArray(state.reviews) ? state.reviews.map(normalizeReviewRecord) : [];
+    if (!currentReviews.length) {
+      return;
+    }
+    const response = await client.from("reviews").upsert(currentReviews.map(buildSupabaseReviewPayload), { onConflict: "id" });
+    if (response.error) {
+      throw response.error;
+    }
+  }
+
+  async function refreshSupabaseReviews() {
+    const remoteReviews = await fetchSupabaseReviews();
+    const remoteIds = new Set(remoteReviews.map(function (review) { return String(review.id); }));
+    const localOnly = state.reviews.filter(function (review) { return !remoteIds.has(String(review.id)); });
+    state.reviews = remoteReviews.concat(localOnly.map(normalizeReviewRecord));
+    saveJson(STORAGE_KEYS.reviews, state.reviews);
+    if (localOnly.length) {
+      syncReviewsToSupabase().catch(function (error) {
+        console.warn("[IRIS] Unable to backfill local reviews to Supabase", error);
+      });
+    }
+    hydrateStoredReviews();
+    renderProfilePanel();
+    renderOpsView();
+  }
+
+  async function initializeSupabaseReviews() {
+    if (supabaseReviewsInitialized) {
+      return;
+    }
+    if (!isSupabaseEnabled()) {
+      return;
+    }
+    supabaseReviewsInitialized = true;
+    try {
+      await refreshSupabaseReviews();
+    } catch (error) {
+      console.warn("[IRIS] Unable to load reviews from Supabase", error);
+    }
+  }
+
+  function normalizeMeasurementRequestRecord(request) {
+    return Object.assign({
+      id: createId("msr"),
+      listingId: "",
+      requesterId: state.currentUser && state.currentUser.id ? state.currentUser.id : "",
+      requesterEmail: normalizeEmail((state.currentUser && state.currentUser.email) || ""),
+      requesterName: state.currentUser && state.currentUser.name ? state.currentUser.name : "",
+      sellerEmail: "",
+      status: "open",
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    }, request || {}, {
+      requesterEmail: normalizeEmail((request && request.requesterEmail) || (state.currentUser && state.currentUser.email) || ""),
+      sellerEmail: normalizeEmail((request && request.sellerEmail) || ""),
+      createdAt: Number((request && request.createdAt) || Date.now()),
+      updatedAt: Number((request && request.updatedAt) || (request && request.createdAt) || Date.now())
+    });
+  }
+
+  function buildSupabaseMeasurementRequestPayload(request) {
+    const normalized = normalizeMeasurementRequestRecord(request);
+    return {
+      id: String(normalized.id),
+      listing_id: normalized.listingId || "",
+      requester_id: normalizeSupabaseUuid(normalized.requesterId || (state.currentUser && state.currentUser.id)),
+      requester_email: normalizeEmail(normalized.requesterEmail || ""),
+      requester_name: normalized.requesterName || "",
+      seller_email: normalizeEmail(normalized.sellerEmail || ""),
+      status: normalized.status || "open",
+      created_at_ms: normalized.createdAt,
+      updated_at_ms: normalized.updatedAt
+    };
+  }
+
+  function buildMeasurementRequestFromSupabaseRow(row) {
+    if (!row) {
+      return null;
+    }
+    return normalizeMeasurementRequestRecord({
+      id: row.id,
+      listingId: row.listing_id || "",
+      requesterId: row.requester_id || "",
+      requesterEmail: row.requester_email || "",
+      requesterName: row.requester_name || "",
+      sellerEmail: row.seller_email || "",
+      status: row.status || "open",
+      createdAt: Number(row.created_at_ms || Date.now()),
+      updatedAt: Number(row.updated_at_ms || row.created_at_ms || Date.now())
+    });
+  }
+
+  async function fetchSupabaseMeasurementRequests() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return [];
+    }
+    const response = await client
+      .from("measurement_requests")
+      .select("*")
+      .order("created_at_ms", { ascending: false })
+      .limit(250);
+    if (response.error) {
+      throw response.error;
+    }
+    return Array.isArray(response.data) ? response.data.map(buildMeasurementRequestFromSupabaseRow).filter(Boolean) : [];
+  }
+
+  async function syncMeasurementRequestsToSupabase() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    const currentRequests = Array.isArray(state.measurementRequests) ? state.measurementRequests.map(normalizeMeasurementRequestRecord) : [];
+    if (!currentRequests.length) {
+      return;
+    }
+    const response = await client.from("measurement_requests").upsert(currentRequests.map(buildSupabaseMeasurementRequestPayload), { onConflict: "id" });
+    if (response.error) {
+      throw response.error;
+    }
+  }
+
+  async function refreshSupabaseMeasurementRequests() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    const remoteRequests = await fetchSupabaseMeasurementRequests();
+    const remoteIds = new Set(remoteRequests.map(function (request) { return String(request.id); }));
+    const localOnly = state.measurementRequests.filter(function (request) { return !remoteIds.has(String(request.id)); });
+    state.measurementRequests = remoteRequests.concat(localOnly.map(normalizeMeasurementRequestRecord));
+    saveJson(STORAGE_KEYS.measurementRequests, state.measurementRequests);
+    if (localOnly.length) {
+      syncMeasurementRequestsToSupabase().catch(function (error) {
+        console.warn("[IRIS] Unable to backfill local measurement requests to Supabase", error);
+      });
+    }
+    renderProfilePanel();
+    if (state.activeDetailListingId && typeof showDetail === "function") {
+      showDetail(state.activeDetailListingId);
+    }
+  }
+
+  async function initializeSupabaseMeasurementRequests() {
+    if (supabaseMeasurementRequestsInitialized) {
+      return;
+    }
+    if (!isSupabaseEnabled()) {
+      return;
+    }
+    supabaseMeasurementRequestsInitialized = true;
+    if (!state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    try {
+      await refreshSupabaseMeasurementRequests();
+    } catch (error) {
+      console.warn("[IRIS] Unable to load measurement requests from Supabase", error);
+    }
+  }
+
+  function normalizeNotificationRecord(notification) {
+    return Object.assign({
+      id: createId("ntf"),
+      kind: "system",
+      title: "IRIS",
+      body: "",
+      recipientId: null,
+      recipientEmail: "",
+      audience: "user",
+      unread: true,
+      link: "",
+      conversationId: "",
+      orderId: "",
+      productId: "",
+      scope: "",
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    }, notification || {}, {
+      recipientEmail: normalizeEmail((notification && notification.recipientEmail) || ""),
+      unread: notification && notification.unread === false ? false : true,
+      createdAt: Number((notification && notification.createdAt) || Date.now()),
+      updatedAt: Number((notification && notification.updatedAt) || (notification && notification.createdAt) || Date.now())
+    });
+  }
+
+  function buildSupabaseNotificationPayload(notification) {
+    const normalized = normalizeNotificationRecord(notification);
+    return {
+      id: String(normalized.id),
+      recipient_id: normalizeSupabaseUuid(normalized.recipientId),
+      recipient_email: normalizeEmail(normalized.recipientEmail || ""),
+      audience: normalized.audience || "user",
+      kind: normalized.kind || "system",
+      title: normalized.title || "IRIS",
+      body: normalized.body || "",
+      link: normalized.link || "",
+      conversation_id: normalized.conversationId || "",
+      order_id: normalized.orderId || "",
+      product_id: normalized.productId || "",
+      scope: normalized.scope || "",
+      unread: normalized.unread !== false,
+      created_at_ms: normalized.createdAt,
+      updated_at_ms: normalized.updatedAt
+    };
+  }
+
+  function buildNotificationFromSupabaseRow(row) {
+    if (!row) {
+      return null;
+    }
+    return normalizeNotificationRecord({
+      id: row.id,
+      recipientId: row.recipient_id || null,
+      recipientEmail: row.recipient_email || "",
+      audience: row.audience || "user",
+      kind: row.kind || "system",
+      title: row.title || "IRIS",
+      body: row.body || "",
+      link: row.link || "",
+      conversationId: row.conversation_id || "",
+      orderId: row.order_id || "",
+      productId: row.product_id || "",
+      scope: row.scope || "",
+      unread: row.unread !== false,
+      createdAt: Number(row.created_at_ms || Date.now()),
+      updatedAt: Number(row.updated_at_ms || row.created_at_ms || Date.now())
+    });
+  }
+
+  async function fetchSupabaseNotifications() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return [];
+    }
+    const response = await client
+      .from("notifications")
+      .select("*")
+      .order("created_at_ms", { ascending: false })
+      .limit(500);
+    if (response.error) {
+      throw response.error;
+    }
+    return Array.isArray(response.data) ? response.data.map(buildNotificationFromSupabaseRow).filter(Boolean) : [];
+  }
+
+  async function syncNotificationsToSupabase() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    const currentNotifications = Array.isArray(state.notifications) ? state.notifications.map(normalizeNotificationRecord) : [];
+    if (!currentNotifications.length) {
+      return;
+    }
+    const response = await client.from("notifications").upsert(currentNotifications.map(buildSupabaseNotificationPayload), { onConflict: "id" });
+    if (response.error) {
+      throw response.error;
+    }
+  }
+
+  async function refreshSupabaseNotifications() {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    const remoteNotifications = await fetchSupabaseNotifications();
+    const remoteIds = new Set(remoteNotifications.map(function (notification) { return String(notification.id); }));
+    const localOnly = state.notifications.filter(function (notification) { return !remoteIds.has(String(notification.id)); });
+    state.notifications = remoteNotifications.concat(localOnly.map(normalizeNotificationRecord));
+    saveJson(STORAGE_KEYS.notifications, state.notifications);
+    if (localOnly.length) {
+      syncNotificationsToSupabase().catch(function (error) {
+        console.warn("[IRIS] Unable to backfill local notifications to Supabase", error);
+      });
+    }
+    renderNotifications();
+    renderProfilePanel();
+    renderOpsView();
+  }
+
+  async function initializeSupabaseNotifications() {
+    if (supabaseNotificationsInitialized) {
+      return;
+    }
+    if (!isSupabaseEnabled()) {
+      return;
+    }
+    supabaseNotificationsInitialized = true;
+    if (!state.currentUser || !state.currentUser.id) {
+      return;
+    }
+    try {
+      await refreshSupabaseNotifications();
+    } catch (error) {
+      console.warn("[IRIS] Unable to load notifications from Supabase", error);
+    }
+  }
+
   async function refreshSupabaseSupportTickets() {
     const client = getSupabaseClient();
     if (!client || !state.currentUser || !state.currentUser.id) {
@@ -1722,6 +2551,14 @@
     });
     state.supportTickets = remoteTickets.concat(localOnly.map(normalizeSupportTicketRecord));
     persistSupportTickets();
+    if (localOnly.length) {
+      Promise.all(localOnly.map(function (ticket) {
+        return saveSupportTicketToSupabase(ticket).catch(function (error) {
+          console.warn("[IRIS] Unable to backfill local support ticket to Supabase", error);
+          return null;
+        });
+      }));
+    }
     if (typeof render === "function") {
       render();
     }
@@ -1760,6 +2597,14 @@
     });
     state.orders = remoteOrders.concat(localOnly.map(normalizeOrderRecord));
     persistOrders();
+    if (localOnly.length) {
+      Promise.all(localOnly.map(function (order) {
+        return saveOrderToSupabase(order).catch(function (error) {
+          console.warn("[IRIS] Unable to backfill local order to Supabase", error);
+          return null;
+        });
+      }));
+    }
     syncInventoryFromOrders();
     if (typeof render === "function") {
       render();
@@ -1799,6 +2644,14 @@
     });
     state.offers = remoteOffers.concat(localOnly.map(normalizeOfferRecord));
     persistOffers();
+    if (localOnly.length) {
+      Promise.all(localOnly.map(function (offer) {
+        return saveOfferToSupabase(offer).catch(function (error) {
+          console.warn("[IRIS] Unable to backfill local offer to Supabase", error);
+          return null;
+        });
+      }));
+    }
     if (typeof render === "function") {
       render();
     }
@@ -1837,6 +2690,14 @@
     });
     state.listings = remoteListings.concat(localOnly.map(normalizeListingRecord));
     saveJson(STORAGE_KEYS.listings, state.listings);
+    if (localOnly.length) {
+      Promise.all(localOnly.map(function (listing) {
+        return saveListingToSupabase(listing).catch(function (error) {
+          console.warn("[IRIS] Unable to backfill local listing to Supabase", error);
+          return null;
+        });
+      }));
+    }
     hydrateLocalListings();
     if (typeof render === "function") {
       render();
@@ -1932,8 +2793,28 @@
 
   function clearAuthenticatedUser() {
     state.currentUser = null;
+    state.cart = [];
+    state.orders = [];
+    state.offers = [];
+    state.notifications = [];
+    state.supportTickets = [];
+    state.measurementRequests = [];
+    chats = [];
+    favorites = new Set();
     saveJson(STORAGE_KEYS.session, null);
+    saveJson(STORAGE_KEYS.cart, state.cart);
+    saveJson(STORAGE_KEYS.orders, state.orders);
+    saveJson(STORAGE_KEYS.offers, state.offers);
+    saveJson(STORAGE_KEYS.notifications, state.notifications);
+    saveJson(STORAGE_KEYS.supportTickets, state.supportTickets);
+    saveJson(STORAGE_KEYS.measurementRequests, state.measurementRequests);
+    saveJson(STORAGE_KEYS.chats, chats);
+    saveJson(STORAGE_KEYS.favorites, []);
     syncSessionUi();
+    updateCartBadge();
+    updateFavBadge();
+    renderCartDrawer();
+    renderChats();
     renderProfilePanel();
     renderNotifications();
     renderOpsView();
@@ -1992,6 +2873,24 @@
     });
     refreshSupabaseSupportTickets().catch(function (error) {
       console.warn("[IRIS] Unable to refresh support tickets after auth sync", error);
+    });
+    refreshSupabaseChats().catch(function (error) {
+      console.warn("[IRIS] Unable to refresh chats after auth sync", error);
+    });
+    refreshSupabaseFavorites().catch(function (error) {
+      console.warn("[IRIS] Unable to refresh favorites after auth sync", error);
+    });
+    refreshSupabaseCart().catch(function (error) {
+      console.warn("[IRIS] Unable to refresh cart after auth sync", error);
+    });
+    refreshSupabaseReviews().catch(function (error) {
+      console.warn("[IRIS] Unable to refresh reviews after auth sync", error);
+    });
+    refreshSupabaseMeasurementRequests().catch(function (error) {
+      console.warn("[IRIS] Unable to refresh measurement requests after auth sync", error);
+    });
+    refreshSupabaseNotifications().catch(function (error) {
+      console.warn("[IRIS] Unable to refresh notifications after auth sync", error);
     });
     return applied;
   }
@@ -4977,6 +5876,11 @@
 
   function persistNotifications() {
     saveJson(STORAGE_KEYS.notifications, state.notifications);
+    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+      syncNotificationsToSupabase().catch(function (error) {
+        console.warn("[IRIS] Unable to sync notifications to Supabase", error);
+      });
+    }
   }
 
   function persistBanRegistry() {
@@ -4995,6 +5899,11 @@
 
   function persistMeasurementRequests() {
     saveJson(STORAGE_KEYS.measurementRequests, state.measurementRequests);
+    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+      syncMeasurementRequestsToSupabase().catch(function (error) {
+        console.warn("[IRIS] Unable to sync measurement requests to Supabase", error);
+      });
+    }
   }
 
   function persistAuditLog() {
@@ -5070,6 +5979,11 @@
 
   function persistReviews() {
     saveJson(STORAGE_KEYS.reviews, state.reviews);
+    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+      syncReviewsToSupabase().catch(function (error) {
+        console.warn("[IRIS] Unable to sync reviews to Supabase", error);
+      });
+    }
   }
 
   function isProductPurchasable(product) {
@@ -5151,15 +6065,24 @@
   }
 
   function createNotification(payload) {
+    const normalizedRecipientEmail = normalizeEmail(payload.recipientEmail);
+    const matchingUser = state.users.find(function (user) {
+      return normalizeEmail(user.email) === normalizedRecipientEmail;
+    }) || null;
     const notification = {
       id: createId("ntf"),
       kind: payload.kind || "system",
       title: payload.title || "IRIS",
       body: payload.body || "",
-      recipientEmail: normalizeEmail(payload.recipientEmail),
+      recipientId: (payload.recipientId || (matchingUser && matchingUser.id)) || null,
+      recipientEmail: normalizedRecipientEmail,
       audience: payload.audience || "user",
       unread: true,
       link: payload.link || "",
+      conversationId: payload.conversationId || "",
+      orderId: payload.orderId || "",
+      productId: payload.productId || "",
+      scope: payload.scope || "",
       createdAt: Date.now()
     };
 
@@ -6179,7 +7102,12 @@
 
     const review = {
       id: createId("rev"),
+      orderId: order.id,
+      productId: order.items[0].productId,
       sellerId: order.items[0].sellerId,
+      sellerEmail: order.items[0].sellerEmail,
+      buyerId: state.currentUser && state.currentUser.id ? state.currentUser.id : "",
+      buyerEmail: normalizeEmail((state.currentUser && state.currentUser.email) || ""),
       buyer: state.currentUser ? state.currentUser.name : langText("Cliente IRIS", "IRIS customer"),
       rating: rating,
       text: message || langText("Esperienza positiva.", "Positive experience."),
@@ -6187,7 +7115,8 @@
         month: "short",
         year: "numeric"
       }),
-      product: order.items.map(function (item) { return item.name; }).join(", ")
+      product: order.items.map(function (item) { return item.name; }).join(", "),
+      createdAt: Date.now()
     };
 
     state.reviews.unshift(review);
@@ -7363,6 +8292,11 @@
     toggleFav = function (id, button) {
       originalToggleFav(id, button);
       saveJson(STORAGE_KEYS.favorites, [...favorites]);
+      if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+        saveFavoriteToSupabase(id, favorites.has(id)).catch(function (error) {
+          console.warn("[IRIS] Unable to sync favorite to Supabase", error);
+        });
+      }
       renderProfilePanel();
     };
 
@@ -7404,6 +8338,20 @@
           curChat = normalizedThread.id;
           state.chatScope = getChatConversationScope(normalizedThread);
           persistChats();
+          if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+            saveConversationToSupabase(normalizedThread).then(function (remoteThread) {
+              const remoteThreadIndex = chats.findIndex(function (candidate) { return String(candidate.id) === String(remoteThread.id); });
+              if (remoteThreadIndex > -1) {
+                chats[remoteThreadIndex] = remoteThread;
+              } else {
+                chats.unshift(remoteThread);
+              }
+              persistChats();
+              renderChats();
+            }).catch(function (error) {
+              console.warn("[IRIS] Unable to sync conversation to Supabase", error);
+            });
+          }
           renderChats();
         }
       });
@@ -8648,6 +9596,11 @@
 
   function persistCart() {
     saveJson(STORAGE_KEYS.cart, state.cart);
+    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+      syncCartToSupabase().catch(function (error) {
+        console.warn("[IRIS] Unable to sync cart to Supabase", error);
+      });
+    }
   }
 
   function getCartDetails() {
@@ -12838,9 +13791,15 @@
     }
     state.chatScope = getChatConversationScope(conversation);
     curChat = id;
+    const hadUnread = Number(conversation.unreadCount || 0) > 0;
     conversation.unreadCount = 0;
     chats[threadIndex] = conversation;
     persistChats();
+    if (hadUnread && isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+      saveConversationToSupabase(conversation).catch(function (error) {
+        console.warn("[IRIS] Unable to sync chat read state to Supabase", error);
+      });
+    }
     const layout = qs("#chatLayout");
     const name = qs("#cmName");
     const productLabel = qs("#cmProd");
@@ -12905,6 +13864,16 @@
     input.value = "";
     persistChats();
     openChatById(curChat);
+    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+      const lastMessage = conversation.msgs[conversation.msgs.length - 1];
+      appendChatMessageToSupabase(conversation, lastMessage).then(function (remoteThread) {
+        chats[conversationIndex] = remoteThread;
+        persistChats();
+        openChatById(remoteThread.id);
+      }).catch(function (error) {
+        console.warn("[IRIS] Unable to sync chat message to Supabase", error);
+      });
+    }
     const counterparty = conversation.with || normalizeChatParticipant(null, langText("Member", "Member"), "");
     ensureSellerEmail(counterparty);
     createNotification({

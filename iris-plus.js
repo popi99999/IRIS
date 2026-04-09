@@ -4484,6 +4484,7 @@
           address: "",
           city: "",
           country: langText("Italia", "Italy"),
+          phone: "",
           note: "",
           carrier: "",
           trackingNumber: "",
@@ -6391,6 +6392,16 @@
     });
   }
 
+  function getUserByEmail(email) {
+    const normalized = normalizeEmail(email);
+    if (!normalized) {
+      return null;
+    }
+    return state.users.find(function (user) {
+      return normalizeEmail(user.email) === normalized;
+    }) || null;
+  }
+
   function buildEmailMessage(type, payload) {
     if (type === "welcome-user") {
       return {
@@ -6456,8 +6467,8 @@
       return {
         subject: langText("Articolo venduto su IRIS", "Item sold on IRIS"),
         body: langText(
-          "Hai venduto " + payload.itemsSummary + ". Prepara la spedizione per l'ordine " + payload.orderNumber + ".",
-          "You sold " + payload.itemsSummary + ". Prepare shipment for order " + payload.orderNumber + "."
+          "Hai venduto " + payload.itemsSummary + ". Prepara la spedizione per l'ordine " + payload.orderNumber + "." + (payload.buyerPhone ? " " + langText("Telefono buyer", "Buyer phone") + ": " + payload.buyerPhone + "." : ""),
+          "You sold " + payload.itemsSummary + ". Prepare shipment for order " + payload.orderNumber + "." + (payload.buyerPhone ? " " + langText("Buyer phone", "Buyer phone") + ": " + payload.buyerPhone + "." : "")
         )
       };
     }
@@ -6792,9 +6803,11 @@
     const createdAt = Date.now();
     const buyerEmail = normalizeEmail((context && context.buyerEmail) || (state.currentUser && state.currentUser.email) || "");
     const buyerName = (context && context.buyerName) || shipping.name;
+    const buyerPhone = normalizePhoneNumber((context && context.buyerPhone) || shipping.phone || (state.currentUser && state.currentUser.phone) || "");
     const normalizedItems = items.map(function (entry) {
       const product = entry.product;
       const seller = product.seller || {};
+      const sellerUser = getUserByEmail((seller && seller.email) || product.ownerEmail || "");
       ensureSellerEmail(seller);
       return {
         productId: product.id,
@@ -6805,6 +6818,7 @@
         sellerId: seller.id || "seller-unknown",
         sellerName: seller.name || langText("Venditore sconosciuto", "Unknown seller"),
         sellerEmail: normalizeEmail(seller.email),
+        sellerPhone: normalizePhoneNumber((sellerUser && sellerUser.phone) || ""),
         lineStatus: "paid"
       };
     });
@@ -6823,6 +6837,7 @@
         address: shipping.address,
         city: shipping.city,
         country: shipping.country,
+        phone: buyerPhone,
         note: shipping.note,
         carrier: "",
         trackingNumber: "",
@@ -6889,6 +6904,7 @@
 
   function notifyNewOrder(order) {
     const itemsSummary = order.items.map(function (item) { return item.brand + " " + item.name; }).join(", ");
+    const buyerPhone = normalizePhoneNumber((order.shipping && order.shipping.phone) || ((getUserByEmail(order.buyerEmail) || {}).phone) || "");
     const buyerPayload = {
       orderNumber: order.number,
       total: formatCurrency(order.total),
@@ -6907,13 +6923,14 @@
     order.items.forEach(function (item) {
       order.emailIds.push(enqueueEmail("item-sold-seller", item.sellerEmail, {
         orderNumber: order.number,
-        itemsSummary: item.brand + " " + item.name
+        itemsSummary: item.brand + " " + item.name,
+        buyerPhone: buyerPhone
       }).id);
       order.notificationIds.push(createNotification({
         audience: "user",
         kind: "sale",
         title: langText("Articolo venduto", "Item sold"),
-        body: item.brand + " " + item.name,
+        body: item.brand + " " + item.name + (buyerPhone ? " · " + buyerPhone : ""),
         recipientEmail: item.sellerEmail
       }).id);
     });
@@ -12275,6 +12292,84 @@
       showToast(langText("Rivendita precompilata creata da acquisto IRIS.", "Prefilled resale draft created from your IRIS purchase."));
   }
 
+  function getOrderBuyerContact(order) {
+    if (!order) {
+      return null;
+    }
+    const buyerUser = getUserByEmail(order.buyerEmail);
+    return {
+      role: langText("Buyer", "Buyer"),
+      name: order.buyerName || (buyerUser && buyerUser.name) || langText("Cliente IRIS", "IRIS customer"),
+      email: normalizeEmail(order.buyerEmail || (buyerUser && buyerUser.email) || ""),
+      phone: normalizePhoneNumber((order.shipping && order.shipping.phone) || (buyerUser && buyerUser.phone) || ""),
+      emailVerified: Boolean(buyerUser && buyerUser.verification && buyerUser.verification.emailVerified),
+      phoneVerified: Boolean(buyerUser && buyerUser.verification && buyerUser.verification.phoneVerified)
+    };
+  }
+
+  function getOrderSellerContacts(order) {
+    if (!order) {
+      return [];
+    }
+    const seen = {};
+    return (order.items || []).map(function (item) {
+      const sellerEmail = normalizeEmail(item.sellerEmail || "");
+      if (!sellerEmail || seen[sellerEmail]) {
+        return null;
+      }
+      seen[sellerEmail] = true;
+      const sellerUser = getUserByEmail(sellerEmail);
+      return {
+        role: langText("Seller", "Seller"),
+        name: item.sellerName || (sellerUser && sellerUser.name) || langText("Venditore IRIS", "IRIS seller"),
+        email: sellerEmail,
+        phone: normalizePhoneNumber((item && item.sellerPhone) || (sellerUser && sellerUser.phone) || ""),
+        emailVerified: Boolean(sellerUser && sellerUser.verification && sellerUser.verification.emailVerified),
+        phoneVerified: Boolean(sellerUser && sellerUser.verification && sellerUser.verification.phoneVerified)
+      };
+    }).filter(Boolean);
+  }
+
+  function renderOrderContactPanel(order, scope) {
+    if (!order) {
+      return "";
+    }
+    const cards = [];
+    const buyerContact = getOrderBuyerContact(order);
+    const sellerContacts = getOrderSellerContacts(order);
+    if (scope === "seller") {
+      if (buyerContact) {
+        cards.push(buyerContact);
+      }
+    } else if (scope === "buyer") {
+      sellerContacts.forEach(function (contact) { cards.push(contact); });
+    } else {
+      if (buyerContact) {
+        cards.push(buyerContact);
+      }
+      sellerContacts.forEach(function (contact) { cards.push(contact); });
+    }
+    if (!cards.length) {
+      return "";
+    }
+    return `<div class="irisx-order-panel irisx-order-panel--contacts">
+      <div class="irisx-order-panel-title">${langText("Contatti ordine", "Order contacts")}</div>
+      <div class="irisx-order-contact-grid">${cards.map(function (contact) {
+        const verification = [
+          contact.emailVerified ? langText("email verificata", "email verified") : langText("email pending", "email pending"),
+          contact.phoneVerified ? langText("telefono verificato", "phone verified") : langText("telefono da verificare", "phone pending")
+        ].join(" · ");
+        return `<div class="irisx-order-contact-card">
+          <span class="irisx-order-contact-role">${escapeHtml(contact.role)}</span>
+          <strong>${escapeHtml(contact.name)}</strong>
+          <a href="mailto:${escapeHtml(contact.email)}">${escapeHtml(contact.email || "—")}</a>
+          <a href="${contact.phone ? "tel:" + escapeHtml(contact.phone) : "#"}"${contact.phone ? "" : " tabindex=\"-1\" aria-disabled=\"true\""}>${escapeHtml(contact.phone || langText("Telefono non disponibile", "Phone not available"))}</a>
+          <em>${escapeHtml(verification)}</em>
+        </div>`;
+      }).join("")}</div>
+    </div>`;
+  }
+
   function renderOrderSummaryCard(order, scope) {
     if (!order) {
       return `<div class="irisx-empty-state">${langText("Nessun ordine selezionato.", "No order selected.")}</div>`;
@@ -12298,6 +12393,7 @@
           <div class="irisx-order-items">
             <div>${escapeHtml(order.shipping.name || order.buyerName)}</div>
             <div>${escapeHtml(order.shipping.address)}, ${escapeHtml(order.shipping.city)}, ${escapeHtml(order.shipping.country)}</div>
+            <div>${langText("Telefono", "Phone")}: ${escapeHtml(order.shipping.phone || langText("Da profilo buyer", "From buyer profile"))}</div>
             <div>${escapeHtml(order.shipping.method || langText("Spedizione assicurata", "Insured shipping"))}</div>
             <div>${escapeHtml(order.shipping.carrier || langText("Carrier pending", "Carrier pending"))} ${order.shipping.trackingNumber ? "· " + escapeHtml(order.shipping.trackingNumber) : ""}</div>
           </div>
@@ -12312,6 +12408,7 @@
           </div>
         </div>
       </div>
+      ${renderOrderContactPanel(order, scope)}
       <div class="irisx-order-support-strip">
         <div>
           <strong>${langText("Assistenza IRIS collegata a questo ordine", "IRIS support linked to this order")}</strong>
@@ -14558,6 +14655,7 @@
         address: draft.address || "",
         city: draft.city || "",
         country: draft.country || "",
+        phone: normalizePhoneNumber((state.currentUser && state.currentUser.phone) || ""),
         note: draft.note || "",
         method: draft.shippingMethod || langText("Spedizione assicurata", "Insured shipping")
       },

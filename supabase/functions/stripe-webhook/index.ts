@@ -38,6 +38,7 @@ function buildShippingFromSession(session: any, fallback: Record<string, unknown
     ].filter(Boolean).join(", ") || fallback.address || ""),
     city: normalizeString(shippingAddress.city ?? fallback.city ?? ""),
     country: normalizeString(shippingAddress.country ?? fallback.country ?? ""),
+    phone: normalizeString(session.customer_details?.phone ?? fallback.phone ?? ""),
     note: normalizeString(fallback.note ?? ""),
     carrier: normalizeString(fallback.carrier ?? ""),
     tracking_number: normalizeString(fallback.tracking_number ?? ""),
@@ -300,6 +301,7 @@ async function handleCheckoutCompleted(session: any) {
   }
 
   if (!existing || String(existing.status ?? "") !== "paid") {
+    const buyerPhone = normalizeString((orderPayload.shipping as any)?.phone ?? "");
     await upsertNotification({
       recipient_id: buyerId || null,
       recipient_email: buyerEmail,
@@ -319,11 +321,18 @@ async function handleCheckoutCompleted(session: any) {
         audience: "user",
         kind: "sale",
         title: "Nuovo ordine",
-        body: `${orderPayload.number} · ${orderPayload.total}`,
+        body: `${orderPayload.number} · ${orderPayload.total}${buyerPhone ? ` · ${buyerPhone}` : ""}`,
         order_id: orderId,
         product_id: listingIds[0] ?? "",
         scope: "checkout",
         unread: true,
+      });
+      await sendTransactionalEmail("generic", normalizeEmail(sellerEmail), {
+        orderId,
+        orderNumber: orderPayload.number,
+        body: `Hai ricevuto un nuovo ordine per ${normalizedItems.map((entry) => `${entry.listing.brand ?? ""} ${entry.listing.name ?? ""}`.trim()).join(", ")}.${buyerPhone ? ` Telefono buyer: ${buyerPhone}.` : ""}`,
+      }, {
+        subject: `IRIS - Articolo venduto ${orderPayload.number}`,
       });
     }
     await sendTransactionalEmail("checkout-confirmation", buyerEmail, {
@@ -353,6 +362,7 @@ async function handlePaymentIntentCaptured(intent: any) {
       };
       let orderPayload = null;
       if (listing) {
+        const buyerPhone = normalizeString(((offer.shipping_snapshot ?? offer.shippingSnapshot ?? {}) as Record<string, unknown>).phone ?? "");
         if (existingOrderId) {
           const existingOrder = await fetchOrderById(existingOrderId);
           if (existingOrder) {
@@ -393,6 +403,25 @@ async function handlePaymentIntentCaptured(intent: any) {
           await updateListingSold(String(listing.id ?? ""), orderPayload.id);
         }
         if (orderPayload && !existingOrderId) {
+          await upsertNotification({
+            recipient_id: null,
+            recipient_email: normalizeEmail(offer.seller_email ?? ""),
+            audience: "user",
+            kind: "sale",
+            title: "Offerta accettata",
+            body: `${orderPayload.number} · ${normalizeAmount(offer.offer_amount ?? offer.offerAmount ?? 0, 0).toFixed(2)} ${String(orderPayload.payment.currency ?? "EUR")}${buyerPhone ? ` · ${buyerPhone}` : ""}`,
+            order_id: orderPayload.id,
+            product_id: String(listing.id ?? ""),
+            scope: "offer",
+            unread: true,
+          });
+          await sendTransactionalEmail("generic", normalizeEmail(offer.seller_email ?? ""), {
+            orderId: orderPayload.id,
+            orderNumber: orderPayload.number,
+            body: `L'offerta per ${offer.product_brand ?? offer.productBrand ?? ""} ${offer.product_name ?? offer.productName ?? ""} è stata pagata.${buyerPhone ? ` Telefono buyer: ${buyerPhone}.` : ""}`,
+          }, {
+            subject: `IRIS - Offerta pagata ${orderPayload.number}`,
+          });
           await sendTransactionalEmail("offer-accepted", normalizeEmail(offer.buyer_email ?? ""), {
             offerId,
             orderId: orderPayload.id,

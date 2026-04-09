@@ -1,0 +1,8 @@
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Permissions-Policy: camera=(), microphone=(), geolocation=(self), payment=(self)
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net https://unpkg.com https://www.googletagmanager.com https://app.posthog.com https://js.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: http:; connect-src 'self' https://xzhgyamzfthqrcaljdqv.supabase.co wss://xzhgyamzfthqrcaljdqv.supabase.co https://api.stripe.com https://api.resend.com https://app.posthog.com https://sentry.io https://o*.ingest.sentry.io; frame-src https://js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:; manifest-src 'self';

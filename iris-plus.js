@@ -440,7 +440,7 @@
 
   const SHIPPING_COST = PLATFORM_CONFIG.shippingCost;
   const state = {
-    users: loadJson(STORAGE_KEYS.users, []),
+    users: loadJson(STORAGE_KEYS.users, []).map(function(u) { var c = Object.assign({}, u); delete c.password; return c; }),
     banRegistry: loadJson(STORAGE_KEYS.banRegistry, { emails: [], phones: [], entries: [] }),
     currentUser: loadJson(STORAGE_KEYS.session, null),
     cart: loadJson(STORAGE_KEYS.cart, []),
@@ -479,9 +479,15 @@
     favorites = new Set(existingFavorites);
   }
 
+  // Purge any hardcoded test sessions and stored plaintext passwords
   if (state.currentUser && normalizeEmail(state.currentUser.email) === "utente@iris-marketplace.it") {
     state.currentUser = null;
     removeStoredValue(STORAGE_KEYS.session);
+  }
+  // Strip passwords from any user records that may exist in localStorage
+  if (Array.isArray(state.users) && state.users.some(function(u) { return u && u.password; })) {
+    state.users = state.users.map(function(u) { var c = Object.assign({}, u); delete c.password; return c; });
+    saveJson(STORAGE_KEYS.users, state.users);
   }
 
   if (!state.currentUser && Array.isArray(state.cart) && state.cart.length) {
@@ -3022,7 +3028,7 @@
     return response.data || null;
   }
 
-  function mergeUserIntoLocalCache(user, password) {
+  function mergeUserIntoLocalCache(user) {
     if (!user || !user.email) {
       return;
     }
@@ -3034,13 +3040,11 @@
       }
       found = true;
       return Object.assign({}, entry, normalized, {
-        password: password !== undefined ? password : (entry.password || ""),
         authProvider: normalized.authProvider || entry.authProvider || "supabase"
       });
     });
     if (!found) {
       state.users.push(Object.assign({}, normalized, {
-        password: password !== undefined ? password : "",
         authProvider: normalized.authProvider || "supabase"
       }));
     }
@@ -9619,13 +9623,13 @@
           })
         });
         if (!state.users.some(function (user) { return normalizeEmail(user.email) === normalizedEmail; })) {
-          state.users.push(Object.assign({}, state.currentUser, { password: "" }));
+          state.users.push(Object.assign({}, state.currentUser));
           saveJson(STORAGE_KEYS.users, state.users);
           notifyNewUser(state.currentUser);
         } else {
           state.users = state.users.map(function (user) {
             return normalizeEmail(user.email) === normalizedEmail
-              ? Object.assign({}, user, state.currentUser, { password: user.password || "" })
+              ? Object.assign({}, user, state.currentUser)
               : user;
           });
           saveJson(STORAGE_KEYS.users, state.users);
@@ -9647,60 +9651,14 @@
       return;
     }
 
-    // Fallback: simulated Google sign-in for prototype
-    var mockName = curLang === "it" ? "Accesso Google demo" : "Google demo sign-in";
-    var mockEmail = "demo.google@iris-fashion.it";
-    var existing = state.users.find(function(u) { return normalizeEmail(u.email) === normalizeEmail(mockEmail); });
-    var blockedMessage = getBlockedIdentityMessage(mockEmail, existing && existing.phone);
-    if ((existing && existing.accountStatus === "banned") || blockedMessage) {
-      var blockedGoogleStatus = qs("#irisxAuthStatus");
-      if (blockedGoogleStatus) {
-        setInlineStatus(blockedGoogleStatus, blockedMessage || (curLang === "it" ? "Account bloccato." : "Account blocked."), true);
-      } else {
-        showToast(blockedMessage || (curLang === "it" ? "Account bloccato." : "Account blocked."));
-      }
-      return;
-    }
-    state.currentUser = normalizeUserWorkspace({
-      id: existing && existing.id ? existing.id : "google_" + Date.now(),
-      name: existing && existing.name ? existing.name : mockName,
-      email: mockEmail,
-      phone: existing && existing.phone ? existing.phone : "",
-      role: deriveUserRole(mockEmail),
-      city: existing && existing.city ? existing.city : "Milano",
-      country: existing && existing.country ? existing.country : "Italia",
-      bio: existing && existing.bio ? existing.bio : "",
-      memberSince: existing && existing.memberSince ? existing.memberSince : new Date().toISOString().slice(0, 10),
-      avatar: existing && existing.avatar ? existing.avatar : "",
-      verification: Object.assign({}, existing && existing.verification ? existing.verification : {}, {
-        emailVerified: true,
-        emailVerifiedAt: Date.now(),
-        verifiedEmail: normalizeEmail(mockEmail)
-      })
-    });
-    // Save new user
-    if (!existing) {
-      state.users.push(Object.assign({}, state.currentUser, { password: "" }));
-      saveJson(STORAGE_KEYS.users, state.users);
-      notifyNewUser(state.currentUser);
+    // Google OAuth requires Supabase — no mock fallback allowed
+    var googleStatus = qs("#irisxAuthStatus");
+    var googleMsg = langText("Accesso Google non disponibile. Configura Supabase OAuth.", "Google sign-in unavailable. Supabase OAuth must be configured.");
+    if (googleStatus) {
+      setInlineStatus(googleStatus, googleMsg, true);
     } else {
-      state.users = state.users.map(function (user) {
-        return normalizeEmail(user.email) === normalizeEmail(mockEmail)
-          ? Object.assign({}, user, state.currentUser, { password: user.password || "" })
-          : user;
-      });
-      saveJson(STORAGE_KEYS.users, state.users);
+      showToast(googleMsg);
     }
-    saveJson(STORAGE_KEYS.session, state.currentUser);
-    syncCurrentUserSeller();
-    syncSessionUi();
-    renderProfilePanel();
-    renderNotifications();
-    renderOpsView();
-    closeAuthModal();
-    showToast(curLang === "it" ? "Accesso con Google effettuato." : "Signed in with Google.");
-    showPage("buy");
-    showBuyView("home");
   }
   window.signInWithGoogle = signInWithGoogle;
 
@@ -9850,6 +9808,26 @@
       return;
     }
 
+    // Rate limiting: max 5 login attempts per email per 15 minutes
+    if (isLogin && email) {
+      var rlKey = "iris-rl-" + btoa(email).replace(/[^a-z0-9]/gi, "");
+      var rlRaw = sessionStorage.getItem(rlKey);
+      var rl = rlRaw ? JSON.parse(rlRaw) : { count: 0, first: Date.now() };
+      var WINDOW_MS = 15 * 60 * 1000;
+      var MAX_ATTEMPTS = 5;
+      if (Date.now() - rl.first > WINDOW_MS) {
+        rl = { count: 0, first: Date.now() };
+      }
+      if (rl.count >= MAX_ATTEMPTS) {
+        var waitMin = Math.ceil((WINDOW_MS - (Date.now() - rl.first)) / 60000);
+        setInlineStatus(status, langText(
+          "Troppi tentativi. Riprova tra " + waitMin + " minuto/i.",
+          "Too many attempts. Please try again in " + waitMin + " minute(s)."
+        ), true);
+        return;
+      }
+    }
+
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
@@ -9898,6 +9876,11 @@
             return;
           }
           const nextUser = buildWorkspaceUserFromSupabase(authUser, profile);
+          // Reset rate limit on successful login
+          if (email) {
+            var rlKeyClear = "iris-rl-" + btoa(email).replace(/[^a-z0-9]/gi, "");
+            sessionStorage.removeItem(rlKeyClear);
+          }
           applyAuthenticatedUser(nextUser);
           showToast(t("login_success"));
           finalizeAuthSuccess(state.authReturnView);
@@ -9954,6 +9937,17 @@
         );
         return;
       } catch (error) {
+        // Track failed login attempts for rate limiting
+        if (isLogin && email) {
+          var rlKeyFail = "iris-rl-" + btoa(email).replace(/[^a-z0-9]/gi, "");
+          var rlFail = {};
+          try { rlFail = JSON.parse(sessionStorage.getItem(rlKeyFail) || "{}"); } catch(e) {}
+          if (!rlFail.first || Date.now() - rlFail.first > 15 * 60 * 1000) {
+            rlFail = { count: 0, first: Date.now() };
+          }
+          rlFail.count = (rlFail.count || 0) + 1;
+          sessionStorage.setItem(rlKeyFail, JSON.stringify(rlFail));
+        }
         setInlineStatus(
           status,
           getReadableAuthErrorMessage(error, "Autenticazione non disponibile.", "Authentication is currently unavailable."),
@@ -9963,109 +9957,15 @@
       }
     }
 
-    if (isRecovery) {
-      setInlineStatus(status, langText("Ripristino password disponibile solo con backend attivo.", "Password recovery is available only with the backend enabled."), true);
-      return;
-    }
-
-    if (isLogin) {
-      const existingUser = state.users.find(function (user) {
-        return user.email === email && user.password === password;
-      });
-
-      if (!existingUser) {
-        setInlineStatus(status, curLang === "it" ? "Email o password non corretti." : "Incorrect email or password.", true);
-        return;
-      }
-
-      const storedPhone = normalizePhoneNumber(existingUser.phone || "");
-      if (storedPhone && storedPhone !== phone) {
-        setInlineStatus(status, curLang === "it" ? "Numero di telefono non corretto." : "Incorrect phone number.", true);
-        return;
-      }
-
-      if (existingUser.accountStatus === "banned") {
-        setInlineStatus(status, getBlockedIdentityMessage(existingUser.email, existingUser.phone) || (curLang === "it" ? "Account bloccato." : "Account blocked."), true);
-        return;
-      }
-
-      const mergedUser = Object.assign({}, existingUser, {
-        phone: storedPhone || phone
-      });
-      state.users = state.users.map(function (user) {
-        return user.email === mergedUser.email ? mergedUser : user;
-      });
-      saveJson(STORAGE_KEYS.users, state.users);
-
-      state.currentUser = normalizeUserWorkspace({
-        id: mergedUser.id,
-        name: mergedUser.name,
-        email: mergedUser.email,
-        phone: mergedUser.phone,
-        role: mergedUser.role || deriveUserRole(mergedUser.email),
-        city: mergedUser.city,
-        country: mergedUser.country,
-        bio: mergedUser.bio,
-        memberSince: mergedUser.memberSince,
-        avatar: mergedUser.avatar
-      });
-      saveJson(STORAGE_KEYS.session, state.currentUser);
-      syncCurrentUserSeller();
-      syncSessionUi();
-      renderProfilePanel();
-      renderNotifications();
-      renderOpsView();
-      showToast(t("login_success"));
-      finalizeAuthSuccess(state.authReturnView);
-      return;
-    }
-
-    if (state.users.some(function (user) { return user.email === email; })) {
-      setInlineStatus(status, curLang === "it" ? "Esiste gia' un account con questa email." : "An account with this email already exists.", true);
-      return;
-    }
-
-    const newUser = normalizeUserWorkspace({
-      id: "user-" + Date.now(),
-      name: name,
-      email: email,
-      phone: phone,
-      role: deriveUserRole(email),
-      password: password,
-      city: curLang === "it" ? "Italia" : "Italy",
-      country: curLang === "it" ? "Italia" : "Italy",
-      bio: "",
-      memberSince: String(new Date().getFullYear()),
-      avatar: "👤",
-      verification: {
-        emailVerified: false,
-        phoneVerified: false
-      }
-    });
-
-    state.users.push(newUser);
-    saveJson(STORAGE_KEYS.users, state.users);
-    state.currentUser = normalizeUserWorkspace({
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      phone: newUser.phone,
-      role: newUser.role,
-      city: newUser.city,
-      country: newUser.country,
-      bio: newUser.bio,
-      memberSince: newUser.memberSince,
-      avatar: newUser.avatar
-    });
-    saveJson(STORAGE_KEYS.session, state.currentUser);
-    syncCurrentUserSeller();
-    syncSessionUi();
-    renderProfilePanel();
-    notifyNewUser(newUser);
-    renderNotifications();
-    renderOpsView();
-    showToast(t("register_success"));
-    finalizeAuthSuccess(state.authReturnView);
+    // Supabase auth is required — no local fallback allowed
+    setInlineStatus(
+      status,
+      langText(
+        "Servizio di autenticazione non disponibile. Riprova tra qualche minuto.",
+        "Authentication service is currently unavailable. Please try again in a few minutes."
+      ),
+      true
+    );
   }
 
   function setInlineStatus(element, message, isError) {
@@ -11386,12 +11286,10 @@
         return user;
       }
       found = true;
-      return Object.assign({}, user, nextUser, {
-        password: user.password || ""
-      });
+      return Object.assign({}, user, nextUser);
     });
     if (!found) {
-      state.users.push(Object.assign({}, previous || {}, nextUser, { password: (previous && previous.password) || "" }));
+      state.users.push(Object.assign({}, previous || {}, nextUser));
     }
     saveJson(STORAGE_KEYS.users, state.users);
 

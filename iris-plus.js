@@ -56,6 +56,9 @@
     it: { label: "IT", nativeLabel: "Italiano", locale: "it-IT", currency: "EUR", rate: 1, dir: "ltr" },
     en: { label: "UK", nativeLabel: "English", locale: "en-GB", currency: "GBP", rate: 0.86, dir: "ltr" }
   };
+  const SUPABASE_STORAGE_BUCKETS = {
+    listingImages: "listing-images"
+  };
   const SUPABASE_PUBLIC_CONFIG = window.IRIS_SUPABASE_CONFIG || null;
   const HOME_COPY = window.IRIS_HOME_COPY || {};
   const FACET_TRANSLATIONS = window.IRIS_FACET_TRANSLATIONS || {};
@@ -1516,6 +1519,75 @@
       createdAt: Number(row.created_at_ms || Date.now()),
       updatedAt: Number(row.updated_at_ms || row.created_at_ms || Date.now())
     });
+  }
+
+  function dataUrlToBlob(dataUrl) {
+    const parts = String(dataUrl || "").split(",");
+    if (parts.length < 2) {
+      return null;
+    }
+    const mimeMatch = parts[0].match(/data:([^;]+);base64/);
+    const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
+    const binary = atob(parts[1]);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+    return new Blob([bytes], { type: mimeType });
+  }
+
+  function isRemoteImageSource(src) {
+    return /^https?:\/\//i.test(String(src || ""));
+  }
+
+  function buildListingImagePath(listingId, photo, index) {
+    const safeUserId = (state.currentUser && state.currentUser.id) ? String(state.currentUser.id) : "anonymous";
+    const safeListingId = String(listingId || createId("listing"));
+    const baseName = (photo && photo.name ? String(photo.name) : `photo-${index + 1}`)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48) || `photo-${index + 1}`;
+    return `${safeUserId}/${safeListingId}/${Date.now()}-${index + 1}-${baseName}.jpg`;
+  }
+
+  async function uploadListingPhotosToSupabase(photos, listingId) {
+    const client = getSupabaseClient();
+    if (!client || !state.currentUser || !state.currentUser.id || !Array.isArray(photos) || !photos.length) {
+      return Array.isArray(photos) ? photos : [];
+    }
+    const bucket = SUPABASE_STORAGE_BUCKETS.listingImages;
+    const uploadedPhotos = await Promise.all(photos.map(async function (photo, index) {
+      if (!photo || !photo.src) {
+        return photo;
+      }
+      if (photo.storagePath && isRemoteImageSource(photo.src)) {
+        return photo;
+      }
+      if (isRemoteImageSource(photo.src) && !/^data:image\//i.test(String(photo.src))) {
+        return photo;
+      }
+      const blob = dataUrlToBlob(photo.src);
+      if (!blob) {
+        return photo;
+      }
+      const path = buildListingImagePath(listingId, photo, index);
+      const uploadResponse = await client.storage.from(bucket).upload(path, blob, {
+        contentType: blob.type || "image/jpeg",
+        upsert: true
+      });
+      if (uploadResponse.error) {
+        throw uploadResponse.error;
+      }
+      const publicUrlResponse = client.storage.from(bucket).getPublicUrl(path);
+      const publicUrl = publicUrlResponse && publicUrlResponse.data ? publicUrlResponse.data.publicUrl : "";
+      return Object.assign({}, photo, {
+        src: publicUrl || photo.src,
+        publicUrl: publicUrl || photo.src,
+        storagePath: path
+      });
+    }));
+    return uploadedPhotos;
   }
 
   async function fetchSupabaseListings() {
@@ -9012,9 +9084,22 @@
       ? state.listings.find(function (listing) { return String(listing.id) === String(state.editingListingId); }) ||
         prods.find(function (listing) { return String(listing.id) === String(state.editingListingId); })
       : null;
+    const listingId = existingListing ? existingListing.id : Date.now();
+    let sellPhotosForSave = state.sellPhotos.slice();
+    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+      try {
+        updateSellStatus(langText("Caricamento foto su IRIS Storage in corso...", "Uploading photos to IRIS Storage..."));
+        sellPhotosForSave = await uploadListingPhotosToSupabase(sellPhotosForSave, listingId);
+        state.sellPhotos = sellPhotosForSave;
+        renderSellPhotoPreview();
+      } catch (error) {
+        console.warn("[IRIS] Unable to upload listing photos to Supabase Storage", error);
+        updateSellStatus(langText("Foto caricate solo in locale. Storage non disponibile.", "Photos saved locally only. Storage is unavailable."), true);
+      }
+    }
 
     const listingPayload = {
-      id: existingListing ? existingListing.id : Date.now(),
+      id: listingId,
       ownerId: state.currentUser.id || null,
       ownerEmail: state.currentUser.email,
       name: name,
@@ -9041,7 +9126,7 @@
       chips: [condition, material || "Material", taxonomy.categoryLabel, taxonomy.subcategoryLabel, taxonomy.typeLabel].filter(Boolean),
       seller: seller,
       date: Date.now(),
-      images: state.sellPhotos.map(function (photo) { return photo.src; }),
+      images: sellPhotosForSave.map(function (photo) { return photo.publicUrl || photo.src; }),
       isUserListing: true,
       inventoryStatus: existingListing && existingListing.inventoryStatus === "sold" ? "sold" : "active",
       listingStatus: "published",
@@ -11181,8 +11266,21 @@
       ? state.listings.find(function (listing) { return String(listing.id) === String(state.editingListingId); }) ||
         prods.find(function (listing) { return String(listing.id) === String(state.editingListingId); })
       : null;
+    const draftId = existingListing ? existingListing.id : Date.now();
+    let sellPhotosForDraft = state.sellPhotos.slice();
+    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id && sellPhotosForDraft.length) {
+      try {
+        updateSellStatus(langText("Caricamento foto bozza in corso...", "Uploading draft photos..."));
+        sellPhotosForDraft = await uploadListingPhotosToSupabase(sellPhotosForDraft, draftId);
+        state.sellPhotos = sellPhotosForDraft;
+        renderSellPhotoPreview();
+      } catch (error) {
+        console.warn("[IRIS] Unable to upload draft photos to Supabase Storage", error);
+        updateSellStatus(langText("Bozza salvata con foto locali.", "Draft saved with local photos."), true);
+      }
+    }
     const draftPayload = {
-      id: existingListing ? existingListing.id : Date.now(),
+      id: draftId,
       ownerId: state.currentUser.id || null,
       ownerEmail: state.currentUser.email,
       name: name,
@@ -11209,7 +11307,7 @@
       chips: [taxonomy.ok ? taxonomy.categoryLabel : "", taxonomy.ok ? taxonomy.subcategoryLabel : "", brand].filter(Boolean),
       seller: seller,
       date: Date.now(),
-      images: state.sellPhotos.map(function (photo) { return photo.src; }),
+      images: sellPhotosForDraft.map(function (photo) { return photo.publicUrl || photo.src; }),
       inventoryStatus: "draft",
       listingStatus: "draft",
       isUserListing: true,

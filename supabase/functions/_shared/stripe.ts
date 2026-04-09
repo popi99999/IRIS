@@ -57,3 +57,12 @@ export function stringifyStripeMetadata(value: unknown): Record<string, string> 
 export function defaultSuccessUrl(path = "/"): string {
   return `${getEnv("PUBLIC_SITE_URL", "https://iris-fashion.it").replace(/\/+$/, "")}${path}`;
 }
+
+export function appendUrlParams(baseUrl: string, params: Record<string, string | number | boolean | null | undefined>): string {
+  const url = new URL(baseUrl || defaultSuccessUrl("/"));
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") return;
+    url.searchParams.set(key, String(value));
+  });
+  return url.toString();
+}

@@ -461,13 +461,17 @@
     checkoutStep: "address",
     checkoutDraft: null,
     checkoutStatus: null,
+    checkoutSubmitting: false,
     sellPhotos: [],
     activeDetailImage: 0,
     lastNonDetailView: "home",
     activeOrderId: null,
     activeOrderScope: "buyer",
     opsModalMode: null,
-    opsModalPayload: null
+    opsModalPayload: null,
+    stripeReturn: null,
+    offerSubmitting: false,
+    connectReturn: null
   };
 
   const existingFavorites = loadJson(STORAGE_KEYS.favorites, []);
@@ -485,6 +489,8 @@
     removeStoredValue(STORAGE_KEYS.cart);
   }
 
+  consumeStripeReturnFromUrl();
+  consumeConnectReturnFromUrl();
   extendTranslations();
   injectShellUi();
   injectCookieConsentUi();
@@ -1173,6 +1179,199 @@
     return window.location.origin + window.location.pathname;
   }
 
+  function buildAppReturnUrl(params) {
+    try {
+      const url = new URL(getSupabaseRedirectUrl());
+      Object.keys(params || {}).forEach(function (key) {
+        const value = params[key];
+        if (value === undefined || value === null || value === "") {
+          return;
+        }
+        url.searchParams.set(key, String(value));
+      });
+      return url.toString();
+    } catch (_error) {
+      return getSupabaseRedirectUrl();
+    }
+  }
+
+  function canUseBackendPayments() {
+    return Boolean(isSupabaseEnabled());
+  }
+
+  async function invokeSupabaseFunction(name, payload) {
+    const client = getSupabaseClient();
+    if (!client) {
+      throw new Error(langText("Backend Supabase non disponibile.", "Supabase backend unavailable."));
+    }
+    const response = await client.functions.invoke(name, {
+      body: payload || {}
+    });
+    if (response.error) {
+      throw response.error;
+    }
+    const data = response.data || {};
+    if (data.error) {
+      const error = new Error(data.error);
+      error.code = data.code || "function_error";
+      throw error;
+    }
+    return data;
+  }
+
+  function consumeStripeReturnFromUrl() {
+    try {
+      const currentUrl = new URL(window.location.href);
+      const flow = currentUrl.searchParams.get("stripe_flow");
+      const status = currentUrl.searchParams.get("stripe_status");
+      if (!flow || !status) {
+        return;
+      }
+      state.stripeReturn = {
+        flow: flow,
+        status: status,
+        orderId: currentUrl.searchParams.get("order_id") || "",
+        offerId: currentUrl.searchParams.get("offer_id") || "",
+        sessionId: currentUrl.searchParams.get("session_id") || ""
+      };
+      ["stripe_flow", "stripe_status", "order_id", "offer_id", "session_id"].forEach(function (key) {
+        currentUrl.searchParams.delete(key);
+      });
+      window.history.replaceState({}, document.title, currentUrl.pathname + (currentUrl.search || "") + currentUrl.hash);
+    } catch (error) {
+      console.warn("[IRIS] Unable to parse Stripe return parameters", error);
+    }
+  }
+
+  function consumeConnectReturnFromUrl() {
+    try {
+      const currentUrl = new URL(window.location.href);
+      const status = currentUrl.searchParams.get("connect");
+      if (!status) {
+        return;
+      }
+      state.connectReturn = { status: status };
+      currentUrl.searchParams.delete("connect");
+      window.history.replaceState({}, document.title, currentUrl.pathname + (currentUrl.search || "") + currentUrl.hash);
+    } catch (error) {
+      console.warn("[IRIS] Unable to parse Stripe Connect return", error);
+    }
+  }
+
+  function delay(ms) {
+    return new Promise(function (resolve) {
+      window.setTimeout(resolve, ms);
+    });
+  }
+
+  async function waitForOrderSync(orderId, attempts) {
+    const maxAttempts = Number(attempts || 4);
+    for (let index = 0; index < maxAttempts; index += 1) {
+      await refreshSupabaseOrders();
+      const order = state.orders.find(function (candidate) {
+        return String(candidate.id) === String(orderId || "");
+      });
+      if (order) {
+        return order;
+      }
+      if (index < maxAttempts - 1) {
+        await delay(900);
+      }
+    }
+    return null;
+  }
+
+  async function waitForOfferSync(offerId, attempts) {
+    const maxAttempts = Number(attempts || 4);
+    for (let index = 0; index < maxAttempts; index += 1) {
+      await refreshSupabaseOffers();
+      const offer = state.offers.find(function (candidate) {
+        return String(candidate.id) === String(offerId || "");
+      });
+      if (offer) {
+        return offer;
+      }
+      if (index < maxAttempts - 1) {
+        await delay(900);
+      }
+    }
+    return null;
+  }
+
+  async function finalizeStripeReturn() {
+    if (!state.stripeReturn || !state.currentUser) {
+      return;
+    }
+    const payload = state.stripeReturn;
+    state.stripeReturn = null;
+
+    if (payload.flow === "checkout") {
+      if (payload.status === "success") {
+        if (payload.orderId) {
+          await waitForOrderSync(payload.orderId, 5);
+        } else {
+          await refreshSupabaseOrders();
+        }
+        await refreshSupabaseListings();
+        state.activeOrderId = payload.orderId || state.activeOrderId;
+        state.checkoutStatus = "success";
+        state.checkoutSubmitting = false;
+        renderCheckoutModal();
+        showToast(langText("Pagamento confermato. Ordine aggiornato.", "Payment confirmed. Order updated."));
+        if (payload.orderId) {
+          showBuyView("profile");
+          setBuyerSection("order_detail", payload.orderId);
+        }
+      } else {
+        state.checkoutStatus = "failed";
+        state.checkoutSubmitting = false;
+        renderCheckoutModal();
+        showToast(langText("Pagamento annullato. Nessun addebito eseguito.", "Checkout canceled. No charge completed."));
+      }
+      return;
+    }
+
+    if (payload.flow === "offer") {
+      if (payload.status === "success") {
+        const authorizedOffer = payload.offerId ? await waitForOfferSync(payload.offerId, 5) : null;
+        await refreshSupabaseListings();
+        state.offerSubmitting = false;
+        state.offerStatus = authorizedOffer;
+        state.offerDraft = authorizedOffer;
+        state.offerStep = authorizedOffer ? "success" : "amount";
+        const modal = qs("#offerModal");
+        if (modal && authorizedOffer) {
+          modal.classList.add("open");
+          renderOfferModal();
+        }
+        showToast(langText("Offerta autorizzata correttamente.", "Offer authorized successfully."));
+      } else {
+        state.offerSubmitting = false;
+        state.offerStep = "authorization";
+        renderOfferModal();
+        showToast(langText("Autorizzazione offerta annullata.", "Offer authorization canceled."));
+      }
+    }
+  }
+
+  async function finalizeConnectReturn() {
+    if (!state.connectReturn || !state.currentUser) {
+      return;
+    }
+    const payload = state.connectReturn;
+    state.connectReturn = null;
+    try {
+      await refreshStripeConnectStatus(true);
+      showBuyView("profile");
+      setProfileArea("account", "settings_payment");
+      showToast(payload.status === "return"
+        ? langText("Onboarding Stripe aggiornato.", "Stripe onboarding updated.")
+        : langText("Riapri Stripe per completare l'onboarding.", "Reopen Stripe to complete onboarding."));
+    } catch (error) {
+      console.warn("[IRIS] Unable to finalize Stripe Connect return", error);
+    }
+  }
+
   function buildSupabaseProfilePayload(user, authUser) {
     const normalizedUser = normalizeUserWorkspace(Object.assign({}, user || {}, {
       id: (authUser && authUser.id) || (user && user.id) || ""
@@ -1390,6 +1589,8 @@
       payment_authorization_status: normalized.paymentAuthorizationStatus || "payment_authorized",
       payment_intent_reference: normalized.paymentIntentReference || "",
       authorization_reference: normalized.authorizationReference || "",
+      checkout_session_id: normalized.checkoutSessionId || "",
+      authorization_expires_at: normalized.authorizationExpiresAt || null,
       order_id: normalized.orderId || null,
       shipping_snapshot: normalized.shippingSnapshot || {},
       payment_method_snapshot: normalized.paymentMethodSnapshot || {},
@@ -1426,6 +1627,8 @@
       paymentAuthorizationStatus: row.payment_authorization_status || "payment_authorized",
       paymentIntentReference: row.payment_intent_reference || "",
       authorizationReference: row.authorization_reference || "",
+      checkoutSessionId: row.checkout_session_id || "",
+      authorizationExpiresAt: row.authorization_expires_at || null,
       orderId: row.order_id || null,
       shippingSnapshot: row.shipping_snapshot || null,
       paymentMethodSnapshot: row.payment_method_snapshot || null,
@@ -1458,7 +1661,18 @@
       subtotal: Number(normalized.subtotal || 0),
       shipping_cost: Number(normalized.shippingCost || 0),
       total: Number(normalized.total || 0),
-      offer_id: normalized.offerId || null
+      offer_id: normalized.offerId || null,
+      payment_status: (normalized.payment && normalized.payment.status) || normalized.paymentStatus || "pending",
+      payout_status: (normalized.payment && normalized.payment.payoutStatus) || normalized.payoutStatus || "pending",
+      currency: (normalized.payment && normalized.payment.currency) || normalized.currency || getLocaleConfig().currency,
+      checkout_session_id: normalized.checkoutSessionId || (normalized.payment && normalized.payment.checkoutSessionId) || "",
+      payment_intent_id: normalized.paymentIntentId || (normalized.payment && normalized.payment.paymentIntentId) || "",
+      transfer_group: normalized.transferGroup || (normalized.payment && normalized.payment.transferGroup) || "",
+      carrier: (normalized.shipping && normalized.shipping.carrier) || "",
+      tracking_number: (normalized.shipping && normalized.shipping.trackingNumber) || "",
+      shipped_at: normalized.shippedAt || (normalized.shipping && normalized.shipping.shippedAt) || null,
+      delivered_at: normalized.deliveredAt || (normalized.shipping && normalized.shipping.deliveredAt) || null,
+      payment_captured_at: normalized.paymentCapturedAt || (normalized.payment && normalized.payment.capturedAt) || null
     };
   }
 
@@ -1486,7 +1700,16 @@
       subtotal: Number(row.subtotal || 0),
       shippingCost: Number(row.shipping_cost || 0),
       total: Number(row.total || 0),
-      offerId: row.offer_id || null
+      offerId: row.offer_id || null,
+      paymentStatus: row.payment_status || "",
+      payoutStatus: row.payout_status || "",
+      currency: row.currency || getLocaleConfig().currency,
+      checkoutSessionId: row.checkout_session_id || "",
+      paymentIntentId: row.payment_intent_id || "",
+      transferGroup: row.transfer_group || "",
+      shippedAt: row.shipped_at || null,
+      deliveredAt: row.delivered_at || null,
+      paymentCapturedAt: row.payment_captured_at || null
     });
   }
 
@@ -2892,6 +3115,12 @@
     refreshSupabaseNotifications().catch(function (error) {
       console.warn("[IRIS] Unable to refresh notifications after auth sync", error);
     });
+    finalizeStripeReturn().catch(function (error) {
+      console.warn("[IRIS] Unable to finalize Stripe return", error);
+    });
+    finalizeConnectReturn().catch(function (error) {
+      console.warn("[IRIS] Unable to finalize Stripe Connect return", error);
+    });
     return applied;
   }
 
@@ -3571,7 +3800,25 @@
         cadence: langText("Settimanale", "Weekly"),
         status: "setup_required",
         nextPayoutAt: null,
-        lastPayoutAt: null
+        lastPayoutAt: null,
+        stripe_connect: {
+          account_id: "",
+          payouts_enabled: false,
+          charges_enabled: false,
+          details_submitted: false,
+          country: user && user.country ? user.country : getWorkspaceDefaultCountry(),
+          type: "express",
+          last_synced_at: null
+        },
+        stripeConnect: {
+          accountId: "",
+          payoutsEnabled: false,
+          chargesEnabled: false,
+          detailsSubmitted: false,
+          country: user && user.country ? user.country : getWorkspaceDefaultCountry(),
+          type: "express",
+          lastSyncedAt: null
+        }
       },
       settings || {}
     );
@@ -3759,6 +4006,8 @@
         paymentAuthorizationStatus: "payment_authorized",
         paymentIntentReference: "",
         authorizationReference: "",
+        checkoutSessionId: "",
+        authorizationExpiresAt: null,
         orderId: null,
         shippingSnapshot: null,
         paymentMethodSnapshot: null,
@@ -4505,7 +4754,7 @@
       auth_switch_login: "Hai già un account?",
       auth_switch_register: "Non hai ancora un account?",
       cart_items: "articoli",
-      manual_payment_note: "Questo checkout funziona lato interfaccia e salva l'ordine nel browser. Per pagamenti reali serve collegare Stripe o un backend.",
+      manual_payment_note: "Il pagamento viene completato nel checkout sicuro Stripe e sincronizzato con il tuo ordine IRIS.",
       publish_success: "Annuncio pubblicato con successo.",
       publish_error: "Completa tutti i campi obbligatori e aggiungi almeno una foto.",
       photos_ready: "Foto pronte. Verranno salvate in versione ottimizzata nel browser.",
@@ -4514,7 +4763,7 @@
       profile_guest_title: "Accedi o registrati per gestire il tuo account",
       profile_guest_body: "Accedi o registrati per gestire il tuo account.",
       sign_in_to_continue: "Accedi per continuare",
-      checkout_success: "Ordine registrato con successo.",
+      checkout_success: "Pagamento confermato e ordine creato.",
       login_success: "Accesso effettuato.",
       logout_success: "Sessione chiusa.",
       register_success: "Account creato con successo.",
@@ -4604,7 +4853,7 @@
       auth_switch_login: "Already have an account?",
       auth_switch_register: "Need an account?",
       cart_items: "items",
-      manual_payment_note: "This checkout works in the UI and stores the order locally. Real payments still need Stripe or a backend.",
+      manual_payment_note: "Payment is completed in secure Stripe Checkout and synced with your IRIS order.",
       publish_success: "Listing published successfully.",
       publish_error: "Complete the required fields and add at least one photo.",
       photos_ready: "Photos are ready and will be stored in an optimized browser format.",
@@ -4613,7 +4862,7 @@
       profile_guest_title: "Sign in to unlock your profile",
       profile_guest_body: "Login, registration, publish flow and checkout now work inside the browser prototype.",
       sign_in_to_continue: "Sign in to continue",
-      checkout_success: "Order stored successfully.",
+      checkout_success: "Payment confirmed and order created.",
       login_success: "Signed in successfully.",
       logout_success: "Signed out successfully.",
       register_success: "Account created successfully.",
@@ -7328,45 +7577,16 @@
     }
 
     function getOfferPaymentOptions() {
-      const buyer = normalizeUserWorkspace(state.currentUser || {});
-      const methods = buyer.paymentMethods.length
-        ? buyer.paymentMethods.map(function (method) {
-            return {
-              id: method.id,
-              kind: langText("Carta", "Card"),
-              label: `${method.brand} •••• ${method.last4}`,
-              meta: method.status === "placeholder"
-                ? langText("Autorizzazione prototipo", "Prototype authorization")
-                : langText("Metodo salvato", "Saved method"),
-              snapshot: {
-                id: method.id,
-                label: `${method.brand} •••• ${method.last4}`
-              }
-            };
-          })
-        : [{
-            id: "prototype-offer-auth",
-            kind: langText("Carta", "Card"),
-            label: langText("Visa •••• 4242", "Visa •••• 4242"),
-            meta: langText("Autorizzazione prototipo", "Prototype authorization"),
-            snapshot: {
-              id: "prototype-offer-auth",
-              label: langText("Visa •••• 4242", "Visa •••• 4242")
-            }
-          }];
-
-      methods.push({
-        id: "apple-pay",
-        kind: "Apple Pay",
-        label: langText("Wallet autorizzato", "Authorized wallet"),
-        meta: langText("Conferma rapida in app", "Fast in-app confirmation"),
+      return [{
+        id: "stripe-offer-authorization",
+        kind: "Stripe",
+        label: langText("Carta o wallet in checkout sicuro", "Card or wallet in secure checkout"),
+        meta: langText("Pre-autorizzazione protetta · nessun addebito finale ora", "Protected pre-authorization · no final capture yet"),
         snapshot: {
-          id: "apple-pay",
-          label: "Apple Pay"
+          id: "stripe-offer-authorization",
+          label: langText("Autorizzazione sicura con Stripe", "Secure authorization with Stripe")
         }
-      });
-
-      return methods;
+      }];
     }
 
     function getSelectedOfferPaymentOption() {
@@ -7684,7 +7904,7 @@
                   </label>
                   ${!reviewState.ok ? `<div class="offer-review-error">${escapeHtml(reviewState.error)}</div>` : ""}
                   ${statusBox}
-                  <button class="offer-send" ${canSubmitReview ? "" : "disabled"} onclick="sendOffer()">${langText("Invia offerta vincolante", "Submit binding offer")}</button>
+                  <button class="offer-send" ${(canSubmitReview && !state.offerSubmitting) ? "" : "disabled"} onclick="sendOffer()">${state.offerSubmitting ? langText("Reindirizzamento a Stripe...", "Redirecting to Stripe...") : langText("Invia offerta vincolante", "Submit binding offer")}</button>
                 </div>
                 <div class="offer-protection">
                   <strong>${langText("Protezione acquisto IRIS", "IRIS purchase protection")}</strong>
@@ -7765,6 +7985,7 @@
         };
         state.offerStatus = null;
         state.offerError = "";
+        state.offerSubmitting = false;
         state.offerStep = "amount";
         const modal = qs("#offerModal");
         if (modal) {
@@ -7782,12 +8003,14 @@
       state.offerStep = "amount";
       state.offerError = "";
       state.offerStatus = null;
+      state.offerSubmitting = false;
       state.offerDraft = null;
     };
 
     backOfferStep = function () {
       state.offerStep = "amount";
       state.offerError = "";
+      state.offerSubmitting = false;
       renderOfferModal();
     };
 
@@ -7819,15 +8042,25 @@
           shippingSnapshot: readiness.shipping,
           paymentMethodSnapshot: readiness.payment
         });
+        state.offerSubmitting = true;
+        renderOfferModal();
         const result = await offerApiCreate(payload);
         if (!result.ok) {
           state.offerError = result.error;
+          state.offerSubmitting = false;
           renderOfferModal();
+          return;
+        }
+        if (result.redirect && result.checkoutUrl) {
+          state.offerSubmitting = true;
+          renderOfferModal();
+          window.location.assign(result.checkoutUrl);
           return;
         }
         state.offerStatus = result.offer;
         state.offerDraft = result.offer;
         state.offerError = "";
+        state.offerSubmitting = false;
         state.offerStep = "success";
         renderOfferModal();
         renderNotifications();
@@ -7868,6 +8101,7 @@
         paymentMethodSnapshot: state.offerDraft && state.offerDraft.paymentMethodSnapshot ? state.offerDraft.paymentMethodSnapshot : getBuyerOfferDefaults().paymentMethodSnapshot
       });
       state.offerError = "";
+      state.offerSubmitting = false;
       state.offerStep = "authorization";
       renderOfferModal();
     };
@@ -9743,6 +9977,7 @@
 
   function closeCheckout() {
     qs("#irisxCheckoutModal").classList.remove("open");
+    state.checkoutSubmitting = false;
   }
 
   function renderCheckoutModal() {
@@ -11185,8 +11420,8 @@
             label: `${defaultPaymentMethod.brand} •••• ${defaultPaymentMethod.last4}`
           }
         : {
-            id: "prototype-offer-auth",
-            label: langText("Prototype payment authorization", "Prototype payment authorization")
+            id: "stripe-offer-authorization",
+            label: langText("Autorizzazione sicura con Stripe", "Secure authorization with Stripe")
           }
     };
   }
@@ -11242,6 +11477,74 @@
       paymentIntentReference: "PI-OFFER-" + String(Date.now()).slice(-8),
       paymentAuthorizationStatus: "payment_authorized"
     };
+  }
+
+  function buildStripeOfferAuthorizationPayload(payload, listing, validatedAmount) {
+    return {
+      listingId: listing.id,
+      listingName: listing.name,
+      listingBrand: listing.brand,
+      offerAmount: Number(validatedAmount || payload.offerAmount || 0),
+      minimumOfferAmount: listing.minimumOfferAmount === null || listing.minimumOfferAmount === undefined ? null : Number(listing.minimumOfferAmount),
+      currency: getLocaleConfig().currency,
+      locale: getLocaleConfig().locale,
+      buyerEmail: normalizeEmail(payload.buyerEmail || (state.currentUser && state.currentUser.email) || ""),
+      buyerName: payload.buyerName || (state.currentUser && state.currentUser.name) || "",
+      sellerEmail: normalizeEmail(payload.sellerEmail || listing.ownerEmail || (listing.seller && listing.seller.email) || ""),
+      sellerName: payload.sellerName || (listing.seller && listing.seller.name) || "",
+      shippingSnapshot: payload.shippingSnapshot || null,
+      paymentMethodSnapshot: payload.paymentMethodSnapshot || null,
+      returnUrl: buildAppReturnUrl({})
+    };
+  }
+
+  function mergeOfferDecisionResponse(result) {
+    if (!result || typeof result !== "object") {
+      return;
+    }
+
+    if (result.offer) {
+      const nextOffer = buildOfferFromSupabaseRow(result.offer) || normalizeOfferRecord(result.offer);
+      state.offers = state.offers.map(function (offer) {
+        return offer.id === nextOffer.id ? nextOffer : offer;
+      });
+      if (!state.offers.some(function (offer) { return offer.id === nextOffer.id; })) {
+        state.offers.unshift(nextOffer);
+      }
+    }
+
+    if (Array.isArray(result.releasedOffers) && result.releasedOffers.length) {
+      const releasedMap = {};
+      result.releasedOffers.forEach(function (row) {
+        const released = buildOfferFromSupabaseRow(row) || normalizeOfferRecord(row);
+        releasedMap[released.id] = released;
+      });
+      state.offers = state.offers.map(function (offer) {
+        return releasedMap[offer.id] || offer;
+      });
+    }
+
+    if (result.order) {
+      const nextOrder = buildOrderFromSupabaseRow(result.order) || normalizeOrderRecord(result.order);
+      state.orders = state.orders.filter(function (order) { return order.id !== nextOrder.id; });
+      state.orders.unshift(nextOrder);
+      state.activeOrderId = nextOrder.id;
+    }
+
+    if (result.listing) {
+      const nextListing = buildListingFromSupabaseRow(result.listing) || normalizeListingRecord(result.listing);
+      state.listings = state.listings.map(function (listing) {
+        return String(listing.id) === String(nextListing.id) ? nextListing : listing;
+      });
+      prods = prods.map(function (listing) {
+        return String(listing.id) === String(nextListing.id) ? nextListing : listing;
+      });
+    }
+
+    persistOffers();
+    persistOrders();
+    persistListings();
+    syncInventoryFromOrders();
   }
 
   function captureAuthorizedOfferPayment(offer) {
@@ -11334,6 +11637,27 @@
     if (!validation.ok) {
       return validation;
     }
+    if (canUseBackendPayments()) {
+      try {
+        const result = await invokeSupabaseFunction("create-offer-authorization", buildStripeOfferAuthorizationPayload(payload, validation.listing, validation.amount));
+        if (!result || !result.checkoutUrl) {
+          throw new Error(langText("Checkout offerta non disponibile.", "Offer checkout unavailable."));
+        }
+        return {
+          ok: true,
+          redirect: true,
+          checkoutUrl: result.checkoutUrl,
+          offerId: result.offerId || ""
+        };
+      } catch (error) {
+        console.error("[IRIS] Unable to create Stripe offer authorization", error);
+        return {
+          ok: false,
+          error: error && error.message ? error.message : langText("Impossibile aprire l'autorizzazione Stripe.", "Unable to open Stripe authorization."),
+          code: "stripe_offer_checkout_failed"
+        };
+      }
+    }
     const authorization = createOfferAuthorization(payload);
     if (!authorization.ok) {
       return {
@@ -11419,6 +11743,30 @@
     }
     if (!isCurrentUserAdmin() && normalizeEmail(current.sellerEmail) !== normalizeEmail(state.currentUser && state.currentUser.email)) {
       return { ok: false, error: langText("Non puoi gestire questa offerta.", "You cannot manage this offer.") };
+    }
+
+    if (canUseBackendPayments() && current.paymentIntentReference) {
+      try {
+        const response = await invokeSupabaseFunction("respond-to-offer", {
+          offerId: offerId,
+          decision: decision
+        });
+        mergeOfferDecisionResponse(response);
+        renderNotifications();
+        renderProfilePanel();
+        renderOpsView();
+        return {
+          ok: true,
+          offer: response && response.offer ? (buildOfferFromSupabaseRow(response.offer) || normalizeOfferRecord(response.offer)) : current,
+          order: response && response.order ? (buildOrderFromSupabaseRow(response.order) || normalizeOrderRecord(response.order)) : null
+        };
+      } catch (error) {
+        console.error("[IRIS] Unable to respond to offer via Stripe backend", error);
+        return {
+          ok: false,
+          error: error && error.message ? error.message : langText("Impossibile aggiornare l'offerta.", "Unable to update the offer.")
+        };
+      }
     }
 
     if (decision === "declined") {
@@ -11921,38 +12269,117 @@
   }
 
   function addPrototypePaymentMethod() {
-    if (!state.currentUser) {
-      return;
+    showToast(langText("I metodi buyer sono gestiti direttamente da Stripe Checkout al momento del pagamento.", "Buyer payment methods are collected directly in Stripe Checkout during payment."));
+  }
+
+  function getStripeConnectState(payoutSettings) {
+    const settings = payoutSettings || {};
+    const nested = settings.stripe_connect || settings.stripeConnect || {};
+    return {
+      accountId: nested.account_id || nested.accountId || "",
+      payoutsEnabled: Boolean(nested.payouts_enabled || nested.payoutsEnabled),
+      chargesEnabled: Boolean(nested.charges_enabled || nested.chargesEnabled),
+      detailsSubmitted: Boolean(nested.details_submitted || nested.detailsSubmitted),
+      country: nested.country || state.currentUser && state.currentUser.country || getWorkspaceDefaultCountry(),
+      type: nested.type || "express",
+      lastSyncedAt: nested.last_synced_at || nested.lastSyncedAt || null
+    };
+  }
+
+  function getStripeConnectStatusMeta(payoutSettings) {
+    const connect = getStripeConnectState(payoutSettings);
+    if (connect.accountId && connect.chargesEnabled && connect.payoutsEnabled && connect.detailsSubmitted) {
+      return {
+        code: "active",
+        label: langText("Stripe attivo", "Stripe active"),
+        copy: langText("Account Express completo e payout pronti al rilascio.", "Express account completed and payouts ready for release.")
+      };
     }
-    const methods = state.currentUser.paymentMethods.slice();
-    methods.unshift(normalizePaymentMethodRecord({
-      id: createId("pm"),
-      brand: methods.length ? "Mastercard" : "Visa",
-      last4: String(4000 + methods.length * 37).slice(-4),
-      label: langText("Carta prototipo", "Prototype card"),
-      isDefault: methods.length === 0
-    }));
-    syncCurrentUserWorkspace({
-      paymentMethods: methods
+    if (connect.accountId) {
+      return {
+        code: "pending",
+        label: langText("Onboarding da completare", "Onboarding incomplete"),
+        copy: langText("L'account Stripe esiste già, ma devi completare ancora alcuni dati.", "The Stripe account already exists, but some onboarding details are still missing.")
+      };
+    }
+    return {
+      code: "setup_required",
+      label: langText("Da configurare", "Setup required"),
+      copy: langText("Collega Stripe Express per ricevere i payout automatici dei tuoi ordini.", "Connect Stripe Express to receive automatic payouts for your orders.")
+    };
+  }
+
+  async function refreshStripeConnectStatus(silent) {
+    if (!state.currentUser) {
+      return null;
+    }
+    if (!canUseBackendPayments()) {
+      if (!silent) {
+        showToast(langText("Backend pagamenti non disponibile.", "Payments backend unavailable."));
+      }
+      return null;
+    }
+    const result = await invokeSupabaseFunction("create-connect-account", {
+      country: (state.currentUser.country || getWorkspaceDefaultCountry() || "IT")
     });
-    renderProfilePanel();
-    showToast(langText("Metodo di pagamento aggiunto.", "Payment method added."));
+    const rawPayoutSettings = result && result.profile && result.profile.payout_settings
+      ? result.profile.payout_settings
+      : Object.assign({}, state.currentUser.payoutSettings || {}, {
+          stripe_connect: {
+            account_id: result && result.account ? result.account.id : "",
+            payouts_enabled: Boolean(result && result.account && result.account.payoutsEnabled),
+            charges_enabled: Boolean(result && result.account && result.account.chargesEnabled),
+            details_submitted: Boolean(result && result.account && result.account.detailsSubmitted),
+            country: result && result.account && result.account.country ? result.account.country : (state.currentUser.country || getWorkspaceDefaultCountry()),
+            type: result && result.account && result.account.type ? result.account.type : "express",
+            last_synced_at: new Date().toISOString()
+          }
+        });
+    const nextPayoutSettings = normalizePayoutSettings(Object.assign({}, rawPayoutSettings, {
+      method: "stripe_connect",
+      status: getStripeConnectStatusMeta(rawPayoutSettings).code
+    }), state.currentUser);
+    syncCurrentUserWorkspace({
+      payoutSettings: nextPayoutSettings
+    });
+    return nextPayoutSettings;
+  }
+
+  async function openStripeConnectOnboarding(mode) {
+    requireAuth(async function () {
+      try {
+        const result = await invokeSupabaseFunction("create-connect-account-link", {
+          mode: mode === "update" ? "update" : "onboarding",
+          refreshUrl: buildAppReturnUrl({ connect: "refresh" }),
+          returnUrl: buildAppReturnUrl({ connect: "return" })
+        });
+        if (!result || !result.url) {
+          throw new Error(langText("Link Stripe non disponibile.", "Stripe link unavailable."));
+        }
+        window.location.assign(result.url);
+      } catch (error) {
+        console.error("[IRIS] Unable to open Stripe Connect onboarding", error);
+        showToast(error && error.message ? error.message : langText("Impossibile aprire Stripe Connect.", "Unable to open Stripe Connect."));
+      }
+    });
   }
 
   function savePayoutWorkspace() {
     if (!state.currentUser) {
       return;
     }
-    syncCurrentUserWorkspace({
-      payoutSettings: normalizePayoutSettings({
-        method: readProfileField("#payoutMethod") || "bank_transfer",
-        accountHolder: readProfileField("#payoutHolder") || state.currentUser.name,
-        iban: readProfileField("#payoutIban"),
-        paypalEmail: readProfileField("#payoutPaypal") || state.currentUser.email,
-        cadence: readProfileField("#payoutCadence") || langText("Settimanale", "Weekly"),
-        status: readProfileField("#payoutIban") || readProfileField("#payoutPaypal") ? "configured" : "setup_required"
-      }, state.currentUser)
-    });
+    const current = normalizePayoutSettings(state.currentUser.payoutSettings || {}, state.currentUser);
+    const nextSettings = normalizePayoutSettings({
+      method: readProfileField("#payoutMethod") || current.method || "stripe_connect",
+      accountHolder: readProfileField("#payoutHolder") || state.currentUser.name,
+      iban: readProfileField("#payoutIban"),
+      paypalEmail: readProfileField("#payoutPaypal") || state.currentUser.email,
+      cadence: readProfileField("#payoutCadence") || current.cadence || langText("Settimanale", "Weekly"),
+      status: getStripeConnectStatusMeta(current).code,
+      stripe_connect: current.stripe_connect || current.stripeConnect || {},
+      stripeConnect: current.stripeConnect || current.stripe_connect || {}
+    }, state.currentUser);
+    syncCurrentUserWorkspace({ payoutSettings: nextSettings });
     renderProfilePanel();
     showToast(langText("Payout settings aggiornati.", "Payout settings updated."));
   }
@@ -12806,19 +13233,30 @@
     }
 
     if (section === "settings_payment") {
+      const connectMeta = getStripeConnectStatusMeta(user.payoutSettings);
+      const connectState = getStripeConnectState(user.payoutSettings);
       return `<div class="irisx-card-stack">
         <div class="irisx-workspace-card">
-          <div class="irisx-section-head"><h3>${langText("Metodi di pagamento", "Payment methods")}</h3><span>${langText("Scheletro per carte e metodi futuri.", "Skeleton for cards and future methods.")}</span></div>
-          ${user.paymentMethods.length ? `<div class="irisx-card-stack">${user.paymentMethods.map(function (method) {
-            return `<div class="irisx-inline-card"><div><strong>${escapeHtml(method.brand)} •••• ${escapeHtml(method.last4)}</strong><span>${escapeHtml(method.label || "")}</span></div>${method.isDefault ? `<span class="irisx-badge">${langText("Default", "Default")}</span>` : ""}</div>`;
-          }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun metodo salvato.", "No saved payment methods.")}</div>`}
-          <div class="irisx-actions"><button class="irisx-primary" onclick="addPrototypePaymentMethod()">${langText("Aggiungi metodo mock", "Add mock method")}</button></div>
+          <div class="irisx-section-head"><h3>${langText("Checkout buyer", "Buyer checkout")}</h3><span>${langText("Carte e wallet vengono raccolti in Stripe Checkout nel passaggio finale sicuro.", "Cards and wallets are collected in Stripe Checkout during the final secure step.")}</span></div>
+          <div class="irisx-card-stack">
+            <div class="irisx-inline-card"><div><strong>${langText("Pagamento protetto", "Protected payment")}</strong><span>${langText("3D Secure, wallet e conferma pagamento gestiti da Stripe.", "3D Secure, wallets, and payment confirmation are handled by Stripe.")}</span></div><span class="irisx-badge">${langText("Stripe", "Stripe")}</span></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Offerte con pre-autorizzazione", "Offers with pre-authorization")}</strong><span>${langText("Le offerte bloccano l'importo con manual capture e rilascio automatico se rifiutate o scadute.", "Offers place a manual-capture hold and release it automatically if declined or expired.")}</span></div></div>
+          </div>
+          <div class="irisx-actions"><button class="irisx-secondary" onclick="addPrototypePaymentMethod()">${langText("Come funziona", "How it works")}</button></div>
         </div>
         <div class="irisx-workspace-card">
-          <div class="irisx-section-head"><h3>${langText("Impostazioni pagamento", "Payout settings")}</h3><span>${langText("Dettagli payout venditore predisposti nel profilo.", "Seller payout details prepared inside the profile.")}</span></div>
+          <div class="irisx-section-head"><h3>${langText("Stripe Connect seller", "Seller Stripe Connect")}</h3><span>${langText("Onboarding Express, stato account e payout automatici del seller.", "Express onboarding, account status, and automatic seller payouts.")}</span></div>
+          <div class="irisx-card-stack">
+            <div class="irisx-inline-card"><div><strong>${escapeHtml(connectMeta.label)}</strong><span>${escapeHtml(connectMeta.copy)}</span></div><span class="irisx-badge">${connectState.accountId ? escapeHtml(connectState.accountId.slice(-8)) : langText("Non collegato", "Not connected")}</span></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Payout automatici", "Automatic payouts")}</strong><span>${connectState.payoutsEnabled ? langText("Abilitati dopo consegna o conferma ordine.", "Enabled after delivery or order confirmation.") : langText("Disponibili appena completi onboarding e verifiche Stripe.", "Available as soon as Stripe onboarding and verification are completed.")}</span></div><span class="irisx-badge">${connectState.payoutsEnabled ? langText("Ready", "Ready") : langText("Pending", "Pending")}</span></div>
+          </div>
+          <div class="irisx-actions">
+            <button class="irisx-primary" onclick="openStripeConnectOnboarding('${connectState.accountId ? "update" : "onboarding"}')">${connectState.accountId ? langText("Apri Stripe Connect", "Open Stripe Connect") : langText("Collega Stripe", "Connect Stripe")}</button>
+            <button class="irisx-secondary" onclick="refreshStripeConnectStatus()">${langText("Aggiorna stato", "Refresh status")}</button>
+          </div>
           <div class="irisx-form-grid">
             <div class="irisx-account-row">
-              <div class="irisx-field"><label for="payoutMethod">${langText("Metodo", "Method")}</label><input id="payoutMethod" type="text" value="${escapeHtml(user.payoutSettings.method || "bank_transfer")}"></div>
+              <div class="irisx-field"><label for="payoutMethod">${langText("Metodo", "Method")}</label><input id="payoutMethod" type="text" value="${escapeHtml(user.payoutSettings.method || "stripe_connect")}"></div>
               <div class="irisx-field"><label for="payoutCadence">${langText("Cadence", "Cadence")}</label><input id="payoutCadence" type="text" value="${escapeHtml(user.payoutSettings.cadence || "")}"></div>
             </div>
             <div class="irisx-account-row">
@@ -13877,8 +14315,8 @@
       note: "",
       shippingMethod: langText("Spedizione assicurata", "Insured shipping"),
       shippingFee: SHIPPING_COST,
-      paymentMethodId: defaultPayment.id || "prototype-manual",
-      paymentLabel: defaultPayment.id ? `${defaultPayment.brand} •••• ${defaultPayment.last4}` : langText("Prototype checkout", "Prototype checkout")
+      paymentMethodId: defaultPayment.id || "stripe-checkout",
+      paymentLabel: defaultPayment.id ? `${defaultPayment.brand} •••• ${defaultPayment.last4}` : langText("Stripe Checkout protetto", "Protected Stripe Checkout")
     }, state.checkoutDraft || {});
   }
 
@@ -13921,8 +14359,74 @@
     renderCheckoutModal();
   }
 
+  function buildCheckoutStripePayload() {
+    const draft = buildCheckoutDraft();
+    const items = (state.checkoutItems || []).map(function (entry) {
+      const product = normalizeListingRecord(entry.product || {});
+      const seller = product.seller || {};
+      ensureSellerEmail(seller);
+      return {
+        listingId: product.id,
+        quantity: Number(entry.qty || 1),
+        unitAmount: Number(product.price || 0),
+        brand: product.brand || "",
+        name: product.name || "",
+        sellerId: product.ownerId || product.sellerId || seller.id || "",
+        sellerEmail: normalizeEmail(product.ownerEmail || seller.email || "")
+      };
+    });
+    return {
+      source: state.checkoutSource || "cart",
+      currency: getLocaleConfig().currency,
+      locale: getLocaleConfig().locale,
+      items: items,
+      shipping: {
+        name: draft.name || "",
+        address: draft.address || "",
+        city: draft.city || "",
+        country: draft.country || "",
+        note: draft.note || "",
+        method: draft.shippingMethod || langText("Spedizione assicurata", "Insured shipping")
+      },
+      shippingFee: Number(draft.shippingFee || SHIPPING_COST),
+      returnUrl: buildAppReturnUrl({})
+    };
+  }
+
+  async function beginStripeCheckout() {
+    saveCheckoutDraftFromFields();
+    if (!state.checkoutDraft.name || !state.checkoutDraft.address || !state.checkoutDraft.city || !state.checkoutDraft.country) {
+      showToast(langText("Completa i dati di spedizione prima di continuare.", "Complete your shipping details before continuing."));
+      state.checkoutStep = "address";
+      renderCheckoutModal();
+      return;
+    }
+    if (!canUseBackendPayments()) {
+      showToast(langText("Backend pagamenti non disponibile.", "Payments backend unavailable."));
+      return;
+    }
+    try {
+      state.checkoutSubmitting = true;
+      renderCheckoutModal();
+      const result = await invokeSupabaseFunction("create-checkout-session", buildCheckoutStripePayload());
+      if (!result || !result.checkoutUrl) {
+        throw new Error(langText("Sessione checkout non disponibile.", "Checkout session unavailable."));
+      }
+      if (result.orderId) {
+        state.activeOrderId = result.orderId;
+      }
+      window.location.assign(result.checkoutUrl);
+    } catch (error) {
+      console.error("[IRIS] Unable to start Stripe checkout", error);
+      state.checkoutSubmitting = false;
+      showToast(error && error.message ? error.message : langText("Impossibile aprire il checkout Stripe.", "Unable to open Stripe checkout."));
+      renderCheckoutModal();
+    }
+  }
+
   function finalizeCheckout(success) {
     saveCheckoutDraftFromFields();
+    state.checkoutSubmitting = false;
     if (!success) {
       state.checkoutStatus = "failed";
       renderCheckoutModal();
@@ -13986,6 +14490,7 @@
     }
     state.checkoutSource = source || "cart";
     state.checkoutStatus = null;
+    state.checkoutSubmitting = false;
     state.checkoutStep = "address";
     if (state.checkoutSource === "buyNow") {
       const product = getListingById(productId);
@@ -14073,8 +14578,13 @@
         <div class="irisx-note">${langText("Seleziona il metodo di spedizione preferito.", "Select your preferred shipping method.")}</div>
       </div>`;
     } else if (state.checkoutStep === "payment") {
-      body = `<div class="irisx-form-grid">
-        <div class="irisx-field"><label for="checkoutPaymentLabel">${langText("Metodo di pagamento", "Payment method")}</label><input id="checkoutPaymentLabel" type="text" value="${escapeHtml(draft.paymentLabel || "")}"></div>
+      body = `<div class="irisx-card-stack">
+        <div class="irisx-inline-card">
+          <div>
+            <strong>${langText("Checkout Stripe protetto", "Protected Stripe Checkout")}</strong>
+            <span>${escapeHtml(langText("Carta, wallet e autenticazione 3D Secure gestiti nel passaggio finale ospitato da Stripe.", "Card, wallet, and 3D Secure authentication are handled in the final Stripe-hosted step."))}</span>
+          </div>
+        </div>
         <div class="irisx-note">${langText("Seleziona il metodo di pagamento. Il pagamento è protetto da IRIS.", "Select your payment method. Payment is protected by IRIS.")}</div>
       </div>`;
     } else if (state.checkoutStep === "review") {
@@ -14096,7 +14606,7 @@
     const primaryAction = state.checkoutStatus
       ? ""
       : state.checkoutStep === "confirmation"
-        ? `<button class="irisx-primary" onclick="finalizeCheckout(true)">${langText("Conferma e paga", "Confirm and pay")}</button>`
+        ? `<button class="irisx-primary" ${state.checkoutSubmitting ? "disabled" : ""} onclick="submitCheckout()">${state.checkoutSubmitting ? langText("Reindirizzamento a Stripe...", "Redirecting to Stripe...") : langText("Conferma e paga", "Confirm and pay")}</button>`
         : `<button class="irisx-primary" onclick="nextCheckoutStep()">${state.checkoutStep === "review" ? langText("Vai alla conferma", "Go to confirmation") : langText("Continua", "Continue")}</button>`;
     const secondaryAction = state.checkoutStatus
       ? ""
@@ -14135,6 +14645,10 @@
   submitCheckout = function () {
     if (state.checkoutStep !== "confirmation") {
       nextCheckoutStep();
+      return;
+    }
+    if (canUseBackendPayments()) {
+      beginStripeCheckout();
       return;
     }
     finalizeCheckout(true);
@@ -14620,6 +15134,8 @@
   window.saveAddressBook = saveAddressBook;
   window.setDefaultAddress = setDefaultAddress;
   window.addPrototypePaymentMethod = addPrototypePaymentMethod;
+  window.refreshStripeConnectStatus = refreshStripeConnectStatus;
+  window.openStripeConnectOnboarding = openStripeConnectOnboarding;
   window.savePayoutWorkspace = savePayoutWorkspace;
   window.saveNotificationPreferences = saveNotificationPreferences;
   window.saveSecurityWorkspace = saveSecurityWorkspace;

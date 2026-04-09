@@ -85,8 +85,126 @@ async function updateListingSold(listingId: string, orderId: string) {
   }
 }
 
+async function handleOfferCheckoutCompleted(session: any) {
+  const metadata = session.metadata || {};
+  const offerId = String(metadata.offerId ?? metadata.offer_id ?? "");
+  const listingId = String(metadata.listingId ?? metadata.listing_id ?? "");
+  if (!offerId || !listingId) {
+    throw new HttpError("Missing offer metadata", 400);
+  }
+
+  const listing = await fetchListingById(listingId);
+  if (!listing) {
+    throw new HttpError("Listing not found", 404);
+  }
+
+  const offerAmount = normalizeAmount(metadata.offerAmount ?? metadata.offer_amount ?? 0, 0);
+  const authorizedAmount = normalizeAmount(metadata.authorizedAmount ?? metadata.authorized_amount ?? session.amount_total ?? 0, 0);
+  const currency = String(metadata.currency ?? session.currency ?? "EUR").toUpperCase();
+  const buyerEmail = normalizeEmail(metadata.buyerEmail ?? session.customer_details?.email ?? session.customer_email ?? "");
+  const buyerName = normalizeString(metadata.buyerName ?? session.customer_details?.name ?? "");
+  const sellerEmail = normalizeEmail(metadata.sellerEmail ?? listing.owner_email ?? listing.ownerEmail ?? "");
+  const existing = await fetchOfferById(offerId);
+
+  const offerRecord = {
+    ...(existing ?? {}),
+    id: offerId,
+    listing_id: listingId,
+    product_id: listing.id ?? listingId,
+    product_name: listing.name ?? "",
+    product_brand: listing.brand ?? "",
+    buyer_id: String(metadata.buyerId ?? metadata.buyer_id ?? existing?.buyer_id ?? ""),
+    buyer_email: buyerEmail,
+    buyer_name: buyerName,
+    seller_id: listing.owner_id ?? existing?.seller_id ?? null,
+    seller_email: sellerEmail,
+    seller_name: normalizeString(metadata.sellerName ?? listing.seller_snapshot?.name ?? listing.owner_name ?? ""),
+    offer_amount: offerAmount,
+    currency,
+    status: "pending",
+    created_at_ms: Number(existing?.created_at_ms ?? Date.now()),
+    updated_at_ms: Date.now(),
+    expires_at_ms: Number(existing?.expires_at_ms ?? Date.now() + 24 * 60 * 60 * 1000),
+    payment_authorization_status: "payment_authorized",
+    payment_intent_reference: String(session.payment_intent ?? existing?.payment_intent_reference ?? ""),
+    authorization_reference: normalizeString(existing?.authorization_reference ?? `AUTH-${String(Date.now()).slice(-8)}`),
+    checkout_session_id: String(session.id ?? ""),
+    authorization_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    order_id: String(existing?.order_id ?? ""),
+    shipping_snapshot: parseJsonMaybe(metadata.shippingSnapshot ?? metadata.shipping_snapshot) ?? {},
+    payment_method_snapshot: parseJsonMaybe(metadata.paymentMethodSnapshot ?? metadata.payment_method_snapshot) ?? {},
+    minimum_offer_amount: normalizeAmount(metadata.minimumOfferAmount ?? metadata.minimum_offer_amount ?? 0, 0) || null,
+    captured_at_ms: existing?.captured_at_ms ?? null,
+    released_at_ms: existing?.released_at_ms ?? null,
+    release_reason: normalizeString(existing?.release_reason ?? ""),
+  };
+
+  await tryUpsertIntoTable("offers", offerRecord, "id");
+  await persistPaymentRecordIfAvailable({
+    id: `pay_${crypto.randomUUID()}`,
+    order_id: null,
+    offer_id: offerId,
+    provider: "stripe",
+    provider_payment_intent_id: String(session.payment_intent ?? ""),
+    provider_checkout_session_id: String(session.id ?? ""),
+    provider_charge_id: "",
+    provider_transfer_group: "",
+    status: "authorized",
+    amount: authorizedAmount,
+    buyer_fee_amount: normalizeAmount(metadata.buyerFeeAmount ?? metadata.buyer_fee_amount ?? 0, 0),
+    seller_fee_amount: normalizeAmount(metadata.sellerFeeAmount ?? metadata.seller_fee_amount ?? 0, 0),
+    authentication_fee_amount: normalizeAmount(metadata.authenticationFeeAmount ?? metadata.authentication_fee_amount ?? 0, 0),
+    fee_amount: normalizeAmount(metadata.buyerFeeAmount ?? metadata.buyer_fee_amount ?? 0, 0) + normalizeAmount(metadata.authenticationFeeAmount ?? metadata.authentication_fee_amount ?? 0, 0),
+    currency,
+    receipt_number: "",
+    payout_account_id: "",
+    payout_transfer_ids: [],
+    metadata,
+    raw_payload: session,
+    authorized_at: new Date().toISOString(),
+  });
+
+  await upsertNotification({
+    recipient_id: listing.owner_id ?? null,
+    recipient_email: sellerEmail,
+    audience: "user",
+    kind: "offer",
+    title: "Nuova offerta",
+    body: `${listing.brand ?? ""} ${listing.name ?? ""}`.trim(),
+    order_id: "",
+    product_id: listingId,
+    scope: "offer",
+    unread: true,
+  });
+  await upsertNotification({
+    recipient_id: offerRecord.buyer_id || null,
+    recipient_email: buyerEmail,
+    audience: "user",
+    kind: "offer",
+    title: "Offerta autorizzata",
+    body: `${offerAmount.toFixed(2)} ${currency}`,
+    order_id: "",
+    product_id: listingId,
+    scope: "offer",
+    unread: true,
+  });
+
+  await sendTransactionalEmail("offer-created", sellerEmail, {
+    offerId,
+    listingId,
+    productTitle: `${listing.brand ?? ""} ${listing.name ?? ""}`.trim(),
+    amount: `${offerAmount.toFixed(2)} ${currency}`,
+    buyerEmail,
+    buyerName,
+  });
+}
+
 async function handleCheckoutCompleted(session: any) {
   const metadata = session.metadata || {};
+  if (String(metadata.flow ?? "") === "offer_authorization") {
+    await handleOfferCheckoutCompleted(session);
+    return;
+  }
   const orderId = String(metadata.orderId ?? metadata.order_id ?? "");
   if (!orderId) {
     throw new HttpError("Missing order id in checkout metadata", 400);

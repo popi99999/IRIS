@@ -4,13 +4,9 @@ import {
   fetchListingById,
   getRequestUser,
   getSupabaseAdmin,
-  tryInsertIntoTable,
-  tryUpsertIntoTable,
-  upsertNotification,
 } from "../_shared/supabase.ts";
 import { calculateLineFees, OFFER_EXPIRY_HOURS } from "../_shared/marketplace.ts";
-import { getStripe, stringifyStripeMetadata, toStripeAmount } from "../_shared/stripe.ts";
-import { sendTransactionalEmail } from "../_shared/email.ts";
+import { appendUrlParams, defaultSuccessUrl, getStripe, stringifyStripeMetadata, toStripeAmount } from "../_shared/stripe.ts";
 
 type OfferAuthorizationBody = {
   listingId?: string;
@@ -18,11 +14,26 @@ type OfferAuthorizationBody = {
   authorizedAmount?: number;
   shippingFee?: number;
   currency?: string;
+  locale?: string;
   shippingSnapshot?: Record<string, unknown>;
   paymentMethodSnapshot?: Record<string, unknown>;
   paymentMethodId?: string;
   paymentMethodLabel?: string;
+  returnUrl?: string;
 };
+
+function buildCheckoutLineItem(label: string, amount: number, currency: string) {
+  return {
+    quantity: 1,
+    price_data: {
+      currency: String(currency).toLowerCase(),
+      product_data: {
+        name: label,
+      },
+      unit_amount: toStripeAmount(amount, currency),
+    },
+  };
+}
 
 Deno.serve(async (request) => {
   const preflight = handleOptions(request);
@@ -50,9 +61,10 @@ Deno.serve(async (request) => {
     if (String(listing.inventory_status ?? listing.inventoryStatus ?? "") === "archived") {
       throw new HttpError("Listing already archived", 409);
     }
-    if (normalizeAmount(listing.minimum_offer_amount ?? listing.minimumOfferAmount ?? 0, 0) > 0 && offerAmount < normalizeAmount(listing.minimum_offer_amount ?? listing.minimumOfferAmount ?? 0, 0)) {
+    const minimumOfferAmount = normalizeAmount(listing.minimum_offer_amount ?? listing.minimumOfferAmount ?? 0, 0);
+    if (minimumOfferAmount > 0 && offerAmount < minimumOfferAmount) {
       throw new HttpError("Offer is below the minimum offer amount", 409, {
-        minimumOfferAmount: normalizeAmount(listing.minimum_offer_amount ?? listing.minimumOfferAmount ?? 0, 0),
+        minimumOfferAmount,
       });
     }
 
@@ -67,7 +79,7 @@ Deno.serve(async (request) => {
       .select("id,status,buyer_email")
       .eq("listing_id", listingId)
       .eq("buyer_email", buyerEmail)
-      .eq("status", "pending");
+      .in("status", ["pending", "awaiting_authorization"]);
     if (existingError) {
       throw new HttpError("Unable to validate existing offers", 500, existingError.message);
     }
@@ -83,108 +95,94 @@ Deno.serve(async (request) => {
     );
     const currency = String(body.currency ?? lineFees.currency ?? listing.price_currency ?? listing.currency ?? "EUR").toUpperCase();
     const offerId = `off_${uuid("iris")}`;
-    const paymentIntent = await getStripe().paymentIntents.create({
-      amount: toStripeAmount(authorizedAmount, currency),
-      currency: currency.toLowerCase(),
-      capture_method: "manual",
-      confirmation_method: "automatic",
-      automatic_payment_methods: {
-        enabled: true,
-      },
-      customer_email: buyerEmail || undefined,
-      metadata: stringifyStripeMetadata({
-        offerId,
-        listingId,
-        listingTitle: listing.name ?? "",
-        listingBrand: listing.brand ?? "",
-        buyerId: user.id,
-        buyerEmail,
-        sellerId: listing.owner_id ?? "",
-        sellerEmail: ownerEmail,
-        offerAmount,
-        shippingFee,
-        flow: "offer_authorization",
-      }),
-    });
 
-    const offerRecord = {
-      id: offerId,
-      listing_id: listingId,
-      product_id: listing.id ?? listingId,
-      product_name: listing.name ?? "",
-      product_brand: listing.brand ?? "",
-      buyer_id: user.id,
-      buyer_email: buyerEmail,
-      buyer_name: normalizeString(user.user_metadata?.full_name ?? user.email ?? ""),
-      seller_id: listing.owner_id ?? null,
-      seller_email: ownerEmail,
-      seller_name: normalizeString(listing.seller_snapshot?.name ?? listing.owner_name ?? ""),
-      offer_amount: offerAmount,
+    const metadata = stringifyStripeMetadata({
+      flow: "offer_authorization",
+      offerId,
+      listingId,
+      listingTitle: listing.name ?? "",
+      listingBrand: listing.brand ?? "",
+      buyerId: user.id,
+      buyerEmail,
+      buyerName: normalizeString(user.user_metadata?.full_name ?? user.email ?? ""),
+      sellerId: listing.owner_id ?? "",
+      sellerEmail: ownerEmail,
+      sellerName: normalizeString(listing.seller_snapshot?.name ?? listing.owner_name ?? ""),
+      offerAmount,
+      authorizedAmount,
+      minimumOfferAmount,
+      shippingFee,
       currency,
-      status: "pending",
-      created_at_ms: Date.now(),
-      updated_at_ms: Date.now(),
-      expires_at_ms: Date.now() + OFFER_EXPIRY_HOURS * 60 * 60 * 1000,
-      payment_authorization_status: "payment_authorized",
-      payment_intent_reference: paymentIntent.id,
-      authorization_reference: `AUTH-${String(Date.now()).slice(-8)}`,
-      order_id: "",
-      shipping_snapshot: body.shippingSnapshot ?? {},
-      payment_method_snapshot: {
+      buyerFeeAmount: lineFees.buyerFee,
+      sellerFeeAmount: lineFees.sellerFee,
+      authenticationFeeAmount: lineFees.authFee,
+      paymentMethodId: body.paymentMethodId ?? "",
+      paymentMethodLabel: body.paymentMethodLabel ?? "",
+      shippingSnapshot: JSON.stringify(body.shippingSnapshot ?? {}),
+      paymentMethodSnapshot: JSON.stringify({
         ...(body.paymentMethodSnapshot ?? {}),
         id: body.paymentMethodId ?? body.paymentMethodSnapshot?.id ?? "",
         label: body.paymentMethodLabel ?? body.paymentMethodSnapshot?.label ?? "",
-      },
-      minimum_offer_amount: normalizeAmount(listing.minimum_offer_amount ?? listing.minimumOfferAmount ?? 0, 0) || null,
-      captured_at_ms: null,
-      released_at_ms: null,
-      release_reason: "",
-    };
-
-    await tryUpsertIntoTable("offers", offerRecord, "id");
-    await tryInsertIntoTable("notifications", {
-      id: `ntf_${uuid("offer")}`,
-      recipient_id: listing.owner_id ?? null,
-      recipient_email: ownerEmail,
-      audience: "user",
-      kind: "offer",
-      title: "Nuova offerta",
-      body: `${listing.brand ?? ""} ${listing.name ?? ""}`.trim(),
-      link: "",
-      conversation_id: "",
-      order_id: "",
-      product_id: listingId,
-      scope: "offer",
-      unread: true,
-      created_at_ms: Date.now(),
-      updated_at_ms: Date.now(),
+      }),
     });
 
-    await sendTransactionalEmail("offer-created", ownerEmail, {
-      offerId,
-      listingId,
-      productTitle: `${listing.brand ?? ""} ${listing.name ?? ""}`.trim(),
-      amount: `${offerAmount.toFixed(2)} ${currency}`,
-      buyerEmail,
-      buyerName: normalizeString(user.user_metadata?.full_name ?? user.email ?? ""),
+    const lineItems = [
+      buildCheckoutLineItem(
+        [normalizeString(listing.brand), normalizeString(listing.name)].filter(Boolean).join(" - ") || "IRIS Offer",
+        offerAmount,
+        currency,
+      ),
+    ];
+    if (lineFees.buyerFee > 0) {
+      lineItems.push(buildCheckoutLineItem("IRIS Buyer Protection", lineFees.buyerFee, currency));
+    }
+    if (lineFees.authFee > 0) {
+      lineItems.push(buildCheckoutLineItem("IRIS Authentication", lineFees.authFee, currency));
+    }
+    if (shippingFee > 0) {
+      lineItems.push(buildCheckoutLineItem("Shipping", shippingFee, currency));
+    }
+
+    const baseReturnUrl = body.returnUrl || defaultSuccessUrl("/");
+    const successUrl = appendUrlParams(baseReturnUrl, {
+      stripe_flow: "offer",
+      stripe_status: "success",
+      offer_id: offerId,
+      session_id: "{CHECKOUT_SESSION_ID}",
+    });
+    const cancelUrl = appendUrlParams(baseReturnUrl, {
+      stripe_flow: "offer",
+      stripe_status: "cancel",
+      offer_id: offerId,
+    });
+
+    const session = await getStripe().checkout.sessions.create({
+      mode: "payment",
+      customer_email: buyerEmail || undefined,
+      line_items: lineItems,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata,
+      payment_intent_data: {
+        capture_method: "manual",
+        metadata,
+      },
+      billing_address_collection: "required",
+      phone_number_collection: { enabled: true },
+      shipping_address_collection: {
+        allowed_countries: ["IT"],
+      },
+      locale: typeof body.locale === "string" && body.locale.toLowerCase().startsWith("en") ? "en-GB" : "it",
     });
 
     return jsonResponse({
       ok: true,
-      offer: {
-        ...offerRecord,
-        payment_intent_client_secret: paymentIntent.client_secret,
-      },
-      paymentIntent: {
-        id: paymentIntent.id,
-        clientSecret: paymentIntent.client_secret,
-        status: paymentIntent.status,
-      },
-      checkout: {
-        amount: authorizedAmount,
-        currency,
-        shippingFee,
-      },
+      offerId,
+      sessionId: session.id,
+      checkoutUrl: session.url,
+      currency,
+      authorizedAmount,
+      expiresAt: Date.now() + OFFER_EXPIRY_HOURS * 60 * 60 * 1000,
     });
   } catch (error) {
     if (error instanceof HttpError) {

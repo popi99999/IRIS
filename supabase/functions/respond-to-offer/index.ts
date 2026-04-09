@@ -161,6 +161,8 @@ Deno.serve(async (request) => {
       return jsonResponse({
         ok: true,
         offer: declinedOffer,
+        listing,
+        releasedOffers: [],
         paymentIntent: cancelledIntent,
       });
     }
@@ -215,7 +217,7 @@ Deno.serve(async (request) => {
       created_at_ms: Date.now(),
       updated_at_ms: Date.now(),
     });
-    await declineCompetingOffers(String(offer.listing_id ?? offer.listingId ?? listing.id), offerId);
+    const releasedOffers = await declineCompetingOffers(String(offer.listing_id ?? offer.listingId ?? listing.id), offerId);
 
     await sendTransactionalEmail("offer-accepted", buyerEmail, {
       offerId,
@@ -237,6 +239,8 @@ Deno.serve(async (request) => {
       ok: true,
       order: orderPayload,
       offer: acceptedOffer,
+      listing,
+      releasedOffers,
       paymentIntent: capturedIntent,
     });
   } catch (error) {

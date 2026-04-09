@@ -498,9 +498,323 @@ async function handlePaymentIntentClosed(intent: any, status: string) {
   }
 }
 
+// Idempotency: track processed Stripe event IDs in the DB to prevent double-processing
+async function isEventAlreadyProcessed(eventId: string): Promise<boolean> {
+  const { data } = await getSupabaseAdmin()
+    .from("email_outbox")
+    .select("id")
+    .eq("provider_message_id", `stripe_evt_${eventId}`)
+    .limit(1);
+  return Array.isArray(data) && data.length > 0;
+}
+
+async function markEventProcessed(eventId: string, eventType: string): Promise<void> {
+  try {
+    await getSupabaseAdmin().from("email_outbox").insert({
+      template_key: "generic",
+      recipient_email: "webhook@iris-internal",
+      subject: `Stripe event processed: ${eventType}`,
+      html_body: "",
+      text_body: "",
+      status: "sent",
+      provider: "stripe_webhook",
+      provider_message_id: `stripe_evt_${eventId}`,
+      payload: { eventId, eventType },
+    });
+  } catch {
+    // best-effort — idempotency log failure is non-blocking
+  }
+}
+
+// checkout.session.async_payment_failed: notify buyer, cancel order draft
+async function handleAsyncPaymentFailed(session: any) {
+  const metadata = session.metadata || {};
+  const orderId = String(metadata.orderId ?? metadata.order_id ?? "");
+  const buyerEmail = normalizeEmail(metadata.buyerEmail ?? session.customer_details?.email ?? session.customer_email ?? "");
+  const buyerId = String(metadata.buyerId ?? metadata.buyer_id ?? "");
+
+  console.log("[stripe-webhook] async_payment_failed", { orderId, buyerEmail });
+
+  if (orderId) {
+    const existing = await fetchOrderById(orderId);
+    if (existing && existing.status === "pending") {
+      await tryUpsertIntoTable("orders", { ...existing, status: "payment_failed", payment_status: "failed" }, "id");
+    }
+  }
+
+  if (buyerEmail) {
+    await upsertNotification({
+      recipient_id: buyerId || null,
+      recipient_email: buyerEmail,
+      audience: "user",
+      kind: "payment",
+      title: "Pagamento fallito",
+      body: "Il pagamento non è andato a buon fine. Aggiorna il metodo di pagamento.",
+      order_id: orderId,
+      scope: "checkout",
+      unread: true,
+    });
+    await sendTransactionalEmail("generic", buyerEmail, {
+      orderId,
+      body: "Il pagamento non è andato a buon fine. Accedi a IRIS per aggiornare il metodo di pagamento e riprovare.",
+    }, { subject: "IRIS - Pagamento fallito" });
+  }
+}
+
+// payment_intent.succeeded: sync payment status
+async function handlePaymentIntentSucceeded(intent: any) {
+  const metadata = intent.metadata || {};
+  const orderId = String(metadata.orderId ?? metadata.order_id ?? "");
+  if (!orderId) return;
+  const existing = await fetchOrderById(orderId);
+  if (!existing) return;
+  await tryUpsertIntoTable("orders", {
+    ...existing,
+    payment_status: "captured",
+    payment_captured_at: new Date().toISOString(),
+  }, "id");
+  await tryUpsertIntoTable("payments", {
+    provider_payment_intent_id: String(intent.id ?? ""),
+    status: "captured",
+  }, "provider_payment_intent_id");
+}
+
+// charge.refunded: update order, notify buyer
+async function handleChargeRefunded(charge: any) {
+  const piId = String(charge.payment_intent ?? "");
+  const refundAmount = Number(charge.amount_refunded ?? 0);
+  const currency = String(charge.currency ?? "eur").toUpperCase();
+  const buyerEmail = normalizeEmail(charge.billing_details?.email ?? charge.receipt_email ?? "");
+
+  console.log("[stripe-webhook] charge.refunded", { piId, refundAmount, buyerEmail });
+
+  // Find order by payment_intent_id
+  const { data: orders } = await getSupabaseAdmin()
+    .from("orders")
+    .select("*")
+    .eq("payment_intent_id", piId)
+    .limit(1);
+  const order = Array.isArray(orders) && orders.length ? orders[0] : null;
+
+  if (order) {
+    const isFullRefund = refundAmount >= Number(order.total ?? 0) * 100;
+    await tryUpsertIntoTable("orders", {
+      ...order,
+      status: isFullRefund ? "refunded" : "partially_refunded",
+      payout_status: "blocked",
+    }, "id");
+    if (buyerEmail || order.buyer_email) {
+      await upsertNotification({
+        recipient_id: order.buyer_id || null,
+        recipient_email: buyerEmail || order.buyer_email,
+        audience: "user",
+        kind: "refund",
+        title: isFullRefund ? "Rimborso effettuato" : "Rimborso parziale effettuato",
+        body: `${(refundAmount / 100).toFixed(2)} ${currency} sono stati rimborsati.`,
+        order_id: order.id,
+        scope: "refund",
+        unread: true,
+      });
+    }
+  }
+
+  // Update payment record
+  if (piId) {
+    await getSupabaseAdmin()
+      .from("payments")
+      .update({ status: "refunded" })
+      .eq("provider_payment_intent_id", piId)
+      .neq("provider_payment_intent_id", "");
+  }
+}
+
+// charge.dispute.created: create chargeback + dispute records, notify admin
+async function handleDisputeCreated(dispute: any) {
+  const piId = String(dispute.payment_intent ?? "");
+  const stripeDisputeId = String(dispute.id ?? "");
+  const amount = Number(dispute.amount ?? 0);
+  const currency = String(dispute.currency ?? "eur");
+  const reason = String(dispute.reason ?? "");
+  const evidenceDueBy = dispute.evidence_details?.due_by
+    ? new Date(dispute.evidence_details.due_by * 1000).toISOString()
+    : null;
+
+  console.log("[stripe-webhook] charge.dispute.created", { stripeDisputeId, piId, amount, reason });
+
+  // Find order by payment_intent_id
+  const { data: orders } = await getSupabaseAdmin()
+    .from("orders")
+    .select("*")
+    .eq("payment_intent_id", piId)
+    .limit(1);
+  const order = Array.isArray(orders) && orders.length ? orders[0] : null;
+
+  if (order) {
+    // Upsert chargeback record
+    await tryUpsertIntoTable("chargebacks", {
+      order_id: order.id,
+      stripe_dispute_id: stripeDisputeId,
+      amount,
+      currency,
+      reason,
+      status: String(dispute.status ?? "warning_needs_response"),
+      evidence_due_by: evidenceDueBy,
+    }, "stripe_dispute_id");
+
+    // Block payout on this order
+    await tryUpsertIntoTable("orders", {
+      ...order,
+      payout_status: "blocked",
+    }, "id");
+
+    // Notify admin
+    const adminEmails = String(getEnv("ADMIN_EMAILS", "admin@iris-fashion.it")).split(",").map((e: string) => e.trim()).filter(Boolean);
+    for (const adminEmail of adminEmails.slice(0, 3)) {
+      await sendTransactionalEmail("generic", adminEmail, {
+        orderId: order.id,
+        body: `Chargeback Stripe aperto (${stripeDisputeId}) per l'ordine ${order.number ?? order.id}. Importo: ${(amount / 100).toFixed(2)} ${currency.toUpperCase()}. Motivo: ${reason}. Scadenza prove: ${evidenceDueBy ?? "N/A"}.`,
+      }, { subject: `IRIS - Chargeback ${stripeDisputeId}` });
+    }
+  }
+}
+
+// charge.dispute.closed: update chargeback status
+async function handleDisputeClosed(dispute: any) {
+  const stripeDisputeId = String(dispute.id ?? "");
+  const status = String(dispute.status ?? "lost");
+
+  console.log("[stripe-webhook] charge.dispute.closed", { stripeDisputeId, status });
+
+  await getSupabaseAdmin()
+    .from("chargebacks")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("stripe_dispute_id", stripeDisputeId);
+
+  // If won, unblock payout
+  if (status === "won") {
+    const { data: cbs } = await getSupabaseAdmin()
+      .from("chargebacks")
+      .select("order_id")
+      .eq("stripe_dispute_id", stripeDisputeId)
+      .limit(1);
+    const orderId = Array.isArray(cbs) && cbs.length ? String(cbs[0].order_id) : "";
+    if (orderId) {
+      await getSupabaseAdmin()
+        .from("orders")
+        .update({ payout_status: "pending" })
+        .eq("id", orderId)
+        .eq("payout_status", "blocked");
+    }
+  }
+}
+
+// transfer.created: confirm payout transfer to seller
+async function handleTransferCreated(transfer: any) {
+  const transferId = String(transfer.id ?? "");
+  const amount = Number(transfer.amount ?? 0);
+  const currency = String(transfer.currency ?? "eur").toUpperCase();
+  const destination = String(transfer.destination ?? "");
+  const orderId = String(transfer.metadata?.orderId ?? transfer.metadata?.order_id ?? "");
+
+  console.log("[stripe-webhook] transfer.created", { transferId, amount, destination, orderId });
+
+  if (orderId) {
+    const existing = await fetchOrderById(orderId);
+    if (existing) {
+      await tryUpsertIntoTable("orders", {
+        ...existing,
+        payout_status: "paid",
+      }, "id");
+    }
+    await tryUpsertIntoTable("payments", {
+      provider_payment_intent_id: String(transfer.source_transaction ?? ""),
+      payout_transfer_ids: [transferId],
+      payout_account_id: destination,
+    }, "provider_payment_intent_id");
+  }
+
+  // Notify seller via seller_profiles lookup by payout_account_id
+  if (destination) {
+    const { data: sellers } = await getSupabaseAdmin()
+      .from("seller_profiles")
+      .select("user_id, display_name")
+      .eq("payout_account_id", destination)
+      .limit(1);
+    if (Array.isArray(sellers) && sellers.length) {
+      const { data: profile } = await getSupabaseAdmin()
+        .from("profiles")
+        .select("email")
+        .eq("id", sellers[0].user_id)
+        .maybeSingle();
+      if (profile?.email) {
+        await sendTransactionalEmail("payout-released", normalizeEmail(profile.email), {
+          orderId,
+          amount: `${(amount / 100).toFixed(2)} ${currency}`,
+          transferId,
+        });
+      }
+    }
+  }
+}
+
+// account.updated: sync seller verification status from Stripe Connect
+async function handleAccountUpdated(account: any) {
+  const accountId = String(account.id ?? "");
+  if (!accountId) return;
+
+  console.log("[stripe-webhook] account.updated", { accountId, chargesEnabled: account.charges_enabled });
+
+  const { data: sellers } = await getSupabaseAdmin()
+    .from("seller_profiles")
+    .select("*")
+    .eq("payout_account_id", accountId)
+    .limit(1);
+
+  if (!Array.isArray(sellers) || !sellers.length) return;
+  const seller = sellers[0];
+
+  const chargesEnabled = Boolean(account.charges_enabled);
+  const payoutsEnabled = Boolean(account.payouts_enabled);
+  const detailsSubmitted = Boolean(account.details_submitted);
+  const hasRestrictions = (account.requirements?.currently_due ?? []).length > 0 ||
+    (account.requirements?.past_due ?? []).length > 0;
+
+  const verificationStatus = chargesEnabled && payoutsEnabled
+    ? "verified"
+    : detailsSubmitted && !hasRestrictions
+    ? "under_review"
+    : detailsSubmitted
+    ? "pending"
+    : "pending";
+
+  await getSupabaseAdmin()
+    .from("seller_profiles")
+    .update({
+      charges_enabled: chargesEnabled,
+      payouts_enabled: payoutsEnabled,
+      payout_details_submitted: detailsSubmitted,
+      payout_status: chargesEnabled && payoutsEnabled ? "connected" : "pending",
+      verification_status: verificationStatus,
+      verified_seller: chargesEnabled && payoutsEnabled,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", seller.id);
+}
+
+function getEnv(key: string, fallback = ""): string {
+  try {
+    return Deno.env.get(key) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 Deno.serve(async (request) => {
   const preflight = handleOptions(request);
   if (preflight) return preflight;
+
+  let eventId = "";
+  let eventType = "";
 
   try {
     const signature = request.headers.get("stripe-signature") || request.headers.get("Stripe-Signature");
@@ -510,15 +824,31 @@ Deno.serve(async (request) => {
     const rawBody = await request.text();
     const event = getStripe().webhooks.constructEvent(rawBody, signature, getWebhookSecret());
 
+    eventId = event.id;
+    eventType = event.type;
+    console.log(`[stripe-webhook] received event: ${eventType} (${eventId})`);
+
+    // Idempotency: skip if already processed
+    if (await isEventAlreadyProcessed(eventId)) {
+      console.log(`[stripe-webhook] skipping duplicate event: ${eventId}`);
+      return jsonResponse({ ok: true, received: true, duplicate: true, event: eventType });
+    }
+
     switch (event.type) {
       case "checkout.session.completed":
         await handleCheckoutCompleted(event.data.object);
         break;
       case "checkout.session.expired":
         await handlePaymentIntentClosed({
-          id: event.data.object.payment_intent,
-          metadata: event.data.object.metadata ?? {},
+          id: (event.data.object as any).payment_intent,
+          metadata: (event.data.object as any).metadata ?? {},
         }, "canceled");
+        break;
+      case "checkout.session.async_payment_failed":
+        await handleAsyncPaymentFailed(event.data.object);
+        break;
+      case "payment_intent.succeeded":
+        await handlePaymentIntentSucceeded(event.data.object);
         break;
       case "payment_intent.captured":
         await handlePaymentIntentCaptured(event.data.object);
@@ -529,16 +859,33 @@ Deno.serve(async (request) => {
       case "payment_intent.canceled":
         await handlePaymentIntentClosed(event.data.object, "canceled");
         break;
+      case "charge.refunded":
+        await handleChargeRefunded(event.data.object);
+        break;
+      case "charge.dispute.created":
+        await handleDisputeCreated(event.data.object);
+        break;
+      case "charge.dispute.closed":
+        await handleDisputeClosed(event.data.object);
+        break;
+      case "transfer.created":
+        await handleTransferCreated(event.data.object);
+        break;
+      case "account.updated":
+        await handleAccountUpdated(event.data.object);
+        break;
       default:
+        console.log(`[stripe-webhook] unhandled event type: ${eventType}`);
         break;
     }
 
-    return jsonResponse({ ok: true, received: true, event: event.type });
+    await markEventProcessed(eventId, eventType);
+    return jsonResponse({ ok: true, received: true, event: eventType });
   } catch (error) {
     if (error instanceof HttpError) {
       return errorResponse(error.message, error.status, error.details);
     }
-    console.error("[stripe-webhook] unexpected error", error);
+    console.error(`[stripe-webhook] unexpected error for event ${eventType} (${eventId})`, error);
     return errorResponse(error instanceof Error ? error.message : "Unexpected error", 500);
   }
 });

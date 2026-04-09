@@ -6367,8 +6367,68 @@ body.irisx-luxury .irisx-modal-card--support{
   max-width:820px;
 }
 
-@media (min-width:1101px){
+@media (min-width:901px){
+  body.irisx-luxury .shop-layout{
+    display:block;
+    min-height:auto;
+  }
+
   body.irisx-luxury .shop-layout > .filters{
+    position:relative;
+    inset:auto;
+    top:0;
+    z-index:auto;
+    display:flex !important;
+    flex-wrap:wrap;
+    align-items:flex-start;
+    gap:18px;
+    width:100%;
+    height:auto;
+    max-height:none;
+    margin:0 0 24px;
+    padding:0 0 22px;
+    border-right:none;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    background:transparent;
+    backdrop-filter:none;
+    transform:none;
+    overflow:visible;
+    box-shadow:none;
+  }
+
+  body.irisx-luxury .shop-layout > .filters .f-head{
+    width:100%;
+    margin-bottom:2px;
+  }
+
+  body.irisx-luxury .shop-layout > .filters .f-close{
+    display:none !important;
+  }
+
+  body.irisx-luxury .shop-layout > .filters .f-group{
+    flex:1 1 180px;
+    min-width:180px;
+    max-width:260px;
+    margin:0;
+  }
+
+  body.irisx-luxury .shop-layout > .filters .f-body{
+    max-height:none;
+  }
+
+  body.irisx-luxury .shop-layout > .filters .f-colors,
+  body.irisx-luxury .shop-layout > .filters #f-brands,
+  body.irisx-luxury .shop-layout > .filters #f-cats,
+  body.irisx-luxury .shop-layout > .filters #f-conds{
+    max-height:220px;
+    overflow:auto;
+  }
+
+  body.irisx-luxury .shop-main{
+    padding:0 0 32px;
+  }
+
+  body.irisx-luxury .mob-filter-btn{
     display:none !important;
   }
 }
@@ -6405,6 +6465,15 @@ body.irisx-luxury .irisx-modal-card--support{
 
   body.irisx-luxury .irisx-filter-chip{
     white-space:nowrap;
+  }
+
+  body.irisx-luxury .filters{
+    display:none;
+    overflow:auto;
+  }
+
+  body.irisx-luxury .filters.open{
+    display:block;
   }
 
   body.irisx-luxury .det-layout,

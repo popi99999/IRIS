@@ -3049,7 +3049,9 @@
     state.notifications = [];
     state.supportTickets = [];
     state.measurementRequests = [];
-    chats = [];
+    if (Array.isArray(chats)) {
+      chats.splice(0, chats.length);
+    }
     favorites = new Set();
     saveJson(STORAGE_KEYS.session, null);
     saveJson(STORAGE_KEYS.cart, state.cart);
@@ -3058,7 +3060,7 @@
     saveJson(STORAGE_KEYS.notifications, state.notifications);
     saveJson(STORAGE_KEYS.supportTickets, state.supportTickets);
     saveJson(STORAGE_KEYS.measurementRequests, state.measurementRequests);
-    saveJson(STORAGE_KEYS.chats, chats);
+    saveJson(STORAGE_KEYS.chats, Array.isArray(chats) ? chats : []);
     saveJson(STORAGE_KEYS.favorites, []);
     syncSessionUi();
     updateCartBadge();
@@ -7844,6 +7846,7 @@
       showBuyView("profile");
       setProfileArea("account", section || "settings_account");
     };
+    window.openOfferProfileSection = openOfferProfileSection;
 
     function renderOfferModal() {
       const modal = qs("#offerModal");
@@ -8088,6 +8091,7 @@
         renderOfferModal();
       });
     };
+    window.openOffer = openOffer;
 
     closeOffer = function () {
       const modal = qs("#offerModal");
@@ -8100,6 +8104,7 @@
       state.offerSubmitting = false;
       state.offerDraft = null;
     };
+    window.closeOffer = closeOffer;
 
     backOfferStep = function () {
       state.offerStep = "amount";
@@ -8107,6 +8112,7 @@
       state.offerSubmitting = false;
       renderOfferModal();
     };
+    window.backOfferStep = backOfferStep;
 
     sendOffer = async function () {
       const product = getListingById(offerProdId);
@@ -8198,6 +8204,12 @@
       state.offerSubmitting = false;
       state.offerStep = "authorization";
       renderOfferModal();
+    };
+    window.sendOffer = sendOffer;
+    window.__irisModernOfferFlow = {
+      open: openOffer,
+      close: closeOffer,
+      send: sendOffer
     };
 
     window.closeOpsModal = closeOpsModal;
@@ -8912,7 +8924,7 @@
       detailView.innerHTML =
         "<div class=\"det-layout view-enter\"><div class=\"det-imgs\">" +
         detailMediaMarkup(product) +
-        "</div><div class=\"det-body\"><button class=\"det-back\" onclick=\"closeDetail()\">" +
+        "</div><div class=\"det-body\"><button type=\"button\" class=\"det-back\" onclick=\"closeDetail()\">" +
         t("back_shop") +
         "</button><div class=\"det-brand\">" +
         escapeHtml(product.brand) +
@@ -15225,8 +15237,8 @@
         <div class="det-imgs">${detailMediaMarkup(product)}</div>
         <div class="det-body">
           <section class="irisx-detail-hero-panel">
-            <div class="irisx-detail-breadcrumb"><button onclick="closeDetail()">${langText("Home", "Home")}</button><span>/</span><button onclick="showBuyView('shop')">${langText("Shop", "Shop")}</button><span>/</span><strong>${escapeHtml(product.brand)}</strong></div>
-            <button class="det-back" onclick="closeDetail()">${t("back_shop")}</button>
+            <div class="irisx-detail-breadcrumb"><button type="button" onclick="closeDetail()">${langText("Home", "Home")}</button><span>/</span><button type="button" onclick="showBuyView('shop')">${langText("Shop", "Shop")}</button><span>/</span><strong>${escapeHtml(product.brand)}</strong></div>
+            <button type="button" class="det-back" onclick="closeDetail()">${t("back_shop")}</button>
             <div class="det-brand">${escapeHtml(product.brand)}</div>
             <div class="det-name">${escapeHtml(product.name)}</div>
             <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>

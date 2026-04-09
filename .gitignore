@@ -2,3 +2,5 @@
 .DS_Store
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
+.env.local
+.env.*.local

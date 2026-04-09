@@ -50,6 +50,10 @@ Funzioni da deployare:
 - `confirm-order-delivery`
 - `run-marketplace-maintenance`
 
+Script pronto:
+
+- `./scripts/supabase-deploy-functions.sh`
+
 ## 4. Stripe
 
 Configurare il webhook Stripe verso:
@@ -89,6 +93,10 @@ La funzione:
 - cancella le pre-autorizzazioni non più valide
 - rilascia i payout pronti
 
+Script pronto:
+
+- `./scripts/trigger-maintenance.sh`
+
 ## 6. Resend
 
 Verificare:
@@ -120,3 +128,13 @@ Dopo la configurazione iniziale:
 
 - ruotare la `SUPABASE_SERVICE_ROLE_KEY` se è stata condivisa fuori dai canali sicuri
 - ruotare anche eventuali chiavi Stripe esposte in ambienti non controllati
+
+## 9. Script rapidi
+
+Per ridurre il lavoro manuale:
+
+- `./scripts/supabase-set-secrets.sh .env.local`
+- `./scripts/supabase-deploy-functions.sh`
+- `./scripts/setup-stripe-webhook.sh .env.local`
+- `./scripts/trigger-maintenance.sh .env.local`
+- `./scripts/backend-go-live.sh .env.local`

@@ -15,7 +15,7 @@ set +a
 
 required_vars=(
   STRIPE_SECRET_KEY
-  PUBLIC_SITE_URL
+  SUPABASE_URL
 )
 
 for var_name in "${required_vars[@]}"; do
@@ -25,7 +25,7 @@ for var_name in "${required_vars[@]}"; do
   fi
 done
 
-WEBHOOK_URL="${PUBLIC_SITE_URL%/}/functions/v1/stripe-webhook"
+WEBHOOK_URL="${SUPABASE_URL%/}/functions/v1/stripe-webhook"
 
 response="$(
   curl -sS https://api.stripe.com/v1/webhook_endpoints \

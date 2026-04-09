@@ -53,19 +53,21 @@ Funzioni da deployare:
 Script pronto:
 
 - `./scripts/supabase-deploy-functions.sh`
+- GitHub Action: `.github/workflows/deploy-supabase-functions.yml`
 
 ## 4. Stripe
 
 Configurare il webhook Stripe verso:
 
-- `/functions/v1/stripe-webhook`
+- `${SUPABASE_URL}/functions/v1/stripe-webhook`
 
 Eventi minimi:
 
 - `checkout.session.completed`
+- `checkout.session.expired`
+- `payment_intent.captured`
 - `payment_intent.canceled`
 - `payment_intent.payment_failed`
-- `charge.refunded`
 
 Verificare anche:
 
@@ -96,6 +98,7 @@ La funzione:
 Script pronto:
 
 - `./scripts/trigger-maintenance.sh`
+- GitHub Action: `.github/workflows/run-marketplace-maintenance.yml`
 
 ## 6. Resend
 
@@ -138,3 +141,14 @@ Per ridurre il lavoro manuale:
 - `./scripts/setup-stripe-webhook.sh .env.local`
 - `./scripts/trigger-maintenance.sh .env.local`
 - `./scripts/backend-go-live.sh .env.local`
+
+Gli script leggono `project_id` da `supabase/config.toml`, quindi non serve fare `supabase link` a mano se il token CLI è già disponibile.
+
+## 10. GitHub secrets consigliati
+
+Per attivare i workflow automatici del repo:
+
+- `SUPABASE_ACCESS_TOKEN`
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `CRON_SECRET`

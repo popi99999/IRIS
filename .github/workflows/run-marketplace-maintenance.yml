@@ -1,0 +1,25 @@
+name: Run Marketplace Maintenance
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_ANON_KEY != '' && secrets.CRON_SECRET != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Write env file
+        run: |
+          cat > .env.local <<'EOF'
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          CRON_SECRET=${{ secrets.CRON_SECRET }}
+          EOF
+
+      - name: Trigger maintenance
+        run: bash ./scripts/trigger-maintenance.sh .env.local

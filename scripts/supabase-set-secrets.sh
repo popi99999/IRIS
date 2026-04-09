@@ -3,14 +3,21 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${1:-$ROOT_DIR/.env.local}"
+PROJECT_REF="${SUPABASE_PROJECT_REF:-$(sed -n 's/^project_id = \"\\(.*\\)\"/\\1/p' "$ROOT_DIR/supabase/config.toml" | head -n1)}"
 
-if ! command -v supabase >/dev/null 2>&1; then
-  echo "Supabase CLI not found. Install it first: brew install supabase/tap/supabase"
-  exit 1
+if command -v supabase >/dev/null 2>&1; then
+  SUPABASE_BIN="supabase"
+else
+  SUPABASE_BIN="npx --yes supabase@latest"
 fi
 
 if [[ ! -f "$ENV_FILE" ]]; then
   echo "Missing env file: $ENV_FILE"
+  exit 1
+fi
+
+if [[ -z "$PROJECT_REF" ]]; then
+  echo "Missing project ref. Set SUPABASE_PROJECT_REF or supabase/config.toml project_id."
   exit 1
 fi
 
@@ -39,7 +46,7 @@ for var_name in "${required_vars[@]}"; do
 done
 
 cd "$ROOT_DIR"
-supabase secrets set \
+$SUPABASE_BIN secrets set --project-ref "$PROJECT_REF" \
   SUPABASE_URL="$SUPABASE_URL" \
   SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
   SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \

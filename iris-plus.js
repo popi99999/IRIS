@@ -10541,6 +10541,27 @@
 
     syncCurrentUserSeller();
 
+    // Duplicate listing detection (skip when editing an existing listing)
+    if (!state.editingListingId) {
+      const ownerEmail = normalizeEmail(state.currentUser.email);
+      const normalize = function (str) { return String(str || "").toLowerCase().trim(); };
+      const duplicate = state.listings.find(function (listing) {
+        if (normalizeEmail(listing.ownerEmail) !== ownerEmail) return false;
+        if (listing.inventoryStatus === "sold") return false;
+        if (listing.listingStatus === "archived") return false;
+        return normalize(listing.brand) === normalize(brand) && normalize(listing.name) === normalize(name);
+      });
+      if (duplicate && !state._duplicateListingConfirmed) {
+        state._duplicateListingConfirmed = true;
+        updateSellStatus(langText(
+          "Hai gi\u00e0 un annuncio attivo per " + brand + " \u201c" + name + "\u201d. Pubblica di nuovo solo se vuoi un secondo articolo.",
+          "You already have an active listing for " + brand + " \u201c" + name + "\u201d. Publish again only if this is a separate item."
+        ), true);
+        return;
+      }
+      state._duplicateListingConfirmed = false;
+    }
+
     const existingListing = state.editingListingId
       ? state.listings.find(function (listing) { return String(listing.id) === String(state.editingListingId); }) ||
         prods.find(function (listing) { return String(listing.id) === String(state.editingListingId); })
@@ -10656,6 +10677,7 @@
     });
     state.sellPhotos = [];
     state.editingListingId = null;
+    state._duplicateListingConfirmed = false;
     ensureSellTaxonomyUi({
       categoryKey: "",
       subcategoryKey: "",
@@ -15002,9 +15024,16 @@
         </div>
       </div>`;
     } else {
+      const highValueNote = total >= 1000
+        ? `<div class="irisx-note" style="margin-top:.75rem;border-left:3px solid var(--gold);padding-left:.75rem;">${langText(
+            "\u26a0\ufe0f Ordine di alto valore (\u20ac" + total.toFixed(0) + "): verifica l\u2019identit\u00e0 del seller e l\u2019autenticit\u00e0 del prodotto prima di confermare. IRIS applica autenticazione obbligatoria.",
+            "\u26a0\ufe0f High-value order (\u20ac" + total.toFixed(0) + "): verify seller identity and product authenticity before confirming. IRIS applies mandatory authentication."
+          )}</div>`
+        : "";
       body = `<div class="irisx-state-panel">
         <strong>${langText("Conferma ordine", "Order confirmation")}</strong>
         <span>${langText("Rivedi i dettagli e conferma il tuo acquisto.", "Review the details and confirm your purchase.")}</span>
+        ${highValueNote}
       </div>`;
     }
 

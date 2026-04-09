@@ -1,0 +1,22 @@
+project_id = "xzhgyamzfthqrcaljdqv"
+
+[functions.create-checkout-session]
+verify_jwt = true
+
+[functions.create-offer-authorization]
+verify_jwt = true
+
+[functions.respond-to-offer]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.release-payout]
+verify_jwt = true
+
+[functions.create-connect-account]
+verify_jwt = true
+
+[functions.create-connect-account-link]
+verify_jwt = true

@@ -1713,6 +1713,33 @@
     });
   }
 
+  function normalizeBackendOrderResponse(order) {
+    if (!order) {
+      return null;
+    }
+    if (Object.prototype.hasOwnProperty.call(order, "buyer_id") || Object.prototype.hasOwnProperty.call(order, "created_at_ms")) {
+      return buildOrderFromSupabaseRow(order);
+    }
+    return normalizeOrderRecord(order);
+  }
+
+  function applyRemoteOrderUpdate(orderId, remoteOrder) {
+    const normalized = normalizeBackendOrderResponse(remoteOrder);
+    if (!normalized) {
+      return null;
+    }
+    state.orders = state.orders.map(function (order) {
+      return order.id === orderId ? normalized : order;
+    });
+    persistOrders();
+    syncInventoryFromOrders();
+    renderOrderDetailModal();
+    renderProfilePanel();
+    renderOpsView();
+    renderNotifications();
+    return normalized;
+  }
+
   function buildSupabaseSupportTicketPayload(ticket) {
     const normalized = normalizeSupportTicketRecord(ticket);
     return {
@@ -3134,6 +3161,14 @@
     }
     supabaseBridgeInitialized = true;
     client.auth.onAuthStateChange(function (event, session) {
+      if (event === "PASSWORD_RECOVERY") {
+        state.authMode = "recovery";
+        renderAuthModal();
+        const modal = qs("#irisxAuthModal");
+        if (modal) {
+          modal.classList.add("open");
+        }
+      }
       setTimeout(function () {
         syncCurrentUserFromSupabaseSession(session).catch(function (error) {
           console.warn("[IRIS] Auth state sync failed", error);
@@ -7009,7 +7044,7 @@
     }
   }
 
-  function submitShipmentForOrder(orderId) {
+  async function submitShipmentForOrder(orderId) {
     const carrierField = qs("#opsCarrier");
     const trackingField = qs("#opsTracking");
     const carrier = carrierField ? carrierField.value.trim() : "";
@@ -7018,6 +7053,26 @@
     if (!carrier || !trackingNumber) {
       showToast(langText("Inserisci corriere e tracking.", "Please add carrier and tracking."));
       return;
+    }
+
+    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+      try {
+        const response = await invokeSupabaseFunction("mark-order-shipped", {
+          orderId: orderId,
+          carrier: carrier,
+          trackingNumber: trackingNumber
+        });
+        if (response && response.order) {
+          applyRemoteOrderUpdate(orderId, response.order);
+        }
+        closeOpsModal();
+        showToast(langText("Spedizione aggiornata.", "Shipment updated."));
+        return;
+      } catch (error) {
+        console.warn("[IRIS] Unable to sync shipment with backend", error);
+        showToast(error && error.message ? error.message : langText("Impossibile aggiornare la spedizione.", "Unable to update the shipment."));
+        return;
+      }
     }
 
     const updated = setOrderStatus(
@@ -7110,7 +7165,29 @@
     }
   }
 
-  function confirmOrderDelivered(orderId) {
+  async function confirmOrderDelivered(orderId) {
+    if (isSupabaseEnabled() && state.currentUser && state.currentUser.id) {
+      try {
+        const response = await invokeSupabaseFunction("confirm-order-delivery", {
+          orderId: orderId,
+          autoReleasePayout: true
+        });
+        if (response && response.order) {
+          applyRemoteOrderUpdate(orderId, response.order);
+        }
+        showToast(
+          response && response.payoutReleased
+            ? langText("Consegna confermata e payout avviato.", "Delivery confirmed and payout started.")
+            : langText("Consegna confermata.", "Delivery confirmed.")
+        );
+        return;
+      } catch (error) {
+        console.warn("[IRIS] Unable to confirm delivery with backend", error);
+        showToast(error && error.message ? error.message : langText("Impossibile confermare la consegna.", "Unable to confirm delivery."));
+        return;
+      }
+    }
+
     const updated = setOrderStatus(
       orderId,
       "delivered",
@@ -8922,6 +8999,7 @@
     window.openAuthModal = openAuthModal;
     window.closeAuthModal = closeAuthModal;
     window.switchAuthMode = switchAuthMode;
+    window.requestPasswordReset = requestPasswordReset;
     window.submitAuth = submitAuth;
     window.logout = logout;
     window.buyNow = buyNow;
@@ -9151,17 +9229,27 @@
     }
 
     const isLogin = state.authMode === "login";
+    const isRecovery = state.authMode === "recovery";
     const googleSvg = '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 019.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 000 24c0 3.77.87 7.34 2.44 10.52l8.09-5.93z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
     const googleBtnText = curLang === "it" ? "Continua con Google" : "Continue with Google";
     const orText = curLang === "it" ? "oppure" : "or";
+    const title = isRecovery
+      ? langText("Imposta una nuova password", "Set a new password")
+      : t(isLogin ? "auth_title_login" : "auth_title_register");
+    const subtitle = isRecovery
+      ? langText("Sei rientrato dal link email. Inserisci la nuova password per completare il ripristino.", "You returned from the recovery email. Enter your new password to finish resetting it.")
+      : t(isLogin ? "auth_sub_login" : "auth_sub_register");
+    const switchMode = isRecovery ? "login" : (isLogin ? "register" : "login");
+    const switchLabel = isRecovery ? t("login") : t(isLogin ? "register" : "login");
+    const switchText = isRecovery ? langText("Torna all'accesso", "Back to sign in") : t(isLogin ? "auth_switch_register" : "auth_switch_login");
 
     modal.innerHTML =
       "<div class=\"irisx-modal-backdrop\"></div><div class=\"irisx-modal-card\"><div class=\"irisx-card-head\"><div><div class=\"irisx-title\">" +
-      t(isLogin ? "auth_title_login" : "auth_title_register") +
+      title +
       "</div><div class=\"irisx-subtitle\">" +
-      t(isLogin ? "auth_sub_login" : "auth_sub_register") +
+      subtitle +
       "</div></div><button class=\"irisx-close\" aria-label=\"" + langText("Chiudi", "Close") + "\" onclick=\"closeAuthModal()\">✕</button></div><div class=\"irisx-card-body\">" +
-      "<button class=\"irisx-google-btn\" onclick=\"signInWithGoogle()\">" + googleSvg + " " + googleBtnText + "</button>" +
+      (isRecovery ? "" : ("<button class=\"irisx-google-btn\" onclick=\"signInWithGoogle()\">" + googleSvg + " " + googleBtnText + "</button>" +
       "<div class=\"irisx-divider\"><span>" + orText + "</span></div>" +
       "<div class=\"irisx-segment\"><button class=\"" +
       (isLogin ? "on" : "") +
@@ -9171,29 +9259,74 @@
       (!isLogin ? "on" : "") +
       "\" onclick=\"switchAuthMode('register')\">" +
       t("register") +
-      "</button></div><form class=\"irisx-auth-form\" onsubmit=\"event.preventDefault();submitAuth()\"><div class=\"irisx-form-grid\"><div class=\"irisx-field" +
-      (isLogin ? " irisx-hidden" : "") +
+      "</button></div>")) +
+      "<form class=\"irisx-auth-form\" onsubmit=\"event.preventDefault();submitAuth()\"><div class=\"irisx-form-grid\"><div class=\"irisx-field" +
+      (isLogin || isRecovery ? " irisx-hidden" : "") +
       "\"><label for=\"irisxAuthName\">" +
       t("full_name") +
-      "</label><input id=\"irisxAuthName\" type=\"text\" autocomplete=\"name\"></div><div class=\"irisx-field\"><label for=\"irisxAuthEmail\">" +
+      "</label><input id=\"irisxAuthName\" type=\"text\" autocomplete=\"name\"></div><div class=\"irisx-field" + (isRecovery ? " irisx-hidden" : "") + "\"><label for=\"irisxAuthEmail\">" +
       t("email") +
-      "</label><input id=\"irisxAuthEmail\" type=\"email\" autocomplete=\"email\"></div><div class=\"irisx-field\"><label for=\"irisxAuthPhone\">" +
+      "</label><input id=\"irisxAuthEmail\" type=\"email\" autocomplete=\"email\"></div><div class=\"irisx-field" + (isRecovery ? " irisx-hidden" : "") + "\"><label for=\"irisxAuthPhone\">" +
       langText("Telefono", "Phone number") +
       "</label><input id=\"irisxAuthPhone\" type=\"tel\" autocomplete=\"tel\" inputmode=\"tel\" placeholder=\"" +
       langText("+39 333 123 4567", "+39 333 123 4567") +
       "\"></div><div class=\"irisx-field\"><label for=\"irisxAuthPassword\">" +
-      t("password") +
+      (isRecovery ? langText("Nuova password", "New password") : t("password")) +
       "</label><input id=\"irisxAuthPassword\" type=\"password\" autocomplete=\"" +
       (isLogin ? "current-password" : "new-password") +
-      "\"></div></div><div class=\"irisx-actions\"><button class=\"irisx-primary\" type=\"submit\">" +
-      t(isLogin ? "auth_cta_login" : "auth_cta_register") +
-      "</button></div></form><div class=\"irisx-auth-switch\">" +
-      t(isLogin ? "auth_switch_register" : "auth_switch_login") +
+      "\"></div><div class=\"irisx-field" + (isRecovery ? "" : " irisx-hidden") + "\"><label for=\"irisxAuthPasswordConfirm\">" +
+      langText("Conferma password", "Confirm password") +
+      "</label><input id=\"irisxAuthPasswordConfirm\" type=\"password\" autocomplete=\"new-password\"></div></div><div class=\"irisx-actions\"><button class=\"irisx-primary\" type=\"submit\">" +
+      (isRecovery ? langText("Aggiorna password", "Update password") : t(isLogin ? "auth_cta_login" : "auth_cta_register")) +
+      "</button>" +
+      (isLogin ? "<button class=\"irisx-secondary\" type=\"button\" onclick=\"requestPasswordReset()\">" + langText("Password dimenticata?", "Forgot password?") + "</button>" : "") +
+      "</div></form><div class=\"irisx-auth-switch\">" +
+      switchText +
       " <button onclick=\"switchAuthMode('" +
-      (isLogin ? "register" : "login") +
+      switchMode +
       "')\">" +
-      t(isLogin ? "register" : "login") +
+      switchLabel +
       "</button></div><div class=\"irisx-status irisx-hidden\" id=\"irisxAuthStatus\"></div></div></div>";
+  }
+
+  async function requestPasswordReset() {
+    const status = qs("#irisxAuthStatus");
+    const emailField = qs("#irisxAuthEmail");
+    const email = emailField ? emailField.value.trim().toLowerCase() : "";
+    if (!email) {
+      setInlineStatus(status, langText("Inserisci prima la tua email.", "Enter your email first."), true);
+      if (emailField) {
+        emailField.focus();
+      }
+      return;
+    }
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      setInlineStatus(status, langText("Recupero password disponibile solo con backend attivo.", "Password recovery is available only with the backend enabled."), true);
+      return;
+    }
+    try {
+      const response = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: getSupabaseRedirectUrl()
+      });
+      if (response.error) {
+        throw response.error;
+      }
+      setInlineStatus(
+        status,
+        langText(
+          "Ti abbiamo inviato un link per reimpostare la password. Controlla la tua email.",
+          "We sent you a link to reset your password. Check your email."
+        ),
+        false
+      );
+    } catch (error) {
+      setInlineStatus(
+        status,
+        error && error.message ? error.message : langText("Impossibile inviare l'email di recupero.", "Unable to send the recovery email."),
+        true
+      );
+    }
   }
 
   async function signInWithGoogle() {
@@ -9450,29 +9583,45 @@
 
   async function submitAuth() {
     const isLogin = state.authMode === "login";
+    const isRecovery = state.authMode === "recovery";
     const status = qs("#irisxAuthStatus");
     const nameField = qs("#irisxAuthName");
     const emailField = qs("#irisxAuthEmail");
     const phoneField = qs("#irisxAuthPhone");
     const passwordField = qs("#irisxAuthPassword");
+    const passwordConfirmField = qs("#irisxAuthPasswordConfirm");
 
     const name = nameField ? nameField.value.trim() : "";
     const email = emailField ? emailField.value.trim().toLowerCase() : "";
     const phone = normalizePhoneNumber(phoneField ? phoneField.value.trim() : "");
     const password = passwordField ? passwordField.value : "";
+    const passwordConfirm = passwordConfirmField ? passwordConfirmField.value : "";
 
-    if ((!isLogin && !name) || !email || !phone || !password) {
+    if (isRecovery) {
+      if (!password || !passwordConfirm) {
+        setInlineStatus(status, langText("Inserisci e conferma la nuova password.", "Enter and confirm your new password."), true);
+        return;
+      }
+      if (password.length < 8) {
+        setInlineStatus(status, langText("La password deve avere almeno 8 caratteri.", "Password must be at least 8 characters long."), true);
+        return;
+      }
+      if (password !== passwordConfirm) {
+        setInlineStatus(status, langText("Le password non coincidono.", "Passwords do not match."), true);
+        return;
+      }
+    } else if ((!isLogin && !name) || !email || !phone || !password) {
       setInlineStatus(status, curLang === "it" ? "Compila tutti i campi richiesti." : "Please fill in all required fields.", true);
       return;
     }
 
-    if (!isValidPhoneNumber(phone)) {
+    if (!isRecovery && !isValidPhoneNumber(phone)) {
       setInlineStatus(status, curLang === "it" ? "Inserisci un numero di telefono valido." : "Please enter a valid phone number.", true);
       return;
     }
 
-    const blockedIdentityMessage = getBlockedIdentityMessage(email, phone);
-    if (blockedIdentityMessage) {
+    const blockedIdentityMessage = isRecovery ? "" : getBlockedIdentityMessage(email, phone);
+    if (!isRecovery && blockedIdentityMessage) {
       setInlineStatus(status, blockedIdentityMessage, true);
       return;
     }
@@ -9480,6 +9629,25 @@
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
+        if (isRecovery) {
+          const updateResponse = await supabase.auth.updateUser({
+            password: password
+          });
+          if (updateResponse.error) {
+            throw updateResponse.error;
+          }
+          await supabase.auth.signOut();
+          state.authMode = "login";
+          renderAuthModal();
+          setInlineStatus(
+            qs("#irisxAuthStatus"),
+            langText("Password aggiornata. Ora puoi accedere con la nuova password.", "Password updated. You can now sign in with your new password."),
+            false
+          );
+          showToast(langText("Password aggiornata.", "Password updated."));
+          return;
+        }
+
         if (isLogin) {
           const signInResponse = await supabase.auth.signInWithPassword({
             email: email,
@@ -9569,6 +9737,11 @@
         );
         return;
       }
+    }
+
+    if (isRecovery) {
+      setInlineStatus(status, langText("Ripristino password disponibile solo con backend attivo.", "Password recovery is available only with the backend enabled."), true);
+      return;
     }
 
     if (isLogin) {

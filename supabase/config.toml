@@ -20,3 +20,12 @@ verify_jwt = true
 
 [functions.create-connect-account-link]
 verify_jwt = true
+
+[functions.mark-order-shipped]
+verify_jwt = true
+
+[functions.confirm-order-delivery]
+verify_jwt = true
+
+[functions.run-marketplace-maintenance]
+verify_jwt = false

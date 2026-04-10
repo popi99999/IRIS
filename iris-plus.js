@@ -1688,18 +1688,7 @@
       subtotal: Number(normalized.subtotal || 0),
       shipping_cost: Number(normalized.shippingCost || 0),
       total: Number(normalized.total || 0),
-      offer_id: normalized.offerId || null,
-      payment_status: (normalized.payment && normalized.payment.status) || normalized.paymentStatus || "pending",
-      payout_status: (normalized.payment && normalized.payment.payoutStatus) || normalized.payoutStatus || "pending",
-      currency: (normalized.payment && normalized.payment.currency) || normalized.currency || getLocaleConfig().currency,
-      checkout_session_id: normalized.checkoutSessionId || (normalized.payment && normalized.payment.checkoutSessionId) || "",
-      payment_intent_id: normalized.paymentIntentId || (normalized.payment && normalized.payment.paymentIntentId) || "",
-      transfer_group: normalized.transferGroup || (normalized.payment && normalized.payment.transferGroup) || "",
-      carrier: (normalized.shipping && normalized.shipping.carrier) || "",
-      tracking_number: (normalized.shipping && normalized.shipping.trackingNumber) || "",
-      shipped_at: normalized.shippedAt || (normalized.shipping && normalized.shipping.shippedAt) || null,
-      delivered_at: normalized.deliveredAt || (normalized.shipping && normalized.shipping.deliveredAt) || null,
-      payment_captured_at: normalized.paymentCapturedAt || (normalized.payment && normalized.payment.capturedAt) || null
+      offer_id: normalized.offerId || null
     };
   }
 
@@ -2766,10 +2755,20 @@
 
   async function syncNotificationsToSupabase() {
     const client = getSupabaseClient();
-    if (!client || !getCurrentSupabaseUserId()) {
+    const currentUserId = getCurrentSupabaseUserId();
+    const currentEmail = normalizeEmail(state.currentUser && state.currentUser.email);
+    if (!client || !currentUserId) {
       return;
     }
-    const currentNotifications = Array.isArray(state.notifications) ? state.notifications.map(normalizeNotificationRecord) : [];
+    const currentNotifications = Array.isArray(state.notifications)
+      ? state.notifications
+        .map(normalizeNotificationRecord)
+        .filter(function (notification) {
+          const recipientId = normalizeSupabaseUuid(notification.recipientId);
+          const recipientEmail = normalizeEmail(notification.recipientEmail);
+          return recipientId === currentUserId || (currentEmail && recipientEmail === currentEmail);
+        })
+      : [];
     if (!currentNotifications.length) {
       return;
     }

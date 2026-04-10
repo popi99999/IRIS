@@ -28,11 +28,26 @@ functions=(
   run-marketplace-maintenance
 )
 
+functions_without_gateway_jwt=(
+  create-checkout-session
+  create-offer-authorization
+  respond-to-offer
+  release-payout
+  create-connect-account
+  create-connect-account-link
+  mark-order-shipped
+  confirm-order-delivery
+)
+
 cd "$ROOT_DIR"
 
 for fn in "${functions[@]}"; do
   echo "Deploying $fn..."
-  $SUPABASE_BIN functions deploy "$fn" --project-ref "$PROJECT_REF"
+  deploy_args=(functions deploy "$fn" --project-ref "$PROJECT_REF")
+  if printf '%s\n' "${functions_without_gateway_jwt[@]}" | grep -qx "$fn"; then
+    deploy_args+=(--no-verify-jwt)
+  fi
+  $SUPABASE_BIN "${deploy_args[@]}"
 done
 
 echo "All IRIS Edge Functions deployed."

@@ -1219,7 +1219,7 @@
   }
 
   function canUseBackendPayments() {
-    return Boolean(isSupabaseEnabled());
+    return Boolean(isSupabaseEnabled() && getCurrentSupabaseUserId());
   }
 
   async function invokeSupabaseFunction(name, payload) {
@@ -8786,13 +8786,13 @@
       renderProfilePanel();
     };
 
-    const originalOpenChat = openChat;
     openChat = function (sellerId, productId) {
       requireAuth(function () {
-        originalOpenChat(sellerId, productId);
+        showBuyView("chat");
         const product = getListingById(productId) || prods.find(function (candidate) { return String(candidate.id) === String(productId); }) || null;
         const seller = (product && product.seller) || sellers.find(function (candidate) { return candidate.id === sellerId; }) || {};
         const sellerEmail = normalizeEmail((product && (product.ownerEmail || (product.seller && product.seller.email))) || seller.email || "");
+        const buyer = state.currentUser || {};
         let threadIndex = chats.findIndex(function (thread) {
           const threadListingId = thread.listingId || thread.productId || (thread.product && thread.product.id);
           const threadSellerEmail = normalizeEmail(
@@ -8803,11 +8803,32 @@
           );
           return String(threadListingId) === String(productId) && threadSellerEmail === sellerEmail;
         });
-        if (threadIndex === -1 && curChat) {
-          threadIndex = chats.findIndex(function (thread) { return thread.id === curChat; });
+        if (threadIndex === -1) {
+          const threadSeed = normalizeChatThread({
+            id: createId("chat"),
+            listingId: productId,
+            productId: productId,
+            product: product,
+            sellerId: seller.id || sellerId || "",
+            sellerEmail: sellerEmail,
+            sellerName: seller.name || "",
+            buyerId: buyer.id || buyer.email || "",
+            buyerEmail: buyer.email || "",
+            buyerName: buyer.name || "",
+            with: normalizeChatParticipant(
+              seller.id || sellerId || "",
+              seller.name || langText("Seller", "Seller"),
+              seller.avatar || "👤",
+              sellerEmail
+            ),
+            msgs: [],
+            updatedAt: Date.now(),
+            unreadCount: 0
+          });
+          chats.unshift(threadSeed);
+          threadIndex = 0;
         }
         if (threadIndex > -1) {
-          const buyer = state.currentUser || {};
           const normalizedThread = normalizeChatThread(Object.assign({}, chats[threadIndex], {
             product: product || chats[threadIndex].product,
             listingId: productId,
@@ -15597,6 +15618,10 @@
   window.renderOrderDetailModal = renderOrderDetailModal;
   window.openOrderDetail = openOrderDetail;
   window.closeOrderDetail = closeOrderDetail;
+  window.openCheckout = openCheckout;
+  window.closeCheckout = closeCheckout;
+  window.renderCheckoutModal = renderCheckoutModal;
+  window.submitCheckout = submitCheckout;
   window.nextCheckoutStep = nextCheckoutStep;
   window.prevCheckoutStep = prevCheckoutStep;
   window.setCheckoutStep = setCheckoutStep;

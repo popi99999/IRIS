@@ -467,6 +467,7 @@
     lastNonDetailView: "home",
     activeOrderId: null,
     activeOrderScope: "buyer",
+    activeOrderModalTab: "detail",
     opsModalMode: null,
     opsModalPayload: null,
     stripeReturn: null,
@@ -7092,6 +7093,7 @@
 
   function closeOrderDetail() {
     state.activeOrderId = null;
+    state.activeOrderModalTab = "detail";
     const modal = qs("#irisxOrderModal");
     if (modal) {
       modal.classList.remove("open");
@@ -7118,6 +7120,19 @@
     }
     state.activeOrderId = orderId;
     state.activeOrderScope = resolvedScope;
+    state.activeOrderModalTab = "detail";
+    renderOrderDetailModal();
+    const modal = qs("#irisxOrderModal");
+    if (modal) {
+      modal.classList.add("open");
+    }
+  }
+
+  function setOrderModalTab(tab) {
+    if (!state.activeOrderId) {
+      return;
+    }
+    state.activeOrderModalTab = tab === "tracking" ? "tracking" : "detail";
     renderOrderDetailModal();
     const modal = qs("#irisxOrderModal");
     if (modal) {
@@ -9486,7 +9501,7 @@
       t("full_name") +
       "</label><input id=\"irisxAuthName\" type=\"text\" autocomplete=\"name\"></div><div class=\"irisx-field" + (isRecovery ? " irisx-hidden" : "") + "\"><label for=\"irisxAuthEmail\">" +
       t("email") +
-      "</label><input id=\"irisxAuthEmail\" type=\"email\" autocomplete=\"email\"></div><div class=\"irisx-field" + (isRecovery ? " irisx-hidden" : "") + "\"><label for=\"irisxAuthPhone\">" +
+      "</label><input id=\"irisxAuthEmail\" type=\"email\" autocomplete=\"email\"></div><div class=\"irisx-field" + (isLogin || isRecovery ? " irisx-hidden" : "") + "\"><label for=\"irisxAuthPhone\">" +
       langText("Telefono", "Phone number") +
       "</label><input id=\"irisxAuthPhone\" type=\"tel\" autocomplete=\"tel\" inputmode=\"tel\" placeholder=\"" +
       langText("+39 333 123 4567", "+39 333 123 4567") +
@@ -9812,12 +9827,12 @@
         setInlineStatus(status, langText("Le password non coincidono.", "Passwords do not match."), true);
         return;
       }
-    } else if ((!isLogin && !name) || !email || !phone || !password) {
+    } else if ((!isLogin && !name) || !email || (!isLogin && !phone) || !password) {
       setInlineStatus(status, curLang === "it" ? "Compila tutti i campi richiesti." : "Please fill in all required fields.", true);
       return;
     }
 
-    if (!isRecovery && !isValidPhoneNumber(phone)) {
+    if (!isRecovery && !isLogin && !isValidPhoneNumber(phone)) {
       setInlineStatus(status, curLang === "it" ? "Inserisci un numero di telefono valido." : "Please enter a valid phone number.", true);
       return;
     }
@@ -9890,7 +9905,7 @@
             }, authUser);
           }
           const profilePhone = normalizePhoneNumber(profile && profile.phone);
-          if (profilePhone && profilePhone !== phone) {
+          if (phone && profilePhone && profilePhone !== phone) {
             await supabase.auth.signOut();
             setInlineStatus(status, curLang === "it" ? "Numero di telefono non corretto." : "Incorrect phone number.", true);
             return;
@@ -12225,14 +12240,15 @@
     }) || source[0];
   }
 
-  function getOrderLifecycleActions(order, scope) {
+  function getOrderLifecycleActions(order, scope, surface) {
     const actions = [];
+    const inModal = surface === "modal";
     if (!order) {
       return actions;
     }
     if (scope === "buyer") {
-      actions.push(`<button class="irisx-secondary" onclick="openOrderDetail('${order.id}','buyer')">${langText("Dettaglio", "Detail")}</button>`);
-      actions.push(`<button class="irisx-secondary" onclick="setBuyerSection('tracking','${order.id}')">${langText("Tracking", "Tracking")}</button>`);
+      actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('detail')" : "openOrderDetail('" + order.id + "','buyer')"}">${langText("Dettaglio", "Detail")}</button>`);
+      actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('tracking')" : "setBuyerSection('tracking','" + order.id + "')"}">${langText("Tracking", "Tracking")}</button>`);
       actions.push(`<button class="irisx-secondary" onclick="openSupportModal('${order.id}')">${langText("Supporto", "Support")}</button>`);
       if (order.status === "dispatched_to_buyer") {
         actions.push(`<button class="irisx-primary" onclick="confirmOrderDelivered('${order.id}')">${langText("Conferma consegna", "Confirm delivery")}</button>`);
@@ -12249,7 +12265,8 @@
       return actions;
     }
     if (scope === "seller") {
-      actions.push(`<button class="irisx-secondary" onclick="openOrderDetail('${order.id}','seller')">${langText("Dettaglio", "Detail")}</button>`);
+      actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('detail')" : "openOrderDetail('" + order.id + "','seller')"}">${langText("Dettaglio", "Detail")}</button>`);
+      actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('tracking')" : "openOrderDetail('" + order.id + "','seller')"}">${langText("Tracking", "Tracking")}</button>`);
       if (order.status === "paid") {
         actions.push(`<button class="irisx-secondary" onclick="prepareOrderShipment('${order.id}')">${langText("Pronto da spedire", "Ready to ship")}</button>`);
       }
@@ -12259,7 +12276,8 @@
       }
       return actions;
     }
-    actions.push(`<button class="irisx-secondary" onclick="openOrderDetail('${order.id}','admin')">${langText("Dettaglio", "Detail")}</button>`);
+    actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('detail')" : "openOrderDetail('" + order.id + "','admin')"}">${langText("Dettaglio", "Detail")}</button>`);
+    actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('tracking')" : "openOrderDetail('" + order.id + "','admin')"}">${langText("Tracking", "Tracking")}</button>`);
     if (order.status === "paid") {
       actions.push(`<button class="irisx-secondary" onclick="prepareOrderShipment('${order.id}')">${langText("Queue shipping", "Queue shipping")}</button>`);
     }
@@ -12519,11 +12537,11 @@
     </div>`;
   }
 
-  function renderOrderSummaryCard(order, scope) {
+  function renderOrderSummaryCard(order, scope, surface) {
     if (!order) {
       return `<div class="irisx-empty-state">${langText("Nessun ordine selezionato.", "No order selected.")}</div>`;
     }
-    const actions = getOrderLifecycleActions(order, scope).join("");
+    const actions = getOrderLifecycleActions(order, scope, surface).join("");
     const supportRole = scope === "seller" ? "seller" : scope === "admin" ? "admin" : "buyer";
     return `<div class="irisx-order-card irisx-order-card--expanded">
       <div class="irisx-order-head">
@@ -12574,7 +12592,7 @@
     </div>`;
   }
 
-  function renderOrderTrackingPanel(order) {
+  function renderOrderTrackingPanel(order, scope, surface) {
     if (!order) {
       return `<div class="irisx-empty-state">${langText("Nessun tracking disponibile.", "No tracking available.")}</div>`;
     }
@@ -12598,7 +12616,7 @@
           ${renderOrderTimeline(order) || `<div class="irisx-empty-state">${langText("Timeline vuota.", "Timeline empty.")}</div>`}
         </div>
       </div>
-      <div class="irisx-actions">${getOrderLifecycleActions(order, "buyer").join("")}</div>
+      <div class="irisx-actions">${getOrderLifecycleActions(order, scope || "buyer", surface).join("")}</div>
     </div>`;
   }
 
@@ -13365,13 +13383,13 @@
         title: langText("AIUTO / SUPPORTO / TRUST", "HELP / SUPPORT / TRUST"),
         entries: [
           { id: "help_help", label: langText("Aiuto", "Help") },
-          { id: "help_listings", label: langText("Listings", "Listings") },
-          { id: "help_verification", label: langText("Verification", "Verification") },
+          { id: "help_listings", label: langText("I tuoi annunci", "Listings") },
+          { id: "help_verification", label: langText("Verifica identità", "Verification") },
           { id: "help_shipping", label: langText("Spedizione e protezione", "Shipping and Protection") },
           { id: "help_accessibility", label: langText("Accessibilità", "Accessibility Statement") },
           { id: "help_contact", label: langText("Assistenza", "Contact Support") },
           { id: "help_about", label: langText("Chi siamo", "About") },
-          { id: "help_sell", label: langText("Sell", "Sell") }
+          { id: "help_sell", label: langText("Vendi", "Sell") }
         ]
       }
     ];
@@ -14245,6 +14263,7 @@
   function renderOrderDetailModal() {
     const modal = qs("#irisxOrderModal");
     const order = getAccessibleOrderById(state.activeOrderId, state.activeOrderScope || "any");
+    const activeTab = state.activeOrderModalTab === "tracking" ? "tracking" : "detail";
     if (!modal) {
       return;
     }
@@ -14252,6 +14271,13 @@
       modal.innerHTML = "";
       return;
     }
+    const tabButtons = `<div class="irisx-actions irisx-actions--compact">
+        <button class="${activeTab === "detail" ? "irisx-primary" : "irisx-secondary"}" onclick="setOrderModalTab('detail')">${langText("Dettaglio", "Detail")}</button>
+        <button class="${activeTab === "tracking" ? "irisx-primary" : "irisx-secondary"}" onclick="setOrderModalTab('tracking')">${langText("Tracking", "Tracking")}</button>
+      </div>`;
+    const bodyMarkup = activeTab === "tracking"
+      ? renderOrderTrackingPanel(order, state.activeOrderScope || "buyer", "modal")
+      : renderOrderSummaryCard(order, state.activeOrderScope || "buyer", "modal");
     modal.innerHTML = `<div class="irisx-modal-backdrop"></div><div class="irisx-modal-card irisx-modal-card--wide">
       <div class="irisx-card-head">
         <div>
@@ -14261,7 +14287,7 @@
         </div>
         <button class="irisx-close" onclick="closeOrderDetail()">✕</button>
       </div>
-      <div class="irisx-card-body">${renderOrderSummaryCard(order, state.activeOrderScope || "buyer")}${renderOrderTrackingPanel(order)}</div>
+      <div class="irisx-card-body">${tabButtons}${bodyMarkup}</div>
     </div>`;
   }
 

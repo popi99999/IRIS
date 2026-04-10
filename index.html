@@ -2755,6 +2755,8 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 </div>
 
 <script>
+/* ═══════ XSS SAFETY ═══════ */
+function esc(s){var d=document.createElement('div');d.appendChild(document.createTextNode(String(s==null?'':s)));return d.innerHTML;}
 /* ═══════ PRODUCT DATA ═══════ */
 const sellers=[
   {id:'s1',name:'Milano_Luxury',avatar:'👩',rating:4.9,sales:47,city:'Milano',since:'2024'},
@@ -2983,7 +2985,7 @@ function renderChats(){
     return window.__irisModernChatFlow.render();
   }
   const list=document.getElementById('chatList');
-  list.innerHTML=chats.map(c=>`<div class="cl-item${curChat===c.id?' on':''}" onclick="openChatById('${c.id}')"><div class="cl-av">${c.with.avatar}</div><div class="cl-info"><div class="cl-name">${c.with.name}</div><div class="cl-last">${c.msgs[c.msgs.length-1].text}</div></div><div class="cl-time">${c.msgs[c.msgs.length-1].time}</div></div>`).join('');
+  list.innerHTML=chats.map(c=>`<div class="cl-item${curChat===c.id?' on':''}" onclick="openChatById('${esc(c.id)}')"><div class="cl-av">${esc(c.with.avatar)}</div><div class="cl-info"><div class="cl-name">${esc(c.with.name)}</div><div class="cl-last">${esc(c.msgs[c.msgs.length-1].text)}</div></div><div class="cl-time">${esc(c.msgs[c.msgs.length-1].time)}</div></div>`).join('');
 }
 function openChatById(id){
   if (window.__irisModernChatFlow && typeof window.__irisModernChatFlow.openById === 'function') {
@@ -2995,7 +2997,7 @@ function openChatById(id){
   document.getElementById('cmName').textContent=c.with.name;
   document.getElementById('cmProd').textContent=c.product.name;
   const msgs=document.getElementById('cmMsgs');
-  msgs.innerHTML=c.msgs.map(m=>`<div class="msg ${m.from}"><div>${m.text}</div><div class="msg-time">${m.time}</div></div>`).join('');
+  msgs.innerHTML=c.msgs.map(m=>`<div class="msg ${esc(m.from)}"><div>${esc(m.text)}</div><div class="msg-time">${esc(m.time)}</div></div>`).join('');
   msgs.scrollTop=msgs.scrollHeight;
   renderChats();
 }
@@ -3355,7 +3357,7 @@ function showSellerTab(tab,btn,sellerId){
     tc.innerHTML=`<div class="pgrid view-enter">${sProds.map(p=>`<div class="pc" onclick="showDetail(${p.id})"><div class="pi"><div class="pi-bg"><div class="pi-emoji">${p.emoji}</div></div></div><div class="pinfo"><div class="p-brand">${p.brand}</div><div class="p-name">${p.name}</div><div class="p-footer"><span class="p-price">${window.irisFormatCurrency?window.irisFormatCurrency(p.price):('€'+p.price.toLocaleString())}</span></div></div></div>`).join('')}</div>`;
   } else {
     const sRevs=reviewsData[sellerId]||[];
-    tc.innerHTML=`<div class="reviews-list view-enter">${sRevs.map(r=>`<div class="review-card"><div class="review-top"><span class="review-buyer">${r.buyer}</span><span class="review-date">${r.date}</span></div><div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div><div class="review-text">${r.text}</div><div class="review-product">${curLang==='it'?'Acquistato':'Purchased'}: ${r.product}</div></div>`).join('')}</div>`;
+    tc.innerHTML=`<div class="reviews-list view-enter">${sRevs.map(r=>`<div class="review-card"><div class="review-top"><span class="review-buyer">${esc(r.buyer)}</span><span class="review-date">${esc(r.date)}</span></div><div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div><div class="review-text">${esc(r.text)}</div><div class="review-product">${curLang==='it'?'Acquistato':'Purchased'}: ${esc(r.product)}</div></div>`).join('')}</div>`;
   }
 }
 

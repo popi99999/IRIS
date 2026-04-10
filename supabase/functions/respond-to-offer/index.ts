@@ -198,7 +198,13 @@ Deno.serve(async (request) => {
       captured_at_ms: Date.now(),
       updated_at_ms: Date.now(),
     };
-    await tryUpsertIntoTable("orders", orderPayload, "id");
+    // Critical: write order first — if this fails, throw before any money moves.
+    // Money was already captured above; a write failure here means manual reconciliation is needed.
+    const savedOrder = await tryUpsertIntoTable("orders", orderPayload, "id");
+    if (!savedOrder) {
+      console.error("[respond-to-offer] CRITICAL: order write failed after payment capture. orderId:", orderPayload.id, "paymentIntentId:", capturedIntent.id);
+      throw new HttpError("Payment captured but order record could not be created. Contact support with reference: " + orderPayload.id, 500);
+    }
     await tryUpsertIntoTable("offers", acceptedOffer, "id");
     await tryInsertIntoTable("notifications", {
       id: `ntf_${crypto.randomUUID()}`,

@@ -588,11 +588,11 @@ async function handleChargeRefunded(charge: any) {
 
   console.log("[stripe-webhook] charge.refunded", { piId, refundAmount, buyerEmail });
 
-  // Find order by payment_intent_id
+  // Find order via JSONB payment field (paymentIntentId stored inside payment blob)
   const { data: orders } = await getSupabaseAdmin()
     .from("orders")
     .select("*")
-    .eq("payment_intent_id", piId)
+    .contains("payment", { paymentIntentId: piId })
     .limit(1);
   const order = Array.isArray(orders) && orders.length ? orders[0] : null;
 
@@ -641,11 +641,11 @@ async function handleDisputeCreated(dispute: any) {
 
   console.log("[stripe-webhook] charge.dispute.created", { stripeDisputeId, piId, amount, reason });
 
-  // Find order by payment_intent_id
+  // Find order via JSONB payment field (paymentIntentId stored inside payment blob)
   const { data: orders } = await getSupabaseAdmin()
     .from("orders")
     .select("*")
-    .eq("payment_intent_id", piId)
+    .contains("payment", { paymentIntentId: piId })
     .limit(1);
   const order = Array.isArray(orders) && orders.length ? orders[0] : null;
 

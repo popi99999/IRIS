@@ -83,7 +83,7 @@ Deno.serve(async (request) => {
       }
       const listingStatus = String(listing.listing_status ?? listing.listingStatus ?? "");
       const inventoryStatus = String(listing.inventory_status ?? listing.inventoryStatus ?? "");
-      if (listingStatus !== "published" || inventoryStatus === "archived") {
+      if (listingStatus !== "published" || inventoryStatus === "archived" || inventoryStatus === "sold") {
         throw new HttpError(`Listing unavailable: ${normalizeString(listing.name ?? listing.brand ?? listing.id)}`, 409);
       }
       return {

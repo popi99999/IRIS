@@ -257,7 +257,12 @@ create policy "notifications_insert_authenticated"
 on public.notifications
 for insert
 to authenticated
-with check (auth.uid() is not null);
+with check (
+  -- Users can only insert notifications addressed to themselves.
+  -- Cross-user platform notifications are created via Edge Functions (service role, bypasses RLS).
+  recipient_id = auth.uid()
+  or (auth.jwt()->>'email') = recipient_email
+);
 
 drop policy if exists "notifications_update_recipient" on public.notifications;
 create policy "notifications_update_recipient"

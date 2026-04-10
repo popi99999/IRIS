@@ -70,7 +70,7 @@ begin
     lower(coalesce(new.email, '')),
     coalesce(new.raw_user_meta_data ->> 'full_name', ''),
     coalesce(new.raw_user_meta_data ->> 'phone', ''),
-    coalesce(new.raw_user_meta_data ->> 'role', 'buyer'),
+    case when new.raw_user_meta_data ->> 'role' in ('buyer', 'seller') then new.raw_user_meta_data ->> 'role' else 'buyer' end,
     to_char(timezone('utc', now()), 'YYYY')
   )
   on conflict (id) do update

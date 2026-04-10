@@ -15,7 +15,9 @@ export function readConnectAccountId(profile: Record<string, unknown> | null | u
 }
 
 export function isEligibleForPayout(status: string) {
-  return ["delivered", "completed", "buyer_confirmed_delivery", "payout_pending", "paid"].includes(String(status || ""));
+  // "paid" intentionally excluded: payout requires delivery confirmation, not just payment.
+  // PAYOUT_HOLD_DAYS is enforced in the maintenance loop on top of this status check.
+  return ["delivered", "completed", "buyer_confirmed_delivery", "payout_pending"].includes(String(status || ""));
 }
 
 export function computePayoutAmount(order: Record<string, unknown>): number {

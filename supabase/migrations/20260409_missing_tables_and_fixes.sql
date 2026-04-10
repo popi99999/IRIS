@@ -297,6 +297,11 @@ as $$
 declare
   v_listing record;
 begin
+  -- Security: verify the caller is the stated buyer
+  if p_buyer_id <> auth.uid() then
+    raise exception 'unauthorized: p_buyer_id does not match authenticated user';
+  end if;
+
   -- Lock the row to prevent concurrent purchases
   select * into v_listing
   from public.listings

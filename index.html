@@ -2138,15 +2138,33 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 <!-- ═══════ CINEMATIC INTRO STYLES ═══════ -->
 <style id="iris-cinematic-styles">
 #iris-cinematic-intro{
-  position:fixed;inset:0;background:#000;z-index:99999;
+  position:fixed;inset:0;
+  background:
+    radial-gradient(circle at top, rgba(227,216,245,.94), rgba(251,248,254,.98) 46%, rgba(246,239,252,1) 100%),
+    linear-gradient(180deg, #fffdfd 0%, #f7f1fc 100%);
+  z-index:99999;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   overflow:hidden;cursor:default;
-  transition:opacity .28s cubic-bezier(.4,0,.2,1);
+  transition:opacity .18s cubic-bezier(.4,0,.2,1);
+}
+#iris-cinematic-intro::before{
+  content:"IRIS";
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  font-family:'Cormorant Garamond',serif;
+  font-weight:300;
+  font-size:min(29vw, 13rem);
+  letter-spacing:.08em;
+  color:rgba(99,74,142,.92);
+  text-shadow:0 14px 32px rgba(109,86,165,.08);
+  transform:translateY(-4vh);
 }
 #iris-cinematic-intro.irisci-fading{opacity:0;pointer-events:none}
 #iris-cinematic-canvas{
   position:absolute;inset:0;width:100%;height:100%;
-  display:block;
+  display:none;
 }
 .irisci-bottom{
   position:absolute;bottom:8vh;left:0;right:0;
@@ -2159,28 +2177,29 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 .irisci-tagline{
   font-family:'Cormorant Garamond',serif;font-weight:300;
   font-size:clamp(.55rem,1.1vw,.82rem);letter-spacing:.48em;
-  color:rgba(255,255,255,.22);text-transform:uppercase;
+  color:rgba(88,67,123,.42);text-transform:uppercase;
   text-align:center;line-height:2;margin:0;
   animation:irisci-pulse 4s ease-in-out infinite;
 }
 .irisci-enter{
-  background:transparent;border:1px solid rgba(196,160,106,.3);
-  color:rgba(196,160,106,.65);
+  background:rgba(255,255,255,.74);border:1px solid rgba(109,86,165,.16);
+  color:rgba(88,67,123,.78);
   font-family:'Outfit',sans-serif;font-weight:300;
   font-size:clamp(.42rem,.8vw,.6rem);letter-spacing:.38em;text-transform:uppercase;
-  padding:.7rem 2.2rem;cursor:pointer;
-  transition:border-color .5s,color .5s,background .5s,letter-spacing .5s;
+  padding:.72rem 2.2rem;cursor:pointer;border-radius:999px;
+  box-shadow:0 16px 38px rgba(109,86,165,.12);
+  transition:border-color .3s,color .3s,background .3s,letter-spacing .3s,transform .3s;
 }
 .irisci-enter:hover{
-  border-color:rgba(196,160,106,.65);color:rgba(220,185,120,1);
-  background:rgba(196,160,106,.06);letter-spacing:.44em;
+  border-color:rgba(109,86,165,.28);color:rgba(64,44,99,.92);
+  background:rgba(255,255,255,.94);letter-spacing:.4em;transform:translateY(-1px);
 }
 /* corner brackets */
 .irisci-corner{position:absolute;width:22px;height:22px;opacity:.25}
-.irisci-corner--tl{top:28px;left:32px;border-top:1px solid rgba(196,160,106,.7);border-left:1px solid rgba(196,160,106,.7)}
-.irisci-corner--tr{top:28px;right:32px;border-top:1px solid rgba(196,160,106,.7);border-right:1px solid rgba(196,160,106,.7)}
-.irisci-corner--bl{bottom:28px;left:32px;border-bottom:1px solid rgba(196,160,106,.7);border-left:1px solid rgba(196,160,106,.7)}
-.irisci-corner--br{bottom:28px;right:32px;border-bottom:1px solid rgba(196,160,106,.7);border-right:1px solid rgba(196,160,106,.7)}
+.irisci-corner--tl{top:28px;left:32px;border-top:1px solid rgba(109,86,165,.34);border-left:1px solid rgba(109,86,165,.34)}
+.irisci-corner--tr{top:28px;right:32px;border-top:1px solid rgba(109,86,165,.34);border-right:1px solid rgba(109,86,165,.34)}
+.irisci-corner--bl{bottom:28px;left:32px;border-bottom:1px solid rgba(109,86,165,.34);border-left:1px solid rgba(109,86,165,.34)}
+.irisci-corner--br{bottom:28px;right:32px;border-bottom:1px solid rgba(109,86,165,.34);border-right:1px solid rgba(109,86,165,.34)}
 @keyframes irisci-pulse{0%,100%{opacity:.22}50%{opacity:.38}}
 @media(prefers-reduced-motion:reduce){
   #iris-cinematic-intro{display:none!important}
@@ -2508,7 +2527,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div style="position:relative;z-index:2">
       <div class="sh-label">Il modo italiano di vendere lusso</div>
       <div class="sh-title">Vendi come preferisci.</div>
-      <div class="sh-sub">Privati 5% · Concierge 15% · Autenticazione inclusa · Pagamento garantito</div>
+      <div class="sh-sub">Vendita privata 5% seller + 5% buyer · Concierge 15% · Autenticazione privata €10</div>
     </div>
   </div>
   <section class="sell-steps irisx-reveal-section">
@@ -2520,16 +2539,17 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
         <!-- PATH A: Autonomo -->
         <div class="sell-path">
           <div class="sp-badge sp-badge--diy">Autonomo</div>
-          <div class="sp-commission">9<span>%</span></div>
+          <div class="sp-commission">5<span>%</span></div>
           <div class="sp-commission-label">commissione sul venduto</div>
           <div class="sp-title">Vendi da solo</div>
-          <div class="sp-desc">Pubblichi tu, gestisci le trattative, spedisci tu. IRIS ti fornisce la vetrina, la visibilità e il pagamento protetto.</div>
+          <div class="sp-desc">Pubblichi tu, gestisci la trattativa e prepari la spedizione. IRIS ti fornisce vetrina, pagamento protetto e autenticazione privata su richiesta.</div>
           <ul class="sp-list">
             <li>✦ Pubblichi gratis in 2 minuti</li>
             <li>✦ Prezzi e trattative decidi tu</li>
+            <li>✦ Fee seller 5% sul venduto</li>
+            <li>✦ Fee buyer 5% lato acquisto</li>
+            <li>✦ Autenticazione privata €10</li>
             <li>✦ Pagamento protetto via IRIS</li>
-            <li>✦ Etichetta spedizione prepagata</li>
-            <li>✦ Solo 12% alla vendita</li>
           </ul>
           <a href="#sell-form-sec" class="sp-cta sp-cta--diy">Inizia a vendere →</a>
         </div>
@@ -2537,7 +2557,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
         <!-- PATH B: Concierge -->
         <div class="sell-path sell-path--featured">
           <div class="sp-badge sp-badge--concierge">★ Consigliato</div>
-          <div class="sp-commission sp-commission--gold">22<span>%</span></div>
+          <div class="sp-commission sp-commission--gold">15<span>%</span></div>
           <div class="sp-commission-label">commissione sul venduto</div>
           <div class="sp-title">IRIS Concierge</div>
           <div class="sp-desc">Ci spedisci il pezzo. Noi facciamo tutto il resto: foto professionali, autenticazione, annuncio curato, spedizione al compratore.</div>
@@ -2575,9 +2595,9 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           <div style="display:flex;gap:.8rem;margin-bottom:2rem">
             <label style="flex:1;border:1px solid rgba(124,58,237,.2);padding:1rem;cursor:pointer;border-radius:3px;transition:all .25s" id="lbl-diy">
               <input type="radio" name="sell-mode" id="sell-mode-diy" value="diy" checked onchange="updateFee();toggleSellMode()" style="display:none">
-              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--purple);margin-bottom:.3rem">Privati · 5%</div>
+              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--purple);margin-bottom:.3rem">Privata · 5% seller</div>
               <div style="font-size:.85rem;color:rgba(245,240,235,.92);font-family:'Playfair Display',serif">Vendo da solo</div>
-              <div style="font-size:.7rem;color:rgba(245,240,235,.55);margin-top:.25rem">Gestisci tu le foto e la spedizione</div>
+              <div style="font-size:.7rem;color:rgba(245,240,235,.55);margin-top:.25rem">Buyer fee 5% · autenticazione privata €10</div>
             </label>
             <label style="flex:1;border:1px solid rgba(196,160,106,.3);padding:1rem;cursor:pointer;border-radius:3px;background:rgba(196,160,106,.04);transition:all .25s" id="lbl-concierge">
               <input type="radio" name="sell-mode" id="sell-mode-concierge" value="concierge" onchange="updateFee();toggleSellMode()" style="display:none">
@@ -3056,10 +3076,10 @@ function sendOffer(){
 /* ═══════ SELL FORM ═══════ */
 function updateFee(){
   const price=parseFloat(document.getElementById('sf-price').value)||0;
-  // Two-tier: 9% self-listing, 22% concierge
+  // Two-tier: 5% self-listing, 15% concierge
   const isConcierge=document.getElementById('sell-mode-concierge')&&document.getElementById('sell-mode-concierge').checked;
-  const rate=isConcierge?0.22:0.09;
-  const label=isConcierge?'Concierge (22%)':'Autonomo (9%)';
+  const rate=isConcierge?0.15:0.05;
+  const label=isConcierge?'Concierge (15%)':'Autonomo (5%)';
   const comm=price*rate;const net=price-comm;
   document.getElementById('fee-p').textContent=price?`€${price.toFixed(0)}`:'€ —';
   document.getElementById('fee-c').textContent=price?`-€${comm.toFixed(0)} (${label})`:`— ${label}`;
@@ -3249,7 +3269,7 @@ function applyLang(){
 }
 
 /* ═══════ DARK/LIGHT MODE ═══════ */
-let darkMode=localStorage.getItem('iris-mode')!=='light';
+let darkMode=localStorage.getItem('iris-mode')==='dark';
 function toggleDarkLight(){
   darkMode=!darkMode;
   document.body.classList.toggle('light-mode',!darkMode);
@@ -3601,7 +3621,7 @@ var W=0,H=0,FS=0;
 var raf=null,t0=null,dismissed=false;
 var off=document.createElement('canvas'),offCtx=off.getContext('2d');
 
-var SCENE_MS=700,FADE_FRAC=0.14,TOTAL_MS=1550,FOOTER_MS=260;
+var SCENE_MS=560,FADE_FRAC=0.12,TOTAL_MS=1120,FOOTER_MS=120;
 
 function resize(){
   W=canvas.width=off.width=overlay.clientWidth||window.innerWidth;
@@ -3813,7 +3833,7 @@ window.dismissIrisCinematicIntro=function(){
   if(dismissed)return;dismissed=true;
   if(raf)cancelAnimationFrame(raf);
   overlay.classList.add('irisci-fading');
-  setTimeout(function(){overlay.style.display='none';},280);
+  setTimeout(function(){overlay.style.display='none';},160);
   if(typeof skipIntro==='function')skipIntro();
 };
 
@@ -3825,7 +3845,7 @@ overlay.addEventListener('click',function(e){
 
 /* ─ START WHEN FONTS READY ─ */
 (document.fonts?document.fonts.ready:Promise.resolve()).then(function(){
-  setTimeout(function(){raf=requestAnimationFrame(tick);},80);
+  setTimeout(function(){raf=requestAnimationFrame(tick);},40);
 });
 
 })();

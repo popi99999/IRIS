@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <!-- Security headers (best-effort via meta; configure server-level headers separately for X-Frame-Options and HSTS) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net https://unpkg.com https://www.googletagmanager.com https://app.posthog.com https://js.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: http:; connect-src 'self' https://xzhgyamzfthqrcaljdqv.supabase.co wss://xzhgyamzfthqrcaljdqv.supabase.co https://api.stripe.com https://api.resend.com https://app.posthog.com https://sentry.io https://o*.ingest.sentry.io; frame-src https://js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:; manifest-src 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net https://unpkg.com https://www.googletagmanager.com https://app.posthog.com https://js.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: http:; media-src 'self' data: blob: https://videos.pexels.com https:; connect-src 'self' https://xzhgyamzfthqrcaljdqv.supabase.co wss://xzhgyamzfthqrcaljdqv.supabase.co https://api.stripe.com https://api.resend.com https://app.posthog.com https://sentry.io https://*.ingest.sentry.io; frame-src https://js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:; manifest-src 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <meta name="format-detection" content="telephone=no">
@@ -2263,8 +2263,8 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 <div class="page" id="page-buy">
 
   <!-- Top nav -->
-  <div class="topnav" id="topnav">
-    <div class="tn-row">
+  <nav class="topnav" id="topnav" role="navigation" aria-label="Navigazione principale">
+    <div class="tn-row tn-row--main">
       <span class="tn-logo" onclick="showBuyView('home')"><em>IRIS</em></span>
       <div class="tn-search">
         <input type="text" placeholder="Cerca brand, articoli, stili..." id="searchInput" oninput="handleSearch(this.value)" aria-label="Cerca prodotti">
@@ -2286,9 +2286,9 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           <button class="notif-bell tn-btn tn-icon" onclick="toggleNotifs()" aria-label="Notifiche"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6a4 4 0 018 0c0 4 1.5 5.5 1.5 5.5H2.5S4 10 4 6z"/><path d="M6.5 13a1.5 1.5 0 003 0"/></svg><span class="notif-badge" id="notifBadge" style="display:none">0</span></button>
           <div class="notif-panel" id="notifPanel"></div>
         </div>
-        <button class="tn-btn tn-chat" data-nav-view="chat" onclick="showBuyView('chat')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5h11v8h-7l-4 3v-3z"/></svg><span class="badge" id="chat-badge">2</span></button>
+        <button class="tn-btn tn-chat" data-nav-view="chat" onclick="showBuyView('chat')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5h11v8h-7l-4 3v-3z"/></svg><span class="badge" id="chat-top-badge">2</span></button>
         <button class="tn-btn tn-profile" data-nav-view="profile" onclick="showBuyView('profile')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 14.5c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg></button>
-        <button class="lang-toggle" id="langToggle" onclick="switchLang()">EN</button>
+        <button class="lang-toggle" id="tnLangToggleLegacy" onclick="switchLang()">EN</button>
         <button class="tn-btn tn-sell" onclick="showPage('sell')">Vendi</button>
       </div>
     </div>

@@ -5046,6 +5046,34 @@
 
   function injectShellUi() {
     const navLinks = qs(".tn-links");
+    const profileTrigger = qs(".tn-links .tn-profile");
+    if (profileTrigger && profileTrigger.id !== "tnProfileTrigger") {
+      profileTrigger.id = "tnProfileTrigger";
+      profileTrigger.setAttribute("type", "button");
+      profileTrigger.setAttribute("aria-label", langText("Apri menu profilo", "Open profile menu"));
+      profileTrigger.setAttribute("aria-haspopup", "menu");
+      profileTrigger.setAttribute("aria-controls", "tnProfileMenu");
+      profileTrigger.innerHTML = "<span class=\"tn-avatar-dot\">IR</span>";
+      profileTrigger.onclick = function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleProfileMenu();
+      };
+    }
+
+    if (navLinks && !qs("#tnMobileToggle")) {
+      const mobileToggle = document.createElement("button");
+      mobileToggle.className = "tn-btn tn-mobile-toggle";
+      mobileToggle.id = "tnMobileToggle";
+      mobileToggle.type = "button";
+      mobileToggle.setAttribute("aria-label", langText("Apri menu", "Open menu"));
+      mobileToggle.setAttribute("aria-controls", "tnMobileMenu");
+      mobileToggle.setAttribute("aria-expanded", "false");
+      mobileToggle.innerHTML = "<span></span><span></span><span></span>";
+      mobileToggle.addEventListener("click", toggleMobileNav);
+      navLinks.insertBefore(mobileToggle, navLinks.firstChild || null);
+    }
+
     if (navLinks && !qs("#cartBtn")) {
       const cartButton = document.createElement("button");
       cartButton.className = "tn-btn";
@@ -8608,18 +8636,92 @@
       return getFacetLabel(kind, value);
     }
 
+    function focusFilterPanel(panelId) {
+      const panel = qs("#filtersPanel");
+      const target = panelId ? qs("#" + panelId) : null;
+      const group = target ? target.closest(".f-group") : null;
+      if (window.innerWidth <= 900) {
+        toggleMobileFilters(true);
+      }
+      if (group) {
+        const label = group.querySelector(".f-label.closed");
+        if (label) {
+          label.classList.remove("closed");
+        }
+        group.classList.add("is-focused");
+        setTimeout(function () {
+          group.classList.remove("is-focused");
+        }, 1200);
+        if (typeof group.scrollIntoView === "function") {
+          group.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+        }
+      } else if (panel && typeof panel.scrollIntoView === "function") {
+        panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    function syncSortButtons() {
+      qsa(".sort-btn").forEach(function (button) {
+        const onclick = button.getAttribute("onclick") || "";
+        button.classList.toggle("on", onclick.indexOf("'" + curSort + "'") !== -1);
+      });
+    }
+
+    function applyShopPreset(kind, value) {
+      ensureExtendedFilters();
+      if (kind === "recent") {
+        curSort = "recent";
+        syncSortButtons();
+        render();
+        return;
+      }
+      if (kind === "designers") {
+        focusFilterPanel("f-brands");
+        return;
+      }
+      if (kind === "genders") {
+        filters.genders = filters.genders.length === 1 && filters.genders[0] === value ? [] : [value];
+      }
+      if (kind === "cats") {
+        filters.cats = filters.cats.length === 1 && filters.cats[0] === value ? [] : [value];
+      }
+      initFilters();
+      render();
+    }
+
+    window.focusFilterPanel = focusFilterPanel;
+    window.applyShopPreset = applyShopPreset;
+
     function renderHorizontalFilterRail() {
       ensureExtendedFilters();
       const host = qs("#activeFilters");
       if (!host) {
         return;
       }
+      const browseItems = [
+        { kind: "recent", value: "recent", label: langText("Nuovi arrivi", "New in"), active: curSort === "recent" },
+        { kind: "designers", value: "designers", label: langText("Designers", "Designers"), active: filters.brands.length > 0 },
+        { kind: "genders", value: "Women", label: langText("Donna", "Women"), active: filters.genders.includes("Women") },
+        { kind: "genders", value: "Men", label: langText("Uomo", "Men"), active: filters.genders.includes("Men") },
+        { kind: "cats", value: "Borse", label: langText("Borse", "Bags"), active: filters.cats.includes("Borse") },
+        { kind: "cats", value: "Scarpe", label: langText("Scarpe", "Shoes"), active: filters.cats.includes("Scarpe") },
+        { kind: "cats", value: "Orologi", label: langText("Orologi", "Watches"), active: filters.cats.includes("Orologi") },
+        { kind: "cats", value: "Accessori", label: langText("Accessori", "Accessories"), active: filters.cats.includes("Accessori") }
+      ];
+      const browseMarkup = browseItems
+        .map(function (item) {
+          return `<button class="irisx-shop-browse-link${item.active ? " is-active" : ""}" type="button" onclick="applyShopPreset('${escapeHtml(item.kind)}','${escapeHtml(item.value)}')">${escapeHtml(item.label)}</button>`;
+        })
+        .join("");
       const trustChips = getTrustFilterOptions().map(function (option) {
         return `<button class="irisx-filter-chip irisx-filter-chip--trust${filters.trust.includes(option.id) ? " is-active" : ""}" onclick="toggleFilterChip('trust', '${escapeHtml(option.id)}')">${escapeHtml(option.label)}</button>`;
       }).join("");
-      host.innerHTML = `<div class="irisx-filter-rail">
-        <div class="irisx-filter-group irisx-filter-group--trust"><span class="irisx-filter-label">${escapeHtml(langText("Fiducia IRIS", "IRIS trust"))}</span><div class="irisx-filter-chip-row">${trustChips}</div></div>
-        <div class="active-filters irisx-active-filter-row" id="activeFilterChips"></div>
+      host.innerHTML = `<div class="irisx-shop-browse">
+        <div class="irisx-shop-browse-row">${browseMarkup}</div>
+        <div class="irisx-filter-rail">
+          <div class="irisx-filter-group irisx-filter-group--trust"><span class="irisx-filter-label">${escapeHtml(langText("Fiducia IRIS", "IRIS trust"))}</span><div class="irisx-filter-chip-row">${trustChips}</div></div>
+          <div class="active-filters irisx-active-filter-row" id="activeFilterChips"></div>
+        </div>
       </div>`;
     }
 
@@ -10058,10 +10160,16 @@
     el = qs("#authBtn"); if (el) el.style.display = "none";
     el = qs("#opsBtn"); if (el) el.style.display = "none";
     el = qs(".mode-toggle"); if (el) el.style.display = "none";
-    var prof = qs(".tn-profile");
+    var prof = qs("#tnProfileTrigger") || qs(".tn-profile");
     if (prof) {
-      prof.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 14.5c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg>';
-      prof.style.fontSize = '0';
+      if (prof.id === "tnProfileTrigger") {
+        prof.innerHTML = '<span class="tn-avatar-dot">IR</span>';
+        prof.classList.add("tn-avatar");
+        prof.style.fontSize = '';
+      } else {
+        prof.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 14.5c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg>';
+        prof.style.fontSize = '0';
+      }
     }
     var lg = qs("#langToggle") || qs(".lang-toggle") || qs("select#langToggle");
     if (lg) lg.style.display = "none";
@@ -11553,13 +11661,15 @@
   }
 
   function syncChatBadge() {
-    const badge = qs("#chat-badge");
-    if (!badge) {
-      return;
-    }
     const count = getChatUnreadCount();
-    badge.style.display = count ? "flex" : "none";
-    badge.textContent = count;
+    ["#chat-badge", "#chat-top-badge"].forEach(function (selector) {
+      const badge = qs(selector);
+      if (!badge) {
+        return;
+      }
+      badge.style.display = count ? "flex" : "none";
+      badge.textContent = count;
+    });
   }
 
   function getBuyerOffers() {
@@ -15357,12 +15467,13 @@
       <div class="irisx-detail-secondary-actions">
         ${secondaryPrimaryButtons.join("")}
       </div>
-      <div class="irisx-detail-utility-actions">
+      <div class="irisx-detail-utility-actions irisx-detail-utility-actions--balanced">
         <button class="det-fav irisx-detail-fav-pill" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button>
         <button class="irisx-secondary" onclick="openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>
-        <button class="irisx-link-btn" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button>
       </div>
-    </div>${offerNote}`;
+      <div class="irisx-note irisx-note--offer">${offerNote}</div>
+      <button class="irisx-link-btn irisx-link-btn--quiet" onclick="reportListing(${productIdExpr})">${langText("Segnala annuncio", "Report listing")}</button>
+    </div>`;
   };
 
   showDetail = function (id) {
@@ -15435,14 +15546,16 @@
         <div class="det-imgs">${detailMediaMarkup(product)}</div>
         <div class="det-body">
           <section class="irisx-detail-hero-panel">
-            <div class="irisx-detail-breadcrumb"><button type="button" onclick="closeDetail()">${langText("Home", "Home")}</button><span>/</span><button type="button" onclick="showBuyView('shop')">${langText("Shop", "Shop")}</button><span>/</span><strong>${escapeHtml(product.brand)}</strong></div>
-            <button type="button" class="det-back" onclick="closeDetail()">${t("back_shop")}</button>
-            <div class="det-brand">${escapeHtml(product.brand)}</div>
-            <div class="det-name">${escapeHtml(product.name)}</div>
-            <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
+            <div class="irisx-detail-header">
+              <div class="irisx-detail-breadcrumb"><button type="button" onclick="closeDetail()">${langText("Home", "Home")}</button><span>/</span><button type="button" onclick="showBuyView('shop')">${langText("Shop", "Shop")}</button><span>/</span><strong>${escapeHtml(product.brand)}</strong></div>
+              <button type="button" class="det-back" onclick="closeDetail()">${t("back_shop")}</button>
+              <div class="det-brand">${escapeHtml(product.brand)}</div>
+              <div class="det-name">${escapeHtml(product.name)}</div>
+              <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
+            </div>
             ${getDetailActionsMarkup(product, liked)}
             ${detailShippingTrustMarkup}
-            <div class="det-section det-section--seller"><div class="det-section-title">${viewerOwnsListing ? langText("Gestione annuncio", "Listing management") : t("seller")}</div><div class="seller-card seller-card--elevated" onclick="${sellerCardClick}"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta">${escapeHtml(seller.city)} · ${escapeHtml(langText("Risposta premium IRIS", "Premium IRIS support"))}</div><div class="irisx-seller-badges">${sellerTrustBadges}</div></div>${sellerPrimaryAction}</div></div>
+            <div class="det-section det-section--seller"><div class="det-section-title">${viewerOwnsListing ? langText("Gestione annuncio", "Listing management") : t("seller")}</div><div class="seller-card seller-card--elevated" onclick="${sellerCardClick}"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta">${escapeHtml(seller.city)} · ${escapeHtml(langText("Risposta premium IRIS", "Premium IRIS support"))}</div><div class="irisx-seller-badges">${sellerTrustBadges}</div></div>${sellerPrimaryAction}</div>${!viewerOwnsListing ? `<button class="irisx-link-btn irisx-link-btn--quiet" onclick="event.stopPropagation();reportListing(${productIdExpr})">${langText("Segnala annuncio", "Report listing")}</button>` : ""}</div>
           </section>
         </div>
       </section>

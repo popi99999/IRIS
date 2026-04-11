@@ -4375,8 +4375,8 @@ body.irisx-luxury .tn-logo {
   background: transparent;
   color: var(--white);
   font-family: "Playfair Display", serif;
-  font-size: 1.15rem;
-  letter-spacing: .16em;
+  font-size: 1.55rem;
+  letter-spacing: .22em;
   text-transform: uppercase;
   cursor: pointer;
 }
@@ -6512,8 +6512,8 @@ body.irisx-luxury .tn-row--main{
 }
 
 body.irisx-luxury .tn-logo{
-  min-width:120px;
-  letter-spacing:.18em;
+  min-width:100px;
+  letter-spacing:.22em;
 }
 
 body.irisx-luxury .tn-logo em{
@@ -6538,16 +6538,30 @@ body.irisx-luxury .tn-links{
   gap:10px;
 }
 
-body.irisx-luxury .tn-links::before{
-  content:"IRIS VERIFIED · CONCIERGE · SECURE CHECKOUT";
+body.irisx-luxury .tn-assistenza{
   display:inline-flex;
   align-items:center;
-  margin-right:10px;
-  color:rgba(196,160,106,.78);
-  font-size:.58rem;
-  letter-spacing:.22em;
+  height:36px;
+  padding:0 14px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:2px;
+  background:rgba(255,255,255,.04);
+  color:rgba(245,240,235,.82);
+  font-size:.65rem;
+  letter-spacing:.12em;
   text-transform:uppercase;
   white-space:nowrap;
+  transition:border-color .2s, background .2s, color .2s;
+  cursor:pointer;
+}
+body.irisx-luxury .tn-assistenza:hover{
+  border-color:rgba(245,240,235,.28);
+  background:rgba(255,255,255,.07);
+  color:rgba(245,240,235,1);
+}
+
+body.irisx-luxury .tn-links::before{
+  content:none;
 }
 
 body.irisx-luxury .tn-locale-trigger{

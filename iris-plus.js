@@ -8713,11 +8713,22 @@
           return `<button class="irisx-shop-browse-link${item.active ? " is-active" : ""}" type="button" onclick="applyShopPreset('${escapeHtml(item.kind)}','${escapeHtml(item.value)}')">${escapeHtml(item.label)}</button>`;
         })
         .join("");
+      const quickFilterMarkup = [
+        { label: langText("Filtri", "Filters"), action: "toggleMobileFilters()" },
+        { label: langText("Brand", "Brand"), action: "focusFilterPanel('f-brands')" },
+        { label: langText("Condizione", "Condition"), action: "focusFilterPanel('f-conds')" },
+        { label: langText("Taglia", "Size"), action: "focusFilterPanel('f-size')" },
+        { label: langText("Prezzo", "Price"), action: "focusFilterPanel('f-pmin')" }
+      ].map(function (item, index) {
+        const extraClass = index === 0 ? " irisx-shop-filter-toggle" : "";
+        return `<button class="irisx-shop-quick-filter${extraClass}" type="button" onclick="${item.action}">${escapeHtml(item.label)}</button>`;
+      }).join("");
       const trustChips = getTrustFilterOptions().map(function (option) {
         return `<button class="irisx-filter-chip irisx-filter-chip--trust${filters.trust.includes(option.id) ? " is-active" : ""}" onclick="toggleFilterChip('trust', '${escapeHtml(option.id)}')">${escapeHtml(option.label)}</button>`;
       }).join("");
       host.innerHTML = `<div class="irisx-shop-browse">
         <div class="irisx-shop-browse-row">${browseMarkup}</div>
+        <div class="irisx-shop-quick-filters">${quickFilterMarkup}</div>
         <div class="irisx-filter-rail">
           <div class="irisx-filter-group irisx-filter-group--trust"><span class="irisx-filter-label">${escapeHtml(langText("Fiducia IRIS", "IRIS trust"))}</span><div class="irisx-filter-chip-row">${trustChips}</div></div>
           <div class="active-filters irisx-active-filter-row" id="activeFilterChips"></div>

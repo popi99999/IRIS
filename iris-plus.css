@@ -6538,6 +6538,18 @@ body.irisx-luxury .tn-links{
   gap:10px;
 }
 
+body.irisx-luxury .tn-links::before{
+  content:"IRIS VERIFIED · CONCIERGE · SECURE CHECKOUT";
+  display:inline-flex;
+  align-items:center;
+  margin-right:10px;
+  color:rgba(196,160,106,.78);
+  font-size:.58rem;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+
 body.irisx-luxury .tn-locale-trigger{
   min-width:92px;
   height:42px;
@@ -6570,8 +6582,8 @@ body.irisx-luxury .tn-profile.tn-avatar{
 
 body.irisx-luxury .irisx-shop-browse{
   display:grid;
-  gap:16px;
-  margin:0 0 24px;
+  gap:14px;
+  margin:0 0 22px;
 }
 
 body.irisx-luxury .irisx-shop-browse-row{
@@ -6601,6 +6613,30 @@ body.irisx-luxury .irisx-shop-browse-link.is-active{
   background:linear-gradient(135deg, rgba(124,58,237,.12), rgba(196,160,106,.08));
   color:#fff;
   transform:translateY(-1px);
+}
+
+body.irisx-luxury .irisx-shop-quick-filters{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+body.irisx-luxury .irisx-shop-quick-filter{
+  min-height:38px;
+  padding:0 16px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.02);
+  color:rgba(245,240,235,.76);
+  font-size:.7rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+
+body.irisx-luxury .irisx-shop-filter-toggle{
+  border-color:rgba(124,58,237,.3);
+  background:rgba(124,58,237,.12);
+  color:#fff;
 }
 
 body.irisx-luxury .shop-layout{
@@ -6651,22 +6687,30 @@ body.irisx-luxury .sort-btn:hover{
 
 @media (min-width:901px){
   body.irisx-luxury .shop-layout > .filters{
-    position:relative !important;
-    top:auto !important;
+    position:fixed !important;
+    top:calc(var(--iris-nav-height) + var(--iris-nav-sub-height) + 20px) !important;
+    left:24px;
+    right:24px;
+    z-index:1250;
     height:auto !important;
-    display:grid !important;
+    display:none !important;
     grid-template-columns:repeat(6, minmax(0, 1fr));
     gap:22px 24px;
-    width:100%;
-    margin:0 0 26px;
-    padding:0 0 28px !important;
+    width:auto;
+    max-height:calc(100vh - var(--iris-nav-height) - var(--iris-nav-sub-height) - 56px);
+    margin:0;
+    padding:24px !important;
     border-right:none !important;
-    border-bottom:1px solid rgba(255,255,255,.08);
-    background:transparent !important;
-    box-shadow:none !important;
-    overflow:visible !important;
-    backdrop-filter:none !important;
+    border:1px solid rgba(255,255,255,.08);
+    background:rgba(10,10,14,.97) !important;
+    box-shadow:0 30px 80px rgba(0,0,0,.46) !important;
+    overflow:auto !important;
+    backdrop-filter:blur(22px) !important;
     transform:none !important;
+  }
+
+  body.irisx-luxury .shop-layout > .filters.open{
+    display:grid !important;
   }
 
   body.irisx-luxury .shop-layout > .filters .f-head{
@@ -6767,8 +6811,8 @@ body.irisx-luxury .irisx-detail-page{
 }
 
 body.irisx-luxury .det-layout{
-  grid-template-columns:minmax(0, 1fr) minmax(440px, 560px);
-  gap:clamp(34px, 4vw, 64px);
+  grid-template-columns:minmax(0, 1.08fr) minmax(400px, 520px);
+  gap:clamp(28px, 3.2vw, 50px);
 }
 
 body.irisx-luxury .det-layout--hero{
@@ -6789,16 +6833,17 @@ body.irisx-luxury .irisx-detail-media{
 }
 
 body.irisx-luxury .irisx-detail-stage{
-  min-height:clamp(560px, 78vh, 860px) !important;
+  min-height:clamp(500px, 72vh, 760px) !important;
   max-height:none !important;
   border:1px solid rgba(255,255,255,.08);
   background:linear-gradient(180deg, rgba(20,12,40,.96), rgba(8,5,18,.94));
+  padding:22px;
 }
 
 body.irisx-luxury .irisx-detail-image{
   width:100%;
   height:100%;
-  object-fit:cover;
+  object-fit:contain;
 }
 
 body.irisx-luxury .det-body{
@@ -6833,7 +6878,7 @@ body.irisx-luxury .det-prices{
 
 body.irisx-luxury .irisx-detail-action-stack{
   gap:14px;
-  padding:24px 26px;
+  padding:20px 22px;
   border:1px solid rgba(255,255,255,.08);
   background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.018));
 }
@@ -6888,6 +6933,10 @@ body.irisx-luxury .det-section--seller{
 }
 
 @media (max-width:900px){
+  body.irisx-luxury .tn-links::before{
+    display:none;
+  }
+
   body.irisx-luxury .tn-row--main{
     grid-template-columns:auto 1fr auto;
     gap:14px;
@@ -6920,7 +6969,8 @@ body.irisx-luxury .det-section--seller{
   }
 
   body.irisx-luxury .irisx-shop-browse-row,
-  body.irisx-luxury .shop-sort{
+  body.irisx-luxury .shop-sort,
+  body.irisx-luxury .irisx-shop-quick-filters{
     flex-wrap:nowrap;
     overflow:auto hidden;
     padding-bottom:2px;

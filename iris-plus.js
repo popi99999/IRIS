@@ -31,11 +31,9 @@
     adminEmails: ["owner@iris-fashion.it", "admin@iris-fashion.it"],
     supportEmail: "support@iris-fashion.it",
     emailFrom: "IRIS <noreply@iris-fashion.it>",
-    platformFeeRate: 0.05,
-    selfServeFeeRate: 0.05,
-    conciergeFeeRate: 0.15,
-    buyerFeeRate: 0.05,
-    privateAuthenticationFee: 10,
+    platformFeeRate: 0.12,
+    selfServeFeeRate: 0.12,
+    conciergeFeeRate: 0.22,
     shippingCost: 25,
     buyerProtectionWindowDays: 14
   };
@@ -5397,17 +5395,6 @@
       }
     ];
 
-    const heroImage = editorialProduct && Array.isArray(editorialProduct.images) && editorialProduct.images[0]
-      ? `<img src="${editorialProduct.images[0]}" alt="${escapeHtml(editorialProduct.brand + " " + editorialProduct.name)}">`
-      : `<div class="irisx-home-editorial-fallback"><span>IRIS</span></div>`;
-    const heroMeta = editorialProduct
-      ? `<div class="irisx-home-stage-meta">
-          <span>${escapeHtml(editorialProduct.brand)}</span>
-          <strong>${escapeHtml(editorialProduct.name)}</strong>
-          <em>${escapeHtml(formatCurrency(editorialProduct.price || 0))}</em>
-        </div>`
-      : "";
-
     container.innerHTML = `
       <div class="irisx-home-shell">
         <section class="irisx-home-hero irisx-reveal-section">
@@ -5425,18 +5412,6 @@
               <button class="irisx-home-action primary" onclick="showBuyView('shop')">${escapeHtml(copy.primaryCta)}</button>
               <button class="irisx-home-action secondary" onclick="showPage('sell')">${escapeHtml(copy.secondaryCta)}</button>
             </div>
-            <div class="irisx-home-proof-grid">
-              ${trustItems.map(function (item) {
-                return `<div class="irisx-home-proof-card">
-                  <span class="irisx-home-trust-glyph irisx-home-trust-glyph--${escapeHtml(item.glyph)}" aria-hidden="true"></span>
-                  <strong>${escapeHtml(item.label)}</strong>
-                </div>`;
-              }).join("")}
-            </div>
-          </div>
-          <div class="irisx-home-stage">
-            <div class="irisx-home-stage-frame">${heroImage}</div>
-            ${heroMeta}
           </div>
           <button class="irisx-home-scroll" aria-label="${escapeHtml(langText("Scorri", "Scroll"))}" onclick="document.getElementById('irisTrustBar') && document.getElementById('irisTrustBar').scrollIntoView({behavior:'smooth',block:'start'})"></button>
         </section>
@@ -5810,14 +5785,11 @@
 
     const intro = qs("#intro");
     const choice = qs("#choice");
-    const cinematicIntro = qs("#iris-cinematic-intro");
     const luxuryModeActive = document.body.classList.contains("irisx-luxury");
     const introHiddenByCss = intro ? window.getComputedStyle(intro).display === "none" : false;
-    const cinematicVisible = cinematicIntro && window.getComputedStyle(cinematicIntro).display !== "none";
 
-    // Keep only one intro layer alive. If the cinematic splash is visible,
-    // the legacy intro stays hidden in the background.
-    if (intro && intro.style.display === "none" && !cinematicVisible) {
+    // Keep intro visible only when the luxury redesign is not intentionally hiding it.
+    if (!luxuryModeActive && intro && intro.style.display === "none") {
       intro.style.display = "";
     }
     // Hide old choice screen — we go straight to buy after intro
@@ -5827,7 +5799,7 @@
     }
 
     // If intro exists and is visually active, keep body locked until user clicks.
-    if (cinematicVisible || (intro && !introHiddenByCss && intro.style.display !== "none")) {
+    if (intro && !luxuryModeActive && !introHiddenByCss && intro.style.display !== "none") {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -5844,20 +5816,12 @@
         if (introDiv) introDiv.style.display = "none";
         document.body.style.overflow = "";
         showPage("buy");
-      }, luxuryModeActive ? 420 : 1100);
+      }, 1100);
     };
 
     showChoiceScreen = function () {
       showPage("buy");
     };
-
-    if (luxuryModeActive && intro && intro.style.display !== "none" && !cinematicVisible) {
-      setTimeout(function () {
-        if (intro && intro.style.display !== "none") {
-          skipIntro();
-        }
-      }, 1600);
-    }
 
     backToChoice = function () {
       showPage("buy");
@@ -15548,7 +15512,6 @@
     const conditionLabel = getFacetLabel("conds", product.cond);
     const originalPrice = getListingOriginalPrice(product);
     const sizeDisplay = getListingDisplaySize(product);
-    const detailMetaSummary = [product.cat, sizeDisplay, conditionLabel].filter(Boolean).join(" · ");
     const sizeOriginalMarkup = product.sizeOriginal
       ? `<div class="det-fit-item"><div class="det-fit-label">${langText("Etichetta originale", "Original label")}</div><div class="det-fit-value">${escapeHtml(product.sizeOriginal)}</div></div>`
       : "";
@@ -15559,9 +15522,6 @@
     const relatedOrder = getRelevantOrderForListing(product);
     const sellerIdExpr = inlineJsValue(seller.id);
     const productIdExpr = inlineJsValue(product.id);
-    const trustPillLabel = trustMeta.verified
-      ? langText("Autenticato da IRIS", "Authenticated by IRIS")
-      : langText("Checkout protetto IRIS", "Protected IRIS checkout");
     const sellerPrimaryAction = viewerOwnsListing
       ? `<button class="seller-chat" onclick="event.stopPropagation();loadDraftIntoSellForm(${productIdExpr})">${langText("Modifica", "Edit")}</button>`
       : `<button class="seller-chat" onclick="event.stopPropagation();openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>`;
@@ -15570,9 +15530,9 @@
       : `showSeller('${escapeHtml(seller.id)}')`;
     const similar = prods.filter(function (item) { return !sameEntityId(item.id, product.id) && (item.brand === product.brand || item.cat === product.cat); }).slice(0, 4);
     const detailShippingTrustMarkup = `<div class="irisx-detail-core-grid">
-      <div class="irisx-inline-card"><div><strong>${langText("Autenticazione", "Authentication")}</strong><span>${trustMeta.verified ? langText("Verificato da IRIS con percorso autenticato e storico del prodotto.", "Verified by IRIS with authenticated workflow and product history.") : langText("Verifica disponibile con protezione e controlli premium IRIS.", "Verification available with premium IRIS protection and checks.")}</span></div></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Spedizione protetta", "Protected shipping")}</strong><span>${langText("Assicurata, tracciata e monitorata da IRIS.", "Insured, tracked and monitored by IRIS.")}</span></div><em>${formatCurrency(SHIPPING_COST)}</em></div>
-      <div class="irisx-inline-card irisx-inline-card--trust"><div><strong>${langText("Offerte e trust", "Offers and trust")}</strong><span>${product.offersEnabled ? (product.minimumOfferAmount ? `${langText("Offerta minima", "Minimum offer")}: ${formatCurrency(product.minimumOfferAmount)}` : langText("Offerte attive con pre-autorizzazione sicura.", "Offers active with secure pre-authorization.")) : langText("Checkout protetto e assistenza premium disponibili.", "Protected checkout and premium support available.")}</span></div></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Spedizione tracciata", "Tracked shipping")}</strong><span>${langText("Assicurata e monitorata da IRIS.", "Insured and monitored by IRIS.")}</span></div><em>${formatCurrency(SHIPPING_COST)}</em></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Offerte", "Offers")}</strong><span>${product.offersEnabled ? (product.minimumOfferAmount ? `${langText("Offerta minima", "Minimum offer")}: ${formatCurrency(product.minimumOfferAmount)}` : langText("Offerte attive", "Offers active")) : langText("Offerte disattivate", "Offers disabled")}</span></div></div>
+      <div class="irisx-inline-card irisx-inline-card--trust"><div><strong>${langText("Trust IRIS", "IRIS trust")}</strong><span>${trustMeta.verified ? langText("Autenticato da IRIS con protezione acquisto.", "Authenticated by IRIS with purchase protection.") : langText("Checkout protetto e assistenza premium disponibili.", "Protected checkout and premium support available.")}</span></div></div>
     </div>`;
     const sellerTrustBadges = [
       isVerifiedSellerProfile(seller) ? langText("Seller verificato", "Verified seller") : "",
@@ -15600,12 +15560,8 @@
             <div class="irisx-detail-header">
               <div class="irisx-detail-breadcrumb"><button type="button" onclick="closeDetail()">${langText("Home", "Home")}</button><span>/</span><button type="button" onclick="showBuyView('shop')">${langText("Shop", "Shop")}</button><span>/</span><strong>${escapeHtml(product.brand)}</strong></div>
               <button type="button" class="det-back" onclick="closeDetail()">${t("back_shop")}</button>
-              <div class="irisx-detail-eyebrow">
-                <div class="det-brand">${escapeHtml(product.brand)}</div>
-                <div class="irisx-detail-auth-pill">${escapeHtml(trustPillLabel)}</div>
-              </div>
+              <div class="det-brand">${escapeHtml(product.brand)}</div>
               <div class="det-name">${escapeHtml(product.name)}</div>
-              <div class="irisx-detail-submeta">${escapeHtml(detailMetaSummary)}</div>
               <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
             </div>
             ${getDetailActionsMarkup(product, liked)}

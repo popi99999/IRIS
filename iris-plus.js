@@ -5399,8 +5399,8 @@
       <div class="irisx-home-shell">
         <section class="irisx-home-hero irisx-reveal-section">
           <video class="irisx-hero-video" id="heroVid" autoplay muted loop playsinline preload="auto">
-            <source src="https://videos.pexels.com/video-files/6649983/6649983-hd_2048_1080_25fps.mp4" type="video/mp4">
-            <source src="https://videos.pexels.com/video-files/7677253/7677253-hd_1920_1080_25fps.mp4" type="video/mp4">
+            
+            
           </video>
           <div class="irisx-hero-lux"><div class="irisx-hero-shine"></div></div>
           <div class="irisx-home-copy">

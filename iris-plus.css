@@ -32,7 +32,7 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
   display: flex !important;
   position: fixed !important;
   inset: 0 !important;
-  background: rgba(6,3,16,.88) !important;
+  background: rgba(20,4,8,.88) !important;
   backdrop-filter: blur(20px) !important;
   z-index: 2000 !important;
   align-items: flex-start !important;
@@ -41,8 +41,8 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
   padding: max(2.5vh, 1.5rem) 1rem !important;
 }
 .offer-box {
-  background: rgba(12,6,28,.98) !important;
-  border: 1px solid rgba(167,139,250,.12) !important;
+  background: rgba(32,8,14,.98) !important;
+  border: 1px solid rgba(255,169,181,.12) !important;
   padding: 0 !important;
   max-width: 500px !important;
   width: 100% !important;
@@ -67,7 +67,7 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
 }
 .offer-currency {
   font-size: 1.5rem !important;
-  color: rgba(167,139,250,.5) !important;
+  color: rgba(255,169,181,.5) !important;
   font-family: 'Playfair Display',serif !important;
   flex-shrink: 0 !important;
 }
@@ -76,7 +76,7 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
   padding: .3rem .2rem !important;
   background: transparent !important;
   border: none !important;
-  border-bottom: 1px solid rgba(167,139,250,.25) !important;
+  border-bottom: 1px solid rgba(255,169,181,.25) !important;
   font-family: 'Playfair Display',serif !important;
   font-size: 2.2rem !important;
   font-weight: 300 !important;
@@ -85,7 +85,7 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
   outline: none !important;
   border-radius: 0 !important;
 }
-.offer-input:focus { border-bottom-color: rgba(167,139,250,.6) !important; }
+.offer-input:focus { border-bottom-color: rgba(255,169,181,.6) !important; }
 
 .irisx-toast-stack {
   position: fixed;
@@ -101,11 +101,11 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
 .irisx-toast {
   max-width: 320px;
   padding: 0.9rem 1rem;
-  border: 1px solid rgba(167, 139, 250, 0.18);
-  background: rgba(11, 6, 26, 0.94);
+  border: 1px solid rgba(255,169,181,0.18);
+  background: rgba(30,7,12,0.94);
   color: rgba(255, 255, 255, 0.78);
   backdrop-filter: blur(18px);
-  box-shadow: 0 18px 60px rgba(6, 3, 16, 0.32);
+  box-shadow: 0 18px 60px rgba(20,4,8,0.32);
   font-size: 0.76rem;
   line-height: 1.6;
   pointer-events: auto;
@@ -128,7 +128,7 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
 .irisx-drawer-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(6, 3, 16, 0.82);
+  background: rgba(20,4,8,0.82);
   backdrop-filter: blur(12px);
 }
 
@@ -141,9 +141,9 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
 .irisx-modal-card {
   width: min(520px, calc(100vw - 2rem));
   margin: 6vh auto 0;
-  background: rgba(12, 7, 28, 0.97);
-  border: 1px solid rgba(167, 139, 250, 0.18);
-  box-shadow: 0 30px 100px rgba(6, 3, 16, 0.45);
+  background: rgba(32,8,14,0.97);
+  border: 1px solid rgba(255,169,181,0.18);
+  box-shadow: 0 30px 100px rgba(20,4,8,0.45);
   color: rgba(255, 255, 255, 0.82);
 }
 
@@ -151,9 +151,9 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
   margin-left: auto;
   width: min(430px, 100vw);
   height: 100%;
-  background: rgba(10, 6, 24, 0.98);
-  border-left: 1px solid rgba(167, 139, 250, 0.14);
-  box-shadow: -20px 0 60px rgba(6, 3, 16, 0.35);
+  background: rgba(28,6,10,0.98);
+  border-left: 1px solid rgba(255,169,181,0.14);
+  box-shadow: -20px 0 60px rgba(20,4,8,0.35);
   overflow-y: auto;
 }
 
@@ -175,7 +175,7 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
   font-size: 0.52rem;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: rgba(167, 139, 250, 0.72);
+  color: rgba(255,169,181,0.72);
   margin-bottom: 0.5rem;
 }
 
@@ -194,7 +194,7 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
 }
 
 .irisx-close {
-  border: 1px solid rgba(167, 139, 250, 0.16);
+  border: 1px solid rgba(255,169,181,0.16);
   background: transparent;
   color: rgba(255, 255, 255, 0.55);
   width: 36px;
@@ -276,8 +276,8 @@ body.light-mode .irisx-divider::after {
   display: inline-flex;
   gap: 0.35rem;
   padding: 0.3rem;
-  background: rgba(167, 139, 250, 0.05);
-  border: 1px solid rgba(167, 139, 250, 0.1);
+  background: rgba(255,169,181,0.05);
+  border: 1px solid rgba(255,169,181,0.1);
   margin-bottom: 1.1rem;
 }
 
@@ -294,7 +294,7 @@ body.light-mode .irisx-divider::after {
 }
 
 .irisx-segment button.on {
-  background: rgba(124, 58, 237, 0.18);
+  background: rgba(241,50,79,0.18);
   color: rgba(255, 255, 255, 0.84);
 }
 
@@ -320,8 +320,8 @@ body.light-mode .irisx-divider::after {
 .irisx-field select {
   width: 100%;
   padding: 0.86rem 0.95rem;
-  border: 1px solid rgba(167, 139, 250, 0.12);
-  background: rgba(167, 139, 250, 0.05);
+  border: 1px solid rgba(255,169,181,0.12);
+  background: rgba(255,169,181,0.05);
   color: rgba(255, 255, 255, 0.84);
   font-family: inherit;
   outline: none;
@@ -365,7 +365,7 @@ body.light-mode .irisx-divider::after {
 .irisx-secondary {
   background: transparent;
   color: var(--lavender);
-  border: 1px solid rgba(167, 139, 250, 0.24);
+  border: 1px solid rgba(255,169,181,0.24);
   padding: 0.9rem 1rem;
   font-size: 0.64rem;
   letter-spacing: 0.18em;
@@ -384,8 +384,8 @@ body.light-mode .irisx-divider::after {
 
 .irisx-note,
 .irisx-status {
-  border: 1px solid rgba(167, 139, 250, 0.1);
-  background: rgba(167, 139, 250, 0.04);
+  border: 1px solid rgba(255,169,181,0.1);
+  background: rgba(255,169,181,0.04);
   color: rgba(255, 255, 255, 0.55);
   padding: 0.85rem 0.95rem;
   font-size: 0.72rem;
@@ -432,7 +432,7 @@ body.light-mode .irisx-divider::after {
 
 .irisx-cart-thumb {
   aspect-ratio: 3 / 4;
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(255, 255, 255, 0.03));
+  background: linear-gradient(135deg, rgba(241,50,79,0.12), rgba(255, 255, 255, 0.03));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -459,7 +459,7 @@ body.light-mode .irisx-divider::after {
   font-size: 0.55rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(167, 139, 250, 0.72);
+  color: rgba(255,169,181,0.72);
 }
 
 .irisx-cart-name {
@@ -498,7 +498,7 @@ body.light-mode .irisx-divider::after {
 }
 
 .irisx-empty-state {
-  border: 1px dashed rgba(167, 139, 250, 0.16);
+  border: 1px dashed rgba(255,169,181,0.16);
   padding: 1.2rem;
   color: rgba(255, 255, 255, 0.4);
   font-size: 0.76rem;
@@ -514,7 +514,7 @@ body.light-mode .irisx-divider::after {
 
 .irisx-photo-card {
   background: #fff;
-  border: 1px solid rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(241,50,79,0.12);
   padding: 0.45rem;
 }
 
@@ -538,7 +538,7 @@ body.light-mode .irisx-divider::after {
 .irisx-photo-remove {
   border: 0;
   background: none;
-  color: #8a5cf6;
+  color: #FF627B;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.62rem;
@@ -556,8 +556,8 @@ body.light-mode .irisx-divider::after {
 }
 
 .irisx-account-card {
-  border: 1px solid rgba(167, 139, 250, 0.08);
-  background: rgba(167, 139, 250, 0.04);
+  border: 1px solid rgba(255,169,181,0.08);
+  background: rgba(255,169,181,0.04);
   padding: 1.2rem;
 }
 
@@ -594,7 +594,7 @@ body.light-mode .irisx-divider::after {
 }
 
 .irisx-account-stat {
-  border: 1px solid rgba(167, 139, 250, 0.08);
+  border: 1px solid rgba(255,169,181,0.08);
   background: rgba(255, 255, 255, 0.03);
   padding: 0.95rem;
 }
@@ -623,8 +623,8 @@ body.light-mode .irisx-divider::after {
 }
 
 .irisx-order-card {
-  border: 1px solid rgba(167, 139, 250, 0.08);
-  background: rgba(167, 139, 250, 0.04);
+  border: 1px solid rgba(255,169,181,0.08);
+  background: rgba(255,169,181,0.04);
   padding: 1rem;
 }
 
@@ -657,7 +657,7 @@ body.light-mode .irisx-divider::after {
   gap: 0.55rem;
   margin-top: 0.9rem;
   padding-top: 0.9rem;
-  border-top: 1px solid rgba(167, 139, 250, 0.08);
+  border-top: 1px solid rgba(255,169,181,0.08);
 }
 
 .irisx-order-event {
@@ -707,7 +707,7 @@ body.light-mode .irisx-divider::after {
   font-size: 0.64rem;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: rgba(167, 139, 250, 0.6);
+  color: rgba(255,169,181,0.6);
 }
 
 .irisx-profile-grid {
@@ -718,8 +718,8 @@ body.light-mode .irisx-divider::after {
 
 .irisx-profile-card {
   padding: 1rem;
-  border: 1px solid rgba(167, 139, 250, 0.08);
-  background: rgba(167, 139, 250, 0.04);
+  border: 1px solid rgba(255,169,181,0.08);
+  background: rgba(255,169,181,0.04);
 }
 
 .irisx-profile-card strong {
@@ -755,7 +755,7 @@ body.light-mode .irisx-divider::after {
   aspect-ratio: 4 / 5;
   background: rgba(255, 255, 255, 0.04);
   overflow: hidden;
-  border: 1px solid rgba(167, 139, 250, 0.08);
+  border: 1px solid rgba(255,169,181,0.08);
 }
 
 .irisx-detail-thumbs {
@@ -768,7 +768,7 @@ body.light-mode .irisx-divider::after {
 .irisx-detail-thumb {
   width: 70px;
   height: 88px;
-  border: 1px solid rgba(167, 139, 250, 0.14);
+  border: 1px solid rgba(255,169,181,0.14);
   background: rgba(255, 255, 255, 0.03);
   padding: 0;
   cursor: pointer;
@@ -777,7 +777,7 @@ body.light-mode .irisx-divider::after {
 }
 
 .irisx-detail-thumb.on {
-  border-color: rgba(167, 139, 250, 0.44);
+  border-color: rgba(255,169,181,0.44);
 }
 
 .irisx-detail-thumb img {
@@ -818,7 +818,7 @@ body.light-mode .irisx-divider::after {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1px solid rgba(167,139,250,.15);
+  border: 1px solid rgba(255,169,181,.15);
   background: transparent;
   color: rgba(255,255,255,.5);
   cursor: pointer;
@@ -828,7 +828,7 @@ body.light-mode .irisx-divider::after {
 .det-icon-btn:hover {
   border-color: var(--lavender);
   color: var(--lavender);
-  box-shadow: 0 0 14px rgba(124,58,237,.15);
+  box-shadow: 0 0 14px rgba(241,50,79,.15);
   transform: translateY(-1px);
 }
 .det-icon-btn:active {
@@ -838,7 +838,7 @@ body.light-mode .irisx-divider::after {
 }
 .det-icon-btn.det-icon-active {
   color: var(--lavender);
-  border-color: rgba(167,139,250,.35);
+  border-color: rgba(255,169,181,.35);
 }
 .det-icon-btn svg {
   pointer-events: none;
@@ -850,8 +850,8 @@ body.light-mode .irisx-divider::after {
 }
 
 .irisx-checkout-summary {
-  border: 1px solid rgba(167, 139, 250, 0.1);
-  background: rgba(167, 139, 250, 0.05);
+  border: 1px solid rgba(255,169,181,0.1);
+  background: rgba(255,169,181,0.05);
   padding: 1rem;
 }
 
@@ -952,7 +952,7 @@ body.light-mode .irisx-divider::after {
   right: 0.8rem;
   bottom: 0.2rem;
   height: 1px;
-  background: rgba(167, 139, 250, 0.55);
+  background: rgba(255,169,181,0.55);
 }
 
 .pi-tag.sold {
@@ -1020,10 +1020,10 @@ body.light-mode .irisx-divider::after {
   z-index: 0;
   overflow: hidden;
   background:
-    radial-gradient(ellipse 80% 60% at 15% 85%, rgba(124, 58, 237, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 15% 85%, rgba(241,50,79,0.18) 0%, transparent 60%),
     radial-gradient(ellipse 70% 55% at 85% 15%, rgba(196, 160, 106, 0.1) 0%, transparent 50%),
     radial-gradient(ellipse 50% 40% at 50% 50%, rgba(80, 30, 160, 0.08) 0%, transparent 70%),
-    linear-gradient(160deg, #07030f 0%, #0e0624 30%, #130935 55%, #0a041e 100%);
+    linear-gradient(160deg, #120406 0%, #1C060A 30%, #2A0A11 55%, #160509 100%);
   animation: irisHeroShift 18s ease-in-out infinite alternate;
 }
 
@@ -1084,7 +1084,7 @@ body.light-mode .irisx-divider::after {
 .irisx-home-side,
 .irisx-home-card,
 .irisx-home-story {
-  border: 1px solid rgba(167, 139, 250, 0.08);
+  border: 1px solid rgba(255,169,181,0.08);
   background: linear-gradient(180deg, rgba(17, 8, 38, 0.94), rgba(10, 5, 24, 0.96));
 }
 
@@ -1147,7 +1147,7 @@ body.light-mode .irisx-divider::after {
 .irisx-home-action.secondary {
   background: transparent;
   color: var(--lavender);
-  border: 1px solid rgba(167, 139, 250, 0.24);
+  border: 1px solid rgba(255,169,181,0.24);
 }
 
 .irisx-home-side {
@@ -1163,7 +1163,7 @@ body.light-mode .irisx-divider::after {
 
 .irisx-home-card {
   padding: 1.2rem 1.1rem;
-  border-left: 2px solid rgba(167, 139, 250, 0.15);
+  border-left: 2px solid rgba(255,169,181,0.15);
   background: linear-gradient(180deg, rgba(17, 8, 38, 0.7), rgba(10, 5, 24, 0.8));
   border-top: none;
   border-right: none;
@@ -1241,7 +1241,7 @@ body.light-mode .irisx-divider::after {
 }
 
 .irisx-home-column {
-  border: 1px solid rgba(167, 139, 250, 0.08);
+  border: 1px solid rgba(255,169,181,0.08);
   background: linear-gradient(180deg, rgba(17, 8, 38, 0.92), rgba(10, 5, 24, 0.96));
   padding: 1.6rem;
 }
@@ -1329,7 +1329,7 @@ body.light-mode .irisx-cart-name,
 body.light-mode .irisx-checkout-row.total,
 body.light-mode .irisx-cart-row.total,
 body.light-mode .irisx-summary-item strong {
-  color: #1a0a35;
+  color: #2A0C12;
 }
 
 body.light-mode .irisx-subtitle,
@@ -1349,9 +1349,9 @@ body.light-mode .irisx-profile-card span {
 body.light-mode .irisx-field input,
 body.light-mode .irisx-field textarea,
 body.light-mode .irisx-field select {
-  background: rgba(124, 58, 237, 0.04);
-  border-color: rgba(124, 58, 237, 0.12);
-  color: #1a0a35;
+  background: rgba(241,50,79,0.04);
+  border-color: rgba(241,50,79,0.12);
+  color: #2A0C12;
 }
 
 body.light-mode .irisx-empty-state,
@@ -1359,8 +1359,8 @@ body.light-mode .irisx-note,
 body.light-mode .irisx-status,
 body.light-mode .irisx-checkout-summary,
 body.light-mode .irisx-profile-card {
-  border-color: rgba(124, 58, 237, 0.1);
-  background: rgba(124, 58, 237, 0.04);
+  border-color: rgba(241,50,79,0.1);
+  background: rgba(241,50,79,0.04);
 }
 
 body.light-mode .irisx-photo-card {
@@ -1370,15 +1370,15 @@ body.light-mode .irisx-photo-card {
 body.light-mode .irisx-account-card,
 body.light-mode .irisx-order-card,
 body.light-mode .irisx-account-stat {
-  border-color: rgba(124, 58, 237, 0.1);
-  background: rgba(124, 58, 237, 0.04);
+  border-color: rgba(241,50,79,0.1);
+  background: rgba(241,50,79,0.04);
 }
 
 body.light-mode .irisx-account-card h3,
 body.light-mode .irisx-order-head strong,
 body.light-mode .irisx-account-stat strong,
 body.light-mode .irisx-order-event strong {
-  color: #1a0a35;
+  color: #2A0C12;
 }
 
 body.light-mode .irisx-account-card p,
@@ -1390,11 +1390,11 @@ body.light-mode .irisx-order-event span {
 }
 
 body.light-mode .tn-btn.active {
-  color: #1a0a35;
+  color: #2A0C12;
 }
 
 body.light-mode .tn-btn.active::after {
-  background: rgba(124, 58, 237, 0.48);
+  background: rgba(241,50,79,0.48);
 }
 
 body.light-mode .irisx-home-copy,
@@ -1403,7 +1403,7 @@ body.light-mode .irisx-home-card,
 body.light-mode .irisx-home-story,
 body.light-mode .irisx-home-column {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 245, 252, 0.98));
-  border-color: rgba(124, 58, 237, 0.1);
+  border-color: rgba(241,50,79,0.1);
 }
 
 body.light-mode .irisx-home-title,
@@ -1411,7 +1411,7 @@ body.light-mode .irisx-home-section-title,
 body.light-mode .irisx-home-column h3,
 body.light-mode .irisx-home-card strong,
 body.light-mode .irisx-home-strip strong {
-  color: #1a0a35;
+  color: #2A0C12;
 }
 
 body.light-mode .irisx-home-text,
@@ -1609,8 +1609,8 @@ body.light-mode .irisx-home-strip span {
    GOLD INTERACTION SYSTEM (global)
 ═══════════════════════════════════════ */
 .irisx-home-action.primary:hover {
-  background: linear-gradient(135deg, #7C3AED, #9D5CF5);
-  box-shadow: 0 4px 24px rgba(124,58,237,.35);
+  background: linear-gradient(135deg, #F1324F, #FF627B);
+  box-shadow: 0 4px 24px rgba(241,50,79,.35);
 }
 .irisx-home-action.secondary:hover {
   color: var(--gold);
@@ -1643,8 +1643,8 @@ body.light-mode .irisx-home-strip span {
 }
 /* VENDI button gold on hover */
 .topnav .tn-primary:hover {
-  background: linear-gradient(135deg, #9D5CF5, #7C3AED) !important;
-  box-shadow: 0 0 24px rgba(124,58,237,.4) !important;
+  background: linear-gradient(135deg, #FF627B, #F1324F) !important;
+  box-shadow: 0 0 24px rgba(241,50,79,.4) !important;
 }
 
 .irisx-modal-card--wide {
@@ -1665,8 +1665,8 @@ body.light-mode .irisx-home-strip span {
 .irisx-workspace-sidebar,
 .irisx-workspace-main,
 .irisx-workspace-card {
-  border: 1px solid rgba(167, 139, 250, 0.12);
-  background: rgba(12, 7, 28, 0.62);
+  border: 1px solid rgba(255,169,181,0.12);
+  background: rgba(32,8,14,0.62);
   backdrop-filter: blur(18px);
 }
 
@@ -1685,7 +1685,7 @@ body.light-mode .irisx-home-strip span {
   align-items: center;
   gap: 0.9rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(167, 139, 250, 0.12);
+  border-bottom: 1px solid rgba(255,169,181,0.12);
 }
 
 .irisx-user-avatar {
@@ -1694,7 +1694,7 @@ body.light-mode .irisx-home-strip span {
   border-radius: 999px;
   display: grid;
   place-items: center;
-  background: rgba(124, 58, 237, 0.2);
+  background: rgba(241,50,79,0.2);
   color: #fff;
   font-size: 1.1rem;
   letter-spacing: 0.08em;
@@ -1742,7 +1742,7 @@ body.light-mode .irisx-home-strip span {
 .irisx-notification-item,
 .irisx-policy-card,
 .irisx-inline-card--button {
-  border: 1px solid rgba(167, 139, 250, 0.12);
+  border: 1px solid rgba(255,169,181,0.12);
   background: rgba(255, 255, 255, 0.02);
   color: rgba(255, 255, 255, 0.74);
   cursor: pointer;
@@ -1759,9 +1759,9 @@ body.light-mode .irisx-home-strip span {
 
 .irisx-area-btn.on,
 .irisx-section-tab.on {
-  background: rgba(124, 58, 237, 0.16);
+  background: rgba(241,50,79,0.16);
   color: rgba(255, 255, 255, 0.92);
-  border-color: rgba(167, 139, 250, 0.24);
+  border-color: rgba(255,169,181,0.24);
 }
 
 .irisx-sidebar-menu,
@@ -1797,7 +1797,7 @@ body.light-mode .irisx-home-strip span {
   width: 100%;
   padding: 0.82rem 0.92rem;
   text-align: left;
-  border: 1px solid rgba(167, 139, 250, 0.1);
+  border: 1px solid rgba(255,169,181,0.1);
   background: rgba(255, 255, 255, 0.025);
   color: rgba(255, 255, 255, 0.74);
   cursor: pointer;
@@ -1825,8 +1825,8 @@ body.light-mode .irisx-home-strip span {
 .irisx-sidebar-link em {
   min-width: 24px;
   padding: 0.18rem 0.45rem;
-  border: 1px solid rgba(167, 139, 250, 0.16);
-  background: rgba(124, 58, 237, 0.16);
+  border: 1px solid rgba(255,169,181,0.16);
+  background: rgba(241,50,79,0.16);
   color: rgba(255, 255, 255, 0.92);
   font-size: 0.62rem;
   font-style: normal;
@@ -1835,7 +1835,7 @@ body.light-mode .irisx-home-strip span {
 
 .irisx-sidebar-link.on {
   border-color: rgba(196, 160, 106, 0.28);
-  background: linear-gradient(180deg, rgba(124, 58, 237, 0.16), rgba(255, 255, 255, 0.03));
+  background: linear-gradient(180deg, rgba(241,50,79,0.16), rgba(255, 255, 255, 0.03));
   box-shadow: 0 0 24px rgba(123, 47, 190, 0.12);
 }
 
@@ -1853,7 +1853,7 @@ body.light-mode .irisx-home-strip span {
   gap: 0.45rem;
   min-height: 132px;
   padding: 1.15rem 1rem 1rem;
-  border: 1px solid rgba(167, 139, 250, 0.12);
+  border: 1px solid rgba(255,169,181,0.12);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
   text-align: left;
   cursor: pointer;
@@ -1925,7 +1925,7 @@ body.light-mode .irisx-home-strip span {
 
 .irisx-summary-card {
   padding: 1rem;
-  border: 1px solid rgba(167, 139, 250, 0.12);
+  border: 1px solid rgba(255,169,181,0.12);
   background: rgba(255, 255, 255, 0.03);
   display: grid;
   gap: 0.3rem;
@@ -2003,7 +2003,7 @@ body.light-mode .irisx-home-strip span {
   display: flex;
   align-items: center;
   padding: 0.75rem 0.9rem;
-  border: 1px solid rgba(167, 139, 250, 0.12);
+  border: 1px solid rgba(255,169,181,0.12);
   background: rgba(255, 255, 255, 0.02);
   color: rgba(255, 255, 255, 0.74);
   font-size: 0.84rem;
@@ -2021,7 +2021,7 @@ body.light-mode .irisx-home-strip span {
   min-width: 24px;
   padding: 0.22rem 0.5rem;
   border-radius: 999px;
-  background: rgba(124, 58, 237, 0.2);
+  background: rgba(241,50,79,0.2);
   color: rgba(255, 255, 255, 0.86);
   font-size: 0.62rem;
   letter-spacing: 0.08em;
@@ -2047,7 +2047,7 @@ body.light-mode .irisx-home-strip span {
 
 .irisx-order-panel {
   padding: 0.95rem;
-  border: 1px solid rgba(167, 139, 250, 0.1);
+  border: 1px solid rgba(255,169,181,0.1);
   background: rgba(255, 255, 255, 0.02);
   display: grid;
   gap: 0.65rem;
@@ -2084,7 +2084,7 @@ body.light-mode .irisx-home-strip span {
 }
 
 .irisx-notification-item.unread {
-  background: rgba(124, 58, 237, 0.1);
+  background: rgba(241,50,79,0.1);
 }
 
 .irisx-notification-item strong {
@@ -2164,7 +2164,7 @@ body.light-mode .irisx-home-strip span {
 }
 
 .irisx-chat-scope-tab {
-  border: 1px solid rgba(167, 139, 250, 0.12);
+  border: 1px solid rgba(255,169,181,0.12);
   background: rgba(255, 255, 255, 0.02);
   color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
@@ -2184,9 +2184,9 @@ body.light-mode .irisx-home-strip span {
 }
 
 .irisx-chat-scope-tab.on {
-  background: rgba(124, 58, 237, 0.16);
+  background: rgba(241,50,79,0.16);
   color: rgba(255, 255, 255, 0.92);
-  border-color: rgba(167, 139, 250, 0.24);
+  border-color: rgba(255,169,181,0.24);
 }
 
 .irisx-chat-role-line {
@@ -2203,8 +2203,8 @@ body.light-mode .irisx-home-strip span {
   min-width: 58px;
   padding: 0.18rem 0.42rem;
   border-radius: 999px;
-  border: 1px solid rgba(167, 139, 250, 0.18);
-  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(255,169,181,0.18);
+  background: rgba(241,50,79,0.12);
   color: rgba(255, 255, 255, 0.82);
   font-size: 0.55rem;
   letter-spacing: 0.1em;
@@ -2213,7 +2213,7 @@ body.light-mode .irisx-home-strip span {
 
 .irisx-chat-attach {
   width: 40px;
-  border: 1px solid rgba(167, 139, 250, 0.12);
+  border: 1px solid rgba(255,169,181,0.12);
   background: rgba(255, 255, 255, 0.03);
   color: rgba(255, 255, 255, 0.74);
   cursor: pointer;
@@ -2232,19 +2232,19 @@ body.light-mode .irisx-home-strip span {
 
 .irisx-checkout-step {
   padding: 0.65rem 0.75rem;
-  border: 1px solid rgba(167, 139, 250, 0.15);
+  border: 1px solid rgba(255,169,181,0.15);
   border-radius: 2px;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(124, 58, 237, 0.04);
+  background: rgba(241,50,79,0.04);
 }
 
 .irisx-checkout-step span {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: rgba(167, 139, 250, 0.15);
+  background: rgba(255,169,181,0.15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2252,8 +2252,8 @@ body.light-mode .irisx-home-strip span {
 }
 
 .irisx-checkout-step.on {
-  border-color: rgba(167, 139, 250, 0.5);
-  background: rgba(124, 58, 237, 0.14);
+  border-color: rgba(255,169,181,0.5);
+  background: rgba(241,50,79,0.14);
 }
 
 .irisx-checkout-step.on span {
@@ -2280,8 +2280,8 @@ body.light-mode .irisx-home-strip span {
 
 .irisx-checkout-step.on,
 .irisx-checkout-step.done {
-  border-color: rgba(167, 139, 250, 0.26);
-  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(255,169,181,0.26);
+  background: rgba(241,50,79,0.12);
 }
 
 .irisx-checkout-shell {
@@ -2292,7 +2292,7 @@ body.light-mode .irisx-home-strip span {
 .irisx-checkout-main,
 .irisx-checkout-summary,
 .irisx-state-panel {
-  border: 1px solid rgba(167, 139, 250, 0.12);
+  border: 1px solid rgba(255,169,181,0.12);
   background: rgba(255, 255, 255, 0.03);
   padding: 1rem;
 }
@@ -2368,7 +2368,7 @@ body.light-mode .irisx-checkout-main,
 body.light-mode .irisx-checkout-summary,
 body.light-mode .irisx-state-panel {
   background: rgba(255, 255, 255, 0.92);
-  border-color: rgba(124, 58, 237, 0.12);
+  border-color: rgba(241,50,79,0.12);
 }
 
 body.light-mode .irisx-user-meta strong,
@@ -2405,9 +2405,9 @@ body.light-mode .irisx-chat-product-card,
 body.light-mode .irisx-notification-item,
 body.light-mode .irisx-policy-card,
 body.light-mode .irisx-inline-card--button {
-  background: rgba(124, 58, 237, 0.03);
+  background: rgba(241,50,79,0.03);
   color: rgba(26, 10, 53, 0.75);
-  border-color: rgba(124, 58, 237, 0.12);
+  border-color: rgba(241,50,79,0.12);
 }
 
 body.light-mode .irisx-nav-group-title,
@@ -2417,20 +2417,20 @@ body.light-mode .irisx-chat-scope-tab em {
 }
 
 body.light-mode .irisx-relist-block {
-  background: linear-gradient(180deg, rgba(196, 160, 106, 0.08), rgba(124, 58, 237, 0.02));
+  background: linear-gradient(180deg, rgba(196, 160, 106, 0.08), rgba(241,50,79,0.02));
   border-color: rgba(196, 160, 106, 0.24);
 }
 
 body.light-mode .irisx-chat-scope-tab,
 body.light-mode .irisx-static-field {
-  background: rgba(124, 58, 237, 0.03);
+  background: rgba(241,50,79,0.03);
   color: rgba(26, 10, 53, 0.75);
-  border-color: rgba(124, 58, 237, 0.12);
+  border-color: rgba(241,50,79,0.12);
 }
 
 body.light-mode .irisx-chat-role-badge {
-  border-color: rgba(124, 58, 237, 0.18);
-  background: rgba(124, 58, 237, 0.08);
+  border-color: rgba(241,50,79,0.18);
+  background: rgba(241,50,79,0.08);
   color: rgba(26, 10, 53, 0.76);
 }
 
@@ -2476,8 +2476,8 @@ body.light-mode .irisx-chat-role-badge {
 .sell-form .irisx-note,
 .sell-form .irisx-status {
   background: #fff;
-  border-color: rgba(124, 58, 237, 0.12);
-  color: #6f618a;
+  border-color: rgba(241,50,79,0.12);
+  color: #826974;
 }
 
 #irisxSellTaxonomyHint,
@@ -2547,7 +2547,7 @@ body.light-mode .irisx-chat-role-badge {
   display: grid;
   gap: 0.24rem;
   padding: 0.75rem 0 0.55rem;
-  border-top: 1px solid rgba(167, 139, 250, 0.12);
+  border-top: 1px solid rgba(255,169,181,0.12);
 }
 
 .det-measure-item span {
@@ -2573,7 +2573,7 @@ body.light-mode .irisx-chat-role-badge {
   align-items: center;
   gap: 0.7rem;
   font-size: 0.8rem;
-  color: #1A0A35;
+  color: #2A0C12;
   margin: 0.2rem 0 1rem;
 }
 
@@ -2627,7 +2627,7 @@ body.light-mode .irisx-chat-role-badge {
   border: 1px solid rgba(20, 9, 31, 0.08);
   border-radius: 30px;
   box-shadow: 0 36px 80px rgba(7, 3, 16, 0.3);
-  color: #14091f;
+  color: #20080C;
   overflow: hidden;
 }
 
@@ -3301,7 +3301,7 @@ button:not([disabled]):hover,
 .offer-send:hover {
   background: linear-gradient(135deg, rgba(214, 183, 114, 0.95), rgba(240, 221, 176, 0.95)) !important;
   border-color: rgba(214, 183, 114, 0.5) !important;
-  color: #14091f !important;
+  color: #20080C !important;
   box-shadow: 0 14px 34px rgba(196, 160, 106, 0.22) !important;
   filter: none !important;
 }
@@ -3330,7 +3330,7 @@ body.light-mode .det-measure-item strong {
 }
 
 body.light-mode .det-measure-item {
-  border-top-color: rgba(124, 58, 237, 0.12);
+  border-top-color: rgba(241,50,79,0.12);
 }
 
 body.light-mode .det-measure-item span,
@@ -3352,7 +3352,7 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 /* ── Nav buttons: violet glow on hover ── */
 .tn-btn:hover {
   color: var(--lavender) !important;
-  text-shadow: 0 0 18px rgba(167,139,250,.45);
+  text-shadow: 0 0 18px rgba(255,169,181,.45);
 }
 .tn-btn:active {
   color: var(--gold) !important;
@@ -3362,9 +3362,9 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 
 /* ── Sell nav button ── */
 .tn-sell:hover {
-  background: rgba(124,58,237,.38) !important;
-  border-color: rgba(167,139,250,.55) !important;
-  box-shadow: 0 0 20px rgba(124,58,237,.28) !important;
+  background: rgba(241,50,79,.38) !important;
+  border-color: rgba(255,169,181,.55) !important;
+  box-shadow: 0 0 20px rgba(241,50,79,.28) !important;
 }
 .tn-sell:active {
   background: rgba(196,160,106,.22) !important;
@@ -3374,7 +3374,7 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 /* ── Home CTA buttons ── */
 .irisx-home-action.primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(124,58,237,.45), 0 0 40px rgba(124,58,237,.2) !important;
+  box-shadow: 0 8px 32px rgba(241,50,79,.45), 0 0 40px rgba(241,50,79,.2) !important;
 }
 .irisx-home-action.primary:active {
   background: var(--gold) !important;
@@ -3395,7 +3395,7 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 .irisx-primary:hover,
 .det-buy:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(124,58,237,.5), 0 0 50px rgba(124,58,237,.18) !important;
+  box-shadow: 0 8px 32px rgba(241,50,79,.5), 0 0 50px rgba(241,50,79,.18) !important;
   filter: brightness(1.08);
 }
 .irisx-primary:active,
@@ -3410,9 +3410,9 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 .irisx-secondary:hover,
 .det-offer:hover,
 .det-fav:hover {
-  border-color: rgba(167,139,250,.45) !important;
+  border-color: rgba(255,169,181,.45) !important;
   color: var(--lavender) !important;
-  box-shadow: 0 0 20px rgba(124,58,237,.15) !important;
+  box-shadow: 0 0 20px rgba(241,50,79,.15) !important;
   transform: translateY(-1px);
 }
 .irisx-secondary:active,
@@ -3472,7 +3472,7 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 .p-brand {
   font-size: .46rem !important;
   letter-spacing: .26em !important;
-  color: rgba(167,139,250,.55) !important;
+  color: rgba(255,169,181,.55) !important;
 }
 .p-name {
   font-family: 'Playfair Display', serif !important;
@@ -3494,7 +3494,7 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 
 /* ── Sort buttons ── */
 .sort-btn:hover {
-  border-color: rgba(167,139,250,.3) !important;
+  border-color: rgba(255,169,181,.3) !important;
   color: var(--lavender) !important;
 }
 .sort-btn:active {
@@ -3514,9 +3514,9 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 
 /* ── Filter checkboxes ── */
 .f-opt.on .f-check {
-  background: linear-gradient(135deg, #7C3AED, #9D5CF5) !important;
+  background: linear-gradient(135deg, #F1324F, #FF627B) !important;
   border-color: transparent !important;
-  box-shadow: 0 0 10px rgba(124,58,237,.3) !important;
+  box-shadow: 0 0 10px rgba(241,50,79,.3) !important;
 }
 
 /* ── Auth/modal buttons ── */
@@ -3590,7 +3590,7 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 .topnav .tn-primary:hover {
   background: linear-gradient(135deg, rgba(214, 183, 114, 0.96), rgba(242, 224, 185, 0.96)) !important;
   border-color: rgba(214, 183, 114, 0.52) !important;
-  color: #14091f !important;
+  color: #20080C !important;
   box-shadow: 0 14px 34px rgba(196, 160, 106, 0.22) !important;
 }
 
@@ -3620,7 +3620,7 @@ body.light-mode .det-buy:hover,
 body.light-mode .sell-submit:hover,
 body.light-mode .offer-send:hover,
 body.light-mode .topnav .tn-primary:hover {
-  color: #14091f !important;
+  color: #20080C !important;
 }
 
 body.light-mode .irisx-secondary:hover,
@@ -3668,7 +3668,7 @@ body.light-mode .notif-bell:hover {
   justify-content: space-between;
   gap: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(167, 139, 250, 0.08);
+  border-bottom: 1px solid rgba(255,169,181,0.08);
 }
 
 .irisx-user-card {
@@ -3685,7 +3685,7 @@ body.light-mode .notif-bell:hover {
 
 .irisx-sidebar-group + .irisx-sidebar-group {
   padding-top: 0.8rem;
-  border-top: 1px solid rgba(167, 139, 250, 0.08);
+  border-top: 1px solid rgba(255,169,181,0.08);
 }
 
 .irisx-sidebar-link {
@@ -3721,8 +3721,8 @@ body.light-mode .notif-bell:hover {
 
 .irisx-seller-hero,
 .irisx-seller-content {
-  border: 1px solid rgba(167, 139, 250, 0.12);
-  background: rgba(12, 7, 28, 0.62);
+  border: 1px solid rgba(255,169,181,0.12);
+  background: rgba(32,8,14,0.62);
   backdrop-filter: blur(18px);
 }
 
@@ -3749,7 +3749,7 @@ body.light-mode .notif-bell:hover {
   border-radius: 999px;
   display: grid;
   place-items: center;
-  background: rgba(124, 58, 237, 0.16);
+  background: rgba(241,50,79,0.16);
   color: rgba(255, 255, 255, 0.92);
   font-size: 1.8rem;
 }
@@ -3816,7 +3816,7 @@ body.light-mode .notif-bell:hover {
 
 .irisx-seller-review-card {
   padding: 1rem 1.05rem;
-  border: 1px solid rgba(167, 139, 250, 0.08);
+  border: 1px solid rgba(255,169,181,0.08);
   background: rgba(255, 255, 255, 0.03);
   display: grid;
   gap: 0.45rem;
@@ -3859,7 +3859,7 @@ body.light-mode .notif-bell:hover {
 .chat-layout {
   width: min(1320px, calc(100vw - 2.5rem));
   margin: 0 auto 1.5rem;
-  border: 1px solid rgba(167, 139, 250, 0.1);
+  border: 1px solid rgba(255,169,181,0.1);
   background: rgba(8, 6, 18, 0.54);
   backdrop-filter: blur(18px);
 }
@@ -3892,14 +3892,14 @@ body.light-mode .notif-bell:hover {
 
 .cl-item:hover,
 .cl-item.on {
-  background: linear-gradient(180deg, rgba(124, 58, 237, 0.12), rgba(255, 255, 255, 0.02));
+  background: linear-gradient(180deg, rgba(241,50,79,0.12), rgba(255, 255, 255, 0.02));
 }
 
 .cl-av {
   width: 44px;
   height: 44px;
-  border: 1px solid rgba(167, 139, 250, 0.12);
-  background: rgba(124, 58, 237, 0.14);
+  border: 1px solid rgba(255,169,181,0.12);
+  background: rgba(241,50,79,0.14);
   font-size: 1rem;
 }
 
@@ -4062,7 +4062,7 @@ body.light-mode .notif-bell:hover {
 
 .irisx-detail-action-stack {
   padding: 1rem 1.05rem;
-  border: 1px solid rgba(167, 139, 250, 0.08);
+  border: 1px solid rgba(255,169,181,0.08);
   background: rgba(255, 255, 255, 0.025);
 }
 
@@ -4251,7 +4251,7 @@ body.irisx-luxury .notif-badge {
   max-height: calc(100vh - 128px);
   overflow: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(167, 139, 250, 0.3) transparent;
+  scrollbar-color: rgba(255,169,181,0.3) transparent;
 }
 
 .irisx-workspace-sidebar::-webkit-scrollbar {
@@ -4259,7 +4259,7 @@ body.irisx-luxury .notif-badge {
 }
 
 .irisx-workspace-sidebar::-webkit-scrollbar-thumb {
-  background: rgba(167, 139, 250, 0.24);
+  background: rgba(255,169,181,0.24);
 }
 
 .irisx-workspace-sidebar::-webkit-scrollbar-track {
@@ -4314,7 +4314,7 @@ body.irisx-luxury .topnav {
   grid-template-rows: var(--iris-nav-height) var(--iris-nav-sub-height);
   padding: 0 24px;
   border-bottom: 1px solid rgba(255,255,255,.06);
-  background: rgba(6,3,16,.86);
+  background: rgba(20,4,8,.86);
   backdrop-filter: blur(20px);
 }
 
@@ -4453,7 +4453,7 @@ body.irisx-luxury .tn-avatar-dot {
   width: 24px;
   height: 24px;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(124,58,237,.3), rgba(196,160,106,.22));
+  background: linear-gradient(135deg, rgba(241,50,79,.3), rgba(196,160,106,.22));
   color: #fff;
   font-size: .68rem;
   font-weight: 600;
@@ -4464,8 +4464,8 @@ body.irisx-luxury .tn-primary {
   min-width: 110px;
   height: 42px;
   padding: 0 18px;
-  border: 1px solid rgba(124,58,237,.34);
-  background: linear-gradient(135deg, rgba(124,58,237,.92), rgba(90,44,170,.9));
+  border: 1px solid rgba(241,50,79,.34);
+  background: linear-gradient(135deg, rgba(241,50,79,.92), rgba(193,33,62,.9));
   color: #fff;
   font-size: .72rem;
   letter-spacing: .22em;
@@ -4500,7 +4500,7 @@ body.irisx-luxury .tn-profile-menu {
   width: min(260px, calc(100vw - 32px));
   padding: 14px;
   border: 1px solid rgba(255,255,255,.08);
-  background: rgba(12,7,28,.96);
+  background: rgba(32,8,14,.96);
   backdrop-filter: blur(18px);
   box-shadow: 0 24px 80px rgba(0,0,0,.38);
   opacity: 0;
@@ -4554,7 +4554,7 @@ body.irisx-luxury .tn-mobile-menu {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  background: rgba(6,3,16,.76);
+  background: rgba(20,4,8,.76);
   backdrop-filter: blur(12px);
   transition: opacity .22s ease, visibility .22s ease;
 }
@@ -4575,7 +4575,7 @@ body.irisx-luxury .tn-mobile-menu__panel {
   margin-left: auto;
   padding: 22px 18px 24px;
   border-left: 1px solid rgba(255,255,255,.08);
-  background: rgba(12,7,28,.98);
+  background: rgba(32,8,14,.98);
   display: grid;
   grid-template-rows: auto 1fr;
   gap: 18px;
@@ -4620,8 +4620,8 @@ body.irisx-luxury .tn-mobile-link {
 }
 
 body.irisx-luxury .tn-mobile-link--primary {
-  border-color: rgba(124,58,237,.3);
-  background: linear-gradient(135deg, rgba(124,58,237,.9), rgba(90,44,170,.88));
+  border-color: rgba(241,50,79,.3);
+  background: linear-gradient(135deg, rgba(241,50,79,.9), rgba(193,33,62,.88));
   color: #fff;
 }
 
@@ -4727,7 +4727,7 @@ body.irisx-luxury .pc-heart {
   width: 34px;
   height: 34px;
   border: 1px solid rgba(255,255,255,.08);
-  background: rgba(6,3,16,.65);
+  background: rgba(20,4,8,.65);
   color: rgba(255,255,255,.82);
   backdrop-filter: blur(8px);
 }
@@ -4769,13 +4769,13 @@ body.irisx-luxury .chat-layout {
 
 body.irisx-luxury .chat-thread,
 body.irisx-luxury .chat-list {
-  background: rgba(12,7,28,.58);
+  background: rgba(32,8,14,.58);
   border: 1px solid rgba(255,255,255,.06);
 }
 
 body.irisx-luxury .chat-msg.me {
-  background: rgba(124,58,237,.18);
-  border-color: rgba(124,58,237,.26);
+  background: rgba(241,50,79,.18);
+  border-color: rgba(241,50,79,.26);
 }
 
 body.irisx-luxury .offer-box {
@@ -4892,7 +4892,7 @@ body.irisx-luxury .irisx-guest-shell {
   margin: 0 auto;
   padding: 28px;
   border: 1px solid rgba(255,255,255,.06);
-  background: rgba(12,7,28,.58);
+  background: rgba(32,8,14,.58);
   backdrop-filter: blur(18px);
 }
 
@@ -4981,7 +4981,7 @@ body.irisx-luxury .irisx-cookie-banner {
   gap: 18px;
   padding: 18px 20px;
   border: 1px solid rgba(255,255,255,.08);
-  background: rgba(10,6,24,.96);
+  background: rgba(28,6,10,.96);
   color: rgba(255,255,255,.82);
   backdrop-filter: blur(18px);
   box-shadow: 0 24px 70px rgba(0,0,0,.3);
@@ -5121,7 +5121,7 @@ body.irisx-luxury .sell-side {
     max-height: none;
     width: 100%;
     padding: 84px 18px 24px;
-    background: rgba(6,3,16,.98);
+    background: rgba(20,4,8,.98);
     transform: translateY(100%);
     transition: transform .28s ease;
   }
@@ -5467,7 +5467,7 @@ body.irisx-luxury .tn-locale-menu {
   width: min(240px, calc(100vw - 32px));
   padding: 10px;
   border: 1px solid rgba(255,255,255,.08);
-  background: rgba(12,7,28,.98);
+  background: rgba(32,8,14,.98);
   backdrop-filter: blur(18px);
   box-shadow: 0 30px 90px rgba(0,0,0,.42);
   opacity: 0;
@@ -5622,7 +5622,7 @@ body.irisx-luxury .irisx-detail-nav {
   width: 46px;
   height: 46px;
   border: 1px solid rgba(255,255,255,.1);
-  background: rgba(6,3,16,.62);
+  background: rgba(20,4,8,.62);
   color: rgba(245,240,235,.92);
   font-size: 1.8rem;
   line-height: 1;
@@ -6139,14 +6139,14 @@ body.irisx-luxury .irisx-filter-chip.is-active{
 
 body.irisx-luxury .irisx-filter-chip--trust{
   min-height:34px;
-  border-color:rgba(124,58,237,.26);
-  background:rgba(124,58,237,.1);
+  border-color:rgba(241,50,79,.26);
+  background:rgba(241,50,79,.1);
   color:rgba(245,240,235,.94);
 }
 
 body.irisx-luxury .irisx-filter-chip--trust.is-active{
   border-color:rgba(196,160,106,.4);
-  background:linear-gradient(135deg, rgba(124,58,237,.16), rgba(196,160,106,.12));
+  background:linear-gradient(135deg, rgba(241,50,79,.16), rgba(196,160,106,.12));
 }
 
 body.irisx-luxury .irisx-filter-price-row{
@@ -6207,7 +6207,7 @@ body.irisx-luxury .pc-trust-badge{
   display:inline-flex;
   align-items:center;
   border:1px solid rgba(196,160,106,.32);
-  background:rgba(6,3,16,.72);
+  background:rgba(20,4,8,.72);
   color:rgba(245,240,235,.94);
   font-size:.62rem;
   letter-spacing:.16em;
@@ -6351,7 +6351,7 @@ body.irisx-luxury .irisx-badge--warning{
 }
 
 body.irisx-luxury .irisx-inline-card--trust{
-  border-color:rgba(124,58,237,.24);
+  border-color:rgba(241,50,79,.24);
 }
 
 body.irisx-luxury .irisx-detail-secondary-actions--sold{
@@ -6546,14 +6546,14 @@ body.irisx-luxury .tn-logo{
 
 body.irisx-luxury .tn-logo em{
   display:inline-block;
-  background:linear-gradient(115deg, #7c3aed 0%, #b48cff 24%, #d6b27a 52%, #8b5cf6 78%, #7c3aed 100%);
+  background:linear-gradient(115deg, #F1324F 0%, #FF9BAA 24%, #d6b27a 52%, #FF627B 78%, #F1324F 100%);
   background-size:240% 240%;
   -webkit-background-clip:text;
   background-clip:text;
   color:transparent;
   -webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 18px rgba(124,58,237,.16));
-  text-shadow:0 0 30px rgba(124,58,237,.18);
+  filter:drop-shadow(0 0 18px rgba(241,50,79,.16));
+  text-shadow:0 0 30px rgba(241,50,79,.18);
   animation:irisTopbarLogoShift 4.8s linear infinite;
 }
 
@@ -6639,8 +6639,8 @@ body.irisx-luxury .tn-support-btn{
 }
 
 body.irisx-luxury .tn-support-btn:hover{
-  border-color:rgba(124,58,237,.22);
-  background:rgba(124,58,237,.08);
+  border-color:rgba(241,50,79,.22);
+  background:rgba(241,50,79,.08);
   color:#fff;
 }
 
@@ -6649,15 +6649,15 @@ body.irisx-luxury .tn-sell{
   height:52px;
   padding:0 24px !important;
   border-radius:14px;
-  background:linear-gradient(135deg, rgba(124,58,237,.92), rgba(155,111,255,.84)) !important;
-  border:1px solid rgba(167,139,250,.32) !important;
+  background:linear-gradient(135deg, rgba(241,50,79,.92), rgba(255,122,142,.84)) !important;
+  border:1px solid rgba(255,169,181,.32) !important;
   color:#fff !important;
-  box-shadow:0 14px 34px rgba(124,58,237,.22);
+  box-shadow:0 14px 34px rgba(241,50,79,.22);
 }
 
 body.irisx-luxury .tn-sell:hover{
   transform:translateY(-1px);
-  box-shadow:0 18px 38px rgba(124,58,237,.26);
+  box-shadow:0 18px 38px rgba(241,50,79,.26);
 }
 
 body.irisx-luxury .tn-icon,
@@ -6746,7 +6746,7 @@ body.irisx-luxury .irisx-shop-browse-link{
 body.irisx-luxury .irisx-shop-browse-link:hover,
 body.irisx-luxury .irisx-shop-browse-link.is-active{
   border-color:rgba(196,160,106,.3);
-  background:linear-gradient(135deg, rgba(124,58,237,.12), rgba(196,160,106,.08));
+  background:linear-gradient(135deg, rgba(241,50,79,.12), rgba(196,160,106,.08));
   color:#fff;
   transform:translateY(-1px);
 }
@@ -6770,8 +6770,8 @@ body.irisx-luxury .irisx-shop-quick-filter{
 }
 
 body.irisx-luxury .irisx-shop-filter-toggle{
-  border-color:rgba(124,58,237,.3);
-  background:rgba(124,58,237,.12);
+  border-color:rgba(241,50,79,.3);
+  background:rgba(241,50,79,.12);
   color:#fff;
 }
 
@@ -6904,7 +6904,7 @@ body.irisx-luxury .sort-btn:hover{
 
   body.irisx-luxury .shop-layout > .filters .f-search:focus,
   body.irisx-luxury .shop-layout > .filters .f-range input:focus{
-    border-bottom-color:rgba(124,58,237,.55);
+    border-bottom-color:rgba(241,50,79,.55);
   }
 
   body.irisx-luxury .shop-layout > .filters #f-brands,
@@ -7149,7 +7149,7 @@ body.irisx-luxury .det-section--seller{
     inset:0;
     z-index:1300;
     padding:88px 18px 26px;
-    background:rgba(6,3,16,.96);
+    background:rgba(20,4,8,.96);
     backdrop-filter:blur(20px);
   }
 
@@ -7158,7 +7158,7 @@ body.irisx-luxury .det-section--seller{
     top:0;
     z-index:2;
     padding-bottom:14px;
-    background:rgba(6,3,16,.96);
+    background:rgba(20,4,8,.96);
   }
 
   body.irisx-luxury .irisx-detail-page{
@@ -7281,8 +7281,8 @@ body.irisx-luxury .det-section--seller{
   left: 0;
   right: 0;
   z-index: 9999;
-  background: #110826;
-  border: 1px solid rgba(167,139,250,.3);
+  background: #22080D;
+  border: 1px solid rgba(255,169,181,.3);
   border-radius: 6px;
   margin-top: 4px;
   overflow: hidden;
@@ -7306,7 +7306,7 @@ body.irisx-luxury .det-section--seller{
 }
 
 .irisx-addr-item:hover {
-  background: rgba(167,139,250,.12);
+  background: rgba(255,169,181,.12);
   color: #fff;
 }
 
@@ -7321,14 +7321,14 @@ body.irisx-luxury .irisx-addr-item:hover {
 
 /* ── Seller public profile ─────────────────────────────── */
 .irisx-public-seller { max-width: 1200px; margin: 0 auto; padding: 24px; }
-.irisx-seller-hero { display: flex; align-items: center; gap: 24px; padding: 32px; background: rgba(255,255,255,.03); border: 1px solid rgba(167,139,250,.15); border-radius: 12px; margin-bottom: 32px; }
-.irisx-seller-avatar { font-size: 4rem; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; background: rgba(124,58,237,.1); border-radius: 50%; flex-shrink: 0; }
+.irisx-seller-hero { display: flex; align-items: center; gap: 24px; padding: 32px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,169,181,.15); border-radius: 12px; margin-bottom: 32px; }
+.irisx-seller-avatar { font-size: 4rem; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; background: rgba(241,50,79,.1); border-radius: 50%; flex-shrink: 0; }
 .irisx-seller-hero h1 { font-size: 1.5rem; font-weight: 500; margin: 0 0 8px; color: #F5F0EB; }
 .irisx-seller-meta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font-size: 0.85rem; color: rgba(245,240,235,.6); }
 .irisx-seller-meta span { display: flex; align-items: center; gap: 4px; }
 .irisx-seller-listings h2 { font-size: 1rem; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 20px; color: rgba(245,240,235,.5); font-weight: 400; }
 .irisx-seller-info-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-top: 32px; }
-.irisx-seller-info-card { padding: 16px; background: rgba(255,255,255,.03); border: 1px solid rgba(167,139,250,.1); border-radius: 8px; }
+.irisx-seller-info-card { padding: 16px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,169,181,.1); border-radius: 8px; }
 .irisx-seller-info-card strong { display: block; font-size: 1rem; margin-bottom: 4px; }
 .irisx-seller-info-card span { font-size: 0.78rem; color: rgba(245,240,235,.5); }
 
@@ -7429,24 +7429,24 @@ body.irisx-luxury .irisx-addr-item:hover {
    IRIS WHITE THEME — Testo NERO, accenti Viola, hover Oro
    ═══════════════════════════════════════════════════════ */
 body.irisx-luxury.irisx-white-theme {
-  background: linear-gradient(180deg, #f8f3ff 0%, #ffffff 18rem, #fbf8ff 100%) !important;
+  background: linear-gradient(180deg, #FFF6F8 0%, #ffffff 18rem, #FFF9FA 100%) !important;
   color: #1a1530 !important;
   font-weight: 400 !important;
   --gold: #c7a061;
-  --lavender: #6D28D9;
-  --purple: #6D28D9;
+  --lavender: #F1324F;
+  --purple: #F1324F;
   --iris-gold: #c7a061;
-  --iris-purple: #6D28D9;
-  --iris-white: #241b38;
+  --iris-purple: #F1324F;
+  --iris-white: #2B161B;
   --iris-white-strong: #160f27;
   --iris-text-soft: rgba(22,15,39,.72);
   --iris-text-faint: rgba(22,15,39,.52);
-  --iris-border: rgba(109,40,217,.12);
-  --iris-border-strong: rgba(109,40,217,.2);
+  --iris-border: rgba(241,50,79,.12);
+  --iris-border-strong: rgba(241,50,79,.2);
   --iris-panel: rgba(255,255,255,.82);
   --iris-panel-strong: rgba(249,245,255,.96);
-  --iris-shadow: 0 24px 70px rgba(67,30,120,.10);
-  --iris-shadow-soft: 0 14px 40px rgba(109,40,217,.08);
+  --iris-shadow: 0 24px 70px rgba(120,20,40,.10);
+  --iris-shadow-soft: 0 14px 40px rgba(241,50,79,.08);
 }
 
 /* ── Sfondi scuri hero e sezioni home → bianco ────────── */
@@ -7458,9 +7458,9 @@ body.irisx-luxury.irisx-white-theme .irisx-hero-grain {
   display: none !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-hero {
-  background: linear-gradient(135deg, #2d1361 0%, #5f2cd5 52%, #8f6cf2 100%) !important;
-  border: 1px solid rgba(109,40,217,.16) !important;
-  box-shadow: 0 28px 80px rgba(91,44,213,.18) !important;
+  background: linear-gradient(135deg, #7A1125 0%, #D62845 52%, #FF627B 100%) !important;
+  border: 1px solid rgba(241,50,79,.16) !important;
+  box-shadow: 0 28px 80px rgba(241,50,79,.18) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-copy,
 body.irisx-luxury.irisx-white-theme .irisx-home-side {
@@ -7474,11 +7474,11 @@ body.irisx-luxury.irisx-white-theme .irisx-home-card {
 body.irisx-luxury.irisx-white-theme .irisx-home-story,
 body.irisx-luxury.irisx-white-theme .irisx-home-column {
   background: #ffffff !important;
-  border-color: rgba(109,40,217,.15) !important;
-  box-shadow: 0 18px 40px rgba(67,30,120,.08) !important;
+  border-color: rgba(241,50,79,.15) !important;
+  box-shadow: 0 18px 40px rgba(120,20,40,.08) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-strip div {
-  border-top-color: rgba(109,40,217,.2) !important;
+  border-top-color: rgba(241,50,79,.2) !important;
 }
 
 /* ── Tutte le sezioni, card, panel → sfondo bianco ───── */
@@ -7498,7 +7498,7 @@ body.irisx-luxury.irisx-white-theme .irisx-checkout-main,
 body.irisx-luxury.irisx-white-theme .irisx-checkout-summary,
 body.irisx-luxury.irisx-white-theme .irisx-workspace-main {
   background: #ffffff !important;
-  border-color: rgba(109,40,217,.15) !important;
+  border-color: rgba(241,50,79,.15) !important;
   box-shadow: 0 2px 16px rgba(0,0,0,.05) !important;
 }
 
@@ -7506,13 +7506,13 @@ body.irisx-luxury.irisx-white-theme .irisx-workspace-main {
 body.irisx-luxury.irisx-white-theme .pc,
 body.irisx-luxury.irisx-white-theme .irisx-pc {
   background: #ffffff !important;
-  border: 1px solid rgba(109,40,217,.18) !important;
-  box-shadow: 0 2px 12px rgba(109,40,217,.06) !important;
+  border: 1px solid rgba(241,50,79,.18) !important;
+  box-shadow: 0 2px 12px rgba(241,50,79,.06) !important;
 }
 body.irisx-luxury.irisx-white-theme .pc:hover,
 body.irisx-luxury.irisx-white-theme .irisx-pc:hover {
-  border-color: #6D28D9 !important;
-  box-shadow: 0 6px 24px rgba(109,40,217,.12) !important;
+  border-color: #F1324F !important;
+  box-shadow: 0 6px 24px rgba(241,50,79,.12) !important;
 }
 
 /* ECCEZIONI — elementi che devono restare bianchi (testo su sfondo scuro) */
@@ -7541,7 +7541,7 @@ body.irisx-luxury.irisx-white-theme .det-offer,
 body.irisx-luxury.irisx-white-theme .irisx-badge,
 body.irisx-luxury.irisx-white-theme .tn-btn.tn-assistenza,
 body.irisx-luxury.irisx-white-theme .irisx-filter-chip.is-active {
-  color: #6D28D9 !important;
+  color: #F1324F !important;
 }
 
 /* HOVER → oro su qualsiasi elemento cliccabile */
@@ -7572,18 +7572,18 @@ body.irisx-luxury.irisx-white-theme #tnSellBtn:hover {
 /* Navbar */
 body.irisx-luxury.irisx-white-theme #topnav {
   background: rgba(255,255,255,0.97) !important;
-  border-bottom: 1px solid rgba(109,40,217,.12) !important;
+  border-bottom: 1px solid rgba(241,50,79,.12) !important;
   backdrop-filter: blur(20px);
-  box-shadow: 0 18px 42px rgba(67,30,120,.08) !important;
+  box-shadow: 0 18px 42px rgba(120,20,40,.08) !important;
 }
 body.irisx-luxury.irisx-white-theme .tn-row--main {
   grid-template-columns: minmax(250px, 28vw) minmax(220px, max-content) minmax(360px, 1fr);
 }
 body.irisx-luxury.irisx-white-theme .tn-search input {
   background: rgba(255,255,255,.96) !important;
-  border-color: rgba(109,40,217,.18) !important;
+  border-color: rgba(241,50,79,.18) !important;
   color: #1a1530 !important;
-  box-shadow: inset 0 1px 0 rgba(109,40,217,.04) !important;
+  box-shadow: inset 0 1px 0 rgba(241,50,79,.04) !important;
 }
 body.irisx-luxury.irisx-white-theme .tn-search input::placeholder {
   color: rgba(26,21,48,.42) !important;
@@ -7596,7 +7596,7 @@ body.irisx-luxury.irisx-white-theme .tn-btn {
 }
 body.irisx-luxury.irisx-white-theme .tn-logo em {
   background: none !important;
-  color: #7c3aed !important;
+  color: #F1324F !important;
   -webkit-text-fill-color: currentColor !important;
   text-shadow: none !important;
   filter: none !important;
@@ -7607,23 +7607,23 @@ body.irisx-luxury.irisx-white-theme .tn-icon:hover,
 body.irisx-luxury.irisx-white-theme .tn-chat:hover,
 body.irisx-luxury.irisx-white-theme .tn-profile:hover,
 body.irisx-luxury.irisx-white-theme .tn-locale-trigger:hover {
-  color: #6D28D9 !important;
+  color: #F1324F !important;
 }
 body.irisx-luxury.irisx-white-theme .tn-support-btn {
   color: #1a1530 !important;
-  border-color: rgba(109,40,217,.18) !important;
+  border-color: rgba(241,50,79,.18) !important;
   background: rgba(255,255,255,.9) !important;
   font-weight: 600 !important;
 }
 body.irisx-luxury.irisx-white-theme .tn-support-btn:hover {
-  color: #6D28D9 !important;
-  border-color: rgba(109,40,217,.32) !important;
-  background: rgba(109,40,217,.05) !important;
+  color: #F1324F !important;
+  border-color: rgba(241,50,79,.32) !important;
+  background: rgba(241,50,79,.05) !important;
 }
 body.irisx-luxury.irisx-white-theme #tnMobileMenu .tn-mobile-menu__panel,
 body.irisx-luxury.irisx-white-theme .tn-profile-menu {
   background: #fff !important;
-  border-color: rgba(109,40,217,.15) !important;
+  border-color: rgba(241,50,79,.15) !important;
   color: #111827 !important;
 }
 body.irisx-luxury.irisx-white-theme .tn-menu-link,
@@ -7640,21 +7640,21 @@ body.irisx-luxury.irisx-white-theme .tn-mobile-link:hover {
 /* Sell button */
 body.irisx-luxury.irisx-white-theme #tnSellBtn,
 body.irisx-luxury.irisx-white-theme .tn-sell {
-  background: #6D28D9 !important;
+  background: #F1324F !important;
   color: #fff !important;
   border-color: transparent !important;
   font-weight: 700 !important;
-  box-shadow: 0 16px 36px rgba(109,40,217,.18) !important;
+  box-shadow: 0 16px 36px rgba(241,50,79,.18) !important;
 }
 body.irisx-luxury.irisx-white-theme #tnSellBtn:hover,
 body.irisx-luxury.irisx-white-theme .tn-sell:hover {
-  background: linear-gradient(135deg, #6D28D9, #8b5cf6) !important;
+  background: linear-gradient(135deg, #F1324F, #FF627B) !important;
   color: #fff !important;
 }
 
 /* Hero */
 body.irisx-luxury.irisx-white-theme .irisx-home-hero {
-  background: linear-gradient(135deg, #2D1B6B 0%, #4C1D95 40%, #6D28D9 70%, #7C3AED 100%) !important;
+  background: linear-gradient(135deg, #7A1125 0%, #B61E39 40%, #F1324F 70%, #F1324F 100%) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-title,
 body.irisx-luxury.irisx-white-theme .irisx-home-proof,
@@ -7688,14 +7688,14 @@ body.irisx-luxury.irisx-white-theme .irisx-home-scroll {
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-trust {
   background: rgba(255,255,255,.82) !important;
-  border-top-color: rgba(109,40,217,.1) !important;
-  border-bottom-color: rgba(109,40,217,.1) !important;
+  border-top-color: rgba(241,50,79,.1) !important;
+  border-bottom-color: rgba(241,50,79,.1) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-trust-item strong {
   color: rgba(26,21,48,.68) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-trust-glyph {
-  color: #6D28D9 !important;
+  color: #F1324F !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-manifesto-copy,
 body.irisx-luxury.irisx-white-theme .irisx-home-process-card,
@@ -7703,8 +7703,8 @@ body.irisx-luxury.irisx-white-theme .irisx-home-editorial,
 body.irisx-luxury.irisx-white-theme .irisx-home-column,
 body.irisx-luxury.irisx-white-theme .irisx-home-story {
   background: #ffffff !important;
-  border-color: rgba(109,40,217,.14) !important;
-  box-shadow: 0 18px 42px rgba(67,30,120,.08) !important;
+  border-color: rgba(241,50,79,.14) !important;
+  box-shadow: 0 18px 42px rgba(120,20,40,.08) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-process-card h3,
 body.irisx-luxury.irisx-white-theme .irisx-home-section-title,
@@ -7715,7 +7715,7 @@ body.irisx-luxury.irisx-white-theme .irisx-home-strip strong {
 body.irisx-luxury.irisx-white-theme .irisx-home-section-kicker,
 body.irisx-luxury.irisx-white-theme .irisx-home-link,
 body.irisx-luxury.irisx-white-theme .p-brand {
-  color: #6D28D9 !important;
+  color: #F1324F !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-process-card p,
 body.irisx-luxury.irisx-white-theme .irisx-home-process-card li,
@@ -7734,12 +7734,12 @@ body.irisx-luxury.irisx-white-theme .irisx-inline-card,
 body.irisx-luxury.irisx-white-theme .irisx-workspace-card,
 body.irisx-luxury.irisx-white-theme .irisx-summary-card {
   background: #fff !important;
-  border-color: rgba(109,40,217,.12) !important;
+  border-color: rgba(241,50,79,.12) !important;
   color: #111827 !important;
   box-shadow: 0 2px 12px rgba(0,0,0,.06) !important;
 }
 body.irisx-luxury.irisx-white-theme .p-brand {
-  color: #6D28D9 !important;
+  color: #F1324F !important;
   font-weight: 700 !important;
 }
 body.irisx-luxury.irisx-white-theme .p-name {
@@ -7754,7 +7754,7 @@ body.irisx-luxury.irisx-white-theme .p-orig {
   color: rgba(0,0,0,.4) !important;
 }
 body.irisx-luxury.irisx-white-theme .p-discount {
-  background: #6D28D9 !important;
+  background: #F1324F !important;
   color: #fff !important;
   font-weight: 700 !important;
 }
@@ -7762,7 +7762,7 @@ body.irisx-luxury.irisx-white-theme .p-discount {
 /* Cookie banner */
 body.irisx-luxury.irisx-white-theme .cookie-banner {
   background: rgba(255,255,255,.96) !important;
-  border-top-color: rgba(109,40,217,.15) !important;
+  border-top-color: rgba(241,50,79,.15) !important;
   box-shadow: 0 -20px 48px rgba(43,16,87,.12) !important;
 }
 body.irisx-luxury.irisx-white-theme .cookie-text strong {
@@ -7772,28 +7772,28 @@ body.irisx-luxury.irisx-white-theme .cookie-text p {
   color: rgba(26,21,48,.72) !important;
 }
 body.irisx-luxury.irisx-white-theme .cookie-text a {
-  color: #6D28D9 !important;
+  color: #F1324F !important;
 }
 body.irisx-luxury.irisx-white-theme .cookie-btn.secondary {
-  color: #6D28D9 !important;
-  border-color: rgba(109,40,217,.16) !important;
+  color: #F1324F !important;
+  border-color: rgba(241,50,79,.16) !important;
 }
 
 /* Sell page in white theme */
 body.irisx-luxury.irisx-white-theme #page-sell {
-  background: linear-gradient(180deg, #faf6ff 0%, #ffffff 20rem, #fbf8ff 100%) !important;
+  background: linear-gradient(180deg, #FFF9FA 0%, #ffffff 20rem, #FFF9FA 100%) !important;
   color: #1a1530 !important;
 }
 body.irisx-luxury.irisx-white-theme .sell-topbar {
   background: rgba(255,255,255,.96) !important;
-  border-bottom: 1px solid rgba(109,40,217,.12) !important;
-  box-shadow: 0 18px 42px rgba(67,30,120,.08) !important;
+  border-bottom: 1px solid rgba(241,50,79,.12) !important;
+  box-shadow: 0 18px 42px rgba(120,20,40,.08) !important;
 }
 body.irisx-luxury.irisx-white-theme .st-logo {
   color: #1a1530 !important;
 }
 body.irisx-luxury.irisx-white-theme .st-logo em {
-  color: #6D28D9 !important;
+  color: #F1324F !important;
 }
 body.irisx-luxury.irisx-white-theme .st-back,
 body.irisx-luxury.irisx-white-theme .st-nav a {
@@ -7801,18 +7801,18 @@ body.irisx-luxury.irisx-white-theme .st-nav a {
 }
 body.irisx-luxury.irisx-white-theme .st-back:hover,
 body.irisx-luxury.irisx-white-theme .st-nav a:hover {
-  color: #6D28D9 !important;
+  color: #F1324F !important;
 }
 body.irisx-luxury.irisx-white-theme .sh {
   min-height: auto !important;
   padding: 9rem 0 5rem !important;
   background:
-    radial-gradient(circle at 18% 18%, rgba(109,40,217,.12), transparent 24%),
-    linear-gradient(135deg, #f4ecff 0%, #ffffff 52%, #f7f1ff 100%) !important;
-  border-bottom: 1px solid rgba(109,40,217,.08) !important;
+    radial-gradient(circle at 18% 18%, rgba(241,50,79,.12), transparent 24%),
+    linear-gradient(135deg, #FFF3F5 0%, #ffffff 52%, #FFF7F8 100%) !important;
+  border-bottom: 1px solid rgba(241,50,79,.08) !important;
 }
 body.irisx-luxury.irisx-white-theme .sh-label {
-  color: rgba(109,40,217,.76) !important;
+  color: rgba(241,50,79,.76) !important;
 }
 body.irisx-luxury.irisx-white-theme .sh-title,
 body.irisx-luxury.irisx-white-theme .step-t,
@@ -7845,16 +7845,16 @@ body.irisx-luxury.irisx-white-theme .sell-path,
 body.irisx-luxury.irisx-white-theme .side-card,
 body.irisx-luxury.irisx-white-theme .photo-upload {
   background: #ffffff !important;
-  border-color: rgba(109,40,217,.14) !important;
-  box-shadow: 0 18px 48px rgba(67,30,120,.08) !important;
+  border-color: rgba(241,50,79,.14) !important;
+  box-shadow: 0 18px 48px rgba(120,20,40,.08) !important;
 }
 body.irisx-luxury.irisx-white-theme .step-n {
-  color: #6D28D9 !important;
+  color: #F1324F !important;
 }
 body.irisx-luxury.irisx-white-theme .sell-path--featured {
-  background: linear-gradient(135deg, #2b1258 0%, #5f2cd5 100%) !important;
-  border-color: rgba(109,40,217,.35) !important;
-  box-shadow: 0 24px 56px rgba(91,44,213,.18) !important;
+  background: linear-gradient(135deg, #7A1125 0%, #D62845 100%) !important;
+  border-color: rgba(241,50,79,.35) !important;
+  box-shadow: 0 24px 56px rgba(241,50,79,.18) !important;
 }
 body.irisx-luxury.irisx-white-theme .sell-path--featured .sp-title,
 body.irisx-luxury.irisx-white-theme .sell-path--featured .sp-commission,
@@ -7870,24 +7870,24 @@ body.irisx-luxury.irisx-white-theme .fsel,
 body.irisx-luxury.irisx-white-theme .fta {
   background: #ffffff !important;
   color: #1a1530 !important;
-  border-color: rgba(109,40,217,.16) !important;
+  border-color: rgba(241,50,79,.16) !important;
 }
 body.irisx-luxury.irisx-white-theme .cond-btn {
   background: #ffffff !important;
   color: rgba(26,21,48,.68) !important;
-  border-color: rgba(109,40,217,.14) !important;
+  border-color: rgba(241,50,79,.14) !important;
 }
 body.irisx-luxury.irisx-white-theme .cond-btn.sel,
 body.irisx-luxury.irisx-white-theme .cond-btn:hover {
-  background: rgba(109,40,217,.06) !important;
-  color: #6D28D9 !important;
-  border-color: rgba(109,40,217,.3) !important;
+  background: rgba(241,50,79,.06) !important;
+  color: #F1324F !important;
+  border-color: rgba(241,50,79,.3) !important;
 }
 body.irisx-luxury.irisx-white-theme .sell-submit {
-  background: linear-gradient(135deg, #6D28D9, #8b5cf6) !important;
+  background: linear-gradient(135deg, #F1324F, #FF627B) !important;
   border-color: transparent !important;
   color: #ffffff !important;
-  box-shadow: 0 18px 38px rgba(109,40,217,.18) !important;
+  box-shadow: 0 18px 38px rgba(241,50,79,.18) !important;
 }
 
 @media (max-width: 900px) {
@@ -7939,13 +7939,13 @@ body.irisx-luxury.irisx-white-theme .sell-submit {
     display: inline-flex !important;
     width: 44px !important;
     height: 44px !important;
-    background: rgba(109,40,217,.06) !important;
-    border-color: rgba(109,40,217,.18) !important;
+    background: rgba(241,50,79,.06) !important;
+    border-color: rgba(241,50,79,.18) !important;
     border-radius: 12px !important;
   }
 
   body.irisx-luxury.irisx-white-theme .tn-mobile-toggle span {
-    background: #6D28D9 !important;
+    background: #F1324F !important;
   }
 
   body.irisx-luxury.irisx-white-theme .tn-locale-trigger,
@@ -8049,8 +8049,8 @@ body.irisx-luxury .irisx-mobile-app-label {
 
 body.irisx-luxury.irisx-white-theme .irisx-mobile-app-nav {
   background: rgba(255,255,255,.94);
-  border: 1px solid rgba(109,40,217,.12);
-  box-shadow: 0 18px 50px rgba(67,30,120,.16);
+  border: 1px solid rgba(241,50,79,.12);
+  box-shadow: 0 18px 50px rgba(120,20,40,.16);
   backdrop-filter: blur(24px);
 }
 
@@ -8059,12 +8059,12 @@ body.irisx-luxury.irisx-white-theme .irisx-mobile-app-tab {
 }
 
 body.irisx-luxury.irisx-white-theme .irisx-mobile-app-tab.active {
-  background: linear-gradient(135deg, rgba(109,40,217,.12), rgba(139,92,246,.18));
-  color: #6D28D9;
+  background: linear-gradient(135deg, rgba(241,50,79,.12), rgba(255,98,123,.18));
+  color: #F1324F;
 }
 
 body.irisx-luxury.irisx-white-theme .irisx-mobile-app-tab:hover {
-  color: #6D28D9;
+  color: #F1324F;
 }
 
 @media (max-width: 900px) {
@@ -8093,9 +8093,9 @@ body.irisx-luxury.irisx-white-theme .irisx-mobile-app-tab:hover {
 body.irisx-luxury.irisx-white-theme .irisx-primary,
 body.irisx-luxury.irisx-white-theme .det-buy,
 body.irisx-luxury.irisx-white-theme .irisx-detail-buy-btn {
-  background: #6D28D9 !important;
+  background: #F1324F !important;
   color: #fff !important;
-  border-color: #6D28D9 !important;
+  border-color: #F1324F !important;
   font-weight: 700 !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-primary:hover,
@@ -8109,8 +8109,8 @@ body.irisx-luxury.irisx-white-theme .det-buy:active {
 }
 body.irisx-luxury.irisx-white-theme .irisx-secondary,
 body.irisx-luxury.irisx-white-theme .det-offer {
-  border-color: rgba(109,40,217,.4) !important;
-  color: #6D28D9 !important;
+  border-color: rgba(241,50,79,.4) !important;
+  color: #F1324F !important;
   background: transparent !important;
   font-weight: 600 !important;
 }
@@ -8124,13 +8124,13 @@ body.irisx-luxury.irisx-white-theme .det-offer:hover {
 body.irisx-luxury.irisx-white-theme .irisx-filter-chip,
 body.irisx-luxury.irisx-white-theme .irisx-filter-label {
   color: #111827 !important;
-  border-color: rgba(109,40,217,.2) !important;
+  border-color: rgba(241,50,79,.2) !important;
   font-weight: 600 !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-filter-chip.is-active {
-  background: #6D28D9 !important;
+  background: #F1324F !important;
   color: #fff !important;
-  border-color: #6D28D9 !important;
+  border-color: #F1324F !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-filter-chip:hover:not(.is-active) {
   border-color: #C4A06A !important;
@@ -8140,7 +8140,7 @@ body.irisx-luxury.irisx-white-theme .irisx-filter-chip:hover:not(.is-active) {
 /* Hover dropdown filter bar — white theme override */
 body.irisx-luxury.irisx-white-theme .irisx-fdrop__btn {
   color: #111827 !important;
-  border-color: rgba(109,40,217,.25) !important;
+  border-color: rgba(241,50,79,.25) !important;
   background: #fff !important;
   font-weight: 600 !important;
 }
@@ -8150,12 +8150,12 @@ body.irisx-luxury.irisx-white-theme .irisx-fdrop:hover .irisx-fdrop__btn {
   border-color: #C4A06A !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-fdrop__btn.is-active {
-  color: #6D28D9 !important;
-  border-color: #6D28D9 !important;
+  color: #F1324F !important;
+  border-color: #F1324F !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-fdrop__panel {
   background: #fff !important;
-  border-color: rgba(109,40,217,.15) !important;
+  border-color: rgba(241,50,79,.15) !important;
   box-shadow: 0 8px 28px rgba(0,0,0,.1) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-fdrop__item {
@@ -8167,10 +8167,10 @@ body.irisx-luxury.irisx-white-theme .irisx-fdrop__item:hover {
   background: rgba(196,160,106,.06) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-fdrop__item.on {
-  color: #6D28D9 !important;
+  color: #F1324F !important;
   font-weight: 700 !important;
 }
-body.irisx-luxury.irisx-white-theme .irisx-fdrop__check { color: #6D28D9 !important; }
+body.irisx-luxury.irisx-white-theme .irisx-fdrop__check { color: #F1324F !important; }
 body.irisx-luxury.irisx-white-theme .irisx-fdrop__empty {
   color: rgba(0,0,0,.35) !important;
 }
@@ -8178,7 +8178,7 @@ body.irisx-luxury.irisx-white-theme .irisx-fdrop__empty {
 /* Sub-nav (HOME, SHOP) */
 body.irisx-luxury.irisx-white-theme .irisx-subnav {
   background: #fff !important;
-  border-bottom-color: rgba(109,40,217,.1) !important;
+  border-bottom-color: rgba(241,50,79,.1) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-subnav-link {
   color: rgba(0,0,0,.5) !important;
@@ -8197,10 +8197,10 @@ body.irisx-luxury.irisx-white-theme .irisx-detail-page {
   background: #fff !important;
   color: #111827 !important;
 }
-body.irisx-luxury.irisx-white-theme .det-brand { color: #6D28D9 !important; font-weight: 700 !important; }
+body.irisx-luxury.irisx-white-theme .det-brand { color: #F1324F !important; font-weight: 700 !important; }
 body.irisx-luxury.irisx-white-theme .det-name { color: #111827 !important; font-weight: 700 !important; }
 body.irisx-luxury.irisx-white-theme .det-price { color: #111827 !important; font-weight: 700 !important; }
-body.irisx-luxury.irisx-white-theme .det-save { background: #6D28D9 !important; color: #fff !important; }
+body.irisx-luxury.irisx-white-theme .det-save { background: #F1324F !important; color: #fff !important; }
 body.irisx-luxury.irisx-white-theme .det-desc,
 body.irisx-luxury.irisx-white-theme .det-meta { color: #111827 !important; font-weight: 500 !important; }
 
@@ -8215,14 +8215,14 @@ body.irisx-luxury.irisx-white-theme textarea,
 body.irisx-luxury.irisx-white-theme select {
   background: #fff !important;
   color: #111827 !important;
-  border-color: rgba(109,40,217,.25) !important;
+  border-color: rgba(241,50,79,.25) !important;
   font-weight: 500 !important;
 }
 body.irisx-luxury.irisx-white-theme input:focus,
 body.irisx-luxury.irisx-white-theme textarea:focus,
 body.irisx-luxury.irisx-white-theme select:focus {
-  border-color: #6D28D9 !important;
-  box-shadow: 0 0 0 3px rgba(109,40,217,.1) !important;
+  border-color: #F1324F !important;
+  box-shadow: 0 0 0 3px rgba(241,50,79,.1) !important;
   outline: none !important;
 }
 body.irisx-luxury.irisx-white-theme input::placeholder {
@@ -8259,8 +8259,8 @@ body.irisx-luxury.irisx-white-theme .irisx-sidebar-link {
 }
 body.irisx-luxury.irisx-white-theme .irisx-sidebar-link.active,
 body.irisx-luxury.irisx-white-theme .irisx-sidebar-link:hover {
-  color: #6D28D9 !important;
-  background: rgba(109,40,217,.08) !important;
+  color: #F1324F !important;
+  background: rgba(241,50,79,.08) !important;
 }
 
 /* Toast */
@@ -8277,12 +8277,12 @@ body.irisx-luxury.irisx-white-theme .offer-shell {
 body.irisx-luxury.irisx-white-theme .offer-review-card,
 body.irisx-luxury.irisx-white-theme .offer-review-section {
   background: #fff !important;
-  border-color: rgba(109,40,217,.12) !important;
+  border-color: rgba(241,50,79,.12) !important;
   color: #111827 !important;
 }
 body.irisx-luxury.irisx-white-theme .offer-shell__header {
   background: #fff !important;
-  border-color: rgba(109,40,217,.1) !important;
+  border-color: rgba(241,50,79,.1) !important;
 }
 body.irisx-luxury.irisx-white-theme .offer-shell h3,
 body.irisx-luxury.irisx-white-theme .offer-review-intro h3,
@@ -8292,7 +8292,7 @@ body.irisx-luxury.irisx-white-theme .offer-shell span {
   color: #111827 !important;
 }
 body.irisx-luxury.irisx-white-theme .offer-send {
-  background: #6D28D9 !important;
+  background: #F1324F !important;
   color: #fff !important;
   font-weight: 700 !important;
 }
@@ -8323,9 +8323,9 @@ body.irisx-luxury.irisx-white-theme .irisx-auth-modal-card label { color: #11182
 
 /* Badges */
 body.irisx-luxury.irisx-white-theme .irisx-badge {
-  background: rgba(109,40,217,.1) !important;
-  color: #6D28D9 !important;
-  border-color: rgba(109,40,217,.2) !important;
+  background: rgba(241,50,79,.1) !important;
+  color: #F1324F !important;
+  border-color: rgba(241,50,79,.2) !important;
   font-weight: 700 !important;
 }
 
@@ -8340,7 +8340,7 @@ body.irisx-luxury.irisx-white-theme .irisx-area-btn:active {
 /* Seller profile (public) */
 body.irisx-luxury.irisx-white-theme .irisx-seller-hero {
   background: #fff !important;
-  border-color: rgba(109,40,217,.12) !important;
+  border-color: rgba(241,50,79,.12) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-seller-hero h1 { color: #111827 !important; font-weight: 700 !important; }
 body.irisx-luxury.irisx-white-theme .irisx-seller-meta { color: rgba(0,0,0,.6) !important; }
@@ -8349,7 +8349,7 @@ body.irisx-luxury.irisx-white-theme .irisx-seller-meta { color: rgba(0,0,0,.6) !
 body.irisx-luxury.irisx-white-theme .filters,
 body.irisx-luxury.irisx-white-theme #filtersPanel {
   background: #fff !important;
-  border-color: rgba(109,40,217,.1) !important;
+  border-color: rgba(241,50,79,.1) !important;
 }
 body.irisx-luxury.irisx-white-theme .f-label,
 body.irisx-luxury.irisx-white-theme .f-title,
@@ -8395,8 +8395,8 @@ body.irisx-luxury.irisx-white-theme .irisx-shop-browse-link {
 }
 body.irisx-luxury.irisx-white-theme .irisx-shop-browse-link:hover { color: #C4A06A !important; }
 body.irisx-luxury.irisx-white-theme .irisx-shop-browse-link.is-active {
-  color: #6D28D9 !important;
-  border-color: #6D28D9 !important;
+  color: #F1324F !important;
+  border-color: #F1324F !important;
 }
 
 body.irisx-luxury.irisx-white-theme .shop-count {
@@ -8410,33 +8410,33 @@ body.irisx-luxury.irisx-white-theme .shop-count span {
 body.irisx-luxury.irisx-white-theme .sort-btn {
   background: #ffffff !important;
   color: rgba(26, 21, 48, 0.68) !important;
-  border-color: rgba(109, 40, 217, 0.12) !important;
+  border-color: rgba(241,50,79,0.12) !important;
 }
 
 body.irisx-luxury.irisx-white-theme .sort-btn.on,
 body.irisx-luxury.irisx-white-theme .sort-btn:hover,
 body.irisx-luxury.irisx-white-theme .sort-btn.active {
-  background: rgba(109, 40, 217, 0.08) !important;
-  color: #6D28D9 !important;
-  border-color: rgba(109, 40, 217, 0.24) !important;
+  background: rgba(241,50,79,0.08) !important;
+  color: #F1324F !important;
+  border-color: rgba(241,50,79,0.24) !important;
 }
 
 /* Quick filter buttons (mobile/legacy) */
 body.irisx-luxury.irisx-white-theme .irisx-shop-quick-filter {
   color: #111827 !important;
-  border-color: rgba(109,40,217,.2) !important;
+  border-color: rgba(241,50,79,.2) !important;
   font-weight: 600 !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-shop-quick-filter:hover { color: #C4A06A !important; border-color: #C4A06A !important; }
 
-/* ── Override topnav luxury background (era rgba(6,3,16,.86)) ── */
+/* ── Override topnav luxury background (era rgba(20,4,8,.86)) ── */
 body.irisx-luxury.irisx-white-theme .topnav,
 body.irisx-luxury.irisx-white-theme #topnav {
   background: rgba(255,255,255,0.98) !important;
-  border-bottom: 1px solid rgba(109,40,217,.12) !important;
+  border-bottom: 1px solid rgba(241,50,79,.12) !important;
 }
 body.irisx-luxury.irisx-white-theme .tn-row--sub {
-  border-top-color: rgba(109,40,217,.08) !important;
+  border-top-color: rgba(241,50,79,.08) !important;
 }
 
 /* ── Modali, drawer, overlay → sfondo bianco ─────────────── */
@@ -8444,28 +8444,28 @@ body.irisx-luxury.irisx-white-theme .irisx-modal-card,
 body.irisx-luxury.irisx-white-theme .irisx-drawer-panel,
 body.irisx-luxury.irisx-white-theme .irisx-modal-overlay > div {
   background: #ffffff !important;
-  border-color: rgba(109,40,217,.15) !important;
+  border-color: rgba(241,50,79,.15) !important;
 }
 
 /* ── Sezioni home: area-btn, section-tab ─────────────────── */
 body.irisx-luxury.irisx-white-theme .irisx-area-btn,
 body.irisx-luxury.irisx-white-theme .irisx-section-tab {
-  background: #f7f5ff !important;
-  border-color: rgba(109,40,217,.15) !important;
+  background: #FFF7F8 !important;
+  border-color: rgba(241,50,79,.15) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-area-btn:hover,
 body.irisx-luxury.irisx-white-theme .irisx-section-tab:hover {
   border-color: #C4A06A !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-section-tab.on {
-  background: #6D28D9 !important;
-  border-color: #6D28D9 !important;
+  background: #F1324F !important;
+  border-color: #F1324F !important;
 }
 
 /* ── Sidebar workspace ───────────────────────────────────── */
 body.irisx-luxury.irisx-white-theme .irisx-workspace-sidebar {
-  background: #f7f5ff !important;
-  border-right-color: rgba(109,40,217,.12) !important;
+  background: #FFF7F8 !important;
+  border-right-color: rgba(241,50,79,.12) !important;
 }
 
 /* ── Input e select: placeholder visibili ────────────────── */
@@ -8541,7 +8541,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
     grid-template-rows: auto !important;
     background: rgba(255,255,255,.96) !important;
     backdrop-filter: blur(24px);
-    box-shadow: 0 16px 40px rgba(56, 28, 107, 0.08) !important;
+    box-shadow: 0 16px 40px rgba(120,20,40,0.08) !important;
     z-index: 1250;
   }
 
@@ -8581,7 +8581,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
     justify-self: center !important;
     font-size: 1.5rem !important;
     letter-spacing: 0.16em !important;
-    color: #6d28d9 !important;
+    color: #F1324F !important;
   }
 
   body.irisx-luxury .tn-mobile-toggle,
@@ -8590,14 +8590,14 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
     width: 42px !important;
     height: 42px !important;
     border-radius: 14px !important;
-    border-color: rgba(109,40,217,.14) !important;
-    background: rgba(109,40,217,.06) !important;
+    border-color: rgba(241,50,79,.14) !important;
+    background: rgba(241,50,79,.06) !important;
     justify-self: start;
   }
 
   body.irisx-luxury .tn-mobile-toggle span,
   body.irisx-luxury.irisx-white-theme .tn-mobile-toggle span {
-    background: #6d28d9 !important;
+    background: #F1324F !important;
   }
 
   body.irisx-luxury .tn-links,
@@ -8645,7 +8645,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
     bottom: max(10px, env(safe-area-inset-bottom));
     padding: 0.55rem 0.5rem;
     border-radius: 22px;
-    box-shadow: 0 18px 40px rgba(56, 28, 107, 0.14) !important;
+    box-shadow: 0 18px 40px rgba(120,20,40,0.14) !important;
   }
 
   body.irisx-luxury #shop-view .container,
@@ -8768,7 +8768,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
     min-height: 320px !important;
     max-height: 320px !important;
     border-radius: 24px !important;
-    background: linear-gradient(180deg, #faf6ff, #f3edff) !important;
+    background: linear-gradient(180deg, #FFF9FA, #FFF1F4) !important;
   }
 
   body.irisx-luxury .irisx-detail-image {
@@ -8833,7 +8833,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 
   body.irisx-luxury #chat-view {
     height: auto !important;
-    background: linear-gradient(180deg, #fbf8ff 0%, #f6f1ff 100%) !important;
+    background: linear-gradient(180deg, #FFF9FA 0%, #FFF5F7 100%) !important;
   }
 
   body.irisx-luxury .chat-layout {
@@ -8841,9 +8841,9 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
     margin: 0 14px 20px !important;
     border-radius: 24px !important;
     overflow: hidden;
-    border: 1px solid rgba(109,40,217,.12) !important;
+    border: 1px solid rgba(241,50,79,.12) !important;
     background: #ffffff !important;
-    box-shadow: 0 24px 60px rgba(56, 28, 107, 0.08) !important;
+    box-shadow: 0 24px 60px rgba(120,20,40,0.08) !important;
   }
 
   body.irisx-luxury .chat-list,
@@ -8854,7 +8854,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   body.irisx-luxury .cl-head {
     padding: 18px 18px 14px !important;
     gap: 12px !important;
-    border-bottom: 1px solid rgba(109,40,217,.08);
+    border-bottom: 1px solid rgba(241,50,79,.08);
   }
 
   body.irisx-luxury .cl-title {
@@ -8872,20 +8872,20 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   body.irisx-luxury .irisx-chat-scope-tab {
     min-height: 44px;
     border-radius: 14px !important;
-    background: #f6f1ff !important;
-    border-color: rgba(109,40,217,.1) !important;
+    background: #FFF5F7 !important;
+    border-color: rgba(241,50,79,.1) !important;
     color: rgba(26,21,48,.68) !important;
   }
 
   body.irisx-luxury .irisx-chat-scope-tab.on {
-    background: linear-gradient(135deg, #6d28d9, #8b5cf6) !important;
+    background: linear-gradient(135deg, #F1324F, #FF627B) !important;
     color: #ffffff !important;
     border-color: transparent !important;
   }
 
   body.irisx-luxury .cl-item {
     padding: 14px 18px !important;
-    border-bottom-color: rgba(109,40,217,.08) !important;
+    border-bottom-color: rgba(241,50,79,.08) !important;
   }
 
   body.irisx-luxury .cl-name,
@@ -8904,7 +8904,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   body.irisx-luxury .cm-head {
     padding: 14px 18px !important;
     background: #ffffff !important;
-    border-bottom: 1px solid rgba(109,40,217,.08);
+    border-bottom: 1px solid rgba(241,50,79,.08);
   }
 
   body.irisx-luxury .cm-prod {
@@ -8922,7 +8922,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   body.irisx-luxury .cm-msgs {
     min-height: 220px;
     padding: 14px 18px 18px !important;
-    background: #faf7ff !important;
+    background: #FFF9FA !important;
   }
 
   body.irisx-luxury #chat-view .irisx-empty-state {
@@ -8931,7 +8931,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
     place-items: center;
     text-align: center;
     padding: 22px 16px !important;
-    border: 1px dashed rgba(109,40,217,.14);
+    border: 1px dashed rgba(241,50,79,.14);
     border-radius: 18px;
     background: #ffffff;
     color: rgba(26,21,48,.58) !important;
@@ -8948,26 +8948,26 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   }
 
   body.irisx-luxury .msg.me {
-    background: linear-gradient(135deg, #6d28d9, #8b5cf6) !important;
+    background: linear-gradient(135deg, #F1324F, #FF627B) !important;
     color: #ffffff !important;
   }
 
   body.irisx-luxury .msg.them,
   body.irisx-luxury .msg.other {
     background: #ffffff !important;
-    border: 1px solid rgba(109,40,217,.08);
+    border: 1px solid rgba(241,50,79,.08);
     color: #1a1530 !important;
   }
 
   body.irisx-luxury .cm-input {
     padding: 12px 14px calc(12px + env(safe-area-inset-bottom)) !important;
     background: #ffffff !important;
-    border-top: 1px solid rgba(109,40,217,.08);
+    border-top: 1px solid rgba(241,50,79,.08);
   }
 
   body.irisx-luxury .cm-input input {
-    background: #f7f3ff !important;
-    border: 1px solid rgba(109,40,217,.12) !important;
+    background: #FFF7F8 !important;
+    border: 1px solid rgba(241,50,79,.12) !important;
     color: #1a1530 !important;
     border-radius: 16px !important;
   }
@@ -8978,21 +8978,21 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   }
 
   body.irisx-luxury #profile-view {
-    background: linear-gradient(180deg, #fbf8ff 0%, #f6f2ff 100%) !important;
+    background: linear-gradient(180deg, #FFF9FA 0%, #FFF5F7 100%) !important;
   }
 
   body.irisx-luxury #profile-view .irisx-guest-shell {
     gap: 16px;
     padding: 14px;
     background: #ffffff;
-    border: 1px solid rgba(109,40,217,.12);
+    border: 1px solid rgba(241,50,79,.12);
     border-radius: 28px;
-    box-shadow: 0 24px 60px rgba(56, 28, 107, 0.08);
+    box-shadow: 0 24px 60px rgba(120,20,40,0.08);
   }
 
   body.irisx-luxury #profile-view .prof-header {
     background: #ffffff;
-    border: 1px solid rgba(109,40,217,.08);
+    border: 1px solid rgba(241,50,79,.08);
     border-radius: 24px;
     box-shadow: none;
     padding: 22px !important;
@@ -9002,8 +9002,8 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
     width: 64px;
     height: 64px;
     border-radius: 20px;
-    background: linear-gradient(135deg, rgba(109,40,217,.16), rgba(167,139,250,.32));
-    color: #6d28d9;
+    background: linear-gradient(135deg, rgba(241,50,79,.16), rgba(255,169,181,.32));
+    color: #F1324F;
   }
 
   body.irisx-luxury #profile-view .prof-name {
@@ -9035,7 +9035,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
     padding: 16px !important;
     border-radius: 28px !important;
     background: #ffffff !important;
-    box-shadow: 0 24px 60px rgba(56, 28, 107, 0.08) !important;
+    box-shadow: 0 24px 60px rgba(120,20,40,0.08) !important;
   }
 
   body.irisx-luxury .irisx-user-card {
@@ -9048,8 +9048,8 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
     width: 68px !important;
     height: 68px !important;
     font-size: 1.2rem !important;
-    background: linear-gradient(135deg, rgba(109,40,217,.18), rgba(167,139,250,.32)) !important;
-    color: #6d28d9 !important;
+    background: linear-gradient(135deg, rgba(241,50,79,.18), rgba(255,169,181,.32)) !important;
+    color: #F1324F !important;
   }
 
   body.irisx-luxury .irisx-user-meta strong {

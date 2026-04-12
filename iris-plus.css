@@ -6010,8 +6010,22 @@ body.irisx-luxury .offer-cancel {
     grid-template-columns: 1fr;
   }
 
+  body.irisx-luxury .offer-review-grid {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px;
+  }
+
+  body.irisx-luxury .offer-review-main {
+    order: 2;
+    width: 100%;
+  }
+
   body.irisx-luxury .offer-review-side {
-    position: static;
+    order: 1;
+    position: static !important;
+    width: 100%;
   }
 
   body.irisx-luxury .offer-amount-shell {

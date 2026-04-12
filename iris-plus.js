@@ -5053,7 +5053,7 @@
       profileTrigger.setAttribute("aria-label", langText("Apri menu profilo", "Open profile menu"));
       profileTrigger.setAttribute("aria-haspopup", "menu");
       profileTrigger.setAttribute("aria-controls", "tnProfileMenu");
-      profileTrigger.innerHTML = "<span class=\"tn-avatar-dot\">IR</span>";
+      profileTrigger.innerHTML = "<span class=\"tn-avatar-dot\"></span>";
       profileTrigger.onclick = function (event) {
         event.preventDefault();
         event.stopPropagation();
@@ -10174,7 +10174,12 @@
     var prof = qs("#tnProfileTrigger") || qs(".tn-profile");
     if (prof) {
       if (prof.id === "tnProfileTrigger") {
-        prof.innerHTML = '<span class="tn-avatar-dot">IR</span>';
+        var userInitials = '';
+        if (state.currentUser && state.currentUser.name) {
+          var nameParts = state.currentUser.name.trim().split(/\s+/);
+          userInitials = (nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length-1].charAt(0) : '')).toUpperCase();
+        }
+        prof.innerHTML = '<span class="tn-avatar-dot">' + userInitials + '</span>';
         prof.classList.add("tn-avatar");
         prof.style.fontSize = '';
       } else {

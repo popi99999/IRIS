@@ -5140,6 +5140,8 @@
       );
     }
 
+    ensureMobileAppNav();
+    syncMobileAppShell(getCurrentReturnView());
     renderAuthModal();
     renderCartDrawer();
     renderCheckoutModal();
@@ -5432,13 +5434,12 @@
       }
     ];
 
+    const heroVideoMarkup = "";
+
     container.innerHTML = `
       <div class="irisx-home-shell">
         <section class="irisx-home-hero irisx-reveal-section">
-          <video class="irisx-hero-video" id="heroVid" autoplay muted loop playsinline preload="auto">
-            
-            
-          </video>
+          ${heroVideoMarkup}
           <div class="irisx-hero-lux"><div class="irisx-hero-shine"></div></div>
           <div class="irisx-home-copy">
             ${copy.kicker ? `<div class="irisx-home-kicker">${escapeHtml(copy.kicker)}</div><div class="irisx-home-rule"></div>` : ""}
@@ -5508,13 +5509,12 @@
         </section>
       </div>`;
 
-    // Fade in hero video when ready
+    // Fade in hero video only when a real source exists.
     var hv = document.getElementById("heroVid");
-    if (hv) {
+    if (hv && hv.querySelector("source[src]")) {
       hv.load();
       hv.playbackRate = 0.78;
       hv.addEventListener("canplay", function() { hv.classList.add("on"); }, { once: true });
-      setTimeout(function() { if (hv && !hv.classList.contains("on")) hv.classList.add("on"); }, 2000);
     }
     bindLuxuryReveal();
   }
@@ -5553,11 +5553,80 @@
     });
   }
 
+  function buildMobileAppNavMarkup() {
+    return `
+      <nav class="irisx-mobile-app-nav" id="irisMobileAppNav" aria-label="${escapeHtml(langText("Navigazione principale", "Main navigation"))}">
+        <button class="irisx-mobile-app-tab" id="irisMobileTabHome" data-nav-view="home" type="button" onclick="showMobileTabView('home')">
+          <span class="irisx-mobile-app-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.2 10 3l7 5.2"/><path d="M5.2 7.7V17h9.6V7.7"/></svg>
+          </span>
+          <span class="irisx-mobile-app-label" id="irisMobileTabHomeLabel">${escapeHtml(langText("Home", "Home"))}</span>
+        </button>
+        <button class="irisx-mobile-app-tab" id="irisMobileTabShop" data-nav-view="shop" type="button" onclick="showMobileTabView('shop')">
+          <span class="irisx-mobile-app-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h12l-1.1 10H5.1L4 5Z"/><path d="M7.2 7.2a2.8 2.8 0 0 1 5.6 0"/></svg>
+          </span>
+          <span class="irisx-mobile-app-label" id="irisMobileTabShopLabel">${escapeHtml(langText("Shop", "Shop"))}</span>
+        </button>
+        <button class="irisx-mobile-app-tab" id="irisMobileTabFav" data-nav-view="fav" type="button" onclick="showMobileTabView('fav')">
+          <span class="irisx-mobile-app-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 16.2 3.9 10.6A3.9 3.9 0 0 1 9.7 5.3l.3.3.3-.3a3.9 3.9 0 0 1 5.8 5.3L10 16.2Z"/></svg>
+          </span>
+          <span class="irisx-mobile-app-label" id="irisMobileTabFavLabel">${escapeHtml(langText("Preferiti", "Favorites"))}</span>
+        </button>
+        <button class="irisx-mobile-app-tab" id="irisMobileTabChat" data-nav-view="chat" type="button" onclick="showMobileTabView('chat')">
+          <span class="irisx-mobile-app-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12v8H8.2L4 15V4Z"/></svg>
+          </span>
+          <span class="irisx-mobile-app-label" id="irisMobileTabChatLabel">${escapeHtml(langText("Messaggi", "Messages"))}</span>
+        </button>
+        <button class="irisx-mobile-app-tab" id="irisMobileTabProfile" data-nav-view="profile" type="button" onclick="showMobileTabView('profile')">
+          <span class="irisx-mobile-app-icon irisx-mobile-app-icon--profile" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.4" r="2.7"/><path d="M4.6 16c0-3 2.4-5.2 5.4-5.2s5.4 2.2 5.4 5.2"/></svg>
+          </span>
+          <span class="irisx-mobile-app-label" id="irisMobileTabProfileLabel">${escapeHtml(langText("Profilo", "Profile"))}</span>
+        </button>
+      </nav>`;
+  }
+
+  function ensureMobileAppNav() {
+    if (qs("#irisMobileAppNav")) {
+      return;
+    }
+    document.body.insertAdjacentHTML("beforeend", buildMobileAppNavMarkup());
+  }
+
+  function showMobileTabView(view) {
+    closeMobileNav();
+    closeProfileMenu();
+    closeLocaleMenu();
+    if (!["home", "shop", "fav", "chat", "profile"].includes(view)) {
+      return;
+    }
+    showPage("buy");
+    showBuyView(view);
+  }
+
+  function syncMobileAppShell(view) {
+    const nav = qs("#irisMobileAppNav");
+    if (!nav) {
+      return;
+    }
+    const activeView = view || getCurrentReturnView();
+    const isMobile = window.innerWidth <= 900;
+    const pageIsSell = !!qs("#page-sell.active");
+    const visibleViews = ["home", "shop", "fav", "chat", "profile"];
+    const shouldShow = isMobile && !pageIsSell && visibleViews.includes(activeView);
+    nav.classList.toggle("is-visible", shouldShow);
+    nav.setAttribute("aria-hidden", shouldShow ? "false" : "true");
+  }
+
   function setActiveNav(view) {
     qsa("[data-nav-view]").forEach(function (button) {
       button.classList.toggle("active", button.getAttribute("data-nav-view") === view);
     });
     syncProfileMenuState(undefined, view);
+    syncMobileAppShell(view);
   }
 
   function getCurrentReturnView() {
@@ -5610,6 +5679,7 @@
     if (mobileTrigger) {
       mobileTrigger.setAttribute("aria-expanded", qs("#tnMobileMenu") && qs("#tnMobileMenu").classList.contains("open") ? "true" : "false");
     }
+    syncMobileAppShell(activeView);
   }
 
   function closeMobileFilters() {
@@ -5674,6 +5744,11 @@
     setNodeText("#tnMobileCartBtn", langText("Carrello", "Cart"));
     setNodeText("#tnMobileSellBtn", langText("Vendi", "Sell"));
     setNodeText("#tnMobileThemeBtn", themeLabel);
+    setNodeText("#irisMobileTabHomeLabel", langText("Home", "Home"));
+    setNodeText("#irisMobileTabShopLabel", langText("Shop", "Shop"));
+    setNodeText("#irisMobileTabFavLabel", langText("Preferiti", "Favorites"));
+    setNodeText("#irisMobileTabChatLabel", langText("Messaggi", "Messages"));
+    setNodeText("#irisMobileTabProfileLabel", langText("Profilo", "Profile"));
     syncLocaleTrigger();
   }
 
@@ -15946,6 +16021,8 @@
   window.setChatScope = setChatScope;
   window.openMessagingInbox = openMessagingInbox;
   window.openNotificationCenter = openNotificationCenter;
+  window.showMobileTabView = showMobileTabView;
+  window.syncMobileAppShell = syncMobileAppShell;
   window.saveAddressBook = saveAddressBook;
     window.irisAddressAutocomplete = irisAddressAutocomplete;
     window.irisAddressSelect = irisAddressSelect;

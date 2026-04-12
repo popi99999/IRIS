@@ -7288,12 +7288,81 @@ body.irisx-luxury .irisx-addr-item:hover {
 
 /* ═══════════════════════════════════════════════════════
    IRIS WHITE THEME — Testo NERO, accenti Viola, hover Oro
-   REGOLA NUCLEARE: forza TUTTO il testo a nero
    ═══════════════════════════════════════════════════════ */
 body.irisx-luxury.irisx-white-theme {
   background: #ffffff !important;
   color: #111827 !important;
   font-weight: 500 !important;
+  /* Ridefinisce le CSS variables: --gold e --lavender diventano neri/viola
+     Questo sovrascrive ANCHE le regole con var(--gold) !important */
+  --gold: #111827;
+  --lavender: #6D28D9;
+  --purple: #6D28D9;
+  --iris-gold: #111827;
+  --iris-purple: #6D28D9;
+}
+
+/* ── Sfondi scuri hero e sezioni home → bianco ────────── */
+body.irisx-luxury.irisx-white-theme .irisx-hero-lux,
+body.irisx-luxury.irisx-white-theme .irisx-hero-shine,
+body.irisx-luxury.irisx-white-theme .irisx-hero-grain {
+  background: none !important;
+  animation: none !important;
+  display: none !important;
+}
+body.irisx-luxury.irisx-white-theme .irisx-home-hero {
+  background: #ffffff !important;
+}
+body.irisx-luxury.irisx-white-theme .irisx-home-copy,
+body.irisx-luxury.irisx-white-theme .irisx-home-side {
+  background: #ffffff !important;
+  border-color: rgba(109,40,217,.12) !important;
+}
+body.irisx-luxury.irisx-white-theme .irisx-home-card {
+  background: #f7f5ff !important;
+  border-left-color: #6D28D9 !important;
+}
+body.irisx-luxury.irisx-white-theme .irisx-home-story,
+body.irisx-luxury.irisx-white-theme .irisx-home-column {
+  background: #f7f5ff !important;
+  border-color: rgba(109,40,217,.15) !important;
+}
+body.irisx-luxury.irisx-white-theme .irisx-home-strip div {
+  border-top-color: rgba(109,40,217,.2) !important;
+}
+
+/* ── Tutte le sezioni, card, panel → sfondo bianco ───── */
+body.irisx-luxury.irisx-white-theme [class*="irisx-home-section"],
+body.irisx-luxury.irisx-white-theme [class*="irisx-section"],
+body.irisx-luxury.irisx-white-theme [class*="irisx-trust"],
+body.irisx-luxury.irisx-white-theme [class*="irisx-policy"] {
+  background-color: transparent !important;
+}
+body.irisx-luxury.irisx-white-theme .irisx-inline-card,
+body.irisx-luxury.irisx-white-theme .irisx-policy-card,
+body.irisx-luxury.irisx-white-theme .irisx-workspace-card,
+body.irisx-luxury.irisx-white-theme .irisx-summary-card,
+body.irisx-luxury.irisx-white-theme .irisx-order-panel,
+body.irisx-luxury.irisx-white-theme .irisx-state-panel,
+body.irisx-luxury.irisx-white-theme .irisx-checkout-main,
+body.irisx-luxury.irisx-white-theme .irisx-checkout-summary,
+body.irisx-luxury.irisx-white-theme .irisx-workspace-main {
+  background: #ffffff !important;
+  border-color: rgba(109,40,217,.15) !important;
+  box-shadow: 0 2px 16px rgba(0,0,0,.05) !important;
+}
+
+/* ── Griglia prodotti: card bianche con bordo viola leggero */
+body.irisx-luxury.irisx-white-theme .pc,
+body.irisx-luxury.irisx-white-theme .irisx-pc {
+  background: #ffffff !important;
+  border: 1px solid rgba(109,40,217,.18) !important;
+  box-shadow: 0 2px 12px rgba(109,40,217,.06) !important;
+}
+body.irisx-luxury.irisx-white-theme .pc:hover,
+body.irisx-luxury.irisx-white-theme .irisx-pc:hover {
+  border-color: #6D28D9 !important;
+  box-shadow: 0 6px 24px rgba(109,40,217,.12) !important;
 }
 
 /* NUCLEARE: qualsiasi elemento dentro il white-theme → testo nero e peso minimo 500 */
@@ -7334,10 +7403,6 @@ body.irisx-luxury.irisx-white-theme .p-discount,
 body.irisx-luxury.irisx-white-theme .det-save,
 body.irisx-luxury.irisx-white-theme .irisx-toast,
 body.irisx-luxury.irisx-white-theme .irisx-toast *,
-body.irisx-luxury.irisx-white-theme .irisx-home-title,
-body.irisx-luxury.irisx-white-theme .irisx-home-proof,
-body.irisx-luxury.irisx-white-theme .irisx-home-kicker,
-body.irisx-luxury.irisx-white-theme .irisx-home-action.primary,
 body.irisx-luxury.irisx-white-theme .site-footer,
 body.irisx-luxury.irisx-white-theme .site-footer * {
   color: #ffffff !important;
@@ -7782,3 +7847,63 @@ body.irisx-luxury.irisx-white-theme .irisx-shop-quick-filter {
   font-weight: 600 !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-shop-quick-filter:hover { color: #C4A06A !important; border-color: #C4A06A !important; }
+
+/* ── Override topnav luxury background (era rgba(6,3,16,.86)) ── */
+body.irisx-luxury.irisx-white-theme .topnav,
+body.irisx-luxury.irisx-white-theme #topnav {
+  background: rgba(255,255,255,0.98) !important;
+  border-bottom: 1px solid rgba(109,40,217,.12) !important;
+}
+body.irisx-luxury.irisx-white-theme .tn-row--sub {
+  border-top-color: rgba(109,40,217,.08) !important;
+}
+
+/* ── Override tutti i background scuri residui ──────────── */
+body.irisx-luxury.irisx-white-theme [style*="rgba(17,8,38"],
+body.irisx-luxury.irisx-white-theme [style*="rgba(10,5,24"],
+body.irisx-luxury.irisx-white-theme [style*="rgba(7,3,15"],
+body.irisx-luxury.irisx-white-theme [style*="rgba(6,3,16"] {
+  background: #ffffff !important;
+}
+
+/* ── Modali, drawer, overlay → sfondo bianco ─────────────── */
+body.irisx-luxury.irisx-white-theme .irisx-modal-card,
+body.irisx-luxury.irisx-white-theme .irisx-drawer-panel,
+body.irisx-luxury.irisx-white-theme .irisx-modal-overlay > div {
+  background: #ffffff !important;
+  border-color: rgba(109,40,217,.15) !important;
+}
+
+/* ── Sezioni home: area-btn, section-tab ─────────────────── */
+body.irisx-luxury.irisx-white-theme .irisx-area-btn,
+body.irisx-luxury.irisx-white-theme .irisx-section-tab {
+  background: #f7f5ff !important;
+  border-color: rgba(109,40,217,.15) !important;
+}
+body.irisx-luxury.irisx-white-theme .irisx-area-btn:hover,
+body.irisx-luxury.irisx-white-theme .irisx-section-tab:hover {
+  border-color: #C4A06A !important;
+}
+body.irisx-luxury.irisx-white-theme .irisx-section-tab.on {
+  background: #6D28D9 !important;
+  border-color: #6D28D9 !important;
+}
+
+/* ── Sidebar workspace ───────────────────────────────────── */
+body.irisx-luxury.irisx-white-theme .irisx-workspace-sidebar {
+  background: #f7f5ff !important;
+  border-right-color: rgba(109,40,217,.12) !important;
+}
+
+/* ── Input e select: placeholder visibili ────────────────── */
+body.irisx-luxury.irisx-white-theme input::placeholder,
+body.irisx-luxury.irisx-white-theme textarea::placeholder {
+  color: rgba(0,0,0,.38) !important;
+  font-weight: 400 !important;
+}
+
+/* ── Forza opacity:1 su tutti (opacity ridotta causa testo sbiadito) ── */
+body.irisx-luxury.irisx-white-theme .irisx-home-kicker,
+body.irisx-luxury.irisx-white-theme .irisx-home-section-kicker {
+  opacity: 1 !important;
+}

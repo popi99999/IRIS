@@ -5957,6 +5957,7 @@
         sellPage.classList.add("active");
         topnav.classList.remove("show");
         sellTopbar.classList.add("show");
+        syncMobileAppShell("sell");
         window.scrollTo(0, 0);
         return;
       }
@@ -5965,6 +5966,7 @@
       buyPage.classList.add("active");
       topnav.classList.add("show");
       sellTopbar.classList.remove("show");
+      syncMobileAppShell("home");
       showBuyView("home");
     };
 

@@ -8229,13 +8229,21 @@ body.irisx-luxury.irisx-white-theme input::placeholder {
   color: rgba(0,0,0,.35) !important;
 }
 
-/* Headings */
-body.irisx-luxury.irisx-white-theme h1,
-body.irisx-luxury.irisx-white-theme h2,
-body.irisx-luxury.irisx-white-theme h3,
-body.irisx-luxury.irisx-white-theme h4,
+/* Headings inside light surfaces only */
 body.irisx-luxury.irisx-white-theme .irisx-section-head h3,
-body.irisx-luxury.irisx-white-theme .irisx-section-title {
+body.irisx-luxury.irisx-white-theme .irisx-section-title,
+body.irisx-luxury.irisx-white-theme .irisx-inline-card h1,
+body.irisx-luxury.irisx-white-theme .irisx-inline-card h2,
+body.irisx-luxury.irisx-white-theme .irisx-inline-card h3,
+body.irisx-luxury.irisx-white-theme .irisx-inline-card h4,
+body.irisx-luxury.irisx-white-theme .irisx-profile-shell h1,
+body.irisx-luxury.irisx-white-theme .irisx-profile-shell h2,
+body.irisx-luxury.irisx-white-theme .irisx-profile-shell h3,
+body.irisx-luxury.irisx-white-theme .irisx-profile-shell h4,
+body.irisx-luxury.irisx-white-theme .irisx-summary-card h1,
+body.irisx-luxury.irisx-white-theme .irisx-summary-card h2,
+body.irisx-luxury.irisx-white-theme .irisx-summary-card h3,
+body.irisx-luxury.irisx-white-theme .irisx-summary-card h4 {
   color: #111827 !important;
   font-weight: 700 !important;
 }
@@ -8391,6 +8399,28 @@ body.irisx-luxury.irisx-white-theme .irisx-shop-browse-link.is-active {
   border-color: #6D28D9 !important;
 }
 
+body.irisx-luxury.irisx-white-theme .shop-count {
+  color: rgba(26, 21, 48, 0.56) !important;
+}
+
+body.irisx-luxury.irisx-white-theme .shop-count span {
+  color: #1a1530 !important;
+}
+
+body.irisx-luxury.irisx-white-theme .sort-btn {
+  background: #ffffff !important;
+  color: rgba(26, 21, 48, 0.68) !important;
+  border-color: rgba(109, 40, 217, 0.12) !important;
+}
+
+body.irisx-luxury.irisx-white-theme .sort-btn.on,
+body.irisx-luxury.irisx-white-theme .sort-btn:hover,
+body.irisx-luxury.irisx-white-theme .sort-btn.active {
+  background: rgba(109, 40, 217, 0.08) !important;
+  color: #6D28D9 !important;
+  border-color: rgba(109, 40, 217, 0.24) !important;
+}
+
 /* Quick filter buttons (mobile/legacy) */
 body.irisx-luxury.irisx-white-theme .irisx-shop-quick-filter {
   color: #111827 !important;
@@ -8407,14 +8437,6 @@ body.irisx-luxury.irisx-white-theme #topnav {
 }
 body.irisx-luxury.irisx-white-theme .tn-row--sub {
   border-top-color: rgba(109,40,217,.08) !important;
-}
-
-/* ── Override tutti i background scuri residui ──────────── */
-body.irisx-luxury.irisx-white-theme [style*="rgba(17,8,38"],
-body.irisx-luxury.irisx-white-theme [style*="rgba(10,5,24"],
-body.irisx-luxury.irisx-white-theme [style*="rgba(7,3,15"],
-body.irisx-luxury.irisx-white-theme [style*="rgba(6,3,16"] {
-  background: #ffffff !important;
 }
 
 /* ── Modali, drawer, overlay → sfondo bianco ─────────────── */
@@ -8457,4 +8479,43 @@ body.irisx-luxury.irisx-white-theme textarea::placeholder {
 body.irisx-luxury.irisx-white-theme .irisx-home-kicker,
 body.irisx-luxury.irisx-white-theme .irisx-home-section-kicker {
   opacity: 1 !important;
+}
+
+body.irisx-luxury.irisx-white-theme .irisx-detail-breadcrumb {
+  color: rgba(26, 21, 48, 0.44) !important;
+}
+
+body.irisx-luxury.irisx-white-theme .irisx-detail-breadcrumb button {
+  color: rgba(26, 21, 48, 0.6) !important;
+}
+
+body.irisx-luxury.irisx-white-theme .irisx-detail-breadcrumb strong {
+  color: rgba(26, 21, 48, 0.78) !important;
+}
+
+/* ── Restore dark-surface readability after light-theme overrides ───── */
+body.irisx-luxury.irisx-white-theme .sell-path--featured,
+body.irisx-luxury.irisx-white-theme .site-footer,
+body.irisx-luxury.irisx-white-theme .irisx-toast,
+body.irisx-luxury.irisx-white-theme .irisx-home-hero {
+  color: #ffffff !important;
+}
+
+body.irisx-luxury.irisx-white-theme .sell-path--featured h1,
+body.irisx-luxury.irisx-white-theme .sell-path--featured h2,
+body.irisx-luxury.irisx-white-theme .sell-path--featured h3,
+body.irisx-luxury.irisx-white-theme .sell-path--featured h4,
+body.irisx-luxury.irisx-white-theme .sell-path--featured p,
+body.irisx-luxury.irisx-white-theme .sell-path--featured li,
+body.irisx-luxury.irisx-white-theme .sell-path--featured span,
+body.irisx-luxury.irisx-white-theme .sell-path--featured strong,
+body.irisx-luxury.irisx-white-theme .site-footer h1,
+body.irisx-luxury.irisx-white-theme .site-footer h2,
+body.irisx-luxury.irisx-white-theme .site-footer h3,
+body.irisx-luxury.irisx-white-theme .site-footer h4,
+body.irisx-luxury.irisx-white-theme .site-footer p,
+body.irisx-luxury.irisx-white-theme .site-footer span,
+body.irisx-luxury.irisx-white-theme .irisx-toast strong,
+body.irisx-luxury.irisx-white-theme .irisx-toast span {
+  color: inherit !important;
 }

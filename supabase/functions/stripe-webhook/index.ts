@@ -327,12 +327,14 @@ async function handleCheckoutCompleted(session: any) {
         scope: "checkout",
         unread: true,
       });
+      const productList = normalizedItems.map((entry) => `${entry.listing.brand ?? ""} ${entry.listing.name ?? ""}`.trim()).join(", ");
+      const sellerNet = orderPayload.payment?.sellerNet ? ` · Netto: €${Number(orderPayload.payment.sellerNet).toFixed(2)}` : "";
       await sendTransactionalEmail("generic", normalizeEmail(sellerEmail), {
         orderId,
         orderNumber: orderPayload.number,
-        body: `Hai ricevuto un nuovo ordine per ${normalizedItems.map((entry) => `${entry.listing.brand ?? ""} ${entry.listing.name ?? ""}`.trim()).join(", ")}.${buyerPhone ? ` Telefono buyer: ${buyerPhone}.` : ""}`,
+        body: `🎉 Hai venduto: ${productList}\n\nOrdine: ${orderPayload.number}\nImporto totale: €${Number(orderPayload.total ?? 0).toFixed(2)}${sellerNet}\n${buyerPhone ? `Telefono acquirente: ${buyerPhone}\n` : ""}\nPreparate il pacco e spedite entro 3 giorni lavorativi. Troverete i dettagli di spedizione nel vostro profilo IRIS.`,
       }, {
-        subject: `IRIS - Articolo venduto ${orderPayload.number}`,
+        subject: `🛍️ Venduto! ${productList} — ${orderPayload.number}`,
       });
     }
     await sendTransactionalEmail("checkout-confirmation", buyerEmail, {

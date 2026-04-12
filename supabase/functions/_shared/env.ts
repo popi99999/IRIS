@@ -1,3 +1,5 @@
+export const PUBLIC_SITE_URL_FALLBACK = "https://popi99999.github.io/IRIS";
+
 export function getEnv(name: string, fallback = ""): string {
   return Deno.env.get(name) ?? fallback;
 }
@@ -15,7 +17,7 @@ export function trimTrailingSlash(value: string): string {
 }
 
 export function getPublicSiteUrl(): string {
-  return trimTrailingSlash(getEnv("PUBLIC_SITE_URL", "https://iris-fashion.it"));
+  return trimTrailingSlash(getEnv("PUBLIC_SITE_URL", PUBLIC_SITE_URL_FALLBACK));
 }
 
 export async function readJsonBody<T = Record<string, unknown>>(request: Request): Promise<T> {

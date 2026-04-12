@@ -1,5 +1,5 @@
 import Stripe from "npm:stripe@16.12.0";
-import { getEnv, normalizeAmount, requireEnv } from "./env.ts";
+import { getPublicSiteUrl, normalizeAmount, requireEnv } from "./env.ts";
 
 let stripeClient: Stripe | null = null;
 
@@ -55,7 +55,7 @@ export function stringifyStripeMetadata(value: unknown): Record<string, string> 
 }
 
 export function defaultSuccessUrl(path = "/"): string {
-  return `${getEnv("PUBLIC_SITE_URL", "https://iris-fashion.it").replace(/\/+$/, "")}${path}`;
+  return `${getPublicSiteUrl()}${path}`;
 }
 
 export function appendUrlParams(baseUrl: string, params: Record<string, string | number | boolean | null | undefined>): string {

@@ -1,4 +1,4 @@
-import { getEnv, normalizeEmail, normalizeString } from "./env.ts";
+import { getEnv, getPublicSiteUrl, normalizeEmail, normalizeString } from "./env.ts";
 import { getSupabaseAdmin, tryInsertEmailOutbox } from "./supabase.ts";
 
 export type TemplateKey =
@@ -26,7 +26,7 @@ export type TemplateKey =
 type EmailContext = Record<string, unknown>;
 
 function getSiteUrl(): string {
-  return getEnv("PUBLIC_SITE_URL", "https://iris-fashion.it").replace(/\/+$/, "");
+  return getPublicSiteUrl();
 }
 
 function renderSubject(templateKey: TemplateKey, context: EmailContext): string {
@@ -230,7 +230,7 @@ function renderTemplate(templateKey: TemplateKey, context: EmailContext) {
     </div>
     <hr style="margin:28px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">
     <p style="margin:0;color:rgba(245,240,235,.45);font-size:12px;line-height:1.6">
-      IRIS Luxury Fashion Marketplace · <a href="${siteUrl}" style="color:#c4a06a">iris-fashion.it</a><br>
+      IRIS Luxury Fashion Marketplace · <a href="${siteUrl}" style="color:#c4a06a">${siteUrl.replace(/^https?:\/\//, "")}</a><br>
       Hai ricevuto questa email perché hai un account su IRIS.<br>
       <a href="${siteUrl}/impostazioni#notifiche" style="color:rgba(245,240,235,.35)">Gestisci notifiche email</a>
     </p>

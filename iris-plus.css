@@ -2884,7 +2884,7 @@ body.light-mode .irisx-chat-role-badge {
 
 .offer-review-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
   gap: 2rem;
   padding: 2rem;
 }
@@ -5824,7 +5824,7 @@ body.irisx-luxury .offer-input {
 
 body.irisx-luxury .offer-review-grid {
   align-items: start;
-  grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
   gap: 24px;
 }
 
@@ -6010,20 +6010,7 @@ body.irisx-luxury .offer-cancel {
     grid-template-columns: 1fr;
   }
 
-  body.irisx-luxury .offer-review-grid {
-    grid-template-columns: 1fr !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 20px;
-  }
-
-  body.irisx-luxury .offer-review-main {
-    order: 2;
-    width: 100%;
-  }
-
   body.irisx-luxury .offer-review-side {
-    order: 1;
     position: static !important;
     width: 100%;
   }
@@ -7070,5 +7057,77 @@ body.irisx-luxury .det-section--seller{
 
   body.irisx-luxury #detail-view{
     padding-bottom:32px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE: iPad (768-1024px) — portrait & landscape
+   ═══════════════════════════════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1024px) {
+  body.irisx-luxury .irisx-home-hero {
+    min-height: 70vh;
+  }
+
+  body.irisx-luxury .irisx-home-title {
+    font-size: clamp(3rem, 7vw, 5rem);
+  }
+
+  body.irisx-luxury #grid,
+  body.irisx-luxury .pgrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  body.irisx-luxury .det-layout {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  body.irisx-luxury .irisx-workspace {
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  body.irisx-luxury .irisx-summary-grid--workspace,
+  body.irisx-luxury .irisx-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.irisx-luxury .offer-review-side {
+    position: static;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE: iPhone / piccoli (< 430px)
+   ═══════════════════════════════════════════════════════ */
+@media (max-width: 430px) {
+  body.irisx-luxury .irisx-home-title {
+    font-size: clamp(2.2rem, 11vw, 3rem);
+  }
+
+  body.irisx-luxury #grid,
+  body.irisx-luxury .pgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding-inline: 12px;
+  }
+
+  body.irisx-luxury .irisx-workspace {
+    padding-inline: 12px;
+  }
+
+  body.irisx-luxury .offer-review-grid {
+    padding: 16px 12px;
+    gap: 16px;
+  }
+
+  body.irisx-luxury .offer-shell__header {
+    padding: 14px 12px;
+  }
+
+  body.irisx-luxury .offer-review-card,
+  body.irisx-luxury .offer-review-section {
+    padding: 14px;
   }
 }

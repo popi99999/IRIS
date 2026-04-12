@@ -7288,11 +7288,95 @@ body.irisx-luxury .irisx-addr-item:hover {
 
 /* ═══════════════════════════════════════════════════════
    IRIS WHITE THEME — Testo NERO, accenti Viola, hover Oro
+   REGOLA NUCLEARE: forza TUTTO il testo a nero
    ═══════════════════════════════════════════════════════ */
 body.irisx-luxury.irisx-white-theme {
   background: #ffffff !important;
   color: #111827 !important;
   font-weight: 500 !important;
+}
+
+/* NUCLEARE: qualsiasi elemento dentro il white-theme → testo nero e peso minimo 500 */
+body.irisx-luxury.irisx-white-theme *:not(svg):not(path):not(circle):not(line) {
+  color: #111827 !important;
+}
+body.irisx-luxury.irisx-white-theme p,
+body.irisx-luxury.irisx-white-theme span,
+body.irisx-luxury.irisx-white-theme div,
+body.irisx-luxury.irisx-white-theme li,
+body.irisx-luxury.irisx-white-theme td,
+body.irisx-luxury.irisx-white-theme label {
+  font-weight: 500 !important;
+}
+body.irisx-luxury.irisx-white-theme h1,
+body.irisx-luxury.irisx-white-theme h2,
+body.irisx-luxury.irisx-white-theme h3,
+body.irisx-luxury.irisx-white-theme h4,
+body.irisx-luxury.irisx-white-theme strong,
+body.irisx-luxury.irisx-white-theme b {
+  font-weight: 700 !important;
+}
+body.irisx-luxury.irisx-white-theme button,
+body.irisx-luxury.irisx-white-theme a {
+  font-weight: 600 !important;
+}
+
+/* ECCEZIONI — elementi che devono restare bianchi (testo su sfondo scuro) */
+body.irisx-luxury.irisx-white-theme #tnSellBtn,
+body.irisx-luxury.irisx-white-theme #tnSellBtn *,
+body.irisx-luxury.irisx-white-theme .irisx-primary,
+body.irisx-luxury.irisx-white-theme .irisx-primary *,
+body.irisx-luxury.irisx-white-theme .det-buy,
+body.irisx-luxury.irisx-white-theme .det-buy *,
+body.irisx-luxury.irisx-white-theme .irisx-detail-buy-btn,
+body.irisx-luxury.irisx-white-theme .offer-send,
+body.irisx-luxury.irisx-white-theme .p-discount,
+body.irisx-luxury.irisx-white-theme .det-save,
+body.irisx-luxury.irisx-white-theme .irisx-toast,
+body.irisx-luxury.irisx-white-theme .irisx-toast *,
+body.irisx-luxury.irisx-white-theme .irisx-home-title,
+body.irisx-luxury.irisx-white-theme .irisx-home-proof,
+body.irisx-luxury.irisx-white-theme .irisx-home-kicker,
+body.irisx-luxury.irisx-white-theme .irisx-home-action.primary,
+body.irisx-luxury.irisx-white-theme .site-footer,
+body.irisx-luxury.irisx-white-theme .site-footer * {
+  color: #ffffff !important;
+}
+
+/* ECCEZIONI — accenti viola (brand, prezzi, bottoni outline) */
+body.irisx-luxury.irisx-white-theme .p-brand,
+body.irisx-luxury.irisx-white-theme .det-brand,
+body.irisx-luxury.irisx-white-theme .irisx-secondary,
+body.irisx-luxury.irisx-white-theme .det-offer,
+body.irisx-luxury.irisx-white-theme .irisx-badge,
+body.irisx-luxury.irisx-white-theme .tn-btn.tn-assistenza,
+body.irisx-luxury.irisx-white-theme .irisx-filter-chip.is-active {
+  color: #6D28D9 !important;
+}
+
+/* HOVER → oro su qualsiasi elemento cliccabile */
+body.irisx-luxury.irisx-white-theme a:hover,
+body.irisx-luxury.irisx-white-theme button:hover,
+body.irisx-luxury.irisx-white-theme [onclick]:hover,
+body.irisx-luxury.irisx-white-theme .irisx-pc:hover .p-name,
+body.irisx-luxury.irisx-white-theme .irisx-pc:hover .p-brand,
+body.irisx-luxury.irisx-white-theme .irisx-shop-browse-link:hover,
+body.irisx-luxury.irisx-white-theme .tn-menu-link:hover,
+body.irisx-luxury.irisx-white-theme .tn-mobile-link:hover,
+body.irisx-luxury.irisx-white-theme .irisx-subnav-link:hover,
+body.irisx-luxury.irisx-white-theme .irisx-sidebar-link:hover,
+body.irisx-luxury.irisx-white-theme .irisx-sort-btn:hover,
+body.irisx-luxury.irisx-white-theme .footer-links a:hover,
+body.irisx-luxury.irisx-white-theme .footer-social a:hover {
+  color: #C4A06A !important;
+}
+
+/* Override hover per bottoni con background (restano bianchi) */
+body.irisx-luxury.irisx-white-theme .irisx-primary:hover,
+body.irisx-luxury.irisx-white-theme .det-buy:hover,
+body.irisx-luxury.irisx-white-theme .offer-send:hover,
+body.irisx-luxury.irisx-white-theme #tnSellBtn:hover {
+  color: #ffffff !important;
 }
 
 /* Navbar */

@@ -5897,38 +5897,37 @@
 
     const intro = qs("#intro");
     const choice = qs("#choice");
-    const luxuryModeActive = document.body.classList.contains("irisx-luxury");
-    const introHiddenByCss = intro ? window.getComputedStyle(intro).display === "none" : false;
+    const cinematicIntro = qs("#iris-cinematic-intro");
 
-    // Keep intro visible only when the luxury redesign is not intentionally hiding it.
-    if (!luxuryModeActive && intro && intro.style.display === "none") {
-      intro.style.display = "";
+    if (intro) {
+      intro.classList.remove("out");
+      intro.style.display = "none";
     }
-    // Hide old choice screen — we go straight to buy after intro
+
+    if (cinematicIntro) {
+      cinematicIntro.classList.remove("irisci-ready");
+      cinematicIntro.classList.remove("irisci-fading");
+      cinematicIntro.style.display = "none";
+    }
+
     if (choice) {
       choice.style.display = "none";
       choice.classList.remove("show");
     }
 
-    // If intro exists and is visually active, keep body locked until user clicks.
-    if (intro && !luxuryModeActive && !introHiddenByCss && intro.style.display !== "none") {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = "";
 
     skipIntro = function () {
-      if (typeof introDone !== "undefined" && introDone) return;
       if (typeof introDone !== "undefined") introDone = true;
       const iEl = document.getElementById("itext");
       const introDiv = document.getElementById("intro");
       if (iEl) iEl.classList.add("out");
-      if (introDiv) introDiv.classList.add("out");
-      setTimeout(function () {
-        if (introDiv) introDiv.style.display = "none";
-        document.body.style.overflow = "";
-        showPage("buy");
-      }, 1100);
+      if (introDiv) {
+        introDiv.classList.add("out");
+        introDiv.style.display = "none";
+      }
+      document.body.style.overflow = "";
+      showPage("buy");
     };
 
     showChoiceScreen = function () {
@@ -5970,11 +5969,7 @@
       showBuyView("home");
     };
 
-    // Only auto-show buy page if intro is already hidden
-    const introEl = qs("#intro");
-    if (!introEl || introEl.style.display === "none") {
-      showPage("buy");
-    }
+    showPage("buy");
   }
 
   function clearPersistedPrototypeData() {

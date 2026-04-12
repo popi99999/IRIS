@@ -5121,12 +5121,14 @@
       navLinks.insertBefore(cartButton, qs(".notif-wrap"));
     }
 
-    if (navLinks && !qs("#authBtn")) {
+    if (navLinks && !qs("#tnHeaderAuthBtn")) {
       const authButton = document.createElement("button");
-      authButton.className = "tn-btn";
-      authButton.id = "authBtn";
+      authButton.className = "tn-btn tn-auth";
+      authButton.id = "tnHeaderAuthBtn";
+      authButton.type = "button";
+      authButton.textContent = t("login");
       authButton.addEventListener("click", handleAuthButtonClick);
-      navLinks.insertBefore(authButton, qs("#profile-view") ? qs(".mode-toggle") : null);
+      navLinks.insertBefore(authButton, qs("#tnFavBtn") || qs("#cartBtn") || qs("#tnSellBtn") || null);
     }
 
     if (!qs("#irisxAuthModal")) {
@@ -10281,7 +10283,6 @@
   function cleanupNavbar() {
     var el;
     el = qs("#tnAboutBtn"); if (el) el.style.display = "none";
-    el = qs("#authBtn"); if (el) el.style.display = "none";
     el = qs("#opsBtn"); if (el) el.style.display = "none";
     el = qs(".mode-toggle"); if (el) el.style.display = "none";
     var prof = qs("#tnProfileTrigger") || qs(".tn-profile");
@@ -10304,13 +10305,65 @@
     if (lg) lg.style.display = "none";
   }
 
-  function syncSessionUi() {
-    const authButton = qs("#authBtn");
-    if (authButton) {
-      authButton.textContent = state.currentUser ? t("logout") : t("login");
-      authButton.onclick = handleAuthButtonClick;
+  function syncHeaderActionVisibility() {
+    const topnav = qs("#topnav");
+    const isAuthenticated = !!state.currentUser;
+    const headerAuthButton = qs("#tnHeaderAuthBtn");
+    const menuAuthButton = qs("#tnMenuAuthBtn");
+    const supportButton = qs("#tnSupportBtn");
+    const localeButton = qs("#tnLocaleTrigger");
+    const favoritesButton = qs("#tnFavBtn");
+    const cartButton = qs("#cartBtn");
+    const notifWrap = qs(".tn-links .notif-wrap");
+    const chatButton = qs(".tn-links .tn-chat");
+    const profileButton = qs("#tnProfileTrigger");
+    const sellButton = qs("#tnSellBtn") || qs(".tn-links .tn-sell");
+
+    if (topnav) {
+      topnav.classList.toggle("irisx-auth-user", isAuthenticated);
+      topnav.classList.toggle("irisx-auth-guest", !isAuthenticated);
     }
 
+    if (headerAuthButton) {
+      headerAuthButton.textContent = t("login");
+      headerAuthButton.setAttribute("aria-label", t("login"));
+      headerAuthButton.onclick = handleAuthButtonClick;
+      headerAuthButton.style.display = isAuthenticated ? "none" : "";
+    }
+
+    if (menuAuthButton) {
+      menuAuthButton.textContent = isAuthenticated ? t("logout") : t("login");
+      menuAuthButton.setAttribute("aria-label", isAuthenticated ? t("logout") : t("login"));
+      menuAuthButton.onclick = handleAuthButtonClick;
+    }
+
+    if (supportButton) {
+      supportButton.style.display = "none";
+    }
+    if (localeButton) {
+      localeButton.style.display = "";
+    }
+    if (favoritesButton) {
+      favoritesButton.style.display = isAuthenticated ? "" : "none";
+    }
+    if (cartButton) {
+      cartButton.style.display = isAuthenticated ? "" : "none";
+    }
+    if (notifWrap) {
+      notifWrap.style.display = "none";
+    }
+    if (chatButton) {
+      chatButton.style.display = isAuthenticated ? "" : "none";
+    }
+    if (profileButton) {
+      profileButton.style.display = isAuthenticated ? "" : "none";
+    }
+    if (sellButton) {
+      sellButton.style.display = "";
+    }
+  }
+
+  function syncSessionUi() {
     const opsButton = qs("#opsBtn");
     if (opsButton) {
       opsButton.style.display = isCurrentUserAdmin() ? "" : "none";
@@ -10322,6 +10375,7 @@
     }
 
     cleanupNavbar();
+    syncHeaderActionVisibility();
   }
 
   function requireAuth(callback) {

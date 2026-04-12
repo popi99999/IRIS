@@ -21,10 +21,10 @@ html body.irisx-luxury #shop-view { padding-top: 20px !important; }
 .tn-search { max-width: 280px !important; }
 
 /* Fix detail view image area */
-.det-img-main { font-size: 8rem !important; opacity: 0.55 !important; filter: drop-shadow(0 0 40px rgba(196,160,106,.18)) drop-shadow(0 8px 32px rgba(0,0,0,.5)) !important; }
+.det-img-main { font-size: 8rem !important; opacity: 0.55 !important; filter: drop-shadow(0 0 40px rgba(252,158,122,.18)) drop-shadow(0 8px 32px rgba(0,0,0,.5)) !important; }
 .det-imgs { min-height: 0 !important; }
 .det-imgs:has(.det-img-main) { min-height: 280px !important; max-height: none !important; padding: 2.5rem !important; }
-body.irisx-luxury .det-img-main { font-size: 10rem !important; opacity: 0.6 !important; filter: drop-shadow(0 0 50px rgba(196,160,106,.22)) drop-shadow(0 12px 40px rgba(0,0,0,.6)) !important; }
+body.irisx-luxury .det-img-main { font-size: 10rem !important; opacity: 0.6 !important; filter: drop-shadow(0 0 50px rgba(252,158,122,.22)) drop-shadow(0 12px 40px rgba(0,0,0,.6)) !important; }
 body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 3/4 !important; }
 
 /* Offer modal redesign — clean, no box/line */
@@ -538,7 +538,7 @@ body.light-mode .irisx-divider::after {
 .irisx-photo-remove {
   border: 0;
   background: none;
-  color: #FF627B;
+  color: #EE756D;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.62rem;
@@ -833,7 +833,7 @@ body.light-mode .irisx-divider::after {
 }
 .det-icon-btn:active {
   color: var(--gold);
-  border-color: rgba(196,160,106,.4);
+  border-color: rgba(252,158,122,.4);
   transform: scale(.95);
 }
 .det-icon-btn.det-icon-active {
@@ -1021,7 +1021,7 @@ body.light-mode .irisx-divider::after {
   overflow: hidden;
   background:
     radial-gradient(ellipse 80% 60% at 15% 85%, rgba(241,50,79,0.18) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 55% at 85% 15%, rgba(196, 160, 106, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 55% at 85% 15%, rgba(252,158,122,0.1) 0%, transparent 50%),
     radial-gradient(ellipse 50% 40% at 50% 50%, rgba(80, 30, 160, 0.08) 0%, transparent 70%),
     linear-gradient(160deg, #120406 0%, #1C060A 30%, #2A0A11 55%, #160509 100%);
   animation: irisHeroShift 18s ease-in-out infinite alternate;
@@ -1042,9 +1042,9 @@ body.light-mode .irisx-divider::after {
     from 0deg at 50% 50%,
     transparent 0deg,
     transparent 340deg,
-    rgba(196, 160, 106, 0.04) 350deg,
+    rgba(252,158,122,0.04) 350deg,
     rgba(255, 255, 255, 0.06) 355deg,
-    rgba(196, 160, 106, 0.04) 360deg
+    rgba(252,158,122,0.04) 360deg
   );
   animation: irisShineRotate 25s linear infinite;
   pointer-events: none;
@@ -1280,7 +1280,7 @@ body.light-mode .irisx-divider::after {
 }
 
 .irisx-home-strip div {
-  border-top: 1px solid rgba(196, 160, 106, 0.18);
+  border-top: 1px solid rgba(252,158,122,0.18);
   padding-top: 1rem;
 }
 
@@ -1593,28 +1593,28 @@ body.light-mode .irisx-home-strip span {
 }
 .irisx-particle {
   position: absolute;
-  color: rgba(196, 160, 106, 0);
+  color: rgba(252,158,122,0);
   font-style: normal;
   animation: ambientFloat linear infinite;
   user-select: none;
 }
 @keyframes ambientFloat {
-  0%   { opacity: 0; transform: translateY(0) rotate(0deg); color: rgba(196,160,106,0); }
-  10%  { opacity: 1; color: rgba(196,160,106,.09); }
-  88%  { opacity: 1; color: rgba(196,160,106,.09); }
-  100% { opacity: 0; transform: translateY(-60px) rotate(20deg); color: rgba(196,160,106,0); }
+  0%   { opacity: 0; transform: translateY(0) rotate(0deg); color: rgba(252,158,122,0); }
+  10%  { opacity: 1; color: rgba(252,158,122,.09); }
+  88%  { opacity: 1; color: rgba(252,158,122,.09); }
+  100% { opacity: 0; transform: translateY(-60px) rotate(20deg); color: rgba(252,158,122,0); }
 }
 
 /* ═══════════════════════════════════════
    GOLD INTERACTION SYSTEM (global)
 ═══════════════════════════════════════ */
 .irisx-home-action.primary:hover {
-  background: linear-gradient(135deg, #F1324F, #FF627B);
+  background: linear-gradient(135deg, #F1324F, #EE756D);
   box-shadow: 0 4px 24px rgba(241,50,79,.35);
 }
 .irisx-home-action.secondary:hover {
   color: var(--gold);
-  border-color: rgba(196,160,106,.3);
+  border-color: rgba(252,158,122,.3);
 }
 /* Navbar icons gold on hover */
 .topnav .tn-btn:hover,
@@ -1623,18 +1623,18 @@ body.light-mode .irisx-home-strip span {
 }
 /* Product cards: gold border on hover */
 .pc:hover {
-  border-color: rgba(196,160,106,.2) !important;
-  box-shadow: 0 8px 32px rgba(196,160,106,.06), 0 2px 8px rgba(0,0,0,.3) !important;
+  border-color: rgba(252,158,122,.2) !important;
+  box-shadow: 0 8px 32px rgba(252,158,122,.06), 0 2px 8px rgba(0,0,0,.3) !important;
 }
 /* Sort buttons gold active */
 .sort-btn.active {
-  border-color: rgba(196,160,106,.4) !important;
+  border-color: rgba(252,158,122,.4) !important;
   color: var(--gold) !important;
 }
 /* Filter accent */
 .fsel:focus, .fi:focus {
-  border-color: rgba(196,160,106,.35) !important;
-  box-shadow: 0 0 0 2px rgba(196,160,106,.08) !important;
+  border-color: rgba(252,158,122,.35) !important;
+  box-shadow: 0 0 0 2px rgba(252,158,122,.08) !important;
 }
 /* Home strip value color */
 .irisx-home-strip strong {
@@ -1643,7 +1643,7 @@ body.light-mode .irisx-home-strip span {
 }
 /* VENDI button gold on hover */
 .topnav .tn-primary:hover {
-  background: linear-gradient(135deg, #FF627B, #F1324F) !important;
+  background: linear-gradient(135deg, #EE756D, #F1324F) !important;
   box-shadow: 0 0 24px rgba(241,50,79,.4) !important;
 }
 
@@ -1834,7 +1834,7 @@ body.light-mode .irisx-home-strip span {
 }
 
 .irisx-sidebar-link.on {
-  border-color: rgba(196, 160, 106, 0.28);
+  border-color: rgba(252,158,122,0.28);
   background: linear-gradient(180deg, rgba(241,50,79,0.16), rgba(255, 255, 255, 0.03));
   box-shadow: 0 0 24px rgba(123, 47, 190, 0.12);
 }
@@ -1875,9 +1875,9 @@ body.light-mode .irisx-home-strip span {
   justify-self: start;
   min-width: 28px;
   padding: 0.18rem 0.5rem !important;
-  border: 1px solid rgba(196, 160, 106, 0.22);
+  border: 1px solid rgba(252,158,122,0.22);
   color: rgba(255, 255, 255, 0.88) !important;
-  background: rgba(196, 160, 106, 0.08);
+  background: rgba(252,158,122,0.08);
   font-size: 0.62rem !important;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1885,7 +1885,7 @@ body.light-mode .irisx-home-strip span {
 
 .irisx-profile-quick-card:hover,
 .irisx-sidebar-link:hover {
-  border-color: rgba(196, 160, 106, 0.28);
+  border-color: rgba(252,158,122,0.28);
   box-shadow: 0 0 24px rgba(123, 47, 190, 0.12);
 }
 
@@ -2058,8 +2058,8 @@ body.light-mode .irisx-home-strip span {
   gap: 0.8rem;
   margin-top: 0.2rem;
   padding: 1rem;
-  border: 1px solid rgba(196, 160, 106, 0.16);
-  background: linear-gradient(180deg, rgba(196, 160, 106, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(252,158,122,0.16);
+  background: linear-gradient(180deg, rgba(252,158,122,0.06), rgba(255, 255, 255, 0.02));
 }
 
 .irisx-relist-block--compact {
@@ -2417,8 +2417,8 @@ body.light-mode .irisx-chat-scope-tab em {
 }
 
 body.light-mode .irisx-relist-block {
-  background: linear-gradient(180deg, rgba(196, 160, 106, 0.08), rgba(241,50,79,0.02));
-  border-color: rgba(196, 160, 106, 0.24);
+  background: linear-gradient(180deg, rgba(252,158,122,0.08), rgba(241,50,79,0.02));
+  border-color: rgba(252,158,122,0.24);
 }
 
 body.light-mode .irisx-chat-scope-tab,
@@ -2615,8 +2615,8 @@ body.light-mode .irisx-chat-role-badge {
 }
 
 .irisx-note--owner {
-  border-color: rgba(196, 160, 106, 0.24);
-  background: linear-gradient(180deg, rgba(196, 160, 106, 0.08), rgba(255, 255, 255, 0.03));
+  border-color: rgba(252,158,122,0.24);
+  background: linear-gradient(180deg, rgba(252,158,122,0.08), rgba(255, 255, 255, 0.03));
   color: rgba(255, 255, 255, 0.76);
 }
 
@@ -3012,8 +3012,8 @@ body.light-mode .irisx-chat-role-badge {
 }
 
 .offer-payment-choice.on {
-  border-color: rgba(196, 160, 106, 0.32);
-  box-shadow: 0 0 0 1px rgba(196, 160, 106, 0.18);
+  border-color: rgba(252,158,122,0.32);
+  box-shadow: 0 0 0 1px rgba(252,158,122,0.18);
 }
 
 .offer-review-side {
@@ -3290,9 +3290,9 @@ button:not([disabled]):hover,
 .sort-btn:hover,
 .irisx-google-btn:hover,
 .irisx-inline-card--button:hover {
-  border-color: rgba(196, 160, 106, 0.38) !important;
+  border-color: rgba(252,158,122,0.38) !important;
   color: #f1ddb0 !important;
-  box-shadow: 0 0 0 1px rgba(196, 160, 106, 0.12), 0 12px 28px rgba(196, 160, 106, 0.08) !important;
+  box-shadow: 0 0 0 1px rgba(252,158,122,0.12), 0 12px 28px rgba(252,158,122,0.08) !important;
 }
 
 .irisx-primary:hover,
@@ -3302,7 +3302,7 @@ button:not([disabled]):hover,
   background: linear-gradient(135deg, rgba(214, 183, 114, 0.95), rgba(240, 221, 176, 0.95)) !important;
   border-color: rgba(214, 183, 114, 0.5) !important;
   color: #20080C !important;
-  box-shadow: 0 14px 34px rgba(196, 160, 106, 0.22) !important;
+  box-shadow: 0 14px 34px rgba(252,158,122,0.22) !important;
   filter: none !important;
 }
 
@@ -3316,7 +3316,7 @@ button:not([disabled]):hover,
 .irisx-section-tab:hover,
 .cond-btn:hover,
 .sort-btn:hover {
-  background: rgba(196, 160, 106, 0.08) !important;
+  background: rgba(252,158,122,0.08) !important;
 }
 
 body.light-mode .det-measurements-copy,
@@ -3357,7 +3357,7 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 .tn-btn:active {
   color: var(--gold) !important;
   transform: scale(.97);
-  text-shadow: 0 0 14px rgba(196,160,106,.5);
+  text-shadow: 0 0 14px rgba(252,158,122,.5);
 }
 
 /* ── Sell nav button ── */
@@ -3367,8 +3367,8 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
   box-shadow: 0 0 20px rgba(241,50,79,.28) !important;
 }
 .tn-sell:active {
-  background: rgba(196,160,106,.22) !important;
-  border-color: rgba(196,160,106,.45) !important;
+  background: rgba(252,158,122,.22) !important;
+  border-color: rgba(252,158,122,.45) !important;
 }
 
 /* ── Home CTA buttons ── */
@@ -3378,13 +3378,13 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 }
 .irisx-home-action.primary:active {
   background: var(--gold) !important;
-  box-shadow: 0 4px 20px rgba(196,160,106,.35) !important;
+  box-shadow: 0 4px 20px rgba(252,158,122,.35) !important;
   transform: translateY(0);
 }
 .irisx-home-action.secondary:hover {
   color: var(--gold);
-  border-color: rgba(196,160,106,.35);
-  text-shadow: 0 0 16px rgba(196,160,106,.3);
+  border-color: rgba(252,158,122,.35);
+  text-shadow: 0 0 16px rgba(252,158,122,.3);
   transform: translateY(-1px);
 }
 .irisx-home-action.secondary:active {
@@ -3402,7 +3402,7 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 .det-buy:active {
   background: var(--gold) !important;
   border-color: var(--gold) !important;
-  box-shadow: 0 4px 18px rgba(196,160,106,.4) !important;
+  box-shadow: 0 4px 18px rgba(252,158,122,.4) !important;
   transform: scale(.98);
 }
 
@@ -3419,7 +3419,7 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 .det-offer:active,
 .det-fav:active {
   color: var(--gold) !important;
-  border-color: rgba(196,160,106,.4) !important;
+  border-color: rgba(252,158,122,.4) !important;
   transform: scale(.97);
 }
 
@@ -3428,16 +3428,16 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
   transition: color .2s, transform .18s, text-shadow .2s !important;
 }
 .pc-heart:hover {
-  color: rgba(196,160,106,.75) !important;
+  color: rgba(252,158,122,.75) !important;
   transform: scale(1.2) !important;
-  text-shadow: 0 0 12px rgba(196,160,106,.4) !important;
+  text-shadow: 0 0 12px rgba(252,158,122,.4) !important;
 }
 .pc-heart:active {
   transform: scale(1.05) !important;
 }
 .pc-heart.liked {
   color: var(--gold) !important;
-  text-shadow: 0 0 8px rgba(196,160,106,.35) !important;
+  text-shadow: 0 0 8px rgba(252,158,122,.35) !important;
 }
 
 /* ── Product cards ── */
@@ -3446,8 +3446,8 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 }
 .pc:hover {
   transform: translateY(-3px) !important;
-  border-color: rgba(196,160,106,.22) !important;
-  box-shadow: 0 12px 40px rgba(0,0,0,.35), 0 0 0 1px rgba(196,160,106,.08) !important;
+  border-color: rgba(252,158,122,.22) !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,.35), 0 0 0 1px rgba(252,158,122,.08) !important;
 }
 
 /* ── Prices — luxury typography ── */
@@ -3465,7 +3465,7 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 }
 .p-disc {
   font-size: .44rem !important;
-  color: rgba(196,160,106,.55) !important;
+  color: rgba(252,158,122,.55) !important;
   letter-spacing: .1em !important;
   font-weight: 400 !important;
 }
@@ -3498,38 +3498,38 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
   color: var(--lavender) !important;
 }
 .sort-btn:active {
-  border-color: rgba(196,160,106,.4) !important;
+  border-color: rgba(252,158,122,.4) !important;
   color: var(--gold) !important;
 }
 .sort-btn.on {
-  border-color: rgba(196,160,106,.4) !important;
+  border-color: rgba(252,158,122,.4) !important;
   color: var(--gold) !important;
 }
 
 /* ── Focus ring — elegant ── */
 *:focus-visible {
-  outline: 1px solid rgba(196,160,106,.4) !important;
+  outline: 1px solid rgba(252,158,122,.4) !important;
   outline-offset: 3px !important;
 }
 
 /* ── Filter checkboxes ── */
 .f-opt.on .f-check {
-  background: linear-gradient(135deg, #F1324F, #FF627B) !important;
+  background: linear-gradient(135deg, #F1324F, #EE756D) !important;
   border-color: transparent !important;
   box-shadow: 0 0 10px rgba(241,50,79,.3) !important;
 }
 
 /* ── Auth/modal buttons ── */
 .irisx-google-btn:hover {
-  border-color: rgba(196,160,106,.35) !important;
-  box-shadow: 0 4px 24px rgba(196,160,106,.12) !important;
+  border-color: rgba(252,158,122,.35) !important;
+  box-shadow: 0 4px 24px rgba(252,158,122,.12) !important;
   transform: translateY(-1px);
 }
 
 /* ── Notif bell ── */
 .notif-bell:hover {
   color: var(--gold) !important;
-  text-shadow: 0 0 14px rgba(196,160,106,.4) !important;
+  text-shadow: 0 0 14px rgba(252,158,122,.4) !important;
 }
 .notif-bell:active {
   transform: scale(.92) !important;
@@ -3591,7 +3591,7 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
   background: linear-gradient(135deg, rgba(214, 183, 114, 0.96), rgba(242, 224, 185, 0.96)) !important;
   border-color: rgba(214, 183, 114, 0.52) !important;
   color: #20080C !important;
-  box-shadow: 0 14px 34px rgba(196, 160, 106, 0.22) !important;
+  box-shadow: 0 14px 34px rgba(252,158,122,0.22) !important;
 }
 
 .irisx-secondary:hover,
@@ -3608,10 +3608,10 @@ button, .tn-btn, .sort-btn, .det-buy, .det-offer, .det-fav,
 .irisx-google-btn:hover,
 .tn-btn:hover,
 .notif-bell:hover {
-  background: rgba(196, 160, 106, 0.08) !important;
-  border-color: rgba(196, 160, 106, 0.36) !important;
+  background: rgba(252,158,122,0.08) !important;
+  border-color: rgba(252,158,122,0.36) !important;
   color: #f1ddb0 !important;
-  box-shadow: 0 0 0 1px rgba(196, 160, 106, 0.12), 0 12px 28px rgba(196, 160, 106, 0.08) !important;
+  box-shadow: 0 0 0 1px rgba(252,158,122,0.12), 0 12px 28px rgba(252,158,122,0.08) !important;
   text-shadow: none !important;
 }
 
@@ -4453,7 +4453,7 @@ body.irisx-luxury .tn-avatar-dot {
   width: 24px;
   height: 24px;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(241,50,79,.3), rgba(196,160,106,.22));
+  background: linear-gradient(135deg, rgba(241,50,79,.3), rgba(252,158,122,.22));
   color: #fff;
   font-size: .68rem;
   font-weight: 600;
@@ -4537,7 +4537,7 @@ body.irisx-luxury .tn-menu-link {
 
 body.irisx-luxury .tn-menu-link:hover,
 body.irisx-luxury .tn-menu-link:focus-visible {
-  border-color: rgba(196,160,106,.24);
+  border-color: rgba(252,158,122,.24);
   background: rgba(255,255,255,.03);
 }
 
@@ -5006,7 +5006,7 @@ body.irisx-luxury .irisx-cookie-banner__copy strong {
   font-size: .7rem;
   letter-spacing: .18em;
   text-transform: uppercase;
-  color: rgba(196,160,106,.82);
+  color: rgba(252,158,122,.82);
 }
 
 body.irisx-luxury .irisx-cookie-banner__copy span {
@@ -5285,10 +5285,10 @@ body.irisx-luxury .tn-avatar.active,
 body.irisx-luxury .tn-avatar.is-open,
 body.irisx-luxury .tn-avatar:hover,
 body.irisx-luxury .tn-icon:hover {
-  background: rgba(196, 160, 106, 0.09) !important;
-  border-color: rgba(196, 160, 106, 0.38) !important;
+  background: rgba(252,158,122,0.09) !important;
+  border-color: rgba(252,158,122,0.38) !important;
   color: #f1ddb0 !important;
-  box-shadow: 0 0 0 1px rgba(196, 160, 106, 0.1), 0 16px 28px rgba(196, 160, 106, 0.08) !important;
+  box-shadow: 0 0 0 1px rgba(252,158,122,0.1), 0 16px 28px rgba(252,158,122,0.08) !important;
 }
 
 body.irisx-luxury .tn-menu-link {
@@ -5299,10 +5299,10 @@ body.irisx-luxury .tn-menu-link {
 body.irisx-luxury .tn-menu-link.active,
 body.irisx-luxury .tn-menu-link:hover,
 body.irisx-luxury .tn-menu-link:focus-visible {
-  background: rgba(196, 160, 106, 0.08) !important;
-  border-color: rgba(196, 160, 106, 0.3) !important;
+  background: rgba(252,158,122,0.08) !important;
+  border-color: rgba(252,158,122,0.3) !important;
   color: #f4e4bb !important;
-  box-shadow: 0 12px 28px rgba(196, 160, 106, 0.08) !important;
+  box-shadow: 0 12px 28px rgba(252,158,122,0.08) !important;
 }
 
 body.irisx-luxury .irisx-area-nav {
@@ -5334,7 +5334,7 @@ body.irisx-luxury .irisx-sidebar-link:hover::after,
 body.irisx-luxury .irisx-sidebar-link.on::after,
 body.irisx-luxury .irisx-profile-quick-card:hover::after,
 body.irisx-luxury .irisx-profile-quick-card:focus-visible::after {
-  border-color: rgba(196, 160, 106, 0.36);
+  border-color: rgba(252,158,122,0.36);
   opacity: 1;
 }
 
@@ -5342,11 +5342,11 @@ body.irisx-luxury .irisx-area-btn.on,
 body.irisx-luxury .irisx-sidebar-link.on,
 body.irisx-luxury .irisx-profile-quick-card:hover,
 body.irisx-luxury .irisx-profile-quick-card:focus-visible {
-  background-color: rgba(196, 160, 106, 0.09) !important;
-  background: linear-gradient(180deg, rgba(196, 160, 106, 0.11), rgba(255, 255, 255, 0.03)) !important;
-  border-color: rgba(196, 160, 106, 0.34) !important;
+  background-color: rgba(252,158,122,0.09) !important;
+  background: linear-gradient(180deg, rgba(252,158,122,0.11), rgba(255, 255, 255, 0.03)) !important;
+  border-color: rgba(252,158,122,0.34) !important;
   color: #f4e4bb !important;
-  box-shadow: 0 0 0 1px rgba(196, 160, 106, 0.08), 0 16px 30px rgba(196, 160, 106, 0.08) !important;
+  box-shadow: 0 0 0 1px rgba(252,158,122,0.08), 0 16px 30px rgba(252,158,122,0.08) !important;
   transform: translateY(-1px);
 }
 
@@ -5456,9 +5456,9 @@ body.irisx-luxury .tn-locale-trigger {
 
 body.irisx-luxury .tn-locale-trigger:hover,
 body.irisx-luxury .tn-locale-trigger.is-open {
-  border-color: rgba(196,160,106,.26);
+  border-color: rgba(252,158,122,.26);
   color: #f4e4bb;
-  background: rgba(196,160,106,.08);
+  background: rgba(252,158,122,.08);
 }
 
 body.irisx-luxury .tn-locale-menu {
@@ -5509,8 +5509,8 @@ body.irisx-luxury .tn-locale-option span {
 
 body.irisx-luxury .tn-locale-option:hover,
 body.irisx-luxury .tn-locale-option.is-active {
-  border-color: rgba(196,160,106,.26);
-  background: rgba(196,160,106,.08);
+  border-color: rgba(252,158,122,.26);
+  background: rgba(252,158,122,.08);
 }
 
 body.irisx-luxury .irisx-workspace {
@@ -5659,8 +5659,8 @@ body.irisx-luxury .irisx-detail-thumb img {
 }
 
 body.irisx-luxury .irisx-detail-thumb.on {
-  border-color: rgba(196,160,106,.32);
-  box-shadow: 0 0 0 1px rgba(196,160,106,.14);
+  border-color: rgba(252,158,122,.32);
+  box-shadow: 0 0 0 1px rgba(252,158,122,.14);
 }
 
 body.irisx-luxury .det-body {
@@ -6132,8 +6132,8 @@ body.irisx-luxury .irisx-filter-chip{
 }
 
 body.irisx-luxury .irisx-filter-chip.is-active{
-  border-color:rgba(196,160,106,.34);
-  background:rgba(196,160,106,.08);
+  border-color:rgba(252,158,122,.34);
+  background:rgba(252,158,122,.08);
   color:#fff;
 }
 
@@ -6145,8 +6145,8 @@ body.irisx-luxury .irisx-filter-chip--trust{
 }
 
 body.irisx-luxury .irisx-filter-chip--trust.is-active{
-  border-color:rgba(196,160,106,.4);
-  background:linear-gradient(135deg, rgba(241,50,79,.16), rgba(196,160,106,.12));
+  border-color:rgba(252,158,122,.4);
+  background:linear-gradient(135deg, rgba(241,50,79,.16), rgba(252,158,122,.12));
 }
 
 body.irisx-luxury .irisx-filter-price-row{
@@ -6206,7 +6206,7 @@ body.irisx-luxury .pc-trust-badge{
   padding:0 10px;
   display:inline-flex;
   align-items:center;
-  border:1px solid rgba(196,160,106,.32);
+  border:1px solid rgba(252,158,122,.32);
   background:rgba(20,4,8,.72);
   color:rgba(245,240,235,.94);
   font-size:.62rem;
@@ -6301,7 +6301,7 @@ body.irisx-luxury .irisx-support-context-kicker{
   font-size:.66rem;
   letter-spacing:.16em;
   text-transform:uppercase;
-  color:rgba(196,160,106,.78);
+  color:rgba(252,158,122,.78);
 }
 
 body.irisx-luxury .irisx-support-context-grid{
@@ -6346,8 +6346,8 @@ body.irisx-luxury .irisx-support-ticket-meta span{
 }
 
 body.irisx-luxury .irisx-badge--warning{
-  border-color:rgba(196,160,106,.34);
-  color:rgba(196,160,106,.92);
+  border-color:rgba(252,158,122,.34);
+  color:rgba(252,158,122,.92);
 }
 
 body.irisx-luxury .irisx-inline-card--trust{
@@ -6546,7 +6546,7 @@ body.irisx-luxury .tn-logo{
 
 body.irisx-luxury .tn-logo em{
   display:inline-block;
-  background:linear-gradient(115deg, #F1324F 0%, #FF9BAA 24%, #d6b27a 52%, #FF627B 78%, #F1324F 100%);
+  background:linear-gradient(115deg, #F1324F 0%, #FC9E7A 24%, #BC9482 52%, #EE756D 78%, #F1324F 100%);
   background-size:240% 240%;
   -webkit-background-clip:text;
   background-clip:text;
@@ -6649,7 +6649,7 @@ body.irisx-luxury .tn-sell{
   height:52px;
   padding:0 24px !important;
   border-radius:14px;
-  background:linear-gradient(135deg, rgba(241,50,79,.92), rgba(255,122,142,.84)) !important;
+  background:linear-gradient(135deg, rgba(241,50,79,.92), rgba(238,117,109,.84)) !important;
   border:1px solid rgba(255,169,181,.32) !important;
   color:#fff !important;
   box-shadow:0 14px 34px rgba(241,50,79,.22);
@@ -6745,8 +6745,8 @@ body.irisx-luxury .irisx-shop-browse-link{
 
 body.irisx-luxury .irisx-shop-browse-link:hover,
 body.irisx-luxury .irisx-shop-browse-link.is-active{
-  border-color:rgba(196,160,106,.3);
-  background:linear-gradient(135deg, rgba(241,50,79,.12), rgba(196,160,106,.08));
+  border-color:rgba(252,158,122,.3);
+  background:linear-gradient(135deg, rgba(241,50,79,.12), rgba(252,158,122,.08));
   color:#fff;
   transform:translateY(-1px);
 }
@@ -6816,8 +6816,8 @@ body.irisx-luxury .sort-btn{
 
 body.irisx-luxury .sort-btn.on,
 body.irisx-luxury .sort-btn:hover{
-  border-color:rgba(196,160,106,.28);
-  background:rgba(196,160,106,.08);
+  border-color:rgba(252,158,122,.28);
+  background:rgba(252,158,122,.08);
   color:#fff;
 }
 
@@ -6874,7 +6874,7 @@ body.irisx-luxury .sort-btn:hover{
   }
 
   body.irisx-luxury .shop-layout > .filters .f-group.is-focused{
-    box-shadow:0 0 0 1px rgba(196,160,106,.22);
+    box-shadow:0 0 0 1px rgba(252,158,122,.22);
   }
 
   body.irisx-luxury .shop-layout > .filters .f-label{
@@ -7039,7 +7039,7 @@ body.irisx-luxury .irisx-link-btn--quiet{
   justify-self:start;
   padding:0;
   border:0;
-  color:rgba(196,160,106,.86);
+  color:rgba(252,158,122,.86);
   letter-spacing:.12em;
   text-transform:uppercase;
   font-size:.66rem;
@@ -7312,11 +7312,11 @@ body.irisx-luxury .det-section--seller{
 
 body.irisx-luxury .irisx-addr-drop {
   background: rgba(8,4,18,.97);
-  border-color: rgba(196,160,106,.3);
+  border-color: rgba(252,158,122,.3);
 }
 
 body.irisx-luxury .irisx-addr-item:hover {
-  background: rgba(196,160,106,.1);
+  background: rgba(252,158,122,.1);
 }
 
 /* ── Seller public profile ─────────────────────────────── */
@@ -7349,7 +7349,7 @@ body.irisx-luxury .irisx-addr-item:hover {
   align-items: center;
   gap: 5px;
   padding: 6px 14px;
-  border: 1px solid rgba(196,160,106,.3);
+  border: 1px solid rgba(252,158,122,.3);
   border-radius: 20px;
   background: transparent;
   color: rgba(255,255,255,.85);
@@ -7369,13 +7369,13 @@ body.irisx-luxury .irisx-addr-item:hover {
 .irisx-fdrop:hover .irisx-fdrop__arrow { transform: rotate(180deg); }
 .irisx-fdrop__btn:hover,
 .irisx-fdrop:hover .irisx-fdrop__btn {
-  border-color: #C4A06A;
-  color: #C4A06A;
+  border-color: #FC9E7A;
+  color: #FC9E7A;
 }
 .irisx-fdrop__btn.is-active {
-  border-color: #C4A06A;
-  color: #C4A06A;
-  background: rgba(196,160,106,.08);
+  border-color: #FC9E7A;
+  color: #FC9E7A;
+  background: rgba(252,158,122,.08);
 }
 .irisx-fdrop__panel {
   position: absolute;
@@ -7386,7 +7386,7 @@ body.irisx-luxury .irisx-addr-item:hover {
   max-height: 300px;
   overflow-y: auto;
   background: rgba(12,3,35,0.97);
-  border: 1px solid rgba(196,160,106,.2);
+  border: 1px solid rgba(252,158,122,.2);
   border-radius: 14px;
   padding: 6px 0;
   z-index: 9999;
@@ -7408,16 +7408,16 @@ body.irisx-luxury .irisx-addr-item:hover {
   white-space: nowrap;
   user-select: none;
 }
-.irisx-fdrop__item:hover { color: #C4A06A; background: rgba(196,160,106,.06); }
+.irisx-fdrop__item:hover { color: #FC9E7A; background: rgba(252,158,122,.06); }
 .irisx-fdrop__check {
   font-size: 11px;
-  color: #C4A06A;
+  color: #FC9E7A;
   opacity: 0;
   min-width: 14px;
   transition: opacity 0.15s;
 }
 .irisx-fdrop__item.on .irisx-fdrop__check { opacity: 1; }
-.irisx-fdrop__item.on { color: #C4A06A; font-weight: 700; }
+.irisx-fdrop__item.on { color: #FC9E7A; font-weight: 700; }
 .irisx-fdrop__empty {
   padding: 8px 14px;
   font-size: 12px;
@@ -7429,14 +7429,18 @@ body.irisx-luxury .irisx-addr-item:hover {
    IRIS WHITE THEME — Testo NERO, accenti Viola, hover Oro
    ═══════════════════════════════════════════════════════ */
 body.irisx-luxury.irisx-white-theme {
-  background: linear-gradient(180deg, #FFF6F8 0%, #ffffff 18rem, #FFF9FA 100%) !important;
+  background: linear-gradient(180deg, #FFF8F7 0%, #ffffff 18rem, #FFF4F2 100%) !important;
   color: #1a1530 !important;
   font-weight: 400 !important;
-  --gold: #c7a061;
+  --gold: #FC9E7A;
   --lavender: #F1324F;
   --purple: #F1324F;
-  --iris-gold: #c7a061;
+  --iris-gold: #FC9E7A;
   --iris-purple: #F1324F;
+  --iris-accent-strong: #FC2414;
+  --iris-accent-soft: #FC9E7A;
+  --iris-accent-muted: #BC9482;
+  --iris-accent-secondary: #EE756D;
   --iris-white: #2B161B;
   --iris-white-strong: #160f27;
   --iris-text-soft: rgba(22,15,39,.72);
@@ -7458,7 +7462,7 @@ body.irisx-luxury.irisx-white-theme .irisx-hero-grain {
   display: none !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-hero {
-  background: linear-gradient(135deg, #7A1125 0%, #D62845 52%, #FF627B 100%) !important;
+  background: linear-gradient(135deg, #9A130B 0%, #F1324F 52%, #EE756D 100%) !important;
   border: 1px solid rgba(241,50,79,.16) !important;
   box-shadow: 0 28px 80px rgba(241,50,79,.18) !important;
 }
@@ -7558,7 +7562,7 @@ body.irisx-luxury.irisx-white-theme .irisx-sidebar-link:hover,
 body.irisx-luxury.irisx-white-theme .irisx-sort-btn:hover,
 body.irisx-luxury.irisx-white-theme .footer-links a:hover,
 body.irisx-luxury.irisx-white-theme .footer-social a:hover {
-  color: #C4A06A !important;
+  color: #FC2414 !important;
 }
 
 /* Override hover per bottoni con background (restano bianchi) */
@@ -7616,9 +7620,9 @@ body.irisx-luxury.irisx-white-theme .tn-support-btn {
   font-weight: 600 !important;
 }
 body.irisx-luxury.irisx-white-theme .tn-support-btn:hover {
-  color: #F1324F !important;
-  border-color: rgba(241,50,79,.32) !important;
-  background: rgba(241,50,79,.05) !important;
+  color: #FC2414 !important;
+  border-color: rgba(252,158,122,.44) !important;
+  background: rgba(252,158,122,.14) !important;
 }
 body.irisx-luxury.irisx-white-theme #tnMobileMenu .tn-mobile-menu__panel,
 body.irisx-luxury.irisx-white-theme .tn-profile-menu {
@@ -7633,8 +7637,8 @@ body.irisx-luxury.irisx-white-theme .tn-mobile-link {
 }
 body.irisx-luxury.irisx-white-theme .tn-menu-link:hover,
 body.irisx-luxury.irisx-white-theme .tn-mobile-link:hover {
-  color: #C4A06A !important;
-  background: rgba(196,160,106,.08) !important;
+  color: #FC2414 !important;
+  background: rgba(252,158,122,.12) !important;
 }
 
 /* Sell button */
@@ -7648,13 +7652,13 @@ body.irisx-luxury.irisx-white-theme .tn-sell {
 }
 body.irisx-luxury.irisx-white-theme #tnSellBtn:hover,
 body.irisx-luxury.irisx-white-theme .tn-sell:hover {
-  background: linear-gradient(135deg, #F1324F, #FF627B) !important;
+  background: linear-gradient(135deg, #FC2414, #EE756D) !important;
   color: #fff !important;
 }
 
 /* Hero */
 body.irisx-luxury.irisx-white-theme .irisx-home-hero {
-  background: linear-gradient(135deg, #7A1125 0%, #B61E39 40%, #F1324F 70%, #F1324F 100%) !important;
+  background: linear-gradient(135deg, #9A130B 0%, #F1324F 42%, #FC2414 72%, #EE756D 100%) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-title,
 body.irisx-luxury.irisx-white-theme .irisx-home-proof,
@@ -7668,12 +7672,12 @@ body.irisx-luxury.irisx-white-theme .irisx-home-rule {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-action.primary {
-  background: #C4A06A !important;
+  background: linear-gradient(135deg, #F1324F, #FC2414) !important;
   color: #fff !important;
   font-weight: 700 !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-action.primary:hover {
-  background: #B8860B !important;
+  background: linear-gradient(135deg, #FC2414, #EE756D) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-home-action.secondary {
   color: #fff !important;
@@ -7781,7 +7785,7 @@ body.irisx-luxury.irisx-white-theme .cookie-btn.secondary {
 
 /* Sell page in white theme */
 body.irisx-luxury.irisx-white-theme #page-sell {
-  background: linear-gradient(180deg, #FFF9FA 0%, #ffffff 20rem, #FFF9FA 100%) !important;
+  background: linear-gradient(180deg, #FFF8F7 0%, #ffffff 20rem, #FFF4F2 100%) !important;
   color: #1a1530 !important;
 }
 body.irisx-luxury.irisx-white-theme .sell-topbar {
@@ -7808,7 +7812,7 @@ body.irisx-luxury.irisx-white-theme .sh {
   padding: 9rem 0 5rem !important;
   background:
     radial-gradient(circle at 18% 18%, rgba(241,50,79,.12), transparent 24%),
-    linear-gradient(135deg, #FFF3F5 0%, #ffffff 52%, #FFF7F8 100%) !important;
+    linear-gradient(135deg, #FFF8F7 0%, #ffffff 52%, #FFF3EF 100%) !important;
   border-bottom: 1px solid rgba(241,50,79,.08) !important;
 }
 body.irisx-luxury.irisx-white-theme .sh-label {
@@ -7852,7 +7856,7 @@ body.irisx-luxury.irisx-white-theme .step-n {
   color: #F1324F !important;
 }
 body.irisx-luxury.irisx-white-theme .sell-path--featured {
-  background: linear-gradient(135deg, #7A1125 0%, #D62845 100%) !important;
+  background: linear-gradient(135deg, #9A130B 0%, #F1324F 60%, #EE756D 100%) !important;
   border-color: rgba(241,50,79,.35) !important;
   box-shadow: 0 24px 56px rgba(241,50,79,.18) !important;
 }
@@ -7884,7 +7888,7 @@ body.irisx-luxury.irisx-white-theme .cond-btn:hover {
   border-color: rgba(241,50,79,.3) !important;
 }
 body.irisx-luxury.irisx-white-theme .sell-submit {
-  background: linear-gradient(135deg, #F1324F, #FF627B) !important;
+  background: linear-gradient(135deg, #F1324F, #FC2414) !important;
   border-color: transparent !important;
   color: #ffffff !important;
   box-shadow: 0 18px 38px rgba(241,50,79,.18) !important;
@@ -8103,8 +8107,8 @@ body.irisx-luxury.irisx-white-theme .det-buy:hover,
 body.irisx-luxury.irisx-white-theme .irisx-detail-buy-btn:hover,
 body.irisx-luxury.irisx-white-theme .irisx-primary:active,
 body.irisx-luxury.irisx-white-theme .det-buy:active {
-  background: #C4A06A !important;
-  border-color: #C4A06A !important;
+  background: #FC2414 !important;
+  border-color: #FC2414 !important;
   color: #fff !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-secondary,
@@ -8116,8 +8120,9 @@ body.irisx-luxury.irisx-white-theme .det-offer {
 }
 body.irisx-luxury.irisx-white-theme .irisx-secondary:hover,
 body.irisx-luxury.irisx-white-theme .det-offer:hover {
-  border-color: #C4A06A !important;
-  color: #C4A06A !important;
+  border-color: #FC2414 !important;
+  color: #FC2414 !important;
+  background: rgba(252,158,122,.12) !important;
 }
 
 /* Shop filter chips */
@@ -8133,8 +8138,9 @@ body.irisx-luxury.irisx-white-theme .irisx-filter-chip.is-active {
   border-color: #F1324F !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-filter-chip:hover:not(.is-active) {
-  border-color: #C4A06A !important;
-  color: #C4A06A !important;
+  border-color: #FC2414 !important;
+  color: #FC2414 !important;
+  background: rgba(252,158,122,.12) !important;
 }
 
 /* Hover dropdown filter bar — white theme override */
@@ -8146,8 +8152,9 @@ body.irisx-luxury.irisx-white-theme .irisx-fdrop__btn {
 }
 body.irisx-luxury.irisx-white-theme .irisx-fdrop__btn:hover,
 body.irisx-luxury.irisx-white-theme .irisx-fdrop:hover .irisx-fdrop__btn {
-  color: #C4A06A !important;
-  border-color: #C4A06A !important;
+  color: #FC2414 !important;
+  border-color: #FC2414 !important;
+  background: rgba(252,158,122,.12) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-fdrop__btn.is-active {
   color: #F1324F !important;
@@ -8163,8 +8170,8 @@ body.irisx-luxury.irisx-white-theme .irisx-fdrop__item {
   font-weight: 500 !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-fdrop__item:hover {
-  color: #C4A06A !important;
-  background: rgba(196,160,106,.06) !important;
+  color: #FC2414 !important;
+  background: rgba(252,158,122,.06) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-fdrop__item.on {
   color: #F1324F !important;
@@ -8188,7 +8195,7 @@ body.irisx-luxury.irisx-white-theme .irisx-subnav-link.active {
   color: #111827 !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-subnav-link:hover {
-  color: #C4A06A !important;
+  color: #FC2414 !important;
 }
 
 /* Product detail */
@@ -8297,7 +8304,7 @@ body.irisx-luxury.irisx-white-theme .offer-send {
   font-weight: 700 !important;
 }
 body.irisx-luxury.irisx-white-theme .offer-send:hover:not([disabled]) {
-  background: #C4A06A !important;
+  background: #FC2414 !important;
 }
 
 /* Cart drawer */
@@ -8330,11 +8337,12 @@ body.irisx-luxury.irisx-white-theme .irisx-badge {
 }
 
 /* Gold accents on focus/active */
-body.irisx-luxury.irisx-white-theme *:focus-visible { outline-color: #C4A06A !important; }
+body.irisx-luxury.irisx-white-theme *:focus-visible { outline-color: #FC9E7A !important; }
 body.irisx-luxury.irisx-white-theme .irisx-area-btn.on,
 body.irisx-luxury.irisx-white-theme .irisx-area-btn:active {
-  color: #C4A06A !important;
-  border-color: #C4A06A !important;
+  color: #FC2414 !important;
+  border-color: #FC2414 !important;
+  background: rgba(252,158,122,.12) !important;
 }
 
 /* Seller profile (public) */
@@ -8366,7 +8374,7 @@ body.irisx-luxury.irisx-white-theme .site-footer {
 body.irisx-luxury.irisx-white-theme .footer-links a,
 body.irisx-luxury.irisx-white-theme .footer-social a { color: rgba(255,255,255,.6) !important; }
 body.irisx-luxury.irisx-white-theme .footer-links a:hover,
-body.irisx-luxury.irisx-white-theme .footer-social a:hover { color: #C4A06A !important; }
+body.irisx-luxury.irisx-white-theme .footer-social a:hover { color: #FC2414 !important; }
 
 /* Shop + all views background */
 body.irisx-luxury.irisx-white-theme #shop-view,
@@ -8386,14 +8394,14 @@ body.irisx-luxury.irisx-white-theme .irisx-sort-btn {
   font-weight: 600 !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-sort-btn.active,
-body.irisx-luxury.irisx-white-theme .irisx-sort-btn:hover { color: #C4A06A !important; }
+body.irisx-luxury.irisx-white-theme .irisx-sort-btn:hover { color: #FC2414 !important; }
 
 /* Browse row */
 body.irisx-luxury.irisx-white-theme .irisx-shop-browse-link {
   color: #111827 !important;
   font-weight: 600 !important;
 }
-body.irisx-luxury.irisx-white-theme .irisx-shop-browse-link:hover { color: #C4A06A !important; }
+body.irisx-luxury.irisx-white-theme .irisx-shop-browse-link:hover { color: #FC2414 !important; }
 body.irisx-luxury.irisx-white-theme .irisx-shop-browse-link.is-active {
   color: #F1324F !important;
   border-color: #F1324F !important;
@@ -8427,7 +8435,7 @@ body.irisx-luxury.irisx-white-theme .irisx-shop-quick-filter {
   border-color: rgba(241,50,79,.2) !important;
   font-weight: 600 !important;
 }
-body.irisx-luxury.irisx-white-theme .irisx-shop-quick-filter:hover { color: #C4A06A !important; border-color: #C4A06A !important; }
+body.irisx-luxury.irisx-white-theme .irisx-shop-quick-filter:hover { color: #FC2414 !important; border-color: #FC2414 !important; background: rgba(252,158,122,.12) !important; }
 
 /* ── Override topnav luxury background (era rgba(20,4,8,.86)) ── */
 body.irisx-luxury.irisx-white-theme .topnav,
@@ -8455,7 +8463,9 @@ body.irisx-luxury.irisx-white-theme .irisx-section-tab {
 }
 body.irisx-luxury.irisx-white-theme .irisx-area-btn:hover,
 body.irisx-luxury.irisx-white-theme .irisx-section-tab:hover {
-  border-color: #C4A06A !important;
+  border-color: #FC2414 !important;
+  color: #FC2414 !important;
+  background: rgba(252,158,122,.12) !important;
 }
 body.irisx-luxury.irisx-white-theme .irisx-section-tab.on {
   background: #F1324F !important;
@@ -8878,7 +8888,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   }
 
   body.irisx-luxury .irisx-chat-scope-tab.on {
-    background: linear-gradient(135deg, #F1324F, #FF627B) !important;
+    background: linear-gradient(135deg, #F1324F, #EE756D) !important;
     color: #ffffff !important;
     border-color: transparent !important;
   }
@@ -8948,7 +8958,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   }
 
   body.irisx-luxury .msg.me {
-    background: linear-gradient(135deg, #F1324F, #FF627B) !important;
+    background: linear-gradient(135deg, #F1324F, #EE756D) !important;
     color: #ffffff !important;
   }
 

@@ -8519,3 +8519,618 @@ body.irisx-luxury.irisx-white-theme .irisx-toast strong,
 body.irisx-luxury.irisx-white-theme .irisx-toast span {
   color: inherit !important;
 }
+
+@media (max-width: 900px) {
+  body.irisx-luxury {
+    --iris-mobile-safe-top: max(12px, env(safe-area-inset-top));
+    --iris-mobile-header-row: 54px;
+    --iris-mobile-header-height: calc(var(--iris-mobile-safe-top) + var(--iris-mobile-header-row));
+    --iris-mobile-bottom-space: calc(106px + env(safe-area-inset-bottom));
+  }
+
+  body.irisx-luxury .topnav,
+  body.irisx-luxury #topnav,
+  body.irisx-luxury.irisx-white-theme .topnav,
+  body.irisx-luxury.irisx-white-theme #topnav {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    min-height: var(--iris-mobile-header-height);
+    padding: var(--iris-mobile-safe-top) 14px 10px !important;
+    grid-template-rows: auto !important;
+    background: rgba(255,255,255,.96) !important;
+    backdrop-filter: blur(24px);
+    box-shadow: 0 16px 40px rgba(56, 28, 107, 0.08) !important;
+    z-index: 1250;
+  }
+
+  body.irisx-luxury .tn-row--main,
+  body.irisx-luxury.irisx-white-theme .tn-row--main {
+    display: grid !important;
+    grid-template-columns: auto 1fr auto !important;
+    align-items: center !important;
+    gap: 12px !important;
+    min-height: var(--iris-mobile-header-row) !important;
+  }
+
+  body.irisx-luxury .tn-search,
+  body.irisx-luxury #acDropdown,
+  body.irisx-luxury .tn-row--sub,
+  body.irisx-luxury .tn-main-nav,
+  body.irisx-luxury .tn-locale-trigger,
+  body.irisx-luxury .tn-favorites,
+  body.irisx-luxury #cartBtn,
+  body.irisx-luxury .notif-wrap,
+  body.irisx-luxury .tn-chat,
+  body.irisx-luxury #tnProfileTrigger,
+  body.irisx-luxury .tn-support-btn {
+    display: none !important;
+  }
+
+  body.irisx-luxury .tn-brand-rail,
+  body.irisx-luxury.irisx-white-theme .tn-brand-rail {
+    position: static !important;
+    transform: none !important;
+    justify-items: center !important;
+    gap: 0 !important;
+  }
+
+  body.irisx-luxury .tn-logo,
+  body.irisx-luxury.irisx-white-theme .tn-logo {
+    justify-self: center !important;
+    font-size: 1.5rem !important;
+    letter-spacing: 0.16em !important;
+    color: #6d28d9 !important;
+  }
+
+  body.irisx-luxury .tn-mobile-toggle,
+  body.irisx-luxury.irisx-white-theme .tn-mobile-toggle {
+    display: inline-flex !important;
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 14px !important;
+    border-color: rgba(109,40,217,.14) !important;
+    background: rgba(109,40,217,.06) !important;
+    justify-self: start;
+  }
+
+  body.irisx-luxury .tn-mobile-toggle span,
+  body.irisx-luxury.irisx-white-theme .tn-mobile-toggle span {
+    background: #6d28d9 !important;
+  }
+
+  body.irisx-luxury .tn-links,
+  body.irisx-luxury.irisx-white-theme .tn-links {
+    display: flex !important;
+    justify-content: flex-end !important;
+    width: auto !important;
+    gap: 8px !important;
+    z-index: 2;
+  }
+
+  body.irisx-luxury .tn-sell,
+  body.irisx-luxury.irisx-white-theme .tn-sell {
+    min-width: 86px !important;
+    height: 42px !important;
+    padding: 0 14px !important;
+    border-radius: 14px !important;
+    font-size: 0.6rem !important;
+    letter-spacing: 0.18em !important;
+    margin-left: auto !important;
+  }
+
+  body.irisx-luxury #home-view,
+  body.irisx-luxury #shop-view,
+  body.irisx-luxury #fav-view,
+  body.irisx-luxury #chat-view,
+  body.irisx-luxury #profile-view,
+  body.irisx-luxury #seller-view,
+  body.irisx-luxury #ops-view {
+    min-height: 100vh;
+    padding-top: calc(var(--iris-mobile-header-height) + 8px) !important;
+    padding-bottom: var(--iris-mobile-bottom-space) !important;
+  }
+
+  body.irisx-luxury #detail-view {
+    min-height: 100vh;
+    padding-top: calc(var(--iris-mobile-header-height) + 8px) !important;
+    padding-bottom: var(--iris-mobile-bottom-space) !important;
+  }
+
+  body.irisx-luxury .irisx-mobile-app-nav,
+  body.irisx-luxury.irisx-white-theme .irisx-mobile-app-nav {
+    left: 14px;
+    right: 14px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    padding: 0.55rem 0.5rem;
+    border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(56, 28, 107, 0.14) !important;
+  }
+
+  body.irisx-luxury #shop-view .container,
+  body.irisx-luxury #fav-view .container,
+  body.irisx-luxury #profile-view .container,
+  body.irisx-luxury #seller-view .container {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  body.irisx-luxury .shop-bar {
+    display: grid !important;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+    margin: 10px 0 16px !important;
+  }
+
+  body.irisx-luxury .shop-count {
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  body.irisx-luxury .shop-sort {
+    grid-column: 1 / -1;
+    display: grid !important;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(88px, max-content);
+    gap: 8px;
+    overflow-x: auto;
+    justify-content: start !important;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  body.irisx-luxury .shop-sort::-webkit-scrollbar,
+  body.irisx-luxury .irisx-shop-browse-row::-webkit-scrollbar,
+  body.irisx-luxury .irisx-shop-quick-filters::-webkit-scrollbar,
+  body.irisx-luxury .irisx-area-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  body.irisx-luxury .sort-btn,
+  body.irisx-luxury .irisx-shop-browse-link,
+  body.irisx-luxury .irisx-shop-quick-filter,
+  body.irisx-luxury .irisx-filter-chip {
+    min-height: 40px;
+    border-radius: 14px !important;
+    white-space: nowrap;
+  }
+
+  body.irisx-luxury .mob-filter-btn {
+    min-height: 40px;
+    border-radius: 14px !important;
+    margin-left: auto !important;
+  }
+
+  body.irisx-luxury .irisx-shop-browse-row,
+  body.irisx-luxury .irisx-shop-quick-filters {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  body.irisx-luxury .pgrid,
+  body.irisx-luxury #grid,
+  body.irisx-luxury #favGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+
+  body.irisx-luxury .pc,
+  body.irisx-luxury .irisx-pc {
+    border-radius: 18px !important;
+    overflow: hidden;
+  }
+
+  body.irisx-luxury .pinfo {
+    padding: 0.82rem 0.82rem 0.94rem !important;
+  }
+
+  body.irisx-luxury .p-name {
+    font-size: 0.95rem !important;
+    line-height: 1.25 !important;
+  }
+
+  body.irisx-luxury .p-meta,
+  body.irisx-luxury .p-seller,
+  body.irisx-luxury .p-city {
+    font-size: 0.74rem !important;
+    line-height: 1.35 !important;
+  }
+
+  body.irisx-luxury .irisx-detail-page {
+    padding: 0 14px 18px !important;
+    gap: 18px !important;
+  }
+
+  body.irisx-luxury .det-layout,
+  body.irisx-luxury .det-layout--hero,
+  body.irisx-luxury .irisx-detail-lower-grid,
+  body.irisx-luxury .irisx-detail-core-grid,
+  body.irisx-luxury .irisx-detail-secondary-actions,
+  body.irisx-luxury .irisx-detail-secondary-actions--owner,
+  body.irisx-luxury .irisx-detail-utility-actions {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    min-height: 0 !important;
+  }
+
+  body.irisx-luxury .det-imgs {
+    position: static !important;
+    top: auto !important;
+  }
+
+  body.irisx-luxury .irisx-detail-stage {
+    min-height: 320px !important;
+    max-height: 320px !important;
+    border-radius: 24px !important;
+    background: linear-gradient(180deg, #faf6ff, #f3edff) !important;
+  }
+
+  body.irisx-luxury .irisx-detail-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain !important;
+    object-position: center center !important;
+    padding: 20px;
+  }
+
+  body.irisx-luxury .irisx-detail-thumbs {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  body.irisx-luxury .irisx-detail-thumb {
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 14px !important;
+  }
+
+  body.irisx-luxury .irisx-detail-header {
+    display: grid;
+    gap: 8px;
+  }
+
+  body.irisx-luxury .det-name {
+    max-width: none !important;
+    font-size: clamp(2.15rem, 9vw, 3rem) !important;
+    line-height: 0.98 !important;
+  }
+
+  body.irisx-luxury .det-prices {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  body.irisx-luxury .irisx-detail-action-stack {
+    position: static !important;
+    inset: auto !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  body.irisx-luxury .det-buy,
+  body.irisx-luxury .det-offer,
+  body.irisx-luxury .det-fav,
+  body.irisx-luxury .irisx-detail-buy-btn,
+  body.irisx-luxury .irisx-secondary,
+  body.irisx-luxury .irisx-primary {
+    min-height: 52px;
+    border-radius: 16px !important;
+  }
+
+  body.irisx-luxury .seller-card,
+  body.irisx-luxury .seller-card--elevated {
+    padding: 14px 16px !important;
+    border-radius: 20px !important;
+  }
+
+  body.irisx-luxury #chat-view {
+    height: auto !important;
+    background: linear-gradient(180deg, #fbf8ff 0%, #f6f1ff 100%) !important;
+  }
+
+  body.irisx-luxury .chat-layout {
+    width: auto !important;
+    margin: 0 14px 20px !important;
+    border-radius: 24px !important;
+    overflow: hidden;
+    border: 1px solid rgba(109,40,217,.12) !important;
+    background: #ffffff !important;
+    box-shadow: 0 24px 60px rgba(56, 28, 107, 0.08) !important;
+  }
+
+  body.irisx-luxury .chat-list,
+  body.irisx-luxury .chat-main {
+    background: #ffffff !important;
+  }
+
+  body.irisx-luxury .cl-head {
+    padding: 18px 18px 14px !important;
+    gap: 12px !important;
+    border-bottom: 1px solid rgba(109,40,217,.08);
+  }
+
+  body.irisx-luxury .cl-title {
+    font-size: 0.68rem !important;
+    letter-spacing: 0.28em !important;
+    text-transform: uppercase;
+    color: rgba(26,21,48,.44) !important;
+  }
+
+  body.irisx-luxury .irisx-chat-scope-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  body.irisx-luxury .irisx-chat-scope-tab {
+    min-height: 44px;
+    border-radius: 14px !important;
+    background: #f6f1ff !important;
+    border-color: rgba(109,40,217,.1) !important;
+    color: rgba(26,21,48,.68) !important;
+  }
+
+  body.irisx-luxury .irisx-chat-scope-tab.on {
+    background: linear-gradient(135deg, #6d28d9, #8b5cf6) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+  }
+
+  body.irisx-luxury .cl-item {
+    padding: 14px 18px !important;
+    border-bottom-color: rgba(109,40,217,.08) !important;
+  }
+
+  body.irisx-luxury .cl-name,
+  body.irisx-luxury .cm-name {
+    color: #1a1530 !important;
+  }
+
+  body.irisx-luxury .cl-last,
+  body.irisx-luxury .irisx-chat-listing,
+  body.irisx-luxury .cl-time,
+  body.irisx-luxury .cm-prod,
+  body.irisx-luxury .irisx-chat-role-meta {
+    color: rgba(26,21,48,.52) !important;
+  }
+
+  body.irisx-luxury .cm-head {
+    padding: 14px 18px !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid rgba(109,40,217,.08);
+  }
+
+  body.irisx-luxury .cm-prod {
+    margin-left: 0 !important;
+    text-align: left !important;
+    max-width: none !important;
+  }
+
+  body.irisx-luxury .irisx-chat-product,
+  body.irisx-luxury .irisx-chat-role-meta {
+    padding: 0 18px 12px !important;
+    margin: 0 !important;
+  }
+
+  body.irisx-luxury .cm-msgs {
+    min-height: 220px;
+    padding: 14px 18px 18px !important;
+    background: #faf7ff !important;
+  }
+
+  body.irisx-luxury #chat-view .irisx-empty-state {
+    min-height: 150px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 22px 16px !important;
+    border: 1px dashed rgba(109,40,217,.14);
+    border-radius: 18px;
+    background: #ffffff;
+    color: rgba(26,21,48,.58) !important;
+  }
+
+  body.irisx-luxury #chatList .irisx-empty-state--compact {
+    margin: 12px 18px 18px;
+    min-height: 110px;
+  }
+
+  body.irisx-luxury .msg {
+    max-width: 88% !important;
+    border-radius: 18px !important;
+  }
+
+  body.irisx-luxury .msg.me {
+    background: linear-gradient(135deg, #6d28d9, #8b5cf6) !important;
+    color: #ffffff !important;
+  }
+
+  body.irisx-luxury .msg.them,
+  body.irisx-luxury .msg.other {
+    background: #ffffff !important;
+    border: 1px solid rgba(109,40,217,.08);
+    color: #1a1530 !important;
+  }
+
+  body.irisx-luxury .cm-input {
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom)) !important;
+    background: #ffffff !important;
+    border-top: 1px solid rgba(109,40,217,.08);
+  }
+
+  body.irisx-luxury .cm-input input {
+    background: #f7f3ff !important;
+    border: 1px solid rgba(109,40,217,.12) !important;
+    color: #1a1530 !important;
+    border-radius: 16px !important;
+  }
+
+  body.irisx-luxury .cm-send,
+  body.irisx-luxury .irisx-chat-attach {
+    border-radius: 16px !important;
+  }
+
+  body.irisx-luxury #profile-view {
+    background: linear-gradient(180deg, #fbf8ff 0%, #f6f2ff 100%) !important;
+  }
+
+  body.irisx-luxury #profile-view .irisx-guest-shell {
+    gap: 16px;
+    padding: 14px;
+    background: #ffffff;
+    border: 1px solid rgba(109,40,217,.12);
+    border-radius: 28px;
+    box-shadow: 0 24px 60px rgba(56, 28, 107, 0.08);
+  }
+
+  body.irisx-luxury #profile-view .prof-header {
+    background: #ffffff;
+    border: 1px solid rgba(109,40,217,.08);
+    border-radius: 24px;
+    box-shadow: none;
+    padding: 22px !important;
+  }
+
+  body.irisx-luxury #profile-view .prof-av {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(109,40,217,.16), rgba(167,139,250,.32));
+    color: #6d28d9;
+  }
+
+  body.irisx-luxury #profile-view .prof-name {
+    color: #1a1530;
+    font-size: clamp(1.9rem, 8vw, 2.5rem);
+    line-height: 1;
+  }
+
+  body.irisx-luxury #profile-view .prof-bio {
+    color: rgba(26,21,48,.58);
+  }
+
+  body.irisx-luxury #profile-view .irisx-guest-shell .irisx-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    background: transparent !important;
+  }
+
+  body.irisx-luxury .irisx-workspace {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    padding: 0 0 20px !important;
+  }
+
+  body.irisx-luxury .irisx-workspace-sidebar {
+    order: 1 !important;
+    position: static !important;
+    max-height: none !important;
+    padding: 16px !important;
+    border-radius: 28px !important;
+    background: #ffffff !important;
+    box-shadow: 0 24px 60px rgba(56, 28, 107, 0.08) !important;
+  }
+
+  body.irisx-luxury .irisx-user-card {
+    align-items: flex-start !important;
+    gap: 14px !important;
+    padding-bottom: 14px !important;
+  }
+
+  body.irisx-luxury .irisx-user-avatar {
+    width: 68px !important;
+    height: 68px !important;
+    font-size: 1.2rem !important;
+    background: linear-gradient(135deg, rgba(109,40,217,.18), rgba(167,139,250,.32)) !important;
+    color: #6d28d9 !important;
+  }
+
+  body.irisx-luxury .irisx-user-meta strong {
+    font-size: 1.08rem !important;
+    color: #1a1530 !important;
+  }
+
+  body.irisx-luxury .irisx-user-meta span,
+  body.irisx-luxury .irisx-user-meta em {
+    font-size: 0.82rem !important;
+    color: rgba(26,21,48,.56) !important;
+  }
+
+  body.irisx-luxury .irisx-area-nav {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    gap: 8px !important;
+    margin: 14px 0 10px !important;
+  }
+
+  body.irisx-luxury .irisx-area-btn {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0 14px !important;
+    border-radius: 999px !important;
+    white-space: nowrap;
+  }
+
+  body.irisx-luxury .irisx-sidebar-group-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  body.irisx-luxury .irisx-sidebar-link {
+    min-height: 78px;
+    border-radius: 18px !important;
+    padding: 12px !important;
+  }
+
+  body.irisx-luxury .irisx-sidebar-link small {
+    display: none !important;
+  }
+
+  body.irisx-luxury .irisx-actions--stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.irisx-luxury .irisx-workspace-main {
+    order: 2 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  body.irisx-luxury .irisx-workspace-head {
+    padding: 0 2px;
+  }
+
+  body.irisx-luxury .irisx-title {
+    font-size: clamp(2rem, 8vw, 2.7rem) !important;
+    line-height: 0.98 !important;
+  }
+
+  body.irisx-luxury .irisx-summary-grid--main {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  body.irisx-luxury .irisx-summary-card,
+  body.irisx-luxury .irisx-workspace-card,
+  body.irisx-luxury .irisx-inline-card,
+  body.irisx-luxury .irisx-order-card,
+  body.irisx-luxury .irisx-policy-card,
+  body.irisx-luxury .irisx-profile-quick-card {
+    border-radius: 22px !important;
+    background: #ffffff !important;
+  }
+
+  body.irisx-luxury .irisx-profile-quick-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

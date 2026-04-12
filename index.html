@@ -2342,8 +2342,10 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     </div>
   </nav>
 
+  <div id="home-view" class="irisx-home active"></div>
+
   <!-- SHOP VIEW -->
-  <div id="shop-view" class="active">
+  <div id="shop-view">
     <div class="shop-layout">
       <!-- Filters -->
       <aside class="filters" id="filtersPanel">
@@ -2844,7 +2846,7 @@ function skipIntro(){
 /* ═══════ NAVIGATION ═══════ */
 function showChoiceScreen(){document.body.style.overflow='hidden';document.getElementById('choice').classList.add('show');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('topnav').classList.remove('show');document.getElementById('sellTopbar').classList.remove('show')}
 function showPage(type){document.getElementById('choice').classList.remove('show');document.body.style.overflow='';document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  if(type==='buy'){document.getElementById('page-buy').classList.add('active');document.getElementById('topnav').classList.add('show');document.getElementById('sellTopbar').classList.remove('show');showBuyView('shop');initFilters();render()}
+  if(type==='buy'){document.getElementById('page-buy').classList.add('active');document.getElementById('topnav').classList.add('show');document.getElementById('sellTopbar').classList.remove('show');showBuyView('home');initFilters();render()}
   else{document.getElementById('page-sell').classList.add('active');document.getElementById('sellTopbar').classList.add('show');document.getElementById('topnav').classList.remove('show');window.scrollTo(0,0)}
 }
 function backToChoice(){showChoiceScreen()}
@@ -3564,8 +3566,26 @@ let deferredPrompt=null;
 if('serviceWorker' in navigator && window.location.protocol !== 'file:'){
   navigator.serviceWorker.register('./sw.js').then((registration)=>{
     registration.update();
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+    registration.addEventListener('updatefound',()=>{
+      const worker=registration.installing;
+      if(!worker)return;
+      worker.addEventListener('statechange',()=>{
+        if(worker.state==='installed' && navigator.serviceWorker.controller){
+          worker.postMessage({ type: 'SKIP_WAITING' });
+        }
+      });
+    });
   }).catch((error)=>{
     console.warn('IRIS service worker registration failed.', error);
+  });
+  let irisSwRefreshDone=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(irisSwRefreshDone)return;
+    irisSwRefreshDone=true;
+    window.location.reload();
   });
 }
 window.addEventListener('beforeinstallprompt',(e)=>{

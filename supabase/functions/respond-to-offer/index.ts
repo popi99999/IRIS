@@ -167,7 +167,6 @@ Deno.serve(async (request) => {
       });
     }
 
-    const capturedIntent = await captureOfferPaymentIntent(offer);
     const orderPayload = buildOfferOrderPayload({
       buyer: {
         id: String(offer.buyer_id ?? ""),
@@ -177,17 +176,44 @@ Deno.serve(async (request) => {
       offer,
       listing,
       payment: {
-        paymentIntentId: capturedIntent.id,
-        paymentIntentStatus: capturedIntent.status,
-        chargeId: Array.isArray(capturedIntent.charges?.data) && capturedIntent.charges.data.length
-          ? String(capturedIntent.charges.data[0]?.id ?? "")
-          : "",
+        paymentIntentId: String(offer.payment_intent_reference ?? offer.paymentIntentReference ?? ""),
+        paymentIntentStatus: "requires_capture",
+        chargeId: "",
         transferGroup: buildTransferGroup(`order_${offerId}`),
       },
     });
     orderPayload.payment.transferGroup = buildTransferGroup(orderPayload.id);
+    orderPayload.status = "pending_capture";
+    orderPayload.payment.status = "authorized";
+    const provisionalOrder = await tryUpsertIntoTable("orders", orderPayload, "id");
+    if (!provisionalOrder) {
+      throw new HttpError("Unable to create order record before payment capture", 500);
+    }
+
+    let capturedIntent;
+    try {
+      capturedIntent = await captureOfferPaymentIntent(offer);
+    } catch (error) {
+      await tryUpsertIntoTable("orders", {
+        ...orderPayload,
+        status: "payment_failed",
+        payment: {
+          ...orderPayload.payment,
+          status: "capture_failed",
+          paymentIntentStatus: "capture_failed",
+          captureFailedAt: new Date().toISOString(),
+        },
+      }, "id");
+      throw error;
+    }
+
+    orderPayload.status = "paid";
+    orderPayload.payment.status = "captured";
     orderPayload.payment.paymentIntentId = capturedIntent.id;
     orderPayload.payment.paymentIntentStatus = capturedIntent.status;
+    orderPayload.payment.chargeId = Array.isArray(capturedIntent.charges?.data) && capturedIntent.charges.data.length
+      ? String(capturedIntent.charges.data[0]?.id ?? "")
+      : "";
     orderPayload.payment.capturedAt = new Date().toISOString();
 
     const acceptedOffer = {
@@ -198,12 +224,10 @@ Deno.serve(async (request) => {
       captured_at_ms: Date.now(),
       updated_at_ms: Date.now(),
     };
-    // Critical: write order first — if this fails, throw before any money moves.
-    // Money was already captured above; a write failure here means manual reconciliation is needed.
     const savedOrder = await tryUpsertIntoTable("orders", orderPayload, "id");
     if (!savedOrder) {
-      console.error("[respond-to-offer] CRITICAL: order write failed after payment capture. orderId:", orderPayload.id, "paymentIntentId:", capturedIntent.id);
-      throw new HttpError("Payment captured but order record could not be created. Contact support with reference: " + orderPayload.id, 500);
+      console.error("[respond-to-offer] CRITICAL: order finalization failed after payment capture. orderId:", orderPayload.id, "paymentIntentId:", capturedIntent.id);
+      throw new HttpError("Payment captured but order finalization failed. Contact support with reference: " + orderPayload.id, 500);
     }
     await tryUpsertIntoTable("offers", acceptedOffer, "id");
     await tryInsertIntoTable("notifications", {

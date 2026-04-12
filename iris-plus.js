@@ -439,6 +439,8 @@
   };
 
   const SHIPPING_COST = PLATFORM_CONFIG.shippingCost;
+  const EXPRESS_SHIPPING_SURCHARGE = 15;
+  const EXPRESS_SHIPPING_COST = SHIPPING_COST + EXPRESS_SHIPPING_SURCHARGE;
   const state = {
     users: loadJson(STORAGE_KEYS.users, []).map(function(u) { var c = Object.assign({}, u); delete c.password; return c; }),
     banRegistry: loadJson(STORAGE_KEYS.banRegistry, { emails: [], phones: [], entries: [] }),
@@ -1182,6 +1184,40 @@
     return Boolean(getSupabaseClient());
   }
 
+  function getCheckoutShippingMethodCopy() {
+    return {
+      insured: langText("Spedizione assicurata", "Insured shipping"),
+      express: langText("Spedizione espressa assicurata", "Express insured")
+    };
+  }
+
+  function resolveCheckoutShippingMethod(rawValue) {
+    const labels = getCheckoutShippingMethodCopy();
+    const normalized = String(rawValue || "").trim().toLowerCase();
+    if (
+      normalized === labels.express.toLowerCase() ||
+      normalized === "express_insured" ||
+      normalized === "express-insured" ||
+      normalized.indexOf("express") > -1
+    ) {
+      return labels.express;
+    }
+    return labels.insured;
+  }
+
+  function getCheckoutShippingFee(rawMethod) {
+    return resolveCheckoutShippingMethod(rawMethod) === getCheckoutShippingMethodCopy().express
+      ? EXPRESS_SHIPPING_COST
+      : SHIPPING_COST;
+  }
+
+  function normalizeCheckoutDraftState(draft) {
+    const nextDraft = Object.assign({}, draft || {});
+    nextDraft.shippingMethod = resolveCheckoutShippingMethod(nextDraft.shippingMethod);
+    nextDraft.shippingFee = getCheckoutShippingFee(nextDraft.shippingMethod);
+    return nextDraft;
+  }
+
   function getSupabaseRedirectUrl() {
     const localHostPattern = /^(localhost|127\.0\.0\.1)$/i;
     const configuredSiteUrl =
@@ -1192,8 +1228,9 @@
       const canonical = document.querySelector('link[rel="canonical"]');
       return canonical && canonical.href ? canonical.href.trim() : "";
     })();
-    const fallbackUrl = configuredSiteUrl || canonicalHref || (window.location.origin + window.location.pathname);
-    const preferredUrl = localHostPattern.test(window.location.hostname) ? fallbackUrl : (window.location.origin + window.location.pathname);
+    const currentAppUrl = window.location.origin + window.location.pathname;
+    const fallbackUrl = configuredSiteUrl || canonicalHref || currentAppUrl;
+    const preferredUrl = localHostPattern.test(window.location.hostname) ? currentAppUrl : fallbackUrl;
     try {
       const url = new URL(preferredUrl);
       url.hash = "";
@@ -5016,7 +5053,7 @@
   function getHomeCopy() {
     return HOME_COPY[curLang] || HOME_COPY.en || HOME_COPY.it || {
       sectionKicker: "IRIS edit",
-      kicker: "IRIS — Curated Luxury",
+      kicker: "",
       title: "Authentic luxury.\nFinally accessible.",
       text: "Every piece certified by our team of experts. Hermès, Chanel, Louis Vuitton — authenticated one by one, delivered to your door.",
       primaryCta: "Browse the collection",
@@ -5404,8 +5441,7 @@
           </video>
           <div class="irisx-hero-lux"><div class="irisx-hero-shine"></div></div>
           <div class="irisx-home-copy">
-            <div class="irisx-home-kicker">${escapeHtml(copy.kicker || "IRIS")}</div>
-            <div class="irisx-home-rule"></div>
+            ${copy.kicker ? `<div class="irisx-home-kicker">${escapeHtml(copy.kicker)}</div><div class="irisx-home-rule"></div>` : ""}
             <h1 class="irisx-home-title">${escapeHtml(copy.title).replace(/\n/g, "<br>")}</h1>
             <div class="irisx-home-proof">${escapeHtml(proofText)}</div>
             <div class="irisx-home-actions">
@@ -9097,11 +9133,9 @@
       }
 
       if (targetView === "seller") {
-        qs("#profile-view").classList.add("active", "view-enter");
-        state.profileArea = "seller";
-        renderProfilePanel();
+        qs("#seller-view").classList.add("active", "view-enter");
         setActiveNav("profile");
-        syncTopnavChrome("profile");
+        syncTopnavChrome("seller");
         window.scrollTo(0, 0);
         return;
       }
@@ -13509,9 +13543,9 @@
     if (!sellerView || !sellerView.classList.contains("active")) {
       return;
     }
-    state.profileArea = "seller";
-    showBuyView("profile");
-    setProfileArea("seller", state.sellerSection || "dashboard");
+    if (window.irisActiveSellerId && typeof window.showSeller === "function") {
+      window.showSeller(window.irisActiveSellerId);
+    }
   }
 
   function setAdminSection(section) {
@@ -14982,30 +15016,30 @@
     const user = state.currentUser || {};
     const defaultAddress = (user.addresses || []).find(function (address) { return address.isDefault; }) || (user.addresses || [])[0] || {};
     const defaultPayment = (user.paymentMethods || []).find(function (method) { return method.isDefault; }) || (user.paymentMethods || [])[0] || {};
-    return Object.assign({
+    return normalizeCheckoutDraftState(Object.assign({
       name: defaultAddress.name || user.name || "",
       address: defaultAddress.address || user.address || "",
       city: defaultAddress.city || user.city || "",
       country: defaultAddress.country || user.country || getWorkspaceDefaultCountry(),
       note: "",
-      shippingMethod: langText("Spedizione assicurata", "Insured shipping"),
+      shippingMethod: resolveCheckoutShippingMethod(),
       shippingFee: SHIPPING_COST,
       paymentMethodId: defaultPayment.id || "stripe-checkout",
       paymentLabel: defaultPayment.id ? `${defaultPayment.brand} •••• ${defaultPayment.last4}` : langText("Stripe Checkout protetto", "Protected Stripe Checkout")
-    }, state.checkoutDraft || {});
+    }, state.checkoutDraft || {}));
   }
 
   function saveCheckoutDraftFromFields() {
-    state.checkoutDraft = Object.assign({}, state.checkoutDraft || {}, {
+    const nextDraft = Object.assign({}, state.checkoutDraft || {}, {
       name: qs("#checkoutName") ? qs("#checkoutName").value.trim() : state.checkoutDraft.name,
       address: qs("#checkoutAddress") ? qs("#checkoutAddress").value.trim() : state.checkoutDraft.address,
       city: qs("#checkoutCity") ? qs("#checkoutCity").value.trim() : state.checkoutDraft.city,
       country: qs("#checkoutCountry") ? qs("#checkoutCountry").value.trim() : state.checkoutDraft.country,
       note: qs("#checkoutNote") ? qs("#checkoutNote").value.trim() : state.checkoutDraft.note,
       shippingMethod: qs("#checkoutShippingMethod") ? qs("#checkoutShippingMethod").value : state.checkoutDraft.shippingMethod,
-      shippingFee: qs("#checkoutShippingFee") ? Number(qs("#checkoutShippingFee").value || SHIPPING_COST) : state.checkoutDraft.shippingFee,
       paymentLabel: qs("#checkoutPaymentLabel") ? qs("#checkoutPaymentLabel").value.trim() : state.checkoutDraft.paymentLabel
     });
+    state.checkoutDraft = normalizeCheckoutDraftState(nextDraft);
   }
 
   function setCheckoutStep(step) {
@@ -15249,8 +15283,8 @@
       </div>`;
     } else if (state.checkoutStep === "shipping") {
       body = `<div class="irisx-form-grid">
-        <div class="irisx-field"><label for="checkoutShippingMethod">${langText("Metodo di spedizione", "Shipping method")}</label><select id="checkoutShippingMethod"><option ${draft.shippingMethod === langText("Spedizione assicurata", "Insured shipping") ? "selected" : ""}>${langText("Spedizione assicurata", "Insured shipping")}</option><option ${draft.shippingMethod === langText("Spedizione espressa assicurata", "Express insured") ? "selected" : ""}>${langText("Spedizione espressa assicurata", "Express insured")}</option></select></div>
-        <div class="irisx-field"><label for="checkoutShippingFee">${langText("Costo spedizione", "Shipping fee")}</label><input id="checkoutShippingFee" type="number" value="${escapeHtml(String(shippingFee))}"></div>
+        <div class="irisx-field"><label for="checkoutShippingMethod">${langText("Metodo di spedizione", "Shipping method")}</label><select id="checkoutShippingMethod" onchange="handleCheckoutShippingMethodChange()"><option ${draft.shippingMethod === resolveCheckoutShippingMethod() ? "selected" : ""}>${resolveCheckoutShippingMethod()}</option><option ${draft.shippingMethod === resolveCheckoutShippingMethod("express_insured") ? "selected" : ""}>${resolveCheckoutShippingMethod("express_insured")}</option></select></div>
+        <div class="irisx-field"><label for="checkoutShippingFee">${langText("Costo spedizione", "Shipping fee")}</label><input id="checkoutShippingFee" type="number" value="${escapeHtml(String(shippingFee))}" readonly aria-readonly="true"></div>
         <div class="irisx-note">${langText("Seleziona il metodo di spedizione preferito.", "Select your preferred shipping method.")}</div>
       </div>`;
     } else if (state.checkoutStep === "payment") {
@@ -15335,6 +15369,13 @@
       return;
     }
     finalizeCheckout(true);
+  };
+
+  window.handleCheckoutShippingMethodChange = function () {
+    state.checkoutDraft = normalizeCheckoutDraftState(Object.assign({}, state.checkoutDraft || {}, {
+      shippingMethod: qs("#checkoutShippingMethod") ? qs("#checkoutShippingMethod").value : resolveCheckoutShippingMethod()
+    }));
+    renderCheckoutModal();
   };
 
   function getMeasurementRequestRecord(listingId) {
@@ -15916,6 +15957,14 @@
   window.saveNotificationPreferences = saveNotificationPreferences;
   window.saveSecurityWorkspace = saveSecurityWorkspace;
   window.saveAccountSettings = saveAccountSettings;
+  window.handleAssistanceClick = function () {
+    if (state.currentUser) {
+      showBuyView("profile");
+      setProfileArea("account", "help_contact");
+      return;
+    }
+    openStatic("faq");
+  };
   window.requestVerificationCode = requestVerificationCode;
   window.confirmVerificationCode = confirmVerificationCode;
   window.banIdentityIdentifiers = banIdentityIdentifiers;

@@ -2251,7 +2251,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
   <div class="ch-div"></div>
   <div class="ch ch-s" onclick="showPage('sell')">
     <div class="ch-c">
-      <div class="ch-lbl">Privati 5% · Concierge 15%</div>
+      <div class="ch-lbl">Privati 12% · Concierge 22%</div>
       <div class="ch-w">Vendi</div>
       <div class="ch-d">Spediscici il pezzo — pensiamo noi a foto, autenticazione e vendita.</div>
       <div class="ch-arr">→</div>
@@ -2263,17 +2263,27 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 <div class="page" id="page-buy">
 
   <!-- Top nav -->
-  <nav class="topnav" id="topnav" role="navigation" aria-label="Navigazione principale">
-    <div class="tn-row tn-row--main">
-      <span class="tn-logo" onclick="showBuyView('home')"><em>IRIS</em></span>
-      <div class="tn-search">
-        <input type="text" placeholder="Cerca brand, articoli, stili..." id="searchInput" oninput="handleSearch(this.value)" aria-label="Cerca prodotti">
-        <div class="ac-dropdown" id="acDropdown"></div>
-      </div>
-      <div class="tn-links">
-        <button class="tn-btn tn-locale-trigger" id="tnLocaleTrigger" onclick="toggleLocaleMenu()" aria-label="Cambia lingua e valuta" aria-haspopup="menu" aria-controls="tnLocaleMenu" aria-expanded="false" type="button">
-          <span id="tnLocaleTriggerLabel">IT · EUR</span>
-        </button>
+	  <nav class="topnav" id="topnav" role="navigation" aria-label="Navigazione principale">
+	    <div class="tn-row tn-row--main">
+	      <div class="tn-search-shell">
+	        <div class="tn-search">
+	          <input type="text" placeholder="Cerca brand, articoli, stili..." id="searchInput" oninput="handleSearch(this.value)" aria-label="Cerca prodotti">
+	          <div class="ac-dropdown" id="acDropdown"></div>
+	        </div>
+	      </div>
+	      <div class="tn-brand-rail">
+	        <span class="tn-logo" onclick="showBuyView('home')"><em>IRIS</em></span>
+	        <div class="tn-main-nav">
+	          <button class="tn-btn tn-home" id="tnHomeBtn" data-nav-view="home" onclick="showBuyView('home')">Home</button>
+	          <button class="tn-btn tn-shop" id="tnShopBtn" data-nav-view="shop" onclick="showBuyView('shop')">Shop</button>
+	          <button class="tn-btn" id="tnAboutBtn" onclick="showBuyView('home');setTimeout(function(){var manifesto=document.getElementById('irisManifesto');if(manifesto){manifesto.scrollIntoView({behavior:'smooth',block:'start'});}},120)">Chi siamo</button>
+	        </div>
+	      </div>
+	      <div class="tn-links">
+	        <button class="tn-btn tn-support-btn" id="tnSupportBtn" onclick="handleAssistanceClick()" aria-label="Apri assistenza">Assistenza</button>
+	        <button class="tn-btn tn-locale-trigger" id="tnLocaleTrigger" onclick="toggleLocaleMenu()" aria-label="Cambia lingua e valuta" aria-haspopup="menu" aria-controls="tnLocaleMenu" aria-expanded="false" type="button">
+	          <span id="tnLocaleTriggerLabel">IT · EUR</span>
+	        </button>
         <button class="tn-btn tn-icon tn-favorites" id="tnFavBtn" data-nav-view="fav" onclick="showBuyView('fav')" aria-label="Apri preferiti">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13.2 2.9 8.5A3.2 3.2 0 0 1 7.7 4.2L8 4.5l.3-.3a3.2 3.2 0 0 1 4.8 4.3L8 13.2Z"/></svg>
           <span class="badge" id="fav-top-badge" style="display:none">0</span>
@@ -2286,18 +2296,10 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           <button class="notif-bell tn-btn tn-icon" onclick="toggleNotifs()" aria-label="Notifiche"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6a4 4 0 018 0c0 4 1.5 5.5 1.5 5.5H2.5S4 10 4 6z"/><path d="M6.5 13a1.5 1.5 0 003 0"/></svg><span class="notif-badge" id="notifBadge" style="display:none">0</span></button>
           <div class="notif-panel" id="notifPanel"></div>
         </div>
-        <button class="tn-btn tn-chat" data-nav-view="chat" onclick="showBuyView('chat')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5h11v8h-7l-4 3v-3z"/></svg><span class="badge" id="chat-top-badge">2</span></button>
-        <button class="tn-btn tn-profile" data-nav-view="profile" onclick="showBuyView('profile')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 14.5c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg></button>
+        <button class="tn-btn tn-chat" data-nav-view="chat" onclick="showBuyView('chat')" aria-label="Apri messaggi"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5h11v8h-7l-4 3v-3z"/></svg><span class="badge" id="chat-top-badge">2</span></button>
+        <button class="tn-btn tn-profile" data-nav-view="profile" onclick="showBuyView('profile')" aria-label="Apri profilo"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 14.5c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg></button>
         <button class="lang-toggle" id="tnLangToggleLegacy" onclick="switchLang()">EN</button>
-        <button class="tn-btn tn-assistenza" id="tnAssistenzaBtn" onclick="openSupportModal('')" aria-label="Apri supporto">Assistenza</button>
         <button class="tn-btn tn-sell" onclick="showPage('sell')">Vendi</button>
-      </div>
-    </div>
-    <div class="tn-row tn-row--sub">
-      <div class="tn-secondary-nav">
-        <button class="tn-btn tn-home" id="tnHomeBtn" data-nav-view="home" onclick="showBuyView('home')">Home</button>
-        <button class="tn-btn tn-shop" id="tnShopBtn" data-nav-view="shop" onclick="showBuyView('shop')">Shop</button>
-        <button class="tn-btn" id="tnAboutBtn" onclick="showBuyView('home');setTimeout(function(){var manifesto=document.getElementById('irisManifesto');if(manifesto){manifesto.scrollIntoView({behavior:'smooth',block:'start'});}},120)">Chi siamo</button>
       </div>
     </div>
     <div class="tn-locale-menu" id="tnLocaleMenu"></div>
@@ -2325,6 +2327,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           <button class="tn-mobile-link" id="tnMobileHomeBtn" onclick="closeMobileNav();showBuyView('home')">Home</button>
           <button class="tn-mobile-link" id="tnMobileShopBtn" onclick="closeMobileNav();showBuyView('shop')">Shop</button>
           <button class="tn-mobile-link" id="tnMobileAboutBtn" onclick="closeMobileNav();showBuyView('home');setTimeout(function(){var manifesto=document.getElementById('irisManifesto');if(manifesto){manifesto.scrollIntoView({behavior:'smooth',block:'start'});}},120)">Chi siamo</button>
+          <button class="tn-mobile-link" id="tnMobileSupportBtn" onclick="closeMobileNav();handleAssistanceClick()">Assistenza</button>
           <button class="tn-mobile-link" id="tnMobileProfileBtn" onclick="closeMobileNav();showBuyView('profile')" aria-label="Apri profilo">Profilo</button>
           <button class="tn-mobile-link" id="tnMobileFavBtn" onclick="closeMobileNav();showBuyView('fav')" aria-label="Apri preferiti">Preferiti</button>
           <button class="tn-mobile-link" id="tnMobileChatBtn" onclick="closeMobileNav();showBuyView('chat')" aria-label="Apri messaggi">Messaggi</button>
@@ -2509,7 +2512,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div style="position:relative;z-index:2">
       <div class="sh-label">Il modo italiano di vendere lusso</div>
       <div class="sh-title">Vendi come preferisci.</div>
-      <div class="sh-sub">Privati 5% · Concierge 15% · Autenticazione inclusa · Pagamento garantito</div>
+      <div class="sh-sub">Privati 12% · Concierge 22% · Autenticazione inclusa · Pagamento garantito</div>
     </div>
   </div>
   <section class="sell-steps irisx-reveal-section">
@@ -2521,7 +2524,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
         <!-- PATH A: Autonomo -->
         <div class="sell-path">
           <div class="sp-badge sp-badge--diy">Autonomo</div>
-          <div class="sp-commission">9<span>%</span></div>
+          <div class="sp-commission">12<span>%</span></div>
           <div class="sp-commission-label">commissione sul venduto</div>
           <div class="sp-title">Vendi da solo</div>
           <div class="sp-desc">Pubblichi tu, gestisci le trattative, spedisci tu. IRIS ti fornisce la vetrina, la visibilità e il pagamento protetto.</div>
@@ -2576,13 +2579,13 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           <div style="display:flex;gap:.8rem;margin-bottom:2rem">
             <label style="flex:1;border:1px solid rgba(124,58,237,.2);padding:1rem;cursor:pointer;border-radius:3px;transition:all .25s" id="lbl-diy">
               <input type="radio" name="sell-mode" id="sell-mode-diy" value="diy" checked onchange="updateFee();toggleSellMode()" style="display:none">
-              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--purple);margin-bottom:.3rem">Privati · 5%</div>
+              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--purple);margin-bottom:.3rem">Privati · 12%</div>
               <div style="font-size:.85rem;color:rgba(245,240,235,.92);font-family:'Playfair Display',serif">Vendo da solo</div>
               <div style="font-size:.7rem;color:rgba(245,240,235,.55);margin-top:.25rem">Gestisci tu le foto e la spedizione</div>
             </label>
             <label style="flex:1;border:1px solid rgba(196,160,106,.3);padding:1rem;cursor:pointer;border-radius:3px;background:rgba(196,160,106,.04);transition:all .25s" id="lbl-concierge">
               <input type="radio" name="sell-mode" id="sell-mode-concierge" value="concierge" onchange="updateFee();toggleSellMode()" style="display:none">
-              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem">★ Concierge · 15%</div>
+              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem">★ Concierge · 22%</div>
               <div style="font-size:.85rem;color:rgba(245,240,235,.92);font-family:'Playfair Display',serif">Affido tutto a IRIS</div>
               <div style="font-size:.7rem;color:rgba(245,240,235,.55);margin-top:.25rem">Spediscici il pezzo, pensiamo noi</div>
             </label>
@@ -2664,7 +2667,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div class="sm-subtitle">Tutto quello che devi sapere su IRIS.</div>
     <div id="faqList">
       <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">Come funziona l'autenticazione?</div><div class="faq-a"><p>Ogni articolo sopra i €200 viene verificato da esperti certificati. Controlliamo materiali, cuciture, hardware e numeri seriali per garantire l'autenticit&agrave;.</p></div></div>
-      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">Quanto costa vendere su IRIS?</div><div class="faq-a"><p>Pubblicare &egrave; gratis. Paghiamo solo una commissione dal 10% al 15% sul venduto, a seconda della categoria e del prezzo.</p></div></div>
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">Quanto costa vendere su IRIS?</div><div class="faq-a"><p>Pubblicare &egrave; gratis. La commissione standard &egrave; del 12% sul venduto oppure del 22% se scegli il servizio Concierge.</p></div></div>
       <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">Posso restituire un articolo?</div><div class="faq-a"><p>S&igrave;, hai 14 giorni dalla ricezione per restituire gratuitamente l'articolo se non corrisponde alla descrizione.</p></div></div>
       <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">Come ricevo il pagamento?</div><div class="faq-a"><p>Tramite bonifico bancario entro 48 ore dalla conferma dell'autenticazione e ricezione da parte del compratore.</p></div></div>
       <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">Quali brand accettate?</div><div class="faq-a"><p>Accettiamo tutti i brand di lusso e contemporary: Herm&egrave;s, Chanel, Louis Vuitton, Gucci, Prada, Balenciaga, Off-White e molti altri.</p></div></div>
@@ -2681,7 +2684,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div class="sm-subtitle">Ultimo aggiornamento: Marzo 2026</div>
     <div class="sm-section"><h3>1. Accettazione</h3><p>Utilizzando IRIS accetti integralmente i presenti Termini e Condizioni. Se non li accetti, ti preghiamo di non utilizzare la piattaforma.</p></div>
     <div class="sm-section"><h3>2. Servizio</h3><p>IRIS &egrave; un marketplace che mette in contatto venditori e acquirenti di articoli di moda di lusso. IRIS non &egrave; proprietaria degli articoli in vendita ma fornisce servizi di autenticazione, pagamento sicuro e supporto.</p></div>
-    <div class="sm-section"><h3>3. Commissioni</h3><p>Il venditore paga una commissione variabile dal 10% al 15% calcolata sul prezzo finale di vendita. La pubblicazione &egrave; gratuita.</p></div>
+    <div class="sm-section"><h3>3. Commissioni</h3><p>Il venditore paga una commissione del 12% sul prezzo finale di vendita oppure del 22% se sceglie il servizio Concierge. La pubblicazione &egrave; gratuita.</p></div>
     <div class="sm-section"><h3>4. Resi</h3><p>L'acquirente ha diritto al reso gratuito entro 14 giorni se l'articolo non &egrave; conforme alla descrizione.</p></div>
     <div class="sm-section"><h3>5. Responsabilit&agrave;</h3><p>IRIS si impegna a verificare l'autenticit&agrave; degli articoli ma non pu&ograve; garantire al 100% l'assenza di errori. In caso di articolo non autentico, rimborso totale garantito entro 14 giorni dalla segnalazione.</p></div>
     <div class="sm-section"><h3>6. Diritto di recesso</h3><p>Ai sensi del D.Lgs. 206/2005 (Codice del Consumo), l'acquirente ha diritto di recedere dall'acquisto entro 14 giorni dalla ricezione dell'articolo, senza necessit&agrave; di fornire motivazione. Le spese di restituzione sono a carico dell'acquirente salvo difformit&agrave; dell'articolo rispetto alla descrizione.</p></div>
@@ -3057,10 +3060,10 @@ function sendOffer(){
 /* ═══════ SELL FORM ═══════ */
 function updateFee(){
   const price=parseFloat(document.getElementById('sf-price').value)||0;
-  // Two-tier: 9% self-listing, 22% concierge
+  // Two-tier: 12% self-listing, 22% concierge
   const isConcierge=document.getElementById('sell-mode-concierge')&&document.getElementById('sell-mode-concierge').checked;
-  const rate=isConcierge?0.22:0.09;
-  const label=isConcierge?'Concierge (22%)':'Autonomo (9%)';
+  const rate=isConcierge?0.22:0.12;
+  const label=isConcierge?'Concierge (22%)':'Autonomo (12%)';
   const comm=price*rate;const net=price-comm;
   document.getElementById('fee-p').textContent=price?`€${price.toFixed(0)}`:'€ —';
   document.getElementById('fee-c').textContent=price?`-€${comm.toFixed(0)} (${label})`:`— ${label}`;
@@ -3120,7 +3123,7 @@ const i18n={
     footer_about:'Chi siamo',footer_faq:'FAQ',footer_contact:'Contatti',footer_help:'Centro assistenza',
     footer_terms:'Termini',footer_privacy:'Privacy',footer_cookie:'Cookie',
     // Sell page
-    sell_hero_label:'Inizia a vendere su IRIS',sell_hero_title:'Vendi il tuo lusso.',sell_hero_sub:'Privati 5% · Concierge 15% · Autenticazione inclusa · Pagamento garantito',
+    sell_hero_label:'Inizia a vendere su IRIS',sell_hero_title:'Vendi il tuo lusso.',sell_hero_sub:'Privati 12% · Concierge 22% · Autenticazione inclusa · Pagamento garantito',
     how_works:'Come funziona',four_steps:'Semplice come <em>quattro passi.</em>',
     step1:'Fotografa',step1d:'Scatta foto chiare da più angolazioni.',
     step2:'Pubblica',step2d:'Inserisci brand, condizione e prezzo. Gratis, 2 minuti.',
@@ -3164,7 +3167,7 @@ const i18n={
     footer_start_sell:'Start selling',footer_how:'How it works',footer_fees:'Fees',footer_auth:'Authentication',
     footer_about:'About us',footer_faq:'FAQ',footer_contact:'Contact',footer_help:'Help center',
     footer_terms:'Terms',footer_privacy:'Privacy',footer_cookie:'Cookies',
-    sell_hero_label:'Start selling on IRIS',sell_hero_title:'Sell your luxury.',sell_hero_sub:'Private 5% · Concierge 15% · Authentication included · Guaranteed payment',
+    sell_hero_label:'Start selling on IRIS',sell_hero_title:'Sell your luxury.',sell_hero_sub:'Private 12% · Concierge 22% · Authentication included · Guaranteed payment',
     how_works:'How it works',four_steps:'As simple as <em>four steps.</em>',
     step1:'Photograph',step1d:'Take clear photos from multiple angles.',
     step2:'Publish',step2d:'Enter brand, condition and price. Free, 2 minutes.',
@@ -3322,6 +3325,7 @@ const reviewsData={
 /* ═══════ SELLER PROFILE ═══════ */
 function showSeller(sellerId){
   const s=sellers.find(x=>x.id===sellerId);if(!s)return;
+  window.irisActiveSellerId=sellerId;
   showBuyView('seller');
   const sProds=prods.filter(p=>p.seller.id===sellerId);
   const sRevs=reviewsData[sellerId]||[];

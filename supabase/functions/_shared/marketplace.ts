@@ -6,6 +6,28 @@ export const CONCIERGE_SELLER_FEE_RATE = 0.15;
 export const DEFAULT_AUTH_FEE = 10;
 export const PREMIUM_AUTH_FEE = 20;
 export const OFFER_EXPIRY_HOURS = 24;
+export const STANDARD_SHIPPING_FEE = 25;
+export const EXPRESS_SHIPPING_FEE = 40;
+
+export function resolveShippingMethod(value: unknown): "insured" | "express_insured" {
+  const normalized = normalizeString(value).toLowerCase();
+  if (
+    normalized === "express_insured" ||
+    normalized === "express-insured" ||
+    normalized === "spedizione espressa assicurata" ||
+    normalized === "express insured" ||
+    normalized.includes("express")
+  ) {
+    return "express_insured";
+  }
+  return "insured";
+}
+
+export function resolveShippingFee(value: unknown): number {
+  return resolveShippingMethod(value) === "express_insured"
+    ? EXPRESS_SHIPPING_FEE
+    : STANDARD_SHIPPING_FEE;
+}
 
 export function getServiceMode(listing: Record<string, unknown> | null | undefined): string {
   return normalizeString((listing as { service_mode?: unknown; serviceMode?: unknown } | null | undefined)?.service_mode

@@ -33,11 +33,14 @@ Deno.serve(async (request) => {
     const targetSellerEmail = normalizeEmail(body.sellerEmail ?? orderSellerEmails[0] ?? "");
     const currentUserEmail = normalizeEmail(user.email);
     const isAdmin = ["owner@iris-fashion.it", "admin@iris-fashion.it", "support@iris-fashion.it"].includes(currentUserEmail);
-    if (!isAdmin && !body.force && currentUserEmail !== targetSellerEmail && !orderSellerEmails.includes(currentUserEmail)) {
+    if (body.force && !isAdmin) {
+      throw new HttpError("Only admins can force payout release", 403);
+    }
+    if (!isAdmin && currentUserEmail !== targetSellerEmail && !orderSellerEmails.includes(currentUserEmail)) {
       throw new HttpError("Not allowed to release this payout", 403);
     }
 
-    if (!body.force && !isEligibleForPayout(String(order.status ?? ""))) {
+    if ((!body.force || !isAdmin) && !isEligibleForPayout(String(order.status ?? ""))) {
       throw new HttpError("Order is not ready for payout", 409);
     }
 

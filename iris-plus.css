@@ -6503,66 +6503,187 @@ body.irisx-luxury .irisx-modal-card--support{
 }
 
 /* ===== IRIS topbar + shop + detail final retune ===== */
+@keyframes irisTopbarLogoShift{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
 body.irisx-luxury .topnav{
-  box-shadow:0 18px 60px rgba(0,0,0,.2);
+  padding:0 2rem;
+  box-shadow:0 18px 60px rgba(0,0,0,.18);
 }
 
 body.irisx-luxury .tn-row--main{
-  grid-template-columns:auto minmax(260px, 1fr) auto;
-  gap:24px;
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(280px, 36vw) minmax(220px, max-content) minmax(0, 1fr);
+  align-items:center;
+  min-height:84px;
+  gap:18px;
+}
+
+body.irisx-luxury .tn-search-shell{
+  min-width:280px;
+  width:100%;
+}
+
+body.irisx-luxury .tn-brand-rail{
+  position:static;
+  display:grid;
+  justify-items:center;
+  gap:8px;
+  min-width:0;
 }
 
 body.irisx-luxury .tn-logo{
   min-width:100px;
-  letter-spacing:.22em;
+  font-size:2.5rem;
+  line-height:1;
+  letter-spacing:.18em;
+  text-align:center;
 }
 
 body.irisx-luxury .tn-logo em{
-  background:linear-gradient(120deg, rgba(124,58,237,.98) 0%, rgba(245,240,235,.96) 48%, rgba(196,160,106,.96) 100%);
+  display:inline-block;
+  background:linear-gradient(115deg, #7c3aed 0%, #b48cff 24%, #d6b27a 52%, #8b5cf6 78%, #7c3aed 100%);
+  background-size:240% 240%;
   -webkit-background-clip:text;
   background-clip:text;
   color:transparent;
-  text-shadow:0 0 26px rgba(124,58,237,.14);
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 18px rgba(124,58,237,.16));
+  text-shadow:0 0 30px rgba(124,58,237,.18);
+  animation:irisTopbarLogoShift 4.8s linear infinite;
 }
 
 body.irisx-luxury .tn-search{
-  max-width:460px;
+  max-width:none;
   margin:0;
 }
 
+body.irisx-luxury .irisx-home-hero .irisx-home-kicker,
+body.irisx-luxury .irisx-home-hero .irisx-home-rule{
+  display:none !important;
+}
+
+body.irisx-luxury .tn-row--sub{
+  display:none !important;
+}
+
+body.irisx-luxury .tn-main-nav{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  min-width:0;
+}
+
+body.irisx-luxury .tn-main-nav .tn-btn{
+  min-height:28px;
+  padding:0 8px;
+  border:0;
+  background:transparent;
+  color:rgba(245,240,235,.58);
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  font-size:.58rem;
+}
+
+body.irisx-luxury .tn-main-nav .tn-btn:hover,
+body.irisx-luxury .tn-main-nav .tn-btn.active{
+  color:rgba(255,255,255,.92);
+  background:transparent;
+}
+
 body.irisx-luxury .tn-search input{
-  height:46px;
-  padding-inline:44px 18px;
+  height:58px;
+  padding-inline:50px 22px;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:999px;
+  background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.03));
+  font-size:1rem;
 }
 
 body.irisx-luxury .tn-links{
-  gap:10px;
-}
-
-body.irisx-luxury .tn-assistenza{
-  display:inline-flex;
+  display:flex;
   align-items:center;
-  height:36px;
-  padding:0 14px;
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:2px;
-  background:rgba(255,255,255,.04);
-  color:rgba(245,240,235,.82);
-  font-size:.65rem;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  white-space:nowrap;
-  transition:border-color .2s, background .2s, color .2s;
-  cursor:pointer;
-}
-body.irisx-luxury .tn-assistenza:hover{
-  border-color:rgba(245,240,235,.28);
-  background:rgba(255,255,255,.07);
-  color:rgba(245,240,235,1);
+  justify-content:flex-end;
+  flex-wrap:nowrap;
+  gap:10px;
+  min-width:0;
+  margin-left:auto;
+  justify-self:end;
 }
 
 body.irisx-luxury .tn-links::before{
+  display:none;
   content:none;
+}
+
+body.irisx-luxury #tnAboutBtn{
+  display:inline-flex !important;
+}
+
+body.irisx-luxury .tn-support-btn{
+  min-width:142px;
+  height:44px;
+  padding:0 20px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.02);
+  color:rgba(245,240,235,.8);
+  border-radius:999px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  font-size:.68rem;
+}
+
+body.irisx-luxury .tn-support-btn:hover{
+  border-color:rgba(124,58,237,.22);
+  background:rgba(124,58,237,.08);
+  color:#fff;
+}
+
+body.irisx-luxury .tn-sell{
+  min-width:138px;
+  height:52px;
+  padding:0 24px !important;
+  border-radius:14px;
+  background:linear-gradient(135deg, rgba(124,58,237,.92), rgba(155,111,255,.84)) !important;
+  border:1px solid rgba(167,139,250,.32) !important;
+  color:#fff !important;
+  box-shadow:0 14px 34px rgba(124,58,237,.22);
+}
+
+body.irisx-luxury .tn-sell:hover{
+  transform:translateY(-1px);
+  box-shadow:0 18px 38px rgba(124,58,237,.26);
+}
+
+body.irisx-luxury .tn-icon,
+body.irisx-luxury .tn-chat,
+body.irisx-luxury .tn-profile,
+body.irisx-luxury .tn-locale-trigger{
+  width:42px;
+  height:42px;
+  padding:0;
+  border-radius:999px;
+  border:1px solid transparent;
+}
+
+body.irisx-luxury .tn-locale-trigger{
+  width:auto;
+  min-width:78px;
+  padding:0 10px;
+  color:rgba(245,240,235,.74);
+}
+
+body.irisx-luxury .tn-icon:hover,
+body.irisx-luxury .tn-chat:hover,
+body.irisx-luxury .tn-profile:hover,
+body.irisx-luxury .tn-locale-trigger:hover{
+  background:rgba(255,255,255,.03);
+  border-color:rgba(255,255,255,.06);
 }
 
 body.irisx-luxury .tn-locale-trigger{
@@ -6948,27 +7069,45 @@ body.irisx-luxury .det-section--seller{
 }
 
 @media (max-width:900px){
-  body.irisx-luxury .tn-links::before{
-    display:none;
-  }
-
   body.irisx-luxury .tn-row--main{
+    display:grid;
+    position:static;
     grid-template-columns:auto 1fr auto;
     gap:14px;
+    min-height:72px;
   }
 
-  body.irisx-luxury .tn-search,
+  body.irisx-luxury .tn-search-shell{
+    min-width:0;
+    flex:unset;
+  }
+
+  body.irisx-luxury .tn-brand-rail{
+    position:static;
+    transform:none;
+    justify-items:start;
+    gap:0;
+  }
+
+  body.irisx-luxury .tn-main-nav,
   body.irisx-luxury .tn-locale-trigger,
   body.irisx-luxury .tn-favorites,
   body.irisx-luxury #cartBtn,
   body.irisx-luxury .notif-wrap,
   body.irisx-luxury .tn-chat,
-  body.irisx-luxury #tnProfileTrigger{
+  body.irisx-luxury #tnProfileTrigger,
+  body.irisx-luxury .tn-support-btn{
     display:none !important;
   }
 
   body.irisx-luxury .tn-mobile-toggle{
     display:inline-flex;
+  }
+
+  body.irisx-luxury .tn-search{
+    grid-column:1 / -1;
+    order:10;
+    margin-top:6px;
   }
 
   body.irisx-luxury .tn-primary{

@@ -1,7 +1,7 @@
 import { normalizeAmount, normalizeEmail, normalizeString, readJsonBody, uuid } from "../_shared/env.ts";
 import { handleOptions, errorResponse, HttpError, jsonResponse } from "../_shared/http.ts";
 import { getRequestUser, getSupabaseAdmin, tryInsertIntoTable, tryUpsertIntoTable } from "../_shared/supabase.ts";
-import { calculateCheckoutTotals, buildOrderPayload, buildTransferGroup } from "../_shared/marketplace.ts";
+import { calculateCheckoutTotals, buildOrderPayload, buildTransferGroup, resolveShippingFee, resolveShippingMethod } from "../_shared/marketplace.ts";
 import { getStripe, stringifyStripeMetadata, toStripeAmount, defaultSuccessUrl, appendUrlParams } from "../_shared/stripe.ts";
 
 type CheckoutItemInput = {
@@ -93,7 +93,8 @@ Deno.serve(async (request) => {
     });
 
     const currency = normalizeString(body.currency || normalizedItems[0].listing.price_currency || normalizedItems[0].listing.currency || "EUR") || "EUR";
-    const shippingFee = normalizeAmount(body.shippingFee ?? body.shipping?.shippingFee ?? body.shipping?.shipping_fee ?? 0, 0);
+    const shippingMethod = resolveShippingMethod(body.shipping?.method ?? body.shipping?.shippingMethod ?? body.shipping?.shipping_method ?? "");
+    const shippingFee = resolveShippingFee(shippingMethod);
     const totals = calculateCheckoutTotals(normalizedItems, shippingFee);
     totals.currency = currency;
 
@@ -159,6 +160,7 @@ Deno.serve(async (request) => {
       listingIds: listingIds.join(","),
       source: body.source ?? "cart",
       currency,
+      shippingMethod,
       shippingFee: String(shippingFee),
       shippingSnapshot: JSON.stringify(body.shipping ?? {}),
       itemsJson: JSON.stringify(requestedItems.map((item) => ({

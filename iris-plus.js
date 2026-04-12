@@ -8714,22 +8714,28 @@
           return `<button class="irisx-shop-browse-link${item.active ? " is-active" : ""}" type="button" onclick="applyShopPreset('${escapeHtml(item.kind)}','${escapeHtml(item.value)}')">${escapeHtml(item.label)}</button>`;
         })
         .join("");
-      const quickFilterMarkup = [
-        { label: langText("Filtri", "Filters"), action: "toggleMobileFilters()" },
-        { label: langText("Brand", "Brand"), action: "focusFilterPanel('f-brands')" },
-        { label: langText("Condizione", "Condition"), action: "focusFilterPanel('f-conds')" },
-        { label: langText("Taglia", "Size"), action: "focusFilterPanel('f-size')" },
-        { label: langText("Prezzo", "Price"), action: "focusFilterPanel('f-pmin')" }
-      ].map(function (item, index) {
-        const extraClass = index === 0 ? " irisx-shop-filter-toggle" : "";
-        return `<button class="irisx-shop-quick-filter${extraClass}" type="button" onclick="${item.action}">${escapeHtml(item.label)}</button>`;
-      }).join("");
+      // Build hover dropdown filter bar
+      function buildFdrop(label, items, filterKey, labelFn) {
+        const hasActive = Array.isArray(filters[filterKey]) && filters[filterKey].length > 0;
+        const opts = items.length > 0
+          ? items.map(function (v) {
+              const isOn = Array.isArray(filters[filterKey]) && filters[filterKey].includes(v);
+              const display = labelFn ? labelFn(v) : v;
+              return `<div class="irisx-fdrop__item${isOn ? ' on' : ''}" onclick="toggleOpt(this,'${filterKey}','${escapeHtml(v)}')" onmousedown="event.preventDefault()"><span class="irisx-fdrop__check">✓</span>${escapeHtml(display)}</div>`;
+            }).join("")
+          : `<div class="irisx-fdrop__empty">${escapeHtml(langText("Nessuna opzione", "No options"))}</div>`;
+        return `<div class="irisx-fdrop"><button class="irisx-fdrop__btn${hasActive ? ' is-active' : ''}" type="button">${escapeHtml(label)}<span class="irisx-fdrop__arrow">▾</span></button><div class="irisx-fdrop__panel">${opts}</div></div>`;
+      }
+      const brandDrop = buildFdrop(langText("Designer", "Designer"), getAvailableBrands(), "brands", null);
+      const condDrop = buildFdrop(langText("Condizione", "Condition"), getAvailableConditions(), "conds", function (v) { return getFacetLabel("conds", v); });
+      const catDrop = buildFdrop(langText("Categoria", "Category"), getAvailableCategories(), "cats", function (v) { return getFacetLabel("cats", v); });
+      const genderDrop = buildFdrop(langText("Genere", "Gender"), ["Women", "Men", "Unisex"], "genders", function (v) { return v === "Women" ? langText("Donna", "Women") : v === "Men" ? langText("Uomo", "Men") : "Unisex"; });
       const trustChips = getTrustFilterOptions().map(function (option) {
         return `<button class="irisx-filter-chip irisx-filter-chip--trust${filters.trust.includes(option.id) ? " is-active" : ""}" onclick="toggleFilterChip('trust', '${escapeHtml(option.id)}')">${escapeHtml(option.label)}</button>`;
       }).join("");
       host.innerHTML = `<div class="irisx-shop-browse">
         <div class="irisx-shop-browse-row">${browseMarkup}</div>
-        <div class="irisx-shop-quick-filters">${quickFilterMarkup}</div>
+        <div class="irisx-fdrop-bar">${brandDrop}${condDrop}${catDrop}${genderDrop}</div>
         <div class="irisx-filter-rail">
           <div class="irisx-filter-group irisx-filter-group--trust"><span class="irisx-filter-label">${escapeHtml(langText("Fiducia IRIS", "IRIS trust"))}</span><div class="irisx-filter-chip-row">${trustChips}</div></div>
           <div class="active-filters irisx-active-filter-row" id="activeFilterChips"></div>

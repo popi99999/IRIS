@@ -5782,6 +5782,7 @@
 
   function initializeSimplifiedShell() {
     document.body.classList.add("irisx-simple-state");
+    document.body.classList.add("irisx-white-theme");
 
     const intro = qs("#intro");
     const choice = qs("#choice");
@@ -15799,6 +15800,93 @@
     syncTopnavChrome();
     bindLuxuryReveal();
   };
+
+  function showSeller(sellerId) {
+    if (!sellerId) return;
+    var sid = String(sellerId);
+    var allListings = Array.isArray(state.listings) ? state.listings : [];
+    var sellerListings = allListings.filter(function (l) {
+      var directMatch =
+        String(l.owner_id || l.seller_id || l.ownerId || l.sellerId || "") === sid;
+      if (directMatch) return true;
+      try {
+        return String(buildListingSeller(l).id) === sid;
+      } catch (e) {
+        return false;
+      }
+    });
+
+    var seller = {};
+    if (sellerListings.length > 0) {
+      seller = buildListingSeller(sellerListings[0]);
+    } else {
+      seller = { id: sid, name: sid, avatar: "👤", rating: 5, sales: 0, city: "", verified: false };
+    }
+
+    var memberYear = "";
+    if (sellerListings.length > 0 && sellerListings[0].created_at) {
+      var d = new Date(sellerListings[0].created_at);
+      if (!isNaN(d.getFullYear())) memberYear = String(d.getFullYear());
+    }
+
+    var listingsHtml = sellerListings.map(function (listing) {
+      var imgHtml = listing.images && listing.images[0]
+        ? '<img src="' + escapeHtml(listing.images[0]) + '" style="width:100%;height:100%;object-fit:cover">'
+        : '<div class="pi-emoji">' + escapeHtml(listing.emoji || "👜") + "</div>";
+      return (
+        '<div class="pc" onclick="showDetail(\'' + listing.id + '\')">' +
+          '<div class="pi"><div class="pi-bg">' + imgHtml + "</div></div>" +
+          '<div class="pinfo">' +
+            '<div class="p-brand">' + escapeHtml(listing.brand || "") + "</div>" +
+            '<div class="p-name">' + escapeHtml(listing.name || "") + "</div>" +
+            '<div class="p-price">' + escapeHtml(formatCurrency(listing.price || 0)) + "</div>" +
+          "</div>" +
+        "</div>"
+      );
+    }).join("");
+
+    var verifiedBadge = seller.verified
+      ? '<span style="background:#6D28D9;color:#fff;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;">Verificato</span>'
+      : "";
+
+    var html =
+      '<div class="irisx-public-seller">' +
+        '<button style="margin-bottom:24px;background:none;border:none;cursor:pointer;color:inherit;font-size:.9rem;opacity:.7;padding:0;" onclick="showBuyView(\'shop\')">' +
+          "&#8592; Torna allo shop" +
+        "</button>" +
+        '<div class="irisx-seller-hero">' +
+          '<div class="irisx-seller-avatar">' + escapeHtml(seller.avatar || "👤") + "</div>" +
+          "<div>" +
+            "<h1>" + escapeHtml(seller.name || "") + "</h1>" +
+            '<div class="irisx-seller-meta">' +
+              (seller.city ? '<span>📍 ' + escapeHtml(seller.city) + "</span>" : "") +
+              '<span>★ ' + escapeHtml(String(Number(seller.rating || 5).toFixed(1))) + "</span>" +
+              '<span>' + escapeHtml(String(seller.sales || 0)) + " vendite</span>" +
+              verifiedBadge +
+            "</div>" +
+          "</div>" +
+        "</div>" +
+        '<div class="irisx-seller-listings">' +
+          "<h2>Articoli in vendita (" + sellerListings.length + ")</h2>" +
+          '<div class="pgrid">' + (listingsHtml || '<p style="opacity:.5">Nessun articolo disponibile.</p>') + "</div>" +
+        "</div>" +
+        '<div class="irisx-seller-info-section">' +
+          (seller.city
+            ? '<div class="irisx-seller-info-card"><strong>' + escapeHtml(seller.city) + '</strong><span>Città</span></div>'
+            : "") +
+          (memberYear
+            ? '<div class="irisx-seller-info-card"><strong>' + escapeHtml(memberYear) + '</strong><span>Membro dal</span></div>'
+            : "") +
+          '<div class="irisx-seller-info-card"><strong>⚡</strong><span>Risposta rapida</span></div>' +
+        "</div>" +
+      "</div>";
+
+    showBuyView("seller");
+    var sellerView = document.getElementById("seller-view");
+    if (sellerView) {
+      sellerView.innerHTML = html;
+    }
+  }
 
   window.setProfileArea = setProfileArea;
   window.setBuyerSection = setBuyerSection;

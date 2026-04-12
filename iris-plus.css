@@ -7131,3 +7131,51 @@ body.irisx-luxury .det-section--seller{
     padding: 14px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   ADDRESS AUTOCOMPLETE DROPDOWN
+   ═══════════════════════════════════════════════════════ */
+.irisx-addr-drop {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: #110826;
+  border: 1px solid rgba(167,139,250,.3);
+  border-radius: 6px;
+  margin-top: 4px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.irisx-addr-item {
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: rgba(245,240,235,.85);
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  transition: background .15s;
+  line-height: 1.4;
+}
+
+.irisx-addr-item:last-child {
+  border-bottom: none;
+}
+
+.irisx-addr-item:hover {
+  background: rgba(167,139,250,.12);
+  color: #fff;
+}
+
+body.irisx-luxury .irisx-addr-drop {
+  background: rgba(8,4,18,.97);
+  border-color: rgba(196,160,106,.3);
+}
+
+body.irisx-luxury .irisx-addr-item:hover {
+  background: rgba(196,160,106,.1);
+}

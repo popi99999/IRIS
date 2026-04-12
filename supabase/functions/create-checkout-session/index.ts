@@ -170,6 +170,7 @@ Deno.serve(async (request) => {
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      payment_method_types: ["card"],
       customer_email: normalizeEmail(user.email),
       line_items: lineItems,
       success_url: successUrl,
@@ -182,7 +183,7 @@ Deno.serve(async (request) => {
       shipping_address_collection: {
         allowed_countries: Array.isArray(body.allowedCountries) && body.allowedCountries.length
           ? body.allowedCountries
-          : ["IT"],
+          : ["IT", "DE", "FR", "ES", "GB", "CH", "AT", "BE", "NL", "PT", "SE", "DK", "NO", "FI", "PL", "CZ", "SK", "HU", "RO", "BG", "HR", "SI", "EE", "LV", "LT", "CY", "MT", "LU", "IE", "GR", "US", "CA", "AU", "JP", "SG", "AE", "SA", "KW", "QA"],
       },
       phone_number_collection: { enabled: true },
       allow_promotion_codes: false,

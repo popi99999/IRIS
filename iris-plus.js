@@ -12781,6 +12781,58 @@
       : langText("Offerta rifiutata e autorizzazione rilasciata.", "Offer declined and authorization released."));
   }
 
+
+  // ─── Nominatim address autocomplete ─────────────────────────────
+  var _irisAddrTimer = null;
+  function irisAddressAutocomplete(val) {
+    clearTimeout(_irisAddrTimer);
+    const drop = document.getElementById("irisAddressDrop");
+    if (!drop) return;
+    if (!val || val.length < 4) { drop.innerHTML = ""; drop.style.display = "none"; return; }
+    _irisAddrTimer = setTimeout(function() {
+      const url = "https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(val) +
+        "&format=json&addressdetails=1&limit=6&countrycodes=it,de,fr,es,gb,ch,at,be,nl,us&accept-language=it";
+      fetch(url, { headers: { "Accept-Language": "it" } })
+        .then(function(r) { return r.json(); })
+        .then(function(results) {
+          if (!results || !results.length) { drop.innerHTML = ""; drop.style.display = "none"; return; }
+          drop.innerHTML = results.map(function(r) {
+            const addr = r.address || {};
+            const road = [addr.road, addr.house_number].filter(Boolean).join(" ");
+            const city = addr.city || addr.town || addr.village || addr.municipality || "";
+            const zip = addr.postcode || "";
+            const province = addr.county || addr.state_district || addr.state || "";
+            const country = addr.country || "";
+            const label = [road || r.display_name.split(",")[0], city, zip].filter(Boolean).join(", ");
+            return '<div class="irisx-addr-item" onclick="irisAddressSelect(' +
+              JSON.stringify(JSON.stringify({road:road||r.display_name.split(",")[0], city:city, zip:zip, province:province, country:country})) +
+              ')">' + escapeHtml(label) + '</div>';
+          }).join("");
+          drop.style.display = "block";
+        })
+        .catch(function() { drop.innerHTML = ""; drop.style.display = "none"; });
+    }, 350);
+  }
+
+  function irisAddressSelect(jsonStr) {
+    try {
+      const d = JSON.parse(jsonStr);
+      const lineEl = document.getElementById("accountAddressLine");
+      const cityEl = document.getElementById("accountAddressCity");
+      const zipEl = document.getElementById("accountAddressZip");
+      const provEl = document.getElementById("accountAddressProvince");
+      const countryEl = document.getElementById("accountAddressCountry");
+      const drop = document.getElementById("irisAddressDrop");
+      if (lineEl) lineEl.value = d.road || "";
+      if (cityEl) cityEl.value = d.city || "";
+      if (zipEl) zipEl.value = d.zip || "";
+      if (provEl) provEl.value = d.province || "";
+      if (countryEl && d.country) countryEl.value = d.country;
+      if (drop) { drop.innerHTML = ""; drop.style.display = "none"; }
+    } catch(e) {}
+  }
+  // ──────────────────────────────────────────────────────────────────
+
   function saveAddressBook() {
     if (!state.currentUser) {
       return;
@@ -12789,9 +12841,15 @@
     const name = readProfileField("#accountAddressName") || state.currentUser.name || "";
     const address = readProfileField("#accountAddressLine");
     const city = readProfileField("#accountAddressCity");
+    const zip = readProfileField("#accountAddressZip") || "";
+    const province = readProfileField("#accountAddressProvince") || "";
     const country = readProfileField("#accountAddressCountry") || getWorkspaceDefaultCountry();
     if (!address || !city) {
-      showToast(langText("Completa indirizzo e citta'.", "Complete address and city."));
+      showToast(langText("Completa via e città.", "Complete street and city."));
+      return;
+    }
+    if (!zip) {
+      showToast(langText("Inserisci il CAP.", "Enter postal code."));
       return;
     }
     const nextAddresses = state.currentUser.addresses.slice();
@@ -12801,12 +12859,16 @@
       name: name,
       address: address,
       city: city,
+      zip: zip,
+      province: province,
       country: country,
       isDefault: nextAddresses.length === 0
     }, state.currentUser));
     syncCurrentUserWorkspace({
       address: address,
       city: city,
+      zip: zip,
+      province: province,
       country: country,
       addresses: nextAddresses
     });
@@ -13765,9 +13827,17 @@
               <div class="irisx-field"><label for="accountAddressLabel">${langText("Etichetta", "Label")}</label><input id="accountAddressLabel" type="text" placeholder="${langText("Casa", "Home")}"></div>
               <div class="irisx-field"><label for="accountAddressName">${langText("Destinatario", "Recipient")}</label><input id="accountAddressName" type="text" value="${escapeHtml(user.name || "")}"></div>
             </div>
-            <div class="irisx-field"><label for="accountAddressLine">${langText("Indirizzo", "Address line")}</label><input id="accountAddressLine" type="text"></div>
+            <div class="irisx-field" style="position:relative">
+              <label for="accountAddressLine">${langText("Via e numero civico", "Street and number")}</label>
+              <input id="accountAddressLine" type="text" autocomplete="off" placeholder="${langText("Es: Via Pavese 11", "E.g. Via Pavese 11")}" oninput="irisAddressAutocomplete(this.value)">
+              <div id="irisAddressDrop" class="irisx-addr-drop"></div>
+            </div>
             <div class="irisx-account-row">
-              <div class="irisx-field"><label for="accountAddressCity">${langText("Città", "City")}</label><input id="accountAddressCity" type="text"></div>
+              <div class="irisx-field"><label for="accountAddressCity">${langText("Città", "City")}</label><input id="accountAddressCity" type="text" placeholder="Es: Milano"></div>
+              <div class="irisx-field"><label for="accountAddressZip">${langText("CAP", "Postal code")}</label><input id="accountAddressZip" type="text" maxlength="10" placeholder="Es: 30172"></div>
+            </div>
+            <div class="irisx-account-row">
+              <div class="irisx-field"><label for="accountAddressProvince">${langText("Provincia", "Province")}</label><input id="accountAddressProvince" type="text" placeholder="${langText("Es: Treviso", "E.g. Treviso")}"></div>
               <div class="irisx-field"><label for="accountAddressCountry">${langText("Paese", "Country")}</label><input id="accountAddressCountry" type="text" value="${escapeHtml(user.country || getWorkspaceDefaultCountry())}"></div>
             </div>
             <div class="irisx-actions"><button class="irisx-primary" onclick="saveAddressBook()">${langText("Salva indirizzo", "Save address")}</button></div>
@@ -15742,6 +15812,8 @@
   window.openMessagingInbox = openMessagingInbox;
   window.openNotificationCenter = openNotificationCenter;
   window.saveAddressBook = saveAddressBook;
+    window.irisAddressAutocomplete = irisAddressAutocomplete;
+    window.irisAddressSelect = irisAddressSelect;
   window.setDefaultAddress = setDefaultAddress;
   window.addPrototypePaymentMethod = addPrototypePaymentMethod;
   window.refreshStripeConnectStatus = refreshStripeConnectStatus;

@@ -9148,18 +9148,20 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 @media (min-width: 901px) {
   body.irisx-luxury .tn-row--main,
   body.irisx-luxury.irisx-white-theme .tn-row--main {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     position: relative;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
     min-height: 98px !important;
     gap: 28px !important;
   }
 
   body.irisx-luxury .tn-search-shell,
   body.irisx-luxury.irisx-white-theme .tn-search-shell {
-    justify-self: start;
-    width: 100%;
+    flex: 0 0 min(440px, 34vw);
+    width: min(440px, 34vw);
     max-width: 440px;
-    min-width: 0;
+    min-width: 320px;
   }
 
   body.irisx-luxury .tn-search,
@@ -9178,10 +9180,15 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 
   body.irisx-luxury .tn-brand-rail,
   body.irisx-luxury.irisx-white-theme .tn-brand-rail {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     width: max-content;
     gap: 0 !important;
-    justify-self: center;
     align-self: center;
+    z-index: 3;
+    pointer-events: none;
   }
 
   body.irisx-luxury .tn-main-nav,
@@ -9191,19 +9198,24 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 
   body.irisx-luxury .tn-logo,
   body.irisx-luxury.irisx-white-theme .tn-logo {
+    display: block;
     min-width: 0 !important;
     font-size: clamp(3rem, 3.8vw, 4rem) !important;
     line-height: 0.9 !important;
     letter-spacing: 0.24em !important;
+    pointer-events: auto;
   }
 
   body.irisx-luxury .tn-links,
   body.irisx-luxury.irisx-white-theme .tn-links {
-    justify-self: end;
+    flex: 0 0 auto;
+    margin-left: auto;
     gap: 12px !important;
     justify-content: flex-end !important;
     align-items: center !important;
     min-width: 0;
+    position: relative;
+    z-index: 2;
   }
 
   body.irisx-luxury #tnSupportBtn,

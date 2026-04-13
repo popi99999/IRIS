@@ -476,7 +476,8 @@
     opsModalPayload: null,
     stripeReturn: null,
     offerSubmitting: false,
-    connectReturn: null
+    connectReturn: null,
+    homeRenderSignature: null
   };
 
   const existingFavorites = loadJson(STORAGE_KEYS.favorites, []);
@@ -5843,7 +5844,28 @@
     }
   }
 
-  function renderHomeView() {
+  function getHomeRenderSignature(copy, featured, proofText) {
+    return JSON.stringify({
+      lang: curLang,
+      proofText: proofText,
+      title: copy && copy.title || "",
+      featuredTitle: copy && copy.featuredTitle || "",
+      featuredNote: copy && copy.featuredNote || "",
+      sectionKicker: copy && copy.sectionKicker || "",
+      featured: (featured || []).map(function (product) {
+        return {
+          id: product && product.id,
+          brand: product && product.brand,
+          name: product && product.name,
+          price: product && product.price,
+          image: product && Array.isArray(product.images) ? (product.images[0] || "") : "",
+          favorite: favorites.has(product && product.id)
+        };
+      })
+    });
+  }
+
+  function renderHomeView(options) {
     const container = qs("#home-view");
     if (!container) {
       return;
@@ -5855,6 +5877,12 @@
       return Array.isArray(product.images) && product.images.length;
     }) || featured[0] || null;
     const proofText = (copy.buyPoints && copy.buyPoints[0]) || copy.featuredNote || copy.text;
+    const renderSignature = getHomeRenderSignature(copy, featured, proofText);
+    const forceRender = Boolean(options && options.force);
+    if (!forceRender && state.homeRenderSignature === renderSignature && !container.classList.contains("irisx-home--loading")) {
+      return;
+    }
+
     const trustItems = [
       {
         glyph: "auth",
@@ -5872,6 +5900,7 @@
 
     const heroVideoMarkup = "";
 
+    state.homeRenderSignature = renderSignature;
     container.classList.remove("irisx-home--loading");
     container.innerHTML = `
       <div class="irisx-home-shell">

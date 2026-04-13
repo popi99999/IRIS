@@ -4414,6 +4414,174 @@ body.irisx-luxury .tn-search input::placeholder {
   color: rgba(255,255,255,.4);
 }
 
+body.irisx-luxury .ac-dropdown,
+body.irisx-luxury.irisx-white-theme .ac-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  right: auto;
+  width: min(680px, calc(100vw - 96px));
+  max-height: min(72vh, 640px);
+  overflow: hidden;
+  display: none;
+  z-index: 900;
+  border: 1px solid rgba(241,50,79,.14);
+  border-radius: 30px;
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 28px 90px rgba(241,50,79,.14);
+  backdrop-filter: blur(24px);
+}
+
+body.irisx-luxury .ac-dropdown.open,
+body.irisx-luxury.irisx-white-theme .ac-dropdown.open {
+  display: block;
+}
+
+body.irisx-luxury .ac-shell,
+body.irisx-luxury.irisx-white-theme .ac-shell {
+  display: grid;
+  gap: 20px;
+  padding: 20px;
+  max-height: min(72vh, 640px);
+  overflow-y: auto;
+}
+
+body.irisx-luxury .ac-shell--search .ac-grid,
+body.irisx-luxury.irisx-white-theme .ac-shell--search .ac-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(220px, .92fr);
+  gap: 26px;
+}
+
+body.irisx-luxury .ac-section,
+body.irisx-luxury.irisx-white-theme .ac-section {
+  display: grid;
+  gap: 12px;
+}
+
+body.irisx-luxury .ac-section--products,
+body.irisx-luxury.irisx-white-theme .ac-section--products {
+  padding-top: 6px;
+  border-top: 1px solid rgba(241,50,79,.08);
+}
+
+body.irisx-luxury .ac-section-head,
+body.irisx-luxury.irisx-white-theme .ac-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: .68rem;
+  line-height: 1.2;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: rgba(26,21,48,.52);
+}
+
+body.irisx-luxury .ac-head-action,
+body.irisx-luxury.irisx-white-theme .ac-head-action {
+  border: 0;
+  background: transparent;
+  color: #F1324F;
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+body.irisx-luxury .ac-list,
+body.irisx-luxury.irisx-white-theme .ac-list {
+  display: grid;
+  gap: 8px;
+}
+
+body.irisx-luxury .ac-entry,
+body.irisx-luxury.irisx-white-theme .ac-entry {
+  width: 100%;
+  display: grid;
+  gap: 5px;
+  padding: 13px 14px;
+  border: 1px solid rgba(241,50,79,.08);
+  border-radius: 20px;
+  background: rgba(255,255,255,.84);
+  color: #1a1530;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+body.irisx-luxury .ac-entry:hover,
+body.irisx-luxury.irisx-white-theme .ac-entry:hover {
+  border-color: rgba(241,50,79,.22);
+  background: linear-gradient(180deg, rgba(241,50,79,.1), rgba(252,158,122,.1));
+  box-shadow: 0 16px 34px rgba(241,50,79,.1);
+  transform: translateY(-1px);
+}
+
+body.irisx-luxury .ac-entry-row,
+body.irisx-luxury.irisx-white-theme .ac-entry-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+body.irisx-luxury .ac-entry-main,
+body.irisx-luxury.irisx-white-theme .ac-entry-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: #20172f;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+
+body.irisx-luxury .ac-entry-meta,
+body.irisx-luxury.irisx-white-theme .ac-entry-meta {
+  color: rgba(26,21,48,.56);
+  font-size: .8rem;
+  line-height: 1.45;
+}
+
+body.irisx-luxury .ac-entry-badge,
+body.irisx-luxury .ac-entry-side,
+body.irisx-luxury.irisx-white-theme .ac-entry-badge,
+body.irisx-luxury.irisx-white-theme .ac-entry-side {
+  margin-left: auto;
+  flex: 0 0 auto;
+  font-size: .7rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+body.irisx-luxury .ac-entry-badge,
+body.irisx-luxury.irisx-white-theme .ac-entry-badge {
+  color: #F1324F;
+}
+
+body.irisx-luxury .ac-entry-side,
+body.irisx-luxury.irisx-white-theme .ac-entry-side {
+  color: rgba(26,21,48,.5);
+}
+
+body.irisx-luxury .ac-entry--saved,
+body.irisx-luxury.irisx-white-theme .ac-entry--saved {
+  background: rgba(241,50,79,.05);
+}
+
+body.irisx-luxury .ac-entry--recent .ac-entry-main,
+body.irisx-luxury.irisx-white-theme .ac-entry--recent .ac-entry-main,
+body.irisx-luxury .ac-entry--trend .ac-entry-main,
+body.irisx-luxury.irisx-white-theme .ac-entry--trend .ac-entry-main {
+  font-weight: 500;
+}
+
+body.irisx-luxury .ac-entry--brand .ac-entry-main,
+body.irisx-luxury.irisx-white-theme .ac-entry--brand .ac-entry-main {
+  font-size: 1.08rem;
+}
+
 body.irisx-luxury .tn-links {
   display: inline-flex;
   align-items: center;

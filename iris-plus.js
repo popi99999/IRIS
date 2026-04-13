@@ -3,6 +3,7 @@
     users: "iris-users",
     banRegistry: "iris-ban-registry",
     session: "iris-user-session",
+    recentSearches: "iris-recent-searches",
     cart: "iris-cart",
     listings: "iris-local-listings",
     orders: "iris-orders",
@@ -445,6 +446,7 @@
     users: loadJson(STORAGE_KEYS.users, []).map(function(u) { var c = Object.assign({}, u); delete c.password; return c; }),
     banRegistry: loadJson(STORAGE_KEYS.banRegistry, { emails: [], phones: [], entries: [] }),
     currentUser: loadJson(STORAGE_KEYS.session, null),
+    recentSearches: loadJson(STORAGE_KEYS.recentSearches, []),
     cart: loadJson(STORAGE_KEYS.cart, []),
     listings: loadJson(STORAGE_KEYS.listings, []),
     orders: loadJson(STORAGE_KEYS.orders, []),
@@ -3604,6 +3606,245 @@
     );
   }
 
+  function normalizeRecentSearchRecord(entry) {
+    const rawQuery = entry && typeof entry === "object"
+      ? (entry.query || entry.label || "")
+      : entry;
+    const query = String(rawQuery || "").trim();
+    if (!query) {
+      return null;
+    }
+    return {
+      id: (entry && entry.id) || createId("recent"),
+      query: query,
+      label: (entry && entry.label) || query,
+      createdAt: Number((entry && entry.createdAt) || Date.now())
+    };
+  }
+
+  function getRecentSearchRecords() {
+    return (Array.isArray(state.recentSearches) ? state.recentSearches : [])
+      .map(normalizeRecentSearchRecord)
+      .filter(Boolean)
+      .sort(function (a, b) { return b.createdAt - a.createdAt; });
+  }
+
+  function persistRecentSearchRecords() {
+    state.recentSearches = getRecentSearchRecords().slice(0, 8);
+    saveJson(STORAGE_KEYS.recentSearches, state.recentSearches);
+  }
+
+  function registerRecentSearch(query) {
+    const normalizedQuery = normalizeSearchText(query);
+    if (normalizedQuery.length < 2) {
+      return;
+    }
+    const nextEntry = normalizeRecentSearchRecord({ query: String(query).trim(), createdAt: Date.now() });
+    if (!nextEntry) {
+      return;
+    }
+    const deduped = getRecentSearchRecords().filter(function (entry) {
+      return normalizeSearchText(entry.query) !== normalizedQuery;
+    });
+    state.recentSearches = [nextEntry].concat(deduped).slice(0, 8);
+    saveJson(STORAGE_KEYS.recentSearches, state.recentSearches);
+  }
+
+  function clearAutocompleteRecentSearches() {
+    state.recentSearches = [];
+    saveJson(STORAGE_KEYS.recentSearches, state.recentSearches);
+    const input = document.getElementById("searchInput");
+    renderAutocompleteSuggestions(input ? input.value : "");
+  }
+
+  function getAutocompleteSavedSearches() {
+    if (!state.currentUser || !Array.isArray(state.currentUser.savedSearches)) {
+      return [];
+    }
+    return state.currentUser.savedSearches
+      .map(normalizeSavedSearchRecord)
+      .filter(function (entry) { return entry.query; })
+      .sort(function (a, b) { return b.createdAt - a.createdAt; })
+      .slice(0, 5);
+  }
+
+  function getAutocompleteBrandCounts(products) {
+    const counts = {};
+    (products || []).forEach(function (product) {
+      const brand = String(product && product.brand || "").trim();
+      if (!brand) {
+        return;
+      }
+      counts[brand] = (counts[brand] || 0) + 1;
+    });
+    return Object.keys(counts)
+      .map(function (brand) {
+        return { brand: brand, count: counts[brand] };
+      })
+      .sort(function (a, b) {
+        if (b.count !== a.count) {
+          return b.count - a.count;
+        }
+        return a.brand.localeCompare(b.brand);
+      });
+  }
+
+  function getAutocompleteCategoryCounts(products) {
+    const counts = {};
+    (products || []).forEach(function (product) {
+      const category = normalizeCategoryValue(product && product.cat);
+      if (!category) {
+        return;
+      }
+      counts[category] = (counts[category] || 0) + 1;
+    });
+    return Object.keys(counts)
+      .map(function (category) {
+        return { category: category, label: getFacetLabel("cats", category), count: counts[category] };
+      })
+      .sort(function (a, b) {
+        if (b.count !== a.count) {
+          return b.count - a.count;
+        }
+        return a.label.localeCompare(b.label);
+      });
+  }
+
+  function getAutocompleteDiscoveryTerms() {
+    const popularBrands = getAutocompleteBrandCounts(getVisibleCatalogProducts()).slice(0, 4).map(function (entry) {
+      return entry.brand;
+    });
+    const popularCategories = getAutocompleteCategoryCounts(getVisibleCatalogProducts()).slice(0, 3).map(function (entry) {
+      return entry.label;
+    });
+    const suggestions = [];
+    function addSuggestion(value) {
+      const trimmed = String(value || "").trim();
+      if (!trimmed) {
+        return;
+      }
+      const normalized = normalizeSearchText(trimmed);
+      if (suggestions.some(function (entry) { return normalizeSearchText(entry) === normalized; })) {
+        return;
+      }
+      suggestions.push(trimmed);
+    }
+    popularBrands.forEach(addSuggestion);
+    popularCategories.forEach(addSuggestion);
+    popularBrands.slice(0, 2).forEach(function (brand, index) {
+      const category = popularCategories[index];
+      if (brand && category) {
+        addSuggestion(brand + " " + category.toLowerCase());
+      }
+    });
+    return suggestions.slice(0, 6);
+  }
+
+  function getBrandCategorySuggestions(brand, limit) {
+    const normalizedBrand = normalizeSearchText(brand);
+    if (!normalizedBrand) {
+      return [];
+    }
+    return getAutocompleteCategoryCounts(
+      getVisibleCatalogProducts().filter(function (product) {
+        return normalizeSearchText(product.brand) === normalizedBrand;
+      })
+    ).slice(0, limit || 2).map(function (entry) {
+      return brand + " " + entry.label.toLowerCase();
+    });
+  }
+
+  function getQuerySuggestionPhrases(query, products, brands, categories) {
+    const rawQuery = String(query || "").trim();
+    const phrases = [];
+    function addPhrase(value) {
+      const trimmed = String(value || "").trim();
+      if (!trimmed) {
+        return;
+      }
+      const normalized = normalizeSearchText(trimmed);
+      if (phrases.some(function (entry) { return normalizeSearchText(entry) === normalized; })) {
+        return;
+      }
+      phrases.push(trimmed);
+    }
+
+    brands.slice(0, 3).forEach(function (brand) {
+      addPhrase(brand);
+      getBrandCategorySuggestions(brand, 2).forEach(addPhrase);
+    });
+
+    if (!brands.length) {
+      addPhrase(rawQuery);
+    }
+
+    if (!brands.length) {
+      const fallbackBrands = (products.length ? getAutocompleteBrandCounts(products) : getAutocompleteBrandCounts(getVisibleCatalogProducts())).slice(0, 4);
+      fallbackBrands.forEach(function (entry) {
+        addPhrase(rawQuery + " " + entry.brand);
+      });
+    }
+
+    categories.slice(0, 2).forEach(function (category) {
+      addPhrase(getFacetLabel("cats", category));
+    });
+
+    products.slice(0, 3).forEach(function (product) {
+      const shortName = String(product.name || "").split(/[—-]/)[0].trim();
+      if (shortName && normalizeSearchText(shortName).length >= 4 && normalizeSearchText(shortName) !== normalizeSearchText(rawQuery)) {
+        addPhrase(shortName);
+      }
+    });
+
+    return phrases.slice(0, 6);
+  }
+
+  function buildAutocompleteAction(type, value, title, meta, modifiers) {
+    const encodedValue = encodeURIComponent(String(value || ""));
+    const classes = ["ac-entry"].concat((modifiers && modifiers.classes) || []).join(" ");
+    const badge = modifiers && modifiers.badge ? `<span class="ac-entry-badge">${escapeHtml(modifiers.badge)}</span>` : "";
+    const side = modifiers && modifiers.side ? `<span class="ac-entry-side">${escapeHtml(modifiers.side)}</span>` : "";
+    const lead = modifiers && modifiers.lead ? `<span class="ac-entry-lead">${escapeHtml(modifiers.lead)}</span>` : "";
+    const metaMarkup = meta ? `<span class="ac-entry-meta">${escapeHtml(meta)}</span>` : "";
+    return `<button class="${classes}" type="button" onclick="applyAutocompleteSelection('${type}', decodeURIComponent('${encodedValue}'))">
+      <span class="ac-entry-row">
+        <span class="ac-entry-main">${lead}${escapeHtml(title)}</span>
+        ${badge || side}
+      </span>
+      ${metaMarkup}
+    </button>`;
+  }
+
+  function buildAutocompleteSection(title, itemsMarkup, actionMarkup, extraClass) {
+    if (!itemsMarkup) {
+      return "";
+    }
+    return `<section class="ac-section${extraClass ? " " + extraClass : ""}">
+      <div class="ac-section-head">
+        <span>${escapeHtml(title)}</span>
+        ${actionMarkup || ""}
+      </div>
+      <div class="ac-list">${itemsMarkup}</div>
+    </section>`;
+  }
+
+  function resetMarketplaceFiltersForAutocomplete() {
+    filters = {
+      cats: [],
+      brands: [],
+      conds: [],
+      fits: [],
+      colors: [],
+      genders: [],
+      materials: [],
+      trust: [],
+      size: "",
+      pmin: "",
+      pmax: "",
+      search: ""
+    };
+  }
+
   function applyAutocompleteSelection(type, value) {
     const dropdown = document.getElementById("acDropdown");
     if (dropdown) {
@@ -3615,19 +3856,52 @@
       return;
     }
 
+    if (type === "search") {
+      const query = String(value || "").trim();
+      resetMarketplaceFiltersForAutocomplete();
+      filters.search = query;
+      const input = document.getElementById("searchInput");
+      if (input) {
+        input.value = query;
+      }
+      if (query) {
+        registerRecentSearch(query);
+      }
+      showBuyView("shop");
+      initFilters();
+      render();
+      return;
+    }
+
     showBuyView("shop");
     if (type === "brand") {
+      resetMarketplaceFiltersForAutocomplete();
       filters.brands = [value];
+      filters.search = "";
+      registerRecentSearch(value);
+      const input = document.getElementById("searchInput");
+      if (input) {
+        input.value = value;
+      }
     }
     if (type === "category") {
+      resetMarketplaceFiltersForAutocomplete();
       filters.cats = [value];
+      const categoryLabel = getFacetLabel("cats", value);
+      registerRecentSearch(categoryLabel);
+      const input = document.getElementById("searchInput");
+      if (input) {
+        input.value = categoryLabel;
+      }
     }
     if (type === "seller") {
+      resetMarketplaceFiltersForAutocomplete();
       filters.search = value;
       const input = document.getElementById("searchInput");
       if (input) {
         input.value = value;
       }
+      registerRecentSearch(value);
     }
     initFilters();
     render();
@@ -3640,64 +3914,141 @@
     }
 
     const normalized = normalizeSearchText(query);
-    if (normalized.length < 2) {
-      dropdown.classList.remove("open");
-      dropdown.innerHTML = "";
+    if (!normalized.length) {
+      const savedMarkup = getAutocompleteSavedSearches()
+        .map(function (entry) {
+          return buildAutocompleteAction(
+            "search",
+            entry.query,
+            entry.label || entry.query,
+            entry.query !== entry.label ? entry.query : langText("Ricerca salvata", "Saved search"),
+            {
+              classes: ["ac-entry--saved"],
+              badge: entry.alertsEnabled ? langText("Alert", "Alert") : langText("Salvata", "Saved")
+            }
+          );
+        })
+        .join("");
+      const recentMarkup = getRecentSearchRecords()
+        .map(function (entry) {
+          return buildAutocompleteAction(
+            "search",
+            entry.query,
+            entry.query,
+            langText("Ricerca recente", "Recent search"),
+            {
+              classes: ["ac-entry--recent"],
+              lead: "↺ "
+            }
+          );
+        })
+        .join("");
+      const trendMarkup = getAutocompleteDiscoveryTerms()
+        .map(function (entry) {
+          return buildAutocompleteAction(
+            "search",
+            entry,
+            entry,
+            langText("Trend IRIS", "Trending on IRIS"),
+            {
+              classes: ["ac-entry--trend"]
+            }
+          );
+        })
+        .join("");
+
+      const sections = [
+        buildAutocompleteSection(langText("Ricerche salvate", "Saved searches"), savedMarkup),
+        buildAutocompleteSection(
+          langText("Ricerche recenti", "Recent searches"),
+          recentMarkup,
+          recentMarkup ? `<button class="ac-head-action" type="button" onclick="clearAutocompleteRecentSearches()">${escapeHtml(langText("Pulisci", "Clear"))}</button>` : ""
+        ),
+        buildAutocompleteSection(langText("Trend", "Trending"), trendMarkup)
+      ].filter(Boolean).join("");
+
+      dropdown.innerHTML = sections ? `<div class="ac-shell ac-shell--discovery">${sections}</div>` : "";
+      dropdown.classList.toggle("open", Boolean(sections));
       return;
     }
 
     const products = getVisibleCatalogProducts().filter(function (product) {
       return getProductSearchIndex(product).includes(normalized);
-    }).slice(0, 4);
+    }).slice(0, 5);
     const brands = getAvailableBrands().filter(function (brand) {
       return normalizeSearchText(brand).includes(normalized);
-    }).slice(0, 4);
+    }).slice(0, 5);
     const categories = getAvailableCategories().filter(function (category) {
       return normalizeSearchText(category + " " + getFacetLabel("cats", category)).includes(normalized);
-    }).slice(0, 3);
-    const sellers = [...new Set(getVisibleCatalogProducts().map(function (product) { return product.seller; }))]
-      .filter(Boolean)
-      .filter(function (seller) {
-        return normalizeSearchText(seller.name + " " + seller.city).includes(normalized);
-      })
-      .slice(0, 3);
+    }).slice(0, 4);
 
-    let html = "";
-    if (products.length) {
-      html += "<div class=\"ac-group-title\">" + escapeHtml(t("sg_products")) + "</div>";
-      html += products
-        .map(function (product) {
-          return "<div class=\"ac-item\" onclick=\"applyAutocompleteSelection('product','" + product.id + "')\"><span class=\"ac-item-icon\">" + escapeHtml(product.emoji) + "</span>" + escapeHtml(product.brand + " — " + product.name) + "<span style=\"margin-left:auto;font-size:.7rem;opacity:.4\">" + escapeHtml(formatCurrency(product.price)) + "</span></div>";
-        })
-        .join("");
+    const suggestionMarkup = getQuerySuggestionPhrases(query, products, brands, categories)
+      .map(function (entry) {
+        const isExactQuery = normalizeSearchText(entry) === normalized;
+        return buildAutocompleteAction(
+          "search",
+          entry,
+          entry,
+          isExactQuery ? langText("Cerca esattamente questa query", "Search this exact phrase") : langText("Suggerimento rapido", "Quick suggestion"),
+          {
+            classes: ["ac-entry--suggestion"]
+          }
+        );
+      })
+      .join("");
+
+    const fallbackBrandEntries = getAutocompleteBrandCounts(products).length
+      ? getAutocompleteBrandCounts(products).slice(0, 5)
+      : getAutocompleteBrandCounts(getVisibleCatalogProducts()).slice(0, 5);
+    const brandMarkup = (brands.length ? brands.map(function (brand) {
+      const count = getVisibleCatalogProducts().filter(function (product) {
+        return normalizeSearchText(product.brand) === normalizeSearchText(brand);
+      }).length;
+      return buildAutocompleteAction(
+        "brand",
+        brand,
+        brand,
+        count ? langText(count + " articoli", count + " items") : langText("Brand", "Brand"),
+        {
+          classes: ["ac-entry--brand"]
+        }
+      );
+    }) : fallbackBrandEntries.map(function (entry) {
+      return buildAutocompleteAction(
+        "brand",
+        entry.brand,
+        entry.brand,
+        langText(entry.count + " articoli", entry.count + " items"),
+        {
+          classes: ["ac-entry--brand"]
+        }
+      );
+    })).join("");
+
+    const productMarkup = products.slice(0, 3).map(function (product) {
+      return buildAutocompleteAction(
+        "product",
+        product.id,
+        product.brand + " — " + product.name,
+        getFacetLabel("cats", normalizeCategoryValue(product.cat)),
+        {
+          classes: ["ac-entry--product"],
+          side: formatCurrency(product.price)
+        }
+      );
+    }).join("");
+
+    let html = `<div class="ac-shell ac-shell--search"><div class="ac-grid">`;
+    html += buildAutocompleteSection(`${langText("Suggerimenti per", "Suggestions for")} « ${String(query || "").trim()} »`, suggestionMarkup, "", "ac-section--suggestions");
+    html += buildAutocompleteSection(langText("Brand", "Brand"), brandMarkup, "", "ac-section--brands");
+    html += `</div>`;
+    if (productMarkup) {
+      html += buildAutocompleteSection(langText("Articoli", "Items"), productMarkup, "", "ac-section--products");
     }
-    if (brands.length) {
-      html += "<div class=\"ac-group-title\">" + escapeHtml(t("sg_brands")) + "</div>";
-      html += brands
-        .map(function (brand) {
-          return "<div class=\"ac-item\" onclick=\"applyAutocompleteSelection('brand','" + escapeHtml(brand) + "')\"><span class=\"ac-item-icon\">🏷️</span>" + escapeHtml(brand) + "</div>";
-        })
-        .join("");
-    }
-    if (categories.length) {
-      html += "<div class=\"ac-group-title\">" + escapeHtml(t("category")) + "</div>";
-      html += categories
-        .map(function (category) {
-          return "<div class=\"ac-item\" onclick=\"applyAutocompleteSelection('category','" + escapeHtml(category) + "')\"><span class=\"ac-item-icon\">◻</span>" + escapeHtml(getFacetLabel("cats", category)) + "</div>";
-        })
-        .join("");
-    }
-    if (sellers.length) {
-      html += "<div class=\"ac-group-title\">" + escapeHtml(t("sg_sellers")) + "</div>";
-      html += sellers
-        .map(function (seller) {
-          return "<div class=\"ac-item\" onclick=\"applyAutocompleteSelection('seller','" + escapeHtml(seller.name) + "')\"><span class=\"ac-item-icon\">" + escapeHtml(seller.avatar || "👤") + "</span>" + escapeHtml(seller.name) + "<span style=\"margin-left:auto;font-size:.65rem;opacity:.3\">" + escapeHtml(seller.city) + "</span></div>";
-        })
-        .join("");
-    }
+    html += `</div>`;
 
     dropdown.innerHTML = html;
-    dropdown.classList.toggle("open", Boolean(html));
+    dropdown.classList.toggle("open", Boolean(suggestionMarkup || brandMarkup || productMarkup));
   }
 
   function rebindMarketplaceSearch() {
@@ -3710,11 +4061,37 @@
     input.removeAttribute("oninput");
     input.value = filters.search || "";
     input.addEventListener("input", function () {
-      handleSearch(this.value);
+      if (qs("#shop-view.active")) {
+        handleSearch(this.value);
+      } else {
+        filters.search = (this.value || "").trim();
+      }
       renderAutocompleteSuggestions(this.value);
     });
     input.addEventListener("focus", function () {
       renderAutocompleteSuggestions(this.value);
+    });
+    input.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        const value = this.value.trim();
+        if (!value) {
+          return;
+        }
+        event.preventDefault();
+        registerRecentSearch(value);
+        handleSearch(value);
+        renderAutocompleteSuggestions(value);
+        const dropdown = document.getElementById("acDropdown");
+        if (dropdown) {
+          dropdown.classList.remove("open");
+        }
+      }
+      if (event.key === "Escape") {
+        const dropdown = document.getElementById("acDropdown");
+        if (dropdown) {
+          dropdown.classList.remove("open");
+        }
+      }
     });
     input.addEventListener("blur", function () {
       setTimeout(function () {
@@ -3726,6 +4103,7 @@
     });
     original.replaceWith(input);
     window.applyAutocompleteSelection = applyAutocompleteSelection;
+    window.clearAutocompleteRecentSearches = clearAutocompleteRecentSearches;
   }
 
   function getMyListings() {

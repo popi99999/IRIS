@@ -5466,6 +5466,7 @@ body.irisx-luxury .tn-locale-menu {
   z-index: 1210;
   width: min(276px, calc(100vw - 32px));
   padding: 12px;
+  max-height: min(72vh, 640px);
   border: 1px solid rgba(241,50,79,.14);
   border-radius: 24px;
   background: rgba(255,255,255,.96);
@@ -5476,6 +5477,7 @@ body.irisx-luxury .tn-locale-menu {
   pointer-events: none;
   transform: translateY(-8px);
   transition: opacity .22s ease, transform .22s ease, visibility .22s ease;
+  overflow: hidden;
 }
 
 body.irisx-luxury .tn-locale-menu.open {
@@ -5508,6 +5510,9 @@ body.irisx-luxury .tn-locale-menu-head small {
 body.irisx-luxury .tn-locale-menu-options {
   display: grid;
   gap: 8px;
+  max-height: calc(min(72vh, 640px) - 72px);
+  overflow-y: auto;
+  padding-right: 3px;
 }
 
 body.irisx-luxury .tn-locale-option {
@@ -5528,10 +5533,13 @@ body.irisx-luxury .tn-locale-option strong {
   letter-spacing: .14em;
   text-transform: uppercase;
   color: #20172f;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 body.irisx-luxury .tn-locale-option span {
-  font-size: .8rem;
+  font-size: .76rem;
   color: rgba(26,21,48,.58);
 }
 
@@ -9285,15 +9293,15 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 
   body.irisx-luxury .tn-locale-trigger,
   body.irisx-luxury.irisx-white-theme .tn-locale-trigger {
-    min-width: 104px;
-    padding: 0 18px !important;
+    min-width: 88px;
+    padding: 0 16px !important;
     border: 1px solid rgba(241,50,79,.14) !important;
     background: rgba(255,255,255,.78) !important;
     color: #1a1530 !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 10px !important;
+    gap: 8px !important;
   }
 
   body.irisx-luxury .tn-locale-trigger-icon,
@@ -9309,11 +9317,18 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 
   body.irisx-luxury .tn-locale-trigger-icon,
   body.irisx-luxury.irisx-white-theme .tn-locale-trigger-icon {
-    min-width: 1.2em;
-    font-size: 1.08rem;
+    min-width: .9em;
+    font-size: 1rem;
     font-weight: 700;
     line-height: 1;
     opacity: 0.92;
+  }
+
+  body.irisx-luxury #tnLocaleTriggerLabel,
+  body.irisx-luxury.irisx-white-theme #tnLocaleTriggerLabel {
+    letter-spacing: 0.18em;
+    font-size: 0.72rem;
+    white-space: nowrap;
   }
 
   body.irisx-luxury .tn-locale-trigger-caret,

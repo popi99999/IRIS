@@ -3445,6 +3445,13 @@
     }
   }
 
+  function getLocaleCompactLabel(locale) {
+    if (!locale) {
+      return "";
+    }
+    return `${locale.label} ${getLocaleCurrencySymbol(locale)}`;
+  }
+
   function syncLocaleTrigger() {
     const locale = getLocaleConfig();
     const trigger = qs("#tnLocaleTrigger");
@@ -3454,7 +3461,7 @@
     const profileTrigger = qs("#langToggle");
 
     if (triggerLabel) {
-      triggerLabel.textContent = `${locale.label} · ${locale.currency}`;
+      triggerLabel.textContent = getLocaleCompactLabel(locale);
     }
     if (triggerSymbol) {
       triggerSymbol.textContent = getLocaleCurrencySymbol(locale);
@@ -3464,10 +3471,10 @@
       trigger.setAttribute("title", getLocaleMenuLabel(curLang));
     }
     if (mobileTrigger) {
-      mobileTrigger.textContent = `${langText("Paese", "Country")} · ${locale.label} · ${locale.currency}`;
+      mobileTrigger.textContent = `${langText("Paese", "Country")} · ${getLocaleCompactLabel(locale)}`;
     }
     if (profileTrigger && profileTrigger.tagName !== "SELECT") {
-      profileTrigger.textContent = `${langText("Paese", "Country")} · ${locale.label} · ${locale.currency}`;
+      profileTrigger.textContent = `${langText("Paese", "Country")} · ${getLocaleCompactLabel(locale)}`;
       profileTrigger.setAttribute("title", getLocaleMenuLabel(curLang));
     }
   }
@@ -3483,14 +3490,14 @@
       const locale = LOCALE_SETTINGS[code];
       const active = code === curLang;
       return `<button class="tn-locale-option${active ? " is-active" : ""}" onclick="switchLang('${code}')" type="button" role="menuitemradio" aria-checked="${active ? "true" : "false"}">
-        <strong>${escapeHtml(locale.countryLabel || locale.label)}</strong>
-        <span>${escapeHtml(getLocaleOptionDetail(locale))}</span>
+        <strong>${escapeHtml(getLocaleCompactLabel(locale))}</strong>
+        <span>${escapeHtml(locale.nativeLabel || locale.countryLabel || locale.label)}</span>
       </button>`;
     }).join("");
     menu.innerHTML = `
       <div class="tn-locale-menu-head">
         <p>${escapeHtml(langText("Paese", "Country"))}</p>
-        <small>${escapeHtml(langText("La valuta si aggiorna automaticamente.", "Currency updates automatically."))}</small>
+        <small>${escapeHtml(langText("Valuta automatica.", "Auto currency."))}</small>
       </div>
       <div class="tn-locale-menu-options">${optionsMarkup}</div>
     `;

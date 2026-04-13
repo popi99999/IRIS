@@ -9148,16 +9148,18 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 @media (min-width: 901px) {
   body.irisx-luxury .tn-row--main,
   body.irisx-luxury.irisx-white-theme .tn-row--main {
-    grid-template-columns: minmax(320px, 34vw) minmax(240px, max-content) minmax(360px, 1fr) !important;
+    position: relative;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
     min-height: 98px !important;
     gap: 28px !important;
   }
 
   body.irisx-luxury .tn-search-shell,
   body.irisx-luxury.irisx-white-theme .tn-search-shell {
+    justify-self: start;
     width: 100%;
     max-width: 440px;
-    min-width: 320px;
+    min-width: 0;
   }
 
   body.irisx-luxury .tn-search,
@@ -9176,8 +9178,10 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 
   body.irisx-luxury .tn-brand-rail,
   body.irisx-luxury.irisx-white-theme .tn-brand-rail {
+    width: max-content;
     gap: 0 !important;
     justify-self: center;
+    align-self: center;
   }
 
   body.irisx-luxury .tn-main-nav,
@@ -9195,9 +9199,11 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 
   body.irisx-luxury .tn-links,
   body.irisx-luxury.irisx-white-theme .tn-links {
+    justify-self: end;
     gap: 12px !important;
     justify-content: flex-end !important;
     align-items: center !important;
+    min-width: 0;
   }
 
   body.irisx-luxury #tnSupportBtn,

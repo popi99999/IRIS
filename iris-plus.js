@@ -53,8 +53,8 @@
   };
 
   const LOCALE_SETTINGS = window.IRIS_LOCALE_SETTINGS || {
-    it: { label: "IT", nativeLabel: "Italiano", locale: "it-IT", currency: "EUR", rate: 1, dir: "ltr" },
-    en: { label: "UK", nativeLabel: "English", locale: "en-GB", currency: "GBP", rate: 0.86, dir: "ltr" }
+    it: { label: "IT", countryLabel: "Italia", nativeLabel: "Italiano", locale: "it-IT", currency: "EUR", rate: 1, dir: "ltr" },
+    en: { label: "UK", countryLabel: "Regno Unito", nativeLabel: "English", locale: "en-GB", currency: "GBP", rate: 0.86, dir: "ltr" }
   };
   const SUPABASE_STORAGE_BUCKETS = {
     listingImages: "listing-images"
@@ -3418,7 +3418,14 @@
     if (!locale) {
       return code.toUpperCase();
     }
-    return `${locale.nativeLabel} · ${locale.currency}`;
+    return `${locale.countryLabel || locale.nativeLabel || locale.label} · ${locale.currency}`;
+  }
+
+  function getLocaleOptionDetail(locale) {
+    if (!locale) {
+      return "";
+    }
+    return `${locale.currency} · ${locale.nativeLabel}`;
   }
 
   function syncLocaleTrigger() {
@@ -3432,15 +3439,15 @@
       triggerLabel.textContent = `${locale.label} · ${locale.currency}`;
     }
     if (trigger) {
-      trigger.setAttribute("aria-label", langText("Cambia lingua e valuta", "Change language and currency"));
-      trigger.setAttribute("title", `${locale.nativeLabel} · ${locale.currency}`);
+      trigger.setAttribute("aria-label", langText("Cambia paese e valuta", "Change country and currency"));
+      trigger.setAttribute("title", getLocaleMenuLabel(curLang));
     }
     if (mobileTrigger) {
-      mobileTrigger.textContent = `${langText("Lingua", "Language")} · ${locale.label} · ${locale.currency}`;
+      mobileTrigger.textContent = `${langText("Paese", "Country")} · ${locale.label} · ${locale.currency}`;
     }
     if (profileTrigger && profileTrigger.tagName !== "SELECT") {
-      profileTrigger.textContent = `${langText("Lingua", "Language")} · ${locale.label} · ${locale.currency}`;
-      profileTrigger.setAttribute("title", `${locale.nativeLabel} · ${locale.currency}`);
+      profileTrigger.textContent = `${langText("Paese", "Country")} · ${locale.label} · ${locale.currency}`;
+      profileTrigger.setAttribute("title", getLocaleMenuLabel(curLang));
     }
   }
 
@@ -3450,15 +3457,22 @@
       return;
     }
     menu.setAttribute("role", "menu");
-    menu.setAttribute("aria-label", langText("Selettore lingua e valuta", "Language and currency selector"));
-    menu.innerHTML = Object.keys(LOCALE_SETTINGS).map(function (code) {
+    menu.setAttribute("aria-label", langText("Selettore paese e valuta", "Country and currency selector"));
+    const optionsMarkup = Object.keys(LOCALE_SETTINGS).map(function (code) {
       const locale = LOCALE_SETTINGS[code];
       const active = code === curLang;
       return `<button class="tn-locale-option${active ? " is-active" : ""}" onclick="switchLang('${code}')" type="button" role="menuitemradio" aria-checked="${active ? "true" : "false"}">
-        <strong>${escapeHtml(locale.label)}</strong>
-        <span>${escapeHtml(getLocaleMenuLabel(code))}</span>
+        <strong>${escapeHtml(locale.countryLabel || locale.label)}</strong>
+        <span>${escapeHtml(getLocaleOptionDetail(locale))}</span>
       </button>`;
     }).join("");
+    menu.innerHTML = `
+      <div class="tn-locale-menu-head">
+        <p>${escapeHtml(langText("Paese", "Country"))}</p>
+        <small>${escapeHtml(langText("La valuta si aggiorna automaticamente.", "Currency updates automatically."))}</small>
+      </div>
+      <div class="tn-locale-menu-options">${optionsMarkup}</div>
+    `;
   }
 
   function closeLocaleMenu() {
@@ -3484,10 +3498,16 @@
     closeMobileNav();
     const willOpen = typeof forceOpen === "boolean" ? forceOpen : !menu.classList.contains("open");
     if (willOpen && nav) {
-      const maxWidth = 240;
-      const left = Math.max(16, trigger.offsetLeft + trigger.offsetWidth - maxWidth);
+      const triggerRect = trigger.getBoundingClientRect();
+      const menuWidth = Math.min(Math.max(triggerRect.width, 276), window.innerWidth - 32);
+      const left = Math.min(
+        Math.max(16, triggerRect.left),
+        Math.max(16, window.innerWidth - menuWidth - 16)
+      );
+      menu.style.width = menuWidth + "px";
       menu.style.left = left + "px";
-      menu.style.top = `calc(var(--iris-nav-height) - 2px)`;
+      menu.style.top = triggerRect.bottom + 10 + "px";
+      menu.style.right = "auto";
     }
     menu.classList.toggle("open", willOpen);
     trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
@@ -8602,7 +8622,7 @@
         if (langSelect.tagName === "SELECT") {
           langSelect.value = curLang;
         }
-        langSelect.setAttribute("title", locale.nativeLabel + " · " + locale.currency);
+        langSelect.setAttribute("title", getLocaleMenuLabel(curLang));
       }
       updateCookieBannerContent();
       const cartButton = qs("#cartBtn");

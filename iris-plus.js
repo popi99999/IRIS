@@ -3428,15 +3428,36 @@
     return `${locale.currency} · ${locale.nativeLabel}`;
   }
 
+  function getLocaleCurrencySymbol(locale) {
+    if (!locale) {
+      return "€";
+    }
+    try {
+      const parts = new Intl.NumberFormat(locale.locale, {
+        style: "currency",
+        currency: locale.currency,
+        maximumFractionDigits: locale.currency === "JPY" ? 0 : 2
+      }).formatToParts(0);
+      const currencyPart = parts.find(function (part) { return part.type === "currency"; });
+      return currencyPart ? currencyPart.value : locale.currency;
+    } catch (err) {
+      return locale.currency || "€";
+    }
+  }
+
   function syncLocaleTrigger() {
     const locale = getLocaleConfig();
     const trigger = qs("#tnLocaleTrigger");
     const triggerLabel = qs("#tnLocaleTriggerLabel");
+    const triggerSymbol = qs("#tnLocaleTriggerSymbol");
     const mobileTrigger = qs("#tnMobileLangBtn");
     const profileTrigger = qs("#langToggle");
 
     if (triggerLabel) {
       triggerLabel.textContent = `${locale.label} · ${locale.currency}`;
+    }
+    if (triggerSymbol) {
+      triggerSymbol.textContent = getLocaleCurrencySymbol(locale);
     }
     if (trigger) {
       trigger.setAttribute("aria-label", langText("Cambia paese e valuta", "Change country and currency"));

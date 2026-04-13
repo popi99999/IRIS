@@ -9309,7 +9309,11 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 
   body.irisx-luxury .tn-locale-trigger-icon,
   body.irisx-luxury.irisx-white-theme .tn-locale-trigger-icon {
-    opacity: 0.88;
+    min-width: 1.2em;
+    font-size: 1.08rem;
+    font-weight: 700;
+    line-height: 1;
+    opacity: 0.92;
   }
 
   body.irisx-luxury .tn-locale-trigger-caret,

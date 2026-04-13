@@ -3569,27 +3569,11 @@ function updateMeta(title,desc){
 let deferredPrompt=null;
 if('serviceWorker' in navigator && window.location.protocol !== 'file:'){
   navigator.serviceWorker.register('./sw.js').then((registration)=>{
-    registration.update();
     if (registration.waiting) {
-      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      console.info('IRIS service worker update ready.');
     }
-    registration.addEventListener('updatefound',()=>{
-      const worker=registration.installing;
-      if(!worker)return;
-      worker.addEventListener('statechange',()=>{
-        if(worker.state==='installed' && navigator.serviceWorker.controller){
-          worker.postMessage({ type: 'SKIP_WAITING' });
-        }
-      });
-    });
   }).catch((error)=>{
     console.warn('IRIS service worker registration failed.', error);
-  });
-  let irisSwRefreshDone=false;
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(irisSwRefreshDone)return;
-    irisSwRefreshDone=true;
-    window.location.reload();
   });
 }
 window.addEventListener('beforeinstallprompt',(e)=>{

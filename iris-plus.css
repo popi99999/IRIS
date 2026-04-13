@@ -999,6 +999,13 @@ body.light-mode .irisx-divider::after {
   padding-top: 70px;
 }
 
+.irisx-home--loading {
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 85%, rgba(241,50,79,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 55% at 85% 15%, rgba(252,158,122,0.1) 0%, transparent 50%),
+    linear-gradient(160deg, #120406 0%, #1C060A 30%, #2A0A11 55%, #160509 100%);
+}
+
 .irisx-home-shell {
   padding: 2.2rem 2rem 4rem;
 }

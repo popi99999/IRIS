@@ -3654,7 +3654,7 @@
     state.recentSearches = [];
     saveJson(STORAGE_KEYS.recentSearches, state.recentSearches);
     const input = document.getElementById("searchInput");
-    renderAutocompleteSuggestions(input ? input.value : "");
+    renderAutocompleteSuggestions(input ? input.value : "", { forceOpen: true });
   }
 
   function getAutocompleteSavedSearches() {
@@ -3907,14 +3907,22 @@
     render();
   }
 
-  function renderAutocompleteSuggestions(query) {
+  function renderAutocompleteSuggestions(query, options) {
     const dropdown = document.getElementById("acDropdown");
     if (!dropdown) {
       return;
     }
+    const searchInput = document.getElementById("searchInput");
+    const interactiveOpen = Boolean(options && options.forceOpen);
+    const isInputActive = Boolean(searchInput && document.activeElement === searchInput);
+    const canOpenDropdown = interactiveOpen || isInputActive;
 
     const normalized = normalizeSearchText(query);
     if (!normalized.length) {
+      if (!canOpenDropdown) {
+        dropdown.classList.remove("open");
+        return;
+      }
       const savedMarkup = getAutocompleteSavedSearches()
         .map(function (entry) {
           return buildAutocompleteAction(
@@ -3968,7 +3976,7 @@
       ].filter(Boolean).join("");
 
       dropdown.innerHTML = sections ? `<div class="ac-shell ac-shell--discovery">${sections}</div>` : "";
-      dropdown.classList.toggle("open", Boolean(sections));
+      dropdown.classList.toggle("open", Boolean(sections) && canOpenDropdown);
       return;
     }
 
@@ -4048,7 +4056,7 @@
     html += `</div>`;
 
     dropdown.innerHTML = html;
-    dropdown.classList.toggle("open", Boolean(suggestionMarkup || brandMarkup || productMarkup));
+    dropdown.classList.toggle("open", Boolean(suggestionMarkup || brandMarkup || productMarkup) && canOpenDropdown);
   }
 
   function rebindMarketplaceSearch() {
@@ -4066,10 +4074,10 @@
       } else {
         filters.search = (this.value || "").trim();
       }
-      renderAutocompleteSuggestions(this.value);
+      renderAutocompleteSuggestions(this.value, { forceOpen: true });
     });
     input.addEventListener("focus", function () {
-      renderAutocompleteSuggestions(this.value);
+      renderAutocompleteSuggestions(this.value, { forceOpen: true });
     });
     input.addEventListener("keydown", function (event) {
       if (event.key === "Enter") {
@@ -4080,7 +4088,7 @@
         event.preventDefault();
         registerRecentSearch(value);
         handleSearch(value);
-        renderAutocompleteSuggestions(value);
+        renderAutocompleteSuggestions(value, { forceOpen: true });
         const dropdown = document.getElementById("acDropdown");
         if (dropdown) {
           dropdown.classList.remove("open");
@@ -5504,7 +5512,7 @@
       return;
     }
 
-    topnav.insertAdjacentHTML("afterend", "<div id=\"home-view\" class=\"irisx-home active\"></div>");
+    topnav.insertAdjacentHTML("afterend", "<div id=\"home-view\" class=\"irisx-home irisx-home--loading active\"></div>");
   }
 
   function injectShellUi() {
@@ -5864,6 +5872,7 @@
 
     const heroVideoMarkup = "";
 
+    container.classList.remove("irisx-home--loading");
     container.innerHTML = `
       <div class="irisx-home-shell">
         <section class="irisx-home-hero irisx-reveal-section">

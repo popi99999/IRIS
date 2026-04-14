@@ -9963,3 +9963,245 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
     display: none !important;
   }
 }
+
+/* ── Global De-Purple Pass (keep Sell hero untouched) ── */
+body.irisx-luxury:not(.irisx-sell-view) .tn-search::before,
+body.irisx-luxury.irisx-white-theme .tn-search::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 16 16'%3E%3Ccircle cx='6.5' cy='6.5' r='4.5' stroke='%23F1324F' stroke-width='1.4'/%3E%3Cline x1='10.2' y1='10.2' x2='14' y2='14' stroke='%23F1324F' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+  opacity: .42 !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .tn-search input,
+body.irisx-luxury.irisx-white-theme .tn-search input,
+body.irisx-luxury:not(.irisx-sell-view) .f-search,
+body.irisx-luxury:not(.irisx-sell-view) .f-range input,
+body.irisx-luxury.irisx-white-theme .f-search,
+body.irisx-luxury.irisx-white-theme .f-range input {
+  background: rgba(252,158,122,.08) !important;
+  border-color: rgba(241,50,79,.18) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .tn-search input:focus,
+body.irisx-luxury.irisx-white-theme .tn-search input:focus,
+body.irisx-luxury:not(.irisx-sell-view) .f-search:focus,
+body.irisx-luxury:not(.irisx-sell-view) .f-range input:focus,
+body.irisx-luxury.irisx-white-theme .f-search:focus,
+body.irisx-luxury.irisx-white-theme .f-range input:focus {
+  border-color: #F1324F !important;
+  box-shadow: 0 0 0 3px rgba(241,50,79,.08) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .tn-btn:hover,
+body.irisx-luxury:not(.irisx-sell-view) .tn-back:hover,
+body.irisx-luxury.irisx-white-theme .tn-btn:hover,
+body.irisx-luxury.irisx-white-theme .tn-back:hover,
+body.irisx-luxury:not(.irisx-sell-view) .f-clear:hover,
+body.irisx-luxury.irisx-white-theme .f-clear:hover,
+body.irisx-luxury:not(.irisx-sell-view) .shop-count span,
+body.irisx-luxury:not(.irisx-sell-view) .sort-btn.on,
+body.irisx-luxury:not(.irisx-sell-view) .sort-btn:hover,
+body.irisx-luxury:not(.irisx-sell-view) .p-brand,
+body.irisx-luxury:not(.irisx-sell-view) .p-disc,
+body.irisx-luxury:not(.irisx-sell-view) .det-brand,
+body.irisx-luxury:not(.irisx-sell-view) .det-auth-t,
+body.irisx-luxury:not(.irisx-sell-view) .notif-title,
+body.irisx-luxury:not(.irisx-sell-view) .ac-group-title,
+body.irisx-luxury:not(.irisx-sell-view) .footer-col-title,
+body.irisx-luxury:not(.irisx-sell-view) .load-more-btn,
+body.irisx-luxury.irisx-white-theme .shop-count span,
+body.irisx-luxury.irisx-white-theme .sort-btn.on,
+body.irisx-luxury.irisx-white-theme .sort-btn:hover,
+body.irisx-luxury.irisx-white-theme .p-brand,
+body.irisx-luxury.irisx-white-theme .p-disc,
+body.irisx-luxury.irisx-white-theme .det-brand,
+body.irisx-luxury.irisx-white-theme .det-auth-t,
+body.irisx-luxury.irisx-white-theme .notif-title,
+body.irisx-luxury.irisx-white-theme .ac-group-title,
+body.irisx-luxury.irisx-white-theme .footer-col-title,
+body.irisx-luxury.irisx-white-theme .load-more-btn {
+  color: #F1324F !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .tn-btn .badge,
+body.irisx-luxury:not(.irisx-sell-view) .f-opt.on .f-check,
+body.irisx-luxury:not(.irisx-sell-view) .cl-unread,
+body.irisx-luxury:not(.irisx-sell-view) .notif-dot,
+body.irisx-luxury:not(.irisx-sell-view) .cm-send,
+body.irisx-luxury:not(.irisx-sell-view) .det-buy,
+body.irisx-luxury.irisx-white-theme .tn-btn .badge,
+body.irisx-luxury.irisx-white-theme .f-opt.on .f-check,
+body.irisx-luxury.irisx-white-theme .cl-unread,
+body.irisx-luxury.irisx-white-theme .notif-dot,
+body.irisx-luxury.irisx-white-theme .cm-send,
+body.irisx-luxury.irisx-white-theme .det-buy {
+  background: #F1324F !important;
+  border-color: #F1324F !important;
+  color: #fff !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .det-buy:hover,
+body.irisx-luxury:not(.irisx-sell-view) .cm-send:hover,
+body.irisx-luxury.irisx-white-theme .det-buy:hover,
+body.irisx-luxury.irisx-white-theme .cm-send:hover {
+  background: #FC2414 !important;
+  border-color: #FC2414 !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .tn-sell,
+body.irisx-luxury.irisx-white-theme .tn-sell {
+  background: rgba(241,50,79,.1) !important;
+  border-color: rgba(241,50,79,.18) !important;
+  color: #F1324F !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .tn-sell:hover,
+body.irisx-luxury.irisx-white-theme .tn-sell:hover {
+  background: rgba(241,50,79,.16) !important;
+  border-color: rgba(241,50,79,.28) !important;
+  color: #FC2414 !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .f-fit-btn.on,
+body.irisx-luxury:not(.irisx-sell-view) .f-fit-btn:hover,
+body.irisx-luxury:not(.irisx-sell-view) .det-offer:hover,
+body.irisx-luxury:not(.irisx-sell-view) .seller-chat:hover,
+body.irisx-luxury:not(.irisx-sell-view) .notif-item:hover,
+body.irisx-luxury:not(.irisx-sell-view) .notif-item.unread,
+body.irisx-luxury:not(.irisx-sell-view) .ac-item:hover,
+body.irisx-luxury:not(.irisx-sell-view) .faq-q:hover,
+body.irisx-luxury:not(.irisx-sell-view) .load-more-btn:hover,
+body.irisx-luxury.irisx-white-theme .f-fit-btn.on,
+body.irisx-luxury.irisx-white-theme .f-fit-btn:hover,
+body.irisx-luxury.irisx-white-theme .det-offer:hover,
+body.irisx-luxury.irisx-white-theme .seller-chat:hover,
+body.irisx-luxury.irisx-white-theme .notif-item:hover,
+body.irisx-luxury.irisx-white-theme .notif-item.unread,
+body.irisx-luxury.irisx-white-theme .ac-item:hover,
+body.irisx-luxury.irisx-white-theme .faq-q:hover,
+body.irisx-luxury.irisx-white-theme .load-more-btn:hover {
+  background: rgba(252,158,122,.12) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .f-fit-btn.on,
+body.irisx-luxury:not(.irisx-sell-view) .det-offer,
+body.irisx-luxury:not(.irisx-sell-view) .seller-chat,
+body.irisx-luxury:not(.irisx-sell-view) .notif-icon,
+body.irisx-luxury:not(.irisx-sell-view) .sm-close:hover,
+body.irisx-luxury:not(.irisx-sell-view) .load-more-btn:hover,
+body.irisx-luxury.irisx-white-theme .f-fit-btn.on,
+body.irisx-luxury.irisx-white-theme .det-offer,
+body.irisx-luxury.irisx-white-theme .seller-chat,
+body.irisx-luxury.irisx-white-theme .notif-icon,
+body.irisx-luxury.irisx-white-theme .sm-close:hover,
+body.irisx-luxury.irisx-white-theme .load-more-btn:hover {
+  border-color: rgba(241,50,79,.3) !important;
+  color: #F1324F !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .af-chip,
+body.irisx-luxury.irisx-white-theme .af-chip {
+  background: rgba(252,158,122,.12) !important;
+  border-color: rgba(241,50,79,.16) !important;
+  color: #EE756D !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .af-chip button,
+body.irisx-luxury.irisx-white-theme .af-chip button {
+  color: #EE756D !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .pc:hover,
+body.irisx-luxury.irisx-white-theme .pc:hover {
+  border-color: rgba(241,50,79,.14) !important;
+  box-shadow: 0 20px 48px rgba(241,50,79,.08) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .pi-emoji,
+body.irisx-luxury.irisx-white-theme .pi-emoji {
+  filter: drop-shadow(0 0 18px rgba(252,158,122,.18)) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .pi-tag.avail,
+body.irisx-luxury.irisx-white-theme .pi-tag.avail {
+  background: rgba(241,50,79,.12) !important;
+  color: #F1324F !important;
+  border-color: rgba(241,50,79,.16) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .det-dot.on,
+body.irisx-luxury.irisx-white-theme .det-dot.on {
+  background: #F1324F !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .det-save,
+body.irisx-luxury.irisx-white-theme .det-save {
+  background: rgba(241,50,79,.1) !important;
+  color: #F1324F !important;
+  border-color: rgba(241,50,79,.18) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .det-chip,
+body.irisx-luxury:not(.irisx-sell-view) .seller-card,
+body.irisx-luxury:not(.irisx-sell-view) .det-auth,
+body.irisx-luxury:not(.irisx-sell-view) .review-card,
+body.irisx-luxury.irisx-white-theme .det-chip,
+body.irisx-luxury.irisx-white-theme .seller-card,
+body.irisx-luxury.irisx-white-theme .det-auth,
+body.irisx-luxury.irisx-white-theme .review-card {
+  border-color: rgba(241,50,79,.1) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .seller-av,
+body.irisx-luxury:not(.irisx-sell-view) .cl-av,
+body.irisx-luxury:not(.irisx-sell-view) .prof-av,
+body.irisx-luxury:not(.irisx-sell-view) .sv-av,
+body.irisx-luxury.irisx-white-theme .seller-av,
+body.irisx-luxury.irisx-white-theme .cl-av,
+body.irisx-luxury.irisx-white-theme .prof-av,
+body.irisx-luxury.irisx-white-theme .sv-av {
+  background: rgba(252,158,122,.18) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .msg.them,
+body.irisx-luxury.irisx-white-theme .msg.them {
+  background: rgba(252,158,122,.12) !important;
+  border-color: rgba(238,117,109,.14) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .msg.me,
+body.irisx-luxury.irisx-white-theme .msg.me {
+  background: linear-gradient(135deg, #F1324F, #EE756D) !important;
+  border-color: transparent !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .notif-panel,
+body.irisx-luxury.irisx-white-theme .notif-panel,
+body.irisx-luxury:not(.irisx-sell-view) .ac-dropdown,
+body.irisx-luxury.irisx-white-theme .ac-dropdown,
+body.irisx-luxury:not(.irisx-sell-view) .pwa-banner,
+body.irisx-luxury.irisx-white-theme .pwa-banner {
+  border-color: rgba(241,50,79,.12) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .site-footer::before,
+body.irisx-luxury.irisx-white-theme .site-footer::before {
+  background: linear-gradient(90deg, transparent, rgba(241,50,79,.22), transparent) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .footer-brand,
+body.irisx-luxury.irisx-white-theme .footer-brand {
+  background: linear-gradient(135deg, #FC9E7A, #FFFFFF) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .footer-social a:hover,
+body.irisx-luxury:not(.irisx-sell-view) .footer-links a:hover,
+body.irisx-luxury:not(.irisx-sell-view) .footer-legal a:hover,
+body.irisx-luxury.irisx-white-theme .footer-social a:hover,
+body.irisx-luxury.irisx-white-theme .footer-links a:hover,
+body.irisx-luxury.irisx-white-theme .footer-legal a:hover {
+  color: #FC9E7A !important;
+  border-color: rgba(252,158,122,.24) !important;
+  background: rgba(252,158,122,.08) !important;
+}

@@ -477,7 +477,8 @@
     stripeReturn: null,
     offerSubmitting: false,
     connectReturn: null,
-    homeRenderSignature: null
+    homeRenderSignature: null,
+    detailImageOptimizations: {}
   };
 
   const existingFavorites = loadJson(STORAGE_KEYS.favorites, []);
@@ -10315,14 +10316,204 @@
       (activeRatio ? " style=\"--iris-detail-stage-ratio:" + activeRatio + "\"" : "") +
       ">" +
       navControls +
-      "<img class=\"irisx-detail-image\" id=\"detailMainImage\" src=\"" +
+      "<img class=\"irisx-detail-image\" id=\"detailMainImage\" crossorigin=\"anonymous\" src=\"" +
       images[activeIndex] +
       "\" alt=\"" +
       escapeHtml(product.name) +
-      "\" data-image-index=\"" + activeIndex + "\"></div>" +
+      "\" data-image-index=\"" + activeIndex + "\" data-original-src=\"" + escapeHtml(images[activeIndex]) + "\"></div>" +
       (images.length > 1 ? "<div class=\"irisx-detail-thumbs\">" + thumbs + "</div>" : "") +
       "</div>"
     );
+  }
+
+  function detectSmartCropBounds(imageNode) {
+    if (!imageNode || !imageNode.naturalWidth || !imageNode.naturalHeight) {
+      return null;
+    }
+    const analysisScale = Math.min(1, 240 / Math.max(imageNode.naturalWidth, imageNode.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(24, Math.round(imageNode.naturalWidth * analysisScale));
+    canvas.height = Math.max(24, Math.round(imageNode.naturalHeight * analysisScale));
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) {
+      return null;
+    }
+    try {
+      context.drawImage(imageNode, 0, 0, canvas.width, canvas.height);
+      const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+      const borderSamples = [];
+      const samplePixel = function (x, y) {
+        const offset = (y * canvas.width + x) * 4;
+        borderSamples.push([
+          pixels[offset],
+          pixels[offset + 1],
+          pixels[offset + 2],
+          pixels[offset + 3]
+        ]);
+      };
+      for (let x = 0; x < canvas.width; x += 3) {
+        samplePixel(x, 0);
+        samplePixel(x, Math.max(0, canvas.height - 1));
+      }
+      for (let y = 0; y < canvas.height; y += 3) {
+        samplePixel(0, y);
+        samplePixel(Math.max(0, canvas.width - 1), y);
+      }
+      if (!borderSamples.length) {
+        return null;
+      }
+      const background = borderSamples.reduce(function (accumulator, sample) {
+        accumulator.r += sample[0];
+        accumulator.g += sample[1];
+        accumulator.b += sample[2];
+        accumulator.a += sample[3];
+        return accumulator;
+      }, { r: 0, g: 0, b: 0, a: 0 });
+      background.r /= borderSamples.length;
+      background.g /= borderSamples.length;
+      background.b /= borderSamples.length;
+      background.a /= borderSamples.length;
+
+      let minX = canvas.width;
+      let minY = canvas.height;
+      let maxX = -1;
+      let maxY = -1;
+      for (let y = 0; y < canvas.height; y += 1) {
+        for (let x = 0; x < canvas.width; x += 1) {
+          const offset = (y * canvas.width + x) * 4;
+          const alpha = pixels[offset + 3];
+          if (alpha < 24) {
+            continue;
+          }
+          const dr = pixels[offset] - background.r;
+          const dg = pixels[offset + 1] - background.g;
+          const db = pixels[offset + 2] - background.b;
+          const distance = Math.sqrt((dr * dr) + (dg * dg) + (db * db));
+          if (distance < 42) {
+            continue;
+          }
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x);
+          maxY = Math.max(maxY, y);
+        }
+      }
+      if (maxX <= minX || maxY <= minY) {
+        return null;
+      }
+
+      const boxWidth = maxX - minX + 1;
+      const boxHeight = maxY - minY + 1;
+      const horizontalWaste = (canvas.width - boxWidth) / canvas.width;
+      const verticalWaste = (canvas.height - boxHeight) / canvas.height;
+      if (horizontalWaste < 0.12 && verticalWaste < 0.12) {
+        return null;
+      }
+
+      const paddingX = Math.max(6, Math.round(boxWidth * 0.08));
+      const paddingY = Math.max(8, Math.round(boxHeight * 0.06));
+      const scaleBack = imageNode.naturalWidth / canvas.width;
+      const cropX = Math.max(0, Math.round((minX - paddingX) * scaleBack));
+      const cropY = Math.max(0, Math.round((minY - paddingY) * scaleBack));
+      const cropWidth = Math.min(imageNode.naturalWidth - cropX, Math.round((boxWidth + paddingX * 2) * scaleBack));
+      const cropHeight = Math.min(imageNode.naturalHeight - cropY, Math.round((boxHeight + paddingY * 2) * scaleBack));
+      if (cropWidth < imageNode.naturalWidth * 0.48 || cropHeight < imageNode.naturalHeight * 0.48) {
+        return null;
+      }
+      return {
+        x: cropX,
+        y: cropY,
+        width: cropWidth,
+        height: cropHeight
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function renderOptimizedImageData(imageNode, cropBounds, maxSize, quality) {
+    if (!imageNode || !cropBounds) {
+      return null;
+    }
+    const sourceWidth = Math.max(1, Number(cropBounds.width) || imageNode.naturalWidth);
+    const sourceHeight = Math.max(1, Number(cropBounds.height) || imageNode.naturalHeight);
+    const resizeRatio = Math.min(1, maxSize / Math.max(sourceWidth, sourceHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(sourceWidth * resizeRatio));
+    canvas.height = Math.max(1, Math.round(sourceHeight * resizeRatio));
+    const context = canvas.getContext("2d");
+    if (!context) {
+      return null;
+    }
+    try {
+      context.drawImage(
+        imageNode,
+        Math.max(0, Number(cropBounds.x) || 0),
+        Math.max(0, Number(cropBounds.y) || 0),
+        sourceWidth,
+        sourceHeight,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+      return {
+        src: canvas.toDataURL("image/jpeg", quality),
+        width: canvas.width,
+        height: canvas.height,
+        aspectRatio: canvas.width / Math.max(canvas.height, 1),
+        fitHint: canvas.width / Math.max(canvas.height, 1) < 0.85 ? "portrait-phone" : canvas.width / Math.max(canvas.height, 1) > 1.2 ? "landscape" : "standard"
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function maybeOptimizeDetailImage(product, imageNode, ratioOverride) {
+    if (!product || !imageNode) {
+      return;
+    }
+    const activeIndex = Math.min(Math.max(Number(state.activeDetailImage || 0), 0), Math.max((product.images || []).length - 1, 0));
+    const originalSource = product.images && product.images[activeIndex];
+    if (!originalSource) {
+      return;
+    }
+    const cachedOptimization = state.detailImageOptimizations[originalSource];
+    if (cachedOptimization) {
+      if (cachedOptimization.src && imageNode.dataset.optimizedFor !== originalSource) {
+        imageNode.dataset.optimizedFor = originalSource;
+        imageNode.src = cachedOptimization.src;
+        imageNode.onload = function () {
+          applyDetailImageFit(imageNode, cachedOptimization.aspectRatio || ratioOverride);
+        };
+      } else {
+        applyDetailImageFit(imageNode, cachedOptimization.aspectRatio || ratioOverride);
+      }
+      return;
+    }
+    if (imageNode.dataset.optimizedFor === originalSource) {
+      return;
+    }
+    const cropBounds = detectSmartCropBounds(imageNode);
+    if (!cropBounds) {
+      state.detailImageOptimizations[originalSource] = {
+        src: null,
+        aspectRatio: ratioOverride || (imageNode.naturalWidth / Math.max(imageNode.naturalHeight, 1))
+      };
+      return;
+    }
+    const optimized = renderOptimizedImageData(imageNode, cropBounds, 1400, 0.9);
+    state.detailImageOptimizations[originalSource] = {
+      src: optimized ? optimized.src : null,
+      aspectRatio: optimized ? optimized.aspectRatio : (ratioOverride || (imageNode.naturalWidth / Math.max(imageNode.naturalHeight, 1)))
+    };
+    if (optimized && imageNode.dataset.originalSrc === originalSource) {
+      imageNode.dataset.optimizedFor = originalSource;
+      imageNode.src = optimized.src;
+      imageNode.onload = function () {
+        applyDetailImageFit(imageNode, optimized.aspectRatio);
+      };
+    }
   }
 
   function applyDetailImageFit(imageNode, ratioOverride) {
@@ -10353,10 +10544,12 @@
     const ratioOverride = imageMeta && Number(imageMeta.aspectRatio) > 0 ? Number(imageMeta.aspectRatio) : 0;
     if (imageNode.complete) {
       applyDetailImageFit(imageNode, ratioOverride);
+      maybeOptimizeDetailImage(product, imageNode, ratioOverride);
       return;
     }
     imageNode.onload = function () {
       applyDetailImageFit(imageNode, ratioOverride);
+      maybeOptimizeDetailImage(product, imageNode, ratioOverride);
     };
   }
 
@@ -10368,6 +10561,8 @@
     }
 
     state.activeDetailImage = index;
+    mainImage.dataset.optimizedFor = "";
+    mainImage.dataset.originalSrc = currentProduct.images[index];
     mainImage.src = currentProduct.images[index];
     mainImage.dataset.imageIndex = String(index);
     qsa(".irisx-detail-thumb").forEach(function (thumb, thumbIndex) {
@@ -12123,40 +12318,24 @@
           });
         };
         image.onload = function () {
-          const ratio = Math.min(1, maxSize / Math.max(image.width, image.height));
-          const canvas = document.createElement("canvas");
-          canvas.width = Math.max(1, Math.round(image.width * ratio));
-          canvas.height = Math.max(1, Math.round(image.height * ratio));
-          const context = canvas.getContext("2d");
-          if (!context) {
-            resolve({
-              src: originalDataUrl,
-              width: image.width,
-              height: image.height,
-              aspectRatio: image.width / Math.max(image.height, 1),
-              fitHint: image.width / Math.max(image.height, 1) < 0.85 ? "portrait-phone" : image.width / Math.max(image.height, 1) > 1.2 ? "landscape" : "standard"
-            });
+          const cropBounds = detectSmartCropBounds(image) || {
+            x: 0,
+            y: 0,
+            width: image.width,
+            height: image.height
+          };
+          const optimized = renderOptimizedImageData(image, cropBounds, maxSize, quality);
+          if (optimized) {
+            resolve(optimized);
             return;
           }
-          context.drawImage(image, 0, 0, canvas.width, canvas.height);
-          try {
-            const aspectRatio = canvas.width / Math.max(canvas.height, 1);
-            resolve({
-              src: canvas.toDataURL("image/jpeg", quality),
-              width: canvas.width,
-              height: canvas.height,
-              aspectRatio: aspectRatio,
-              fitHint: aspectRatio < 0.85 ? "portrait-phone" : aspectRatio > 1.2 ? "landscape" : "standard"
-            });
-          } catch (error) {
-            resolve({
-              src: originalDataUrl,
-              width: image.width,
-              height: image.height,
-              aspectRatio: image.width / Math.max(image.height, 1),
-              fitHint: image.width / Math.max(image.height, 1) < 0.85 ? "portrait-phone" : image.width / Math.max(image.height, 1) > 1.2 ? "landscape" : "standard"
-            });
-          }
+          resolve({
+            src: originalDataUrl,
+            width: image.width,
+            height: image.height,
+            aspectRatio: image.width / Math.max(image.height, 1),
+            fitHint: image.width / Math.max(image.height, 1) < 0.85 ? "portrait-phone" : image.width / Math.max(image.height, 1) > 1.2 ? "landscape" : "standard"
+          });
         };
         image.src = originalDataUrl;
       };

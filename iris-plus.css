@@ -4409,12 +4409,71 @@ body.irisx-luxury .topnav.irisx-search-hidden #acDropdown {
 
 body.irisx-luxury .tn-search input {
   height: 42px;
-  padding: 0 16px 0 42px;
+  padding: 0 58px 0 42px;
   border: 1px solid rgba(255,255,255,.08);
   background: rgba(255,255,255,.03);
   color: rgba(255,255,255,.92);
   font-size: .86rem;
   border-radius: 0;
+}
+
+body.irisx-luxury .tn-search-save,
+body.irisx-luxury.irisx-white-theme .tn-search-save {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(241,50,79,.12);
+  border-radius: 999px;
+  background: rgba(255,255,255,.9);
+  color: rgba(73,38,52,.58);
+  transform: translateY(-50%);
+  transition: border-color .18s ease, color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+  cursor: pointer;
+  z-index: 2;
+}
+
+body.irisx-luxury .tn-search-save:hover,
+body.irisx-luxury.irisx-white-theme .tn-search-save:hover {
+  color: #F1324F;
+  border-color: rgba(241,50,79,.26);
+  background: linear-gradient(180deg, rgba(241,50,79,.12), rgba(252,158,122,.14));
+  box-shadow: 0 14px 28px rgba(241,50,79,.14);
+  transform: translateY(calc(-50% - 1px));
+}
+
+body.irisx-luxury .tn-search-save svg,
+body.irisx-luxury.irisx-white-theme .tn-search-save svg {
+  width: 16px;
+  height: 16px;
+}
+
+body.irisx-luxury .tn-search-save.is-active,
+body.irisx-luxury.irisx-white-theme .tn-search-save.is-active {
+  color: #F1324F;
+  border-color: rgba(241,50,79,.28);
+  background: linear-gradient(180deg, rgba(241,50,79,.16), rgba(252,158,122,.18));
+  box-shadow: 0 16px 32px rgba(241,50,79,.16);
+}
+
+body.irisx-luxury .tn-search-save.is-active svg,
+body.irisx-luxury.irisx-white-theme .tn-search-save.is-active svg {
+  fill: rgba(241,50,79,.14);
+}
+
+body.irisx-luxury .tn-search-save.is-disabled,
+body.irisx-luxury.irisx-white-theme .tn-search-save.is-disabled,
+body.irisx-luxury .tn-search-save:disabled,
+body.irisx-luxury.irisx-white-theme .tn-search-save:disabled {
+  color: rgba(73,38,52,.28);
+  border-color: rgba(241,50,79,.08);
+  background: rgba(255,255,255,.74);
+  box-shadow: none;
+  cursor: default;
 }
 
 body.irisx-luxury .tn-search input::placeholder {

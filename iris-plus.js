@@ -3829,6 +3829,166 @@
     </section>`;
   }
 
+  function buildSearchCriteriaSnapshot() {
+    const searchInput = document.getElementById("searchInput");
+    return {
+      query: String((searchInput && searchInput.value) || filters.search || "").trim(),
+      genders: (filters.genders || []).slice().sort(),
+      cats: (filters.cats || []).slice().sort(),
+      brands: (filters.brands || []).slice().sort(),
+      conds: (filters.conds || []).slice().sort(),
+      materials: (filters.materials || []).slice().sort(),
+      trust: (filters.trust || []).slice().sort(),
+      fits: (filters.fits || []).slice().sort(),
+      colors: (filters.colors || []).slice().sort(),
+      size: String(filters.size || "").trim(),
+      pmin: String(filters.pmin || "").trim(),
+      pmax: String(filters.pmax || "").trim()
+    };
+  }
+
+  function hasSearchCriteria(criteria) {
+    const snapshot = criteria || buildSearchCriteriaSnapshot();
+    return Boolean(
+      snapshot.query ||
+      snapshot.genders.length ||
+      snapshot.cats.length ||
+      snapshot.brands.length ||
+      snapshot.conds.length ||
+      snapshot.materials.length ||
+      snapshot.trust.length ||
+      snapshot.fits.length ||
+      snapshot.colors.length ||
+      snapshot.size ||
+      snapshot.pmin ||
+      snapshot.pmax
+    );
+  }
+
+  function getSearchCriteriaKey(criteria) {
+    return JSON.stringify(criteria || buildSearchCriteriaSnapshot());
+  }
+
+  function summarizeSearchCriteria(criteria) {
+    const snapshot = criteria || buildSearchCriteriaSnapshot();
+    const segments = [];
+    function pushValues(values, formatter) {
+      if (!Array.isArray(values) || !values.length) {
+        return;
+      }
+      segments.push(values.slice(0, 2).map(function (value) {
+        return formatter ? formatter(value) : value;
+      }).join(", "));
+    }
+    pushValues(snapshot.brands);
+    pushValues(snapshot.cats, function (value) { return getFacetLabel("cats", value); });
+    pushValues(snapshot.conds, function (value) { return getFacetLabel("conds", value); });
+    pushValues(snapshot.materials);
+    pushValues(snapshot.genders, function (value) { return getFilterTokenLabel("genders", value); });
+    pushValues(snapshot.trust, function (value) { return getFilterTokenLabel("trust", value); });
+    if (snapshot.size) {
+      segments.push(langText("Taglia", "Size") + " " + snapshot.size);
+    }
+    if (snapshot.pmin || snapshot.pmax) {
+      if (snapshot.pmin && snapshot.pmax) {
+        segments.push(langText("Prezzo", "Price") + " " + formatLocalCurrencyValue(snapshot.pmin) + "–" + formatLocalCurrencyValue(snapshot.pmax));
+      } else if (snapshot.pmin) {
+        segments.push(langText("Da", "From") + " " + formatLocalCurrencyValue(snapshot.pmin));
+      } else {
+        segments.push(langText("Fino a", "Up to") + " " + formatLocalCurrencyValue(snapshot.pmax));
+      }
+    }
+    return segments.slice(0, 4).join(" · ") || langText("Filtro marketplace", "Marketplace filter");
+  }
+
+  function buildSearchSaveLabel(criteria) {
+    const snapshot = criteria || buildSearchCriteriaSnapshot();
+    const base = snapshot.query || summarizeSearchCriteria(snapshot);
+    return base.length > 46 ? base.slice(0, 43).trim() + "…" : base;
+  }
+
+  function findMatchingSavedSearch(criteria) {
+    if (!state.currentUser || !Array.isArray(state.currentUser.savedSearches)) {
+      return null;
+    }
+    const snapshot = criteria || buildSearchCriteriaSnapshot();
+    const searchKey = getSearchCriteriaKey(snapshot);
+    const fallbackSummary = summarizeSearchCriteria(snapshot);
+    const normalizedQuery = normalizeSearchText(snapshot.query);
+    return state.currentUser.savedSearches.find(function (entry) {
+      if (entry.searchKey && entry.searchKey === searchKey) {
+        return true;
+      }
+      return normalizeSearchText(entry.query) === normalizedQuery && String(entry.filtersSummary || "") === fallbackSummary;
+    }) || null;
+  }
+
+  function updateSearchSaveButton() {
+    const button = qs("#tnSearchSaveBtn");
+    if (!button) {
+      return;
+    }
+    const criteria = buildSearchCriteriaSnapshot();
+    const canSave = hasSearchCriteria(criteria);
+    const savedEntry = canSave ? findMatchingSavedSearch(criteria) : null;
+    const isLoggedIn = !!state.currentUser;
+    const title = !canSave
+      ? langText("Inserisci una ricerca o attiva filtri per salvarla.", "Enter a search or apply filters to save it.")
+      : savedEntry
+        ? langText("Rimuovi questa ricerca salvata.", "Remove this saved search.")
+        : isLoggedIn
+          ? langText("Salva questa ricerca.", "Save this search.")
+          : langText("Accedi per salvare questa ricerca.", "Sign in to save this search.");
+    button.disabled = !canSave;
+    button.classList.toggle("is-disabled", !canSave);
+    button.classList.toggle("is-active", Boolean(savedEntry));
+    button.setAttribute("aria-pressed", savedEntry ? "true" : "false");
+    button.setAttribute("aria-label", title);
+    button.setAttribute("title", title);
+  }
+
+  function toggleCurrentSearchSave() {
+    const criteria = buildSearchCriteriaSnapshot();
+    if (!hasSearchCriteria(criteria)) {
+      showToast(langText("Scrivi una ricerca o applica filtri prima di salvarla.", "Write a search or apply filters before saving it."));
+      updateSearchSaveButton();
+      return;
+    }
+    requireAuth(function () {
+      const savedEntry = findMatchingSavedSearch(criteria);
+      if (savedEntry) {
+        syncCurrentUserWorkspace({
+          savedSearches: (state.currentUser.savedSearches || []).filter(function (entry) {
+            return entry.id !== savedEntry.id;
+          })
+        });
+        renderProfilePanel();
+        showToast(langText("Ricerca rimossa dai salvati.", "Search removed from saved items."));
+      } else {
+        const filtersSummary = summarizeSearchCriteria(criteria);
+        syncCurrentUserWorkspace({
+          savedSearches: (state.currentUser.savedSearches || []).concat([
+            normalizeSavedSearchRecord({
+              label: buildSearchSaveLabel(criteria),
+              query: criteria.query || filtersSummary,
+              filtersSummary: filtersSummary,
+              searchKey: getSearchCriteriaKey(criteria),
+              alertsEnabled: true
+            })
+          ])
+        });
+        renderProfilePanel();
+        showToast(langText("Ricerca salvata. Potremo collegarla agli alert.", "Search saved. We can wire alerts to it next."));
+      }
+      updateSearchSaveButton();
+      const searchInput = document.getElementById("searchInput");
+      renderAutocompleteSuggestions(
+        searchInput ? searchInput.value : "",
+        { forceOpen: Boolean(searchInput && document.activeElement === searchInput) }
+      );
+    });
+  }
+
   function resetMarketplaceFiltersForAutocomplete() {
     filters = {
       cats: [],
@@ -4076,9 +4236,11 @@
         filters.search = (this.value || "").trim();
       }
       renderAutocompleteSuggestions(this.value, { forceOpen: true });
+      updateSearchSaveButton();
     });
     input.addEventListener("focus", function () {
       renderAutocompleteSuggestions(this.value, { forceOpen: true });
+      updateSearchSaveButton();
     });
     input.addEventListener("keydown", function (event) {
       if (event.key === "Enter") {
@@ -4108,11 +4270,14 @@
         if (dropdown) {
           dropdown.classList.remove("open");
         }
+        updateSearchSaveButton();
       }, 180);
     });
     original.replaceWith(input);
     window.applyAutocompleteSelection = applyAutocompleteSelection;
     window.clearAutocompleteRecentSearches = clearAutocompleteRecentSearches;
+    window.toggleCurrentSearchSave = toggleCurrentSearchSave;
+    updateSearchSaveButton();
   }
 
   function getMyListings() {
@@ -4430,6 +4595,7 @@
         label: langText("Ricerca salvata", "Saved search"),
         query: "",
         filtersSummary: "",
+        searchKey: "",
         createdAt: createdAt,
         alertsEnabled: true
       },
@@ -9724,6 +9890,7 @@
 
       grid.innerHTML = items.map((product) => productCardMarkup(product)).join("");
       renderHomeView();
+      updateSearchSaveButton();
     };
 
     renderFavorites = function () {
@@ -10840,6 +11007,7 @@
 
     cleanupNavbar();
     syncHeaderActionVisibility();
+    updateSearchSaveButton();
   }
 
   function requireAuth(callback) {
@@ -13771,11 +13939,13 @@
           label: label,
           query: query,
           filtersSummary: readProfileField("#savedSearchFilters") || langText("Filtro marketplace", "Marketplace filter"),
+          searchKey: "",
           alertsEnabled: qs("#savedSearchAlertsToggle") ? qs("#savedSearchAlertsToggle").checked : true
         })
       ])
     });
     renderProfilePanel();
+    updateSearchSaveButton();
     showToast(langText("Ricerca salvata.", "Saved search added."));
   }
 
@@ -13789,6 +13959,7 @@
       })
     });
     renderProfilePanel();
+    updateSearchSaveButton();
     showToast(langText("Ricerca rimossa.", "Saved search removed."));
   }
 

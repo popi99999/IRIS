@@ -29,7 +29,7 @@
 
   const PLATFORM_CONFIG = {
     ownerEmail: "owner@iris-fashion.it",
-    adminEmails: ["owner@iris-fashion.it", "admin@iris-fashion.it"],
+    adminEmails: ["owner@iris-fashion.it"],
     supportEmail: "support@iris-fashion.it",
     emailFrom: "IRIS <noreply@iris-fashion.it>",
     platformFeeRate: 0.12,

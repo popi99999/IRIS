@@ -4454,15 +4454,23 @@ body.irisx-luxury.irisx-white-theme .tn-search-save svg {
 
 body.irisx-luxury .tn-search-save.is-active,
 body.irisx-luxury.irisx-white-theme .tn-search-save.is-active {
-  color: #F1324F;
-  border-color: rgba(241,50,79,.28);
-  background: linear-gradient(180deg, rgba(241,50,79,.16), rgba(252,158,122,.18));
-  box-shadow: 0 16px 32px rgba(241,50,79,.16);
+  color: #fff;
+  border-color: #F1324F;
+  background: linear-gradient(180deg, #F1324F, #FC2414);
+  box-shadow: 0 16px 32px rgba(241,50,79,.24);
 }
 
 body.irisx-luxury .tn-search-save.is-active svg,
 body.irisx-luxury.irisx-white-theme .tn-search-save.is-active svg {
-  fill: rgba(241,50,79,.14);
+  fill: rgba(255,255,255,.16);
+}
+
+body.irisx-luxury .tn-search-save.is-active:hover,
+body.irisx-luxury.irisx-white-theme .tn-search-save.is-active:hover {
+  color: #fff;
+  border-color: #F1324F;
+  background: linear-gradient(180deg, #FC4A64, #F1324F);
+  box-shadow: 0 18px 34px rgba(241,50,79,.28);
 }
 
 body.irisx-luxury .tn-search-save.is-disabled,
@@ -4605,8 +4613,8 @@ body.irisx-luxury.irisx-white-theme .ac-entry-main {
 
 body.irisx-luxury .ac-entry-icon,
 body.irisx-luxury.irisx-white-theme .ac-entry-icon {
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4650,7 +4658,19 @@ body.irisx-luxury.irisx-white-theme .ac-entry-side {
 
 body.irisx-luxury .ac-entry--saved,
 body.irisx-luxury.irisx-white-theme .ac-entry--saved {
-  background: rgba(241,50,79,.05);
+  background: linear-gradient(180deg, rgba(241,50,79,.08), rgba(252,158,122,.1));
+}
+
+body.irisx-luxury .ac-entry--saved .ac-entry-badge,
+body.irisx-luxury .ac-entry--saved .ac-entry-side,
+body.irisx-luxury.irisx-white-theme .ac-entry--saved .ac-entry-badge,
+body.irisx-luxury.irisx-white-theme .ac-entry--saved .ac-entry-side {
+  display: none !important;
+}
+
+body.irisx-luxury .ac-entry--saved .ac-entry-main,
+body.irisx-luxury.irisx-white-theme .ac-entry--saved .ac-entry-main {
+  color: #241633;
 }
 
 body.irisx-luxury .ac-entry--recent .ac-entry-main,

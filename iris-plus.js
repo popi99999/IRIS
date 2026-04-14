@@ -10544,12 +10544,10 @@
     const ratioOverride = imageMeta && Number(imageMeta.aspectRatio) > 0 ? Number(imageMeta.aspectRatio) : 0;
     if (imageNode.complete) {
       applyDetailImageFit(imageNode, ratioOverride);
-      maybeOptimizeDetailImage(product, imageNode, ratioOverride);
       return;
     }
     imageNode.onload = function () {
       applyDetailImageFit(imageNode, ratioOverride);
-      maybeOptimizeDetailImage(product, imageNode, ratioOverride);
     };
   }
 

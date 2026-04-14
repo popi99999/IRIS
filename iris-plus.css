@@ -3962,6 +3962,28 @@ body.light-mode .notif-bell:hover {
   margin: 0;
 }
 
+.cl-av--product {
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(252,158,122,.22);
+  background: linear-gradient(180deg, rgba(252,158,122,.16), rgba(255,255,255,.06));
+}
+
+.cl-av--product img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cl-av__fallback {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
 .irisx-chat-action-bar,
 .irisx-chat-offer-zone {
   padding: 0 1.15rem 1rem;
@@ -4070,6 +4092,44 @@ body.light-mode .notif-bell:hover {
   display: flex;
   gap: .7rem;
   flex-wrap: wrap;
+}
+
+.irisx-chat-product-card {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: stretch;
+  gap: .95rem;
+}
+
+.irisx-chat-product-thumb {
+  width: 72px;
+  min-height: 72px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(252,158,122,.2);
+  background: linear-gradient(180deg, rgba(252,158,122,.14), rgba(255,255,255,.04));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 72px;
+}
+
+.irisx-chat-product-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.irisx-chat-product-thumb--fallback {
+  font-size: 1.6rem;
+}
+
+.irisx-chat-product-body {
+  min-width: 0;
+  display: grid;
+  gap: .25rem;
+  align-content: center;
 }
 
 .cm-msgs {
@@ -9293,12 +9353,14 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   body.irisx-luxury .chat-list,
   body.irisx-luxury .chat-main {
     background: #ffffff !important;
+    border-color: rgba(238,117,109,.14) !important;
   }
 
   body.irisx-luxury .cl-head {
     padding: 18px 18px 14px !important;
     gap: 12px !important;
     border-bottom: 1px solid rgba(241,50,79,.08);
+    background: linear-gradient(180deg, #ffffff, #FFF8F6) !important;
   }
 
   body.irisx-luxury .cl-title {
@@ -9330,6 +9392,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   body.irisx-luxury .cl-item {
     padding: 14px 18px !important;
     border-bottom-color: rgba(241,50,79,.08) !important;
+    background: #ffffff !important;
   }
 
   body.irisx-luxury .cl-name,
@@ -9347,8 +9410,8 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 
   body.irisx-luxury .cm-head {
     padding: 14px 18px !important;
-    background: #ffffff !important;
-    border-bottom: 1px solid rgba(241,50,79,.08);
+    background: linear-gradient(180deg, #ffffff, #FFF8F6) !important;
+    border-bottom: 1px solid rgba(238,117,109,.14) !important;
   }
 
   body.irisx-luxury .cm-prod {
@@ -9361,11 +9424,32 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   body.irisx-luxury .irisx-chat-role-meta {
     padding: 0 18px 12px !important;
     margin: 0 !important;
+    background: #ffffff !important;
+  }
+
+  body.irisx-luxury .irisx-chat-product-card {
+    background: #ffffff !important;
+    border: 1px solid rgba(238,117,109,.14) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 12px 28px rgba(188,148,130,.12);
+  }
+
+  body.irisx-luxury .irisx-chat-product-card strong {
+    color: #1a1530 !important;
+  }
+
+  body.irisx-luxury .irisx-chat-product-card span,
+  body.irisx-luxury .irisx-chat-product-card em,
+  body.irisx-luxury .irisx-chat-product-card small,
+  body.irisx-luxury .irisx-chat-listing,
+  body.irisx-luxury .irisx-chat-role-line span:last-child {
+    color: rgba(26,21,48,.58) !important;
   }
 
   body.irisx-luxury .irisx-chat-action-bar,
   body.irisx-luxury .irisx-chat-offer-zone {
     padding: 0 18px 14px !important;
+    background: #ffffff !important;
   }
 
   body.irisx-luxury .irisx-chat-action-copy strong,
@@ -9432,8 +9516,8 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 
   body.irisx-luxury .cm-input {
     padding: 12px 14px calc(12px + env(safe-area-inset-bottom)) !important;
-    background: #ffffff !important;
-    border-top: 1px solid rgba(241,50,79,.08);
+    background: linear-gradient(180deg, #ffffff, #FFF8F6) !important;
+    border-top: 1px solid rgba(238,117,109,.14) !important;
   }
 
   body.irisx-luxury .cm-input input {
@@ -9450,6 +9534,16 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 
   body.irisx-luxury .irisx-chat-composer-note {
     color: rgba(26,21,48,.52) !important;
+  }
+
+  body.irisx-luxury .cl-av--product {
+    background: linear-gradient(180deg, rgba(252,158,122,.18), rgba(255,255,255,.9)) !important;
+    border-color: rgba(238,117,109,.2) !important;
+  }
+
+  body.irisx-luxury .irisx-chat-product-thumb {
+    background: linear-gradient(180deg, rgba(252,158,122,.14), rgba(255,255,255,.98)) !important;
+    border-color: rgba(238,117,109,.2) !important;
   }
 
   body.irisx-luxury #profile-view {

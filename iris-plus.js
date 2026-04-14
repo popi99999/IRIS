@@ -12433,6 +12433,36 @@
     );
   }
 
+  function getChatThreadAvatarMarkup(thread) {
+    const conversation = normalizeChatThread(thread || {});
+    const product = conversation.product || getListingById(conversation.listingId || conversation.productId);
+    const image = product ? (getListingImageSources(product)[0] || "") : "";
+    if (image) {
+      return `<img src="${escapeHtml(image)}" alt="${escapeHtml((product.brand || "") + " " + (product.name || ""))}">`;
+    }
+    return `<span class="cl-av__fallback">${escapeHtml((product && product.emoji) || (conversation.with && conversation.with.avatar) || "👤")}</span>`;
+  }
+
+  function getChatProductPreviewMarkup(conversation) {
+    const product = conversation && (conversation.product || getListingById(conversation.listingId || conversation.productId));
+    if (!product) {
+      return "";
+    }
+    const image = getListingImageSources(product)[0] || "";
+    const media = image
+      ? `<div class="irisx-chat-product-thumb"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.brand + " " + product.name)}"></div>`
+      : `<div class="irisx-chat-product-thumb irisx-chat-product-thumb--fallback">${escapeHtml(product.emoji || "👜")}</div>`;
+    return `<button class="irisx-chat-product-card" onclick="showDetail(${inlineJsValue(product.id)})">
+      ${media}
+      <span class="irisx-chat-product-body">
+        <strong>${escapeHtml(product.brand)}</strong>
+        <span>${escapeHtml(product.name)}</span>
+        <em>${escapeHtml(formatCurrency(product.price || 0))}</em>
+        <small class="irisx-chat-role-line"><span class="irisx-chat-role-badge">${escapeHtml(getChatRoleBadgeLabel(conversation))}</span><span>${escapeHtml(getChatRoleContext(conversation))}</span></small>
+      </span>
+    </button>`;
+  }
+
   function renderChatActionArea(conversation) {
     const actionBar = qs("#irisxChatActionBar");
     const offerZone = qs("#irisxChatOfferZone");
@@ -15962,7 +15992,7 @@
       const lastMessage = thread.msgs[thread.msgs.length - 1] || { text: "", time: "" };
       const counterpartyName = thread.with && thread.with.name ? thread.with.name : (scope === "selling" ? thread.buyerName : thread.sellerName);
       return `<button class="cl-item${curChat === thread.id ? " on" : ""}" data-chat-id="${escapeHtml(thread.id)}" onclick="openChatById('${thread.id}')">
-        <div class="cl-av">${escapeHtml(thread.with.avatar || "👤")}</div>
+        <div class="cl-av cl-av--product">${getChatThreadAvatarMarkup(thread)}</div>
         <div class="cl-info">
           <div class="cl-name">${escapeHtml(counterpartyName || langText("Conversation", "Conversation"))}</div>
           <div class="cl-last">${escapeHtml(lastMessage.text)}</div>
@@ -16013,9 +16043,7 @@
       roleMeta.textContent = getChatRoleContext(conversation);
     }
     if (preview) {
-      preview.innerHTML = conversation.product
-        ? `<button class="irisx-chat-product-card" onclick="showDetail(${inlineJsValue(conversation.product.id)})"><strong>${escapeHtml(conversation.product.brand)}</strong><span>${escapeHtml(conversation.product.name)}</span><em>${escapeHtml(formatCurrency(conversation.product.price || 0))}</em><small class="irisx-chat-role-line"><span class="irisx-chat-role-badge">${escapeHtml(getChatRoleBadgeLabel(conversation))}</span><span>${escapeHtml(getChatRoleContext(conversation))}</span></small></button>`
-        : "";
+      preview.innerHTML = getChatProductPreviewMarkup(conversation);
     }
     renderChatActionArea(conversation);
     if (messages) {

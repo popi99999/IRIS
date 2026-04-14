@@ -7498,7 +7498,7 @@ body.irisx-luxury .sort-btn:hover{
 }
 
 body.irisx-luxury #detail-view{
-  padding-top:calc(var(--iris-nav-height) + var(--iris-nav-sub-height) + 18px) !important;
+  padding-top:calc(var(--iris-nav-height) + 6px) !important;
 }
 
 body.irisx-luxury .irisx-detail-page{
@@ -7519,7 +7519,7 @@ body.irisx-luxury .det-layout--hero{
 
 body.irisx-luxury .det-imgs{
   position:sticky !important;
-  top:calc(var(--iris-nav-height) + var(--iris-nav-sub-height) + 18px);
+  top:calc(var(--iris-nav-height) + 6px);
   padding:0 !important;
   background:transparent !important;
   min-height:0;
@@ -10437,11 +10437,11 @@ body.irisx-luxury .irisx-detail-media {
 
 body.irisx-luxury .irisx-detail-stage {
   display: flex !important;
-  align-items: center !important;
+  align-items: flex-start !important;
   justify-content: center !important;
-  height: clamp(480px, calc(100svh - var(--iris-nav-height) - 34px), 820px) !important;
-  min-height: clamp(480px, calc(100svh - var(--iris-nav-height) - 34px), 820px) !important;
-  max-height: clamp(480px, calc(100svh - var(--iris-nav-height) - 34px), 820px) !important;
+  height: clamp(480px, calc(100svh - var(--iris-nav-height) - 14px), 860px) !important;
+  min-height: clamp(480px, calc(100svh - var(--iris-nav-height) - 14px), 860px) !important;
+  max-height: clamp(480px, calc(100svh - var(--iris-nav-height) - 14px), 860px) !important;
   width: min(100%, max(500px, calc(clamp(480px, calc(100svh - var(--iris-nav-height) - 34px), 820px) * var(--iris-detail-stage-ratio, 0.82) + 4px))) !important;
   margin-inline: 0 auto !important;
   padding: 0 !important;

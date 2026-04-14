@@ -3452,7 +3452,7 @@
     if (!locale) {
       return "";
     }
-    return `${locale.label} ${getLocaleCurrencySymbol(locale)}`;
+    return `${locale.label}`;
   }
 
   function syncLocaleTrigger() {
@@ -3805,11 +3805,12 @@
     const classes = ["ac-entry"].concat((modifiers && modifiers.classes) || []).join(" ");
     const badge = modifiers && modifiers.badge ? `<span class="ac-entry-badge">${escapeHtml(modifiers.badge)}</span>` : "";
     const side = modifiers && modifiers.side ? `<span class="ac-entry-side">${escapeHtml(modifiers.side)}</span>` : "";
+    const iconMarkup = modifiers && modifiers.iconMarkup ? `<span class="ac-entry-icon" aria-hidden="true">${modifiers.iconMarkup}</span>` : "";
     const lead = modifiers && modifiers.lead ? `<span class="ac-entry-lead">${escapeHtml(modifiers.lead)}</span>` : "";
     const metaMarkup = meta ? `<span class="ac-entry-meta">${escapeHtml(meta)}</span>` : "";
     return `<button class="${classes}" type="button" onclick="applyAutocompleteSelection('${type}', decodeURIComponent('${encodedValue}'))">
       <span class="ac-entry-row">
-        <span class="ac-entry-main">${lead}${escapeHtml(title)}</span>
+        <span class="ac-entry-main">${iconMarkup}${lead}${escapeHtml(title)}</span>
         ${badge || side}
       </span>
       ${metaMarkup}
@@ -4093,7 +4094,7 @@
             entry.query !== entry.label ? entry.query : langText("Ricerca salvata", "Saved search"),
             {
               classes: ["ac-entry--saved"],
-              badge: entry.alertsEnabled ? langText("Alert", "Alert") : langText("Salvata", "Saved")
+              iconMarkup: "<svg viewBox='0 0 20 20' fill='none'><path d='M5.5 3.5h9a1 1 0 0 1 1 1v12l-5.5-3-5.5 3v-12a1 1 0 0 1 1-1Z' stroke='currentColor' stroke-width='1.45' stroke-linecap='round' stroke-linejoin='round'></path></svg>"
             }
           );
         })

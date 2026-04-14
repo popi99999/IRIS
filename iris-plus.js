@@ -10280,10 +10280,13 @@
 
   function detailMediaMarkup(product) {
     const images = Array.isArray(product.images) ? product.images : [];
+    const imageMeta = Array.isArray(product.imageMeta) ? product.imageMeta : [];
     if (!images.length) {
       return "<div class=\"det-img-main\">" + escapeHtml(product.emoji || "👜") + "</div>";
     }
     const activeIndex = Math.min(Math.max(Number(state.activeDetailImage || 0), 0), images.length - 1);
+    const activeMeta = imageMeta[activeIndex] || null;
+    const activeRatio = activeMeta && Number(activeMeta.aspectRatio) > 0 ? Number(activeMeta.aspectRatio) : null;
     const navControls = images.length > 1
       ? `<button class="irisx-detail-nav irisx-detail-nav--prev" type="button" onclick="stepDetailImage(-1)" aria-label="${escapeHtml(langText("Foto precedente", "Previous image"))}">‹</button>
          <button class="irisx-detail-nav irisx-detail-nav--next" type="button" onclick="stepDetailImage(1)" aria-label="${escapeHtml(langText("Foto successiva", "Next image"))}">›</button>`
@@ -10308,16 +10311,53 @@
       .join("");
 
     return (
-      "<div class=\"irisx-detail-media\"><div class=\"irisx-detail-stage\">" +
+      "<div class=\"irisx-detail-media\"><div class=\"irisx-detail-stage\"" +
+      (activeRatio ? " style=\"--iris-detail-stage-ratio:" + activeRatio + "\"" : "") +
+      ">" +
       navControls +
       "<img class=\"irisx-detail-image\" id=\"detailMainImage\" src=\"" +
       images[activeIndex] +
       "\" alt=\"" +
       escapeHtml(product.name) +
-      "\"></div>" +
+      "\" data-image-index=\"" + activeIndex + "\"></div>" +
       (images.length > 1 ? "<div class=\"irisx-detail-thumbs\">" + thumbs + "</div>" : "") +
       "</div>"
     );
+  }
+
+  function applyDetailImageFit(imageNode, ratioOverride) {
+    const stage = qs(".irisx-detail-stage");
+    if (!imageNode || !stage) {
+      return;
+    }
+    const imageRatio = Number(ratioOverride) > 0
+      ? Number(ratioOverride)
+      : (imageNode.naturalWidth && imageNode.naturalHeight ? imageNode.naturalWidth / Math.max(imageNode.naturalHeight, 1) : 0);
+    if (!Number.isFinite(imageRatio) || imageRatio <= 0) {
+      stage.style.removeProperty("--iris-detail-stage-ratio");
+      stage.dataset.imageFit = "standard";
+      return;
+    }
+    const clampedRatio = Math.max(0.58, Math.min(1.45, imageRatio));
+    stage.style.setProperty("--iris-detail-stage-ratio", String(clampedRatio));
+    stage.dataset.imageFit = clampedRatio < 0.9 ? "portrait" : clampedRatio > 1.12 ? "landscape" : "standard";
+  }
+
+  function syncDetailImageFit(product) {
+    const imageNode = qs("#detailMainImage");
+    if (!imageNode) {
+      return;
+    }
+    const activeIndex = Math.min(Math.max(Number(state.activeDetailImage || 0), 0), Math.max((product && product.images ? product.images.length : 1) - 1, 0));
+    const imageMeta = product && Array.isArray(product.imageMeta) ? product.imageMeta[activeIndex] : null;
+    const ratioOverride = imageMeta && Number(imageMeta.aspectRatio) > 0 ? Number(imageMeta.aspectRatio) : 0;
+    if (imageNode.complete) {
+      applyDetailImageFit(imageNode, ratioOverride);
+      return;
+    }
+    imageNode.onload = function () {
+      applyDetailImageFit(imageNode, ratioOverride);
+    };
   }
 
   function setDetailImage(index) {
@@ -10329,9 +10369,11 @@
 
     state.activeDetailImage = index;
     mainImage.src = currentProduct.images[index];
+    mainImage.dataset.imageIndex = String(index);
     qsa(".irisx-detail-thumb").forEach(function (thumb, thumbIndex) {
       thumb.classList.toggle("on", thumbIndex === index);
     });
+    syncDetailImageFit(currentProduct);
   }
 
   function stepDetailImage(direction) {
@@ -11458,7 +11500,11 @@
         processed.push({
           id: "photo-" + Math.random().toString(36).slice(2, 8),
           name: file.name,
-          src: imageData
+          src: imageData.src,
+          width: imageData.width,
+          height: imageData.height,
+          aspectRatio: imageData.aspectRatio,
+          fitHint: imageData.fitHint
         });
       } catch (error) {
         continue;
@@ -11621,6 +11667,14 @@
       seller: seller,
       date: Date.now(),
       images: sellPhotosForSave.map(function (photo) { return photo.publicUrl || photo.src; }),
+      imageMeta: sellPhotosForSave.map(function (photo) {
+        return {
+          aspectRatio: Number(photo.aspectRatio || 1),
+          width: Number(photo.width || 0),
+          height: Number(photo.height || 0),
+          fitHint: photo.fitHint || "standard"
+        };
+      }),
       isUserListing: true,
       inventoryStatus: existingListing && existingListing.inventoryStatus === "sold" ? "sold" : "active",
       listingStatus: "published",
@@ -11633,7 +11687,9 @@
     let listing = syncListingIntoCatalog(listingPayload);
     try {
       const remoteListing = await saveListingToSupabase(listingPayload);
-      listing = syncListingIntoCatalog(remoteListing);
+      listing = syncListingIntoCatalog(Object.assign({}, remoteListing, {
+        imageMeta: listingPayload.imageMeta || []
+      }));
     } catch (error) {
       console.warn("[IRIS] Unable to persist published listing to Supabase", error);
       updateSellStatus(langText("Annuncio salvato solo in locale. Controlla Supabase e riprova.", "Listing saved locally only. Check Supabase and try again."), true);
@@ -12058,7 +12114,13 @@
         const originalDataUrl = event.target.result;
         const image = new Image();
         image.onerror = function () {
-          resolve(originalDataUrl);
+          resolve({
+            src: originalDataUrl,
+            width: 0,
+            height: 0,
+            aspectRatio: 1,
+            fitHint: "standard"
+          });
         };
         image.onload = function () {
           const ratio = Math.min(1, maxSize / Math.max(image.width, image.height));
@@ -12067,14 +12129,33 @@
           canvas.height = Math.max(1, Math.round(image.height * ratio));
           const context = canvas.getContext("2d");
           if (!context) {
-            resolve(originalDataUrl);
+            resolve({
+              src: originalDataUrl,
+              width: image.width,
+              height: image.height,
+              aspectRatio: image.width / Math.max(image.height, 1),
+              fitHint: image.width / Math.max(image.height, 1) < 0.85 ? "portrait-phone" : image.width / Math.max(image.height, 1) > 1.2 ? "landscape" : "standard"
+            });
             return;
           }
           context.drawImage(image, 0, 0, canvas.width, canvas.height);
           try {
-            resolve(canvas.toDataURL("image/jpeg", quality));
+            const aspectRatio = canvas.width / Math.max(canvas.height, 1);
+            resolve({
+              src: canvas.toDataURL("image/jpeg", quality),
+              width: canvas.width,
+              height: canvas.height,
+              aspectRatio: aspectRatio,
+              fitHint: aspectRatio < 0.85 ? "portrait-phone" : aspectRatio > 1.2 ? "landscape" : "standard"
+            });
           } catch (error) {
-            resolve(originalDataUrl);
+            resolve({
+              src: originalDataUrl,
+              width: image.width,
+              height: image.height,
+              aspectRatio: image.width / Math.max(image.height, 1),
+              fitHint: image.width / Math.max(image.height, 1) < 0.85 ? "portrait-phone" : image.width / Math.max(image.height, 1) > 1.2 ? "landscape" : "standard"
+            });
           }
         };
         image.src = originalDataUrl;
@@ -14441,6 +14522,14 @@
       seller: seller,
       date: Date.now(),
       images: sellPhotosForDraft.map(function (photo) { return photo.publicUrl || photo.src; }),
+      imageMeta: sellPhotosForDraft.map(function (photo) {
+        return {
+          aspectRatio: Number(photo.aspectRatio || 1),
+          width: Number(photo.width || 0),
+          height: Number(photo.height || 0),
+          fitHint: photo.fitHint || "standard"
+        };
+      }),
       inventoryStatus: "draft",
       listingStatus: "draft",
       isUserListing: true,
@@ -14452,7 +14541,9 @@
     let draft = syncListingIntoCatalog(draftPayload);
     try {
       const remoteDraft = await saveListingToSupabase(draftPayload);
-      draft = syncListingIntoCatalog(remoteDraft);
+      draft = syncListingIntoCatalog(Object.assign({}, remoteDraft, {
+        imageMeta: draftPayload.imageMeta || []
+      }));
     } catch (error) {
       console.warn("[IRIS] Unable to persist draft to Supabase", error);
       updateSellStatus(langText("Bozza salvata solo in locale.", "Draft saved locally only."), true);
@@ -14551,7 +14642,18 @@
       button.classList.toggle("sel", button.textContent.trim() === listing.cond);
     });
     state.sellPhotos = Array.isArray(listing.images)
-      ? listing.images.map(function (src, index) { return { id: createId("photo"), name: `draft-${index + 1}`, src: src }; })
+      ? listing.images.map(function (src, index) {
+          const meta = Array.isArray(listing.imageMeta) ? listing.imageMeta[index] || {} : {};
+          return {
+            id: createId("photo"),
+            name: `draft-${index + 1}`,
+            src: src,
+            width: Number(meta.width || 0),
+            height: Number(meta.height || 0),
+            aspectRatio: Number(meta.aspectRatio || 1),
+            fitHint: meta.fitHint || "standard"
+          };
+        })
       : [];
     applyListingOfferPolicyToForm(listing);
     renderSellPhotoPreview();
@@ -16828,6 +16930,7 @@
       : `${((qs("#topnav") && qs("#topnav").offsetHeight) || 64) + 18}px`;
     detailView.style.display = "block";
     detailView.classList.add("active");
+    syncDetailImageFit(product);
     syncTopnavChrome("detail");
     window.scrollTo(0, 0);
     updateMeta("IRIS - " + product.brand + " " + product.name, product.desc.substring(0, 160));

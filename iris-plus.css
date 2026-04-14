@@ -10345,21 +10345,27 @@ body.irisx-luxury .det-imgs {
   position: sticky !important;
   top: calc(var(--iris-nav-height) + var(--iris-nav-sub-height) + 18px) !important;
   align-self: start !important;
+  display: flex !important;
+  justify-content: flex-start !important;
 }
 
 body.irisx-luxury .irisx-detail-media {
   display: grid !important;
   gap: 14px !important;
+  justify-items: start !important;
+  width: 100% !important;
 }
 
 body.irisx-luxury .irisx-detail-stage {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  height: clamp(420px, 62vh, 640px) !important;
-  min-height: clamp(420px, 62vh, 640px) !important;
-  max-height: clamp(420px, 62vh, 640px) !important;
-  padding: 24px !important;
+  height: clamp(540px, 76vh, 820px) !important;
+  min-height: clamp(540px, 76vh, 820px) !important;
+  max-height: clamp(540px, 76vh, 820px) !important;
+  width: min(100%, max(440px, calc(clamp(540px, 76vh, 820px) * var(--iris-detail-stage-ratio, 0.82) + 28px))) !important;
+  margin-inline: 0 auto !important;
+  padding: 14px !important;
   overflow: hidden !important;
   border: 1px solid rgba(241,50,79,.12) !important;
   border-radius: 28px !important;
@@ -10376,6 +10382,15 @@ body.irisx-luxury .irisx-detail-image {
   object-position: center top !important;
   display: block !important;
   margin: 0 auto !important;
+}
+
+body.irisx-luxury .irisx-detail-stage[data-image-fit="portrait"] {
+  width: min(100%, max(500px, calc(clamp(540px, 76vh, 820px) * var(--iris-detail-stage-ratio, 0.82) + 12px))) !important;
+  padding: 10px !important;
+}
+
+body.irisx-luxury .irisx-detail-stage[data-image-fit="landscape"] {
+  width: 100% !important;
 }
 
 body.irisx-luxury .irisx-detail-thumbs {

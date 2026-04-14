@@ -10205,3 +10205,133 @@ body.irisx-luxury.irisx-white-theme .footer-legal a:hover {
   border-color: rgba(252,158,122,.24) !important;
   background: rgba(252,158,122,.08) !important;
 }
+
+body.irisx-luxury:not(.irisx-sell-view) .irisx-drawer-panel,
+body.irisx-luxury.irisx-white-theme .irisx-drawer-panel {
+  background: #ffffff !important;
+  color: #1a1530 !important;
+  border-left: 1px solid rgba(241,50,79,.12) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .irisx-drawer-head,
+body.irisx-luxury:not(.irisx-sell-view) .irisx-drawer-body,
+body.irisx-luxury:not(.irisx-sell-view) .irisx-drawer-foot,
+body.irisx-luxury.irisx-white-theme .irisx-drawer-head,
+body.irisx-luxury.irisx-white-theme .irisx-drawer-body,
+body.irisx-luxury.irisx-white-theme .irisx-drawer-foot {
+  background: #ffffff !important;
+  border-color: rgba(241,50,79,.1) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .irisx-title,
+body.irisx-luxury:not(.irisx-sell-view) .irisx-cart-name,
+body.irisx-luxury:not(.irisx-sell-view) .irisx-cart-row.total,
+body.irisx-luxury:not(.irisx-sell-view) .irisx-checkout-row.total,
+body.irisx-luxury:not(.irisx-sell-view) .irisx-summary-item strong,
+body.irisx-luxury.irisx-white-theme .irisx-title,
+body.irisx-luxury.irisx-white-theme .irisx-cart-name,
+body.irisx-luxury.irisx-white-theme .irisx-cart-row.total,
+body.irisx-luxury.irisx-white-theme .irisx-checkout-row.total,
+body.irisx-luxury.irisx-white-theme .irisx-summary-item strong {
+  color: #1a1530 !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .irisx-subtitle,
+body.irisx-luxury:not(.irisx-sell-view) .irisx-cart-brand,
+body.irisx-luxury:not(.irisx-sell-view) .irisx-cart-price,
+body.irisx-luxury:not(.irisx-sell-view) .irisx-cart-subline,
+body.irisx-luxury:not(.irisx-sell-view) .irisx-empty-state,
+body.irisx-luxury.irisx-white-theme .irisx-subtitle,
+body.irisx-luxury.irisx-white-theme .irisx-cart-brand,
+body.irisx-luxury.irisx-white-theme .irisx-cart-price,
+body.irisx-luxury.irisx-white-theme .irisx-cart-subline,
+body.irisx-luxury.irisx-white-theme .irisx-empty-state {
+  color: rgba(26,21,48,.58) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .irisx-empty-state,
+body.irisx-luxury.irisx-white-theme .irisx-empty-state {
+  background: rgba(252,158,122,.08) !important;
+  border: 1px solid rgba(241,50,79,.12) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .irisx-secondary,
+body.irisx-luxury.irisx-white-theme .irisx-secondary {
+  background: #ffffff !important;
+  color: #F1324F !important;
+  border-color: rgba(241,50,79,.24) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .irisx-home-grid .pc,
+body.irisx-luxury:not(.irisx-sell-view) .det-similar-grid .pc,
+body.irisx-luxury.irisx-white-theme .irisx-home-grid .pc,
+body.irisx-luxury.irisx-white-theme .det-similar-grid .pc {
+  background: #ffffff !important;
+  border-color: rgba(241,50,79,.1) !important;
+  box-shadow: 0 20px 42px rgba(188,148,130,.08) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .irisx-home-grid .pi,
+body.irisx-luxury:not(.irisx-sell-view) .det-similar-grid .pi,
+body.irisx-luxury.irisx-white-theme .irisx-home-grid .pi,
+body.irisx-luxury.irisx-white-theme .det-similar-grid .pi {
+  background: radial-gradient(circle at 50% 42%, rgba(252,158,122,.16), transparent 34%), linear-gradient(180deg, #FFF7F6 0%, #FFEDEA 100%) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .irisx-home-grid .pi-bg,
+body.irisx-luxury:not(.irisx-sell-view) .det-similar-grid .pi-bg,
+body.irisx-luxury.irisx-white-theme .irisx-home-grid .pi-bg,
+body.irisx-luxury.irisx-white-theme .det-similar-grid .pi-bg {
+  background: transparent !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .irisx-home-grid .p-name,
+body.irisx-luxury:not(.irisx-sell-view) .irisx-home-grid .p-price,
+body.irisx-luxury:not(.irisx-sell-view) .det-similar-grid .p-name,
+body.irisx-luxury:not(.irisx-sell-view) .det-similar-grid .p-price,
+body.irisx-luxury.irisx-white-theme .irisx-home-grid .p-name,
+body.irisx-luxury.irisx-white-theme .irisx-home-grid .p-price,
+body.irisx-luxury.irisx-white-theme .det-similar-grid .p-name,
+body.irisx-luxury.irisx-white-theme .det-similar-grid .p-price {
+  color: #1a1530 !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .irisx-home-grid .p-meta,
+body.irisx-luxury:not(.irisx-sell-view) .irisx-home-grid .p-orig,
+body.irisx-luxury:not(.irisx-sell-view) .det-similar-grid .p-meta,
+body.irisx-luxury:not(.irisx-sell-view) .det-similar-grid .p-orig,
+body.irisx-luxury.irisx-white-theme .irisx-home-grid .p-meta,
+body.irisx-luxury.irisx-white-theme .irisx-home-grid .p-orig,
+body.irisx-luxury.irisx-white-theme .det-similar-grid .p-meta,
+body.irisx-luxury.irisx-white-theme .det-similar-grid .p-orig {
+  color: rgba(26,21,48,.42) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .site-footer,
+body.irisx-luxury.irisx-white-theme .site-footer {
+  background: #FFF7F6 !important;
+  border-top-color: rgba(241,50,79,.1) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .site-footer *,
+body.irisx-luxury.irisx-white-theme .site-footer * {
+  text-shadow: none !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .footer-desc,
+body.irisx-luxury:not(.irisx-sell-view) .footer-links a,
+body.irisx-luxury:not(.irisx-sell-view) .footer-copy,
+body.irisx-luxury:not(.irisx-sell-view) .footer-legal a,
+body.irisx-luxury.irisx-white-theme .footer-desc,
+body.irisx-luxury.irisx-white-theme .footer-links a,
+body.irisx-luxury.irisx-white-theme .footer-copy,
+body.irisx-luxury.irisx-white-theme .footer-legal a {
+  color: rgba(26,21,48,.62) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .footer-social a,
+body.irisx-luxury.irisx-white-theme .footer-social a {
+  color: #EE756D !important;
+  border-color: rgba(241,50,79,.14) !important;
+  background: rgba(255,255,255,.72) !important;
+}

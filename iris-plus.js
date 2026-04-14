@@ -6434,7 +6434,7 @@
     const trigger = qs("#tnProfileTrigger");
     const currentView = activeViewOverride || getCurrentReturnView();
     const accountSection = resolveAccountSectionId(state.profileSection || "overview");
-    const isProfileContext = ["profile", "fav", "chat"].includes(currentView);
+    const isProfileContext = currentView === "profile";
     const isOpen = typeof forceOpen === "boolean"
       ? forceOpen
       : !!(menu && menu.classList.contains("open"));
@@ -10295,6 +10295,7 @@
         chatView.classList.add("active");
         showSkeleton("chatList", "chat");
         setActiveNav("chat");
+        window.scrollTo(0, 0);
         setTimeout(function () {
           if (state.viewSyncToken !== viewToken || !qs("#chat-view") || !qs("#chat-view").classList.contains("active")) {
             return;
@@ -16774,6 +16775,10 @@
     qsa(".cl-item").forEach(function (item) {
       item.classList.toggle("on", item.getAttribute("data-chat-id") === String(id));
     });
+    const input = qs("#chatInput");
+    if (input && window.innerWidth > 700) {
+      input.focus();
+    }
     renderNotifications();
   };
 
@@ -16800,14 +16805,19 @@
       at: Date.now()
     });
     conversation.updatedAt = Date.now();
-    chats[conversationIndex] = conversation;
+    chats.splice(conversationIndex, 1);
+    chats.unshift(conversation);
     input.value = "";
     persistChats();
     openChatById(curChat);
     if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       const lastMessage = conversation.msgs[conversation.msgs.length - 1];
       appendChatMessageToSupabase(conversation, lastMessage).then(function (remoteThread) {
-        chats[conversationIndex] = remoteThread;
+        const remoteThreadIndex = chats.findIndex(function (thread) { return String(thread.id) === String(remoteThread.id); });
+        if (remoteThreadIndex > -1) {
+          chats.splice(remoteThreadIndex, 1);
+        }
+        chats.unshift(remoteThread);
         persistChats();
         openChatById(remoteThread.id);
       }).catch(function (error) {

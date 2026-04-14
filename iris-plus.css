@@ -10515,3 +10515,229 @@ body.irisx-luxury .irisx-detail-thumb img {
   height: 100% !important;
   object-fit: cover !important;
 }
+
+/* Chat hardening: override legacy dark/purple chat styles */
+body.irisx-luxury #chat-view,
+body.irisx-luxury.irisx-white-theme #chat-view {
+  padding-top: calc(var(--iris-nav-height) + 2px) !important;
+  min-height: calc(100svh - var(--iris-nav-height)) !important;
+  height: auto !important;
+  background: linear-gradient(180deg, #FFF9FA 0%, #FFF5F7 100%) !important;
+}
+
+body.irisx-luxury #chat-view.active,
+body.irisx-luxury.irisx-white-theme #chat-view.active {
+  display: block !important;
+}
+
+body.irisx-luxury .chat-layout,
+body.irisx-luxury.irisx-white-theme .chat-layout {
+  width: min(1440px, 100vw) !important;
+  min-height: calc(100svh - var(--iris-nav-height) - 8px) !important;
+  margin: 0 auto 24px !important;
+  border-top: 0 !important;
+  border-radius: 0 0 28px 28px !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  box-shadow: 0 18px 48px rgba(188,148,130,.14) !important;
+}
+
+body.irisx-luxury .chat-list,
+body.irisx-luxury.irisx-white-theme .chat-list {
+  width: min(390px, 30vw) !important;
+  background: #ffffff !important;
+  border-right: 1px solid rgba(238,117,109,.14) !important;
+}
+
+body.irisx-luxury .chat-main,
+body.irisx-luxury.irisx-white-theme .chat-main {
+  background: #ffffff !important;
+}
+
+body.irisx-luxury .cl-head,
+body.irisx-luxury.irisx-white-theme .cl-head {
+  padding: 22px 22px 16px !important;
+}
+
+body.irisx-luxury .cl-item,
+body.irisx-luxury.irisx-white-theme .cl-item {
+  padding: 18px 22px !important;
+  align-items: center !important;
+}
+
+body.irisx-luxury .cl-item:hover,
+body.irisx-luxury .cl-item.on,
+body.irisx-luxury.irisx-white-theme .cl-item:hover,
+body.irisx-luxury.irisx-white-theme .cl-item.on {
+  background: linear-gradient(180deg, rgba(252,158,122,.15), rgba(255,255,255,.98)) !important;
+}
+
+body.irisx-luxury .cl-item.on,
+body.irisx-luxury.irisx-white-theme .cl-item.on {
+  box-shadow: inset 3px 0 0 #F1324F;
+}
+
+body.irisx-luxury .cl-name,
+body.irisx-luxury.irisx-white-theme .cl-name {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  color: #1a1530 !important;
+}
+
+body.irisx-luxury .cl-last,
+body.irisx-luxury.irisx-white-theme .cl-last {
+  font-size: 0.9rem !important;
+  line-height: 1.45 !important;
+  color: rgba(26,21,48,.62) !important;
+}
+
+body.irisx-luxury .cl-time,
+body.irisx-luxury.irisx-white-theme .cl-time {
+  font-size: 0.8rem !important;
+  color: rgba(26,21,48,.44) !important;
+}
+
+body.irisx-luxury .cm-head,
+body.irisx-luxury.irisx-white-theme .cm-head {
+  padding: 18px 26px 14px !important;
+}
+
+body.irisx-luxury .cm-name,
+body.irisx-luxury.irisx-white-theme .cm-name {
+  font-size: 1.12rem !important;
+  font-weight: 600 !important;
+  color: #1a1530 !important;
+}
+
+body.irisx-luxury .cm-prod,
+body.irisx-luxury.irisx-white-theme .cm-prod {
+  font-size: 0.88rem !important;
+  color: rgba(26,21,48,.5) !important;
+}
+
+body.irisx-luxury .irisx-chat-role-meta,
+body.irisx-luxury .irisx-chat-product,
+body.irisx-luxury .irisx-chat-action-bar,
+body.irisx-luxury .irisx-chat-offer-zone,
+body.irisx-luxury.irisx-white-theme .irisx-chat-role-meta,
+body.irisx-luxury.irisx-white-theme .irisx-chat-product,
+body.irisx-luxury.irisx-white-theme .irisx-chat-action-bar,
+body.irisx-luxury.irisx-white-theme .irisx-chat-offer-zone {
+  padding-left: 26px !important;
+  padding-right: 26px !important;
+}
+
+body.irisx-luxury .cm-msgs,
+body.irisx-luxury.irisx-white-theme .cm-msgs {
+  min-height: 320px !important;
+  padding: 20px 26px 24px !important;
+  gap: 14px !important;
+  background: linear-gradient(180deg, #FFF9FA 0%, #FFF6F4 100%) !important;
+}
+
+body.irisx-luxury .msg,
+body.irisx-luxury.irisx-white-theme .msg {
+  max-width: min(76%, 520px) !important;
+  padding: 16px 18px 14px !important;
+  border-radius: 22px !important;
+  font-size: 1rem !important;
+  line-height: 1.55 !important;
+  box-shadow: 0 12px 28px rgba(188,148,130,.12) !important;
+}
+
+body.irisx-luxury .msg.me,
+body.irisx-luxury.irisx-white-theme .msg.me {
+  background: linear-gradient(135deg, #F1324F, #EE756D) !important;
+  border: 0 !important;
+  color: #ffffff !important;
+}
+
+body.irisx-luxury .msg.them,
+body.irisx-luxury .msg.other,
+body.irisx-luxury.irisx-white-theme .msg.them,
+body.irisx-luxury.irisx-white-theme .msg.other {
+  background: #ffffff !important;
+  border: 1px solid rgba(238,117,109,.16) !important;
+  color: #1a1530 !important;
+}
+
+body.irisx-luxury .msg-time,
+body.irisx-luxury.irisx-white-theme .msg-time {
+  margin-top: 8px !important;
+  font-size: 0.78rem !important;
+  line-height: 1 !important;
+  font-weight: 500 !important;
+}
+
+body.irisx-luxury .msg.me .msg-time,
+body.irisx-luxury.irisx-white-theme .msg.me .msg-time {
+  color: rgba(255,255,255,.82) !important;
+}
+
+body.irisx-luxury .msg.them .msg-time,
+body.irisx-luxury .msg.other .msg-time,
+body.irisx-luxury.irisx-white-theme .msg.them .msg-time,
+body.irisx-luxury.irisx-white-theme .msg.other .msg-time {
+  color: rgba(26,21,48,.46) !important;
+}
+
+body.irisx-luxury .cm-input,
+body.irisx-luxury.irisx-white-theme .cm-input {
+  padding: 16px 20px calc(16px + env(safe-area-inset-bottom)) !important;
+  align-items: stretch !important;
+  gap: 12px !important;
+}
+
+body.irisx-luxury .cm-input input,
+body.irisx-luxury.irisx-white-theme .cm-input input {
+  min-height: 58px !important;
+  padding: 0 18px !important;
+  font-size: 1rem !important;
+  color: #1a1530 !important;
+  border-radius: 18px !important;
+}
+
+body.irisx-luxury .cm-send,
+body.irisx-luxury.irisx-white-theme .cm-send {
+  min-width: 120px !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.16em !important;
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, #F1324F, #EE756D) !important;
+  color: #ffffff !important;
+}
+
+body.irisx-luxury .irisx-chat-composer-note,
+body.irisx-luxury.irisx-white-theme .irisx-chat-composer-note {
+  font-size: 0.8rem !important;
+  line-height: 1.45 !important;
+  color: rgba(26,21,48,.52) !important;
+}
+
+body.irisx-luxury .tn-links .tn-chat.active::after,
+body.irisx-luxury #tnProfileTrigger.active::after,
+body.irisx-luxury #tnFavBtn.active::after,
+body.irisx-luxury #cartBtn.active::after,
+body.irisx-luxury.irisx-white-theme .tn-links .tn-chat.active::after,
+body.irisx-luxury.irisx-white-theme #tnProfileTrigger.active::after,
+body.irisx-luxury.irisx-white-theme #tnFavBtn.active::after,
+body.irisx-luxury.irisx-white-theme #cartBtn.active::after {
+  display: none !important;
+  content: none !important;
+}
+
+body.irisx-luxury .tn-links .tn-chat.active,
+body.irisx-luxury #tnProfileTrigger.active,
+body.irisx-luxury #tnFavBtn.active,
+body.irisx-luxury #cartBtn.active,
+body.irisx-luxury.irisx-white-theme .tn-links .tn-chat.active,
+body.irisx-luxury.irisx-white-theme #tnProfileTrigger.active,
+body.irisx-luxury.irisx-white-theme #tnFavBtn.active,
+body.irisx-luxury.irisx-white-theme #cartBtn.active {
+  color: #F1324F !important;
+  border-color: rgba(241,50,79,.26) !important;
+  background: rgba(241,50,79,.08) !important;
+  box-shadow: 0 12px 24px rgba(241,50,79,.12) !important;
+}

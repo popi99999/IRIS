@@ -10360,17 +10360,17 @@ body.irisx-luxury .irisx-detail-stage {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  height: clamp(540px, 76vh, 820px) !important;
-  min-height: clamp(540px, 76vh, 820px) !important;
-  max-height: clamp(540px, 76vh, 820px) !important;
-  width: min(100%, max(440px, calc(clamp(540px, 76vh, 820px) * var(--iris-detail-stage-ratio, 0.82) + 28px))) !important;
+  height: clamp(620px, 84vh, 920px) !important;
+  min-height: clamp(620px, 84vh, 920px) !important;
+  max-height: clamp(620px, 84vh, 920px) !important;
+  width: min(100%, max(520px, calc(clamp(620px, 84vh, 920px) * var(--iris-detail-stage-ratio, 0.82) + 6px))) !important;
   margin-inline: 0 auto !important;
-  padding: 14px !important;
+  padding: 0 !important;
   overflow: hidden !important;
-  border: 1px solid rgba(241,50,79,.12) !important;
-  border-radius: 28px !important;
-  background: linear-gradient(180deg, #FFF9FA, #FFF1F4) !important;
-  box-shadow: 0 24px 52px rgba(188,148,130,.10) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 body.irisx-luxury .irisx-detail-image {
@@ -10385,12 +10385,38 @@ body.irisx-luxury .irisx-detail-image {
 }
 
 body.irisx-luxury .irisx-detail-stage[data-image-fit="portrait"] {
-  width: min(100%, max(500px, calc(clamp(540px, 76vh, 820px) * var(--iris-detail-stage-ratio, 0.82) + 12px))) !important;
-  padding: 10px !important;
+  width: min(100%, max(560px, calc(clamp(620px, 84vh, 920px) * var(--iris-detail-stage-ratio, 0.82)))) !important;
+  padding: 0 !important;
 }
 
 body.irisx-luxury .irisx-detail-stage[data-image-fit="landscape"] {
   width: 100% !important;
+}
+
+@media (min-width: 901px) {
+  body.irisx-luxury #detail-view {
+    padding-top: 14px !important;
+  }
+
+  body.irisx-luxury .irisx-detail-page {
+    padding-top: 0 !important;
+  }
+
+  body.irisx-luxury .det-layout {
+    align-items: start !important;
+  }
+
+  body.irisx-luxury .det-imgs {
+    top: 14px !important;
+  }
+
+  body.irisx-luxury .irisx-detail-hero-panel {
+    padding-top: 0 !important;
+  }
+
+  body.irisx-luxury .irisx-detail-header {
+    gap: 6px !important;
+  }
 }
 
 body.irisx-luxury .irisx-detail-thumbs {

@@ -6355,18 +6355,19 @@
 
   function syncNavigationLabels() {
     const locale = getLocaleConfig();
-    const themeLabel = darkMode
-      ? langText("Tema scuro", "Dark mode")
-      : langText("Tema chiaro", "Light mode");
 
     setNodeText("#tnHomeBtn", langText("Home", "Home"));
     setNodeText("#tnShopBtn", langText("Shop", "Shop"));
     setNodeText("#tnAboutBtn", langText("Chi siamo", "About us"));
 
-    setNodeText("#tnMenuProfileBtn", langText("Profilo", "Profile"));
-    setButtonLabelWithBadge("#tnMenuFavBtn", langText("Preferiti", "Favorites"), "fav-badge");
-    setButtonLabelWithBadge("#tnMenuChatBtn", langText("Messaggi", "Messages"), "chat-badge");
-    setNodeText("#modeToggle", themeLabel);
+    setNodeText("#tnMenuAccountBtn", langText("Il mio account", "My account"));
+    setNodeText("#tnMenuOrdersBtn", langText("I miei ordini", "My orders"));
+    setNodeText("#tnMenuSalesBtn", langText("Le mie vendite", "My sales"));
+    setNodeText("#tnMenuBillingBtn", langText("Indirizzi e pagamenti", "Addresses and payments"));
+    setNodeText("#tnMenuSavedSearchBtn", langText("Ricerche salvate e alert", "Saved searches and alerts"));
+    setNodeText("#tnMenuSettingsBtn", langText("Impostazioni", "Settings"));
+    setNodeText("#tnMenuSupportBtn", langText("👩‍💼 Assistenza", "👩‍💼 Assistance"));
+    setNodeText("#opsBtn", langText("Dashboard admin", "Admin dashboard"));
 
     setNodeText("#tnMobileHomeBtn", langText("Home", "Home"));
     setNodeText("#tnMobileShopBtn", langText("Shop", "Shop"));
@@ -6376,7 +6377,6 @@
     setNodeText("#tnMobileChatBtn", langText("Messaggi", "Messages"));
     setNodeText("#tnMobileCartBtn", langText("Carrello", "Cart"));
     setNodeText("#tnMobileSellBtn", langText("Vendi", "Sell"));
-    setNodeText("#tnMobileThemeBtn", themeLabel);
     setNodeText("#irisMobileTabHomeLabel", langText("Home", "Home"));
     setNodeText("#irisMobileTabShopLabel", langText("Shop", "Shop"));
     setNodeText("#irisMobileTabFavLabel", langText("Preferiti", "Favorites"));
@@ -6389,6 +6389,7 @@
     const menu = qs("#tnProfileMenu");
     const trigger = qs("#tnProfileTrigger");
     const currentView = activeViewOverride || getCurrentReturnView();
+    const accountSection = resolveAccountSectionId(state.profileSection || "overview");
     const isProfileContext = ["profile", "fav", "chat"].includes(currentView);
     const isOpen = typeof forceOpen === "boolean"
       ? forceOpen
@@ -6406,15 +6407,20 @@
     }
 
     [
-      ["#tnMenuProfileBtn", "profile"],
-      ["#tnMenuFavBtn", "fav"],
-      ["#tnMenuChatBtn", "chat"]
+      ["#tnMenuAccountBtn", currentView === "profile" && state.profileArea === "account" && accountSection === "overview"],
+      ["#tnMenuOrdersBtn", currentView === "profile" && state.profileArea === "buyer"],
+      ["#tnMenuSalesBtn", currentView === "profile" && state.profileArea === "seller"],
+      ["#tnMenuBillingBtn", currentView === "profile" && state.profileArea === "account" && ["settings_account", "settings_payment"].includes(accountSection)],
+      ["#tnMenuSavedSearchBtn", currentView === "profile" && state.profileArea === "account" && accountSection === "shopping_saved_searches"],
+      ["#tnMenuSettingsBtn", currentView === "profile" && state.profileArea === "account" && ["settings_profile", "settings_privacy", "settings_notifications", "settings_security"].includes(accountSection)],
+      ["#tnMenuSupportBtn", currentView === "profile" && state.profileArea === "account" && accountSection === "help_contact"],
+      ["#opsBtn", currentView === "ops"]
     ].forEach(function (entry) {
       const button = qs(entry[0]);
       if (!button) {
         return;
       }
-      const isActive = entry[1] === currentView;
+      const isActive = Boolean(entry[1]);
       button.classList.toggle("active", isActive);
       button.setAttribute("aria-current", isActive ? "page" : "false");
     });

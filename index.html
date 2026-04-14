@@ -2312,21 +2312,26 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
         <button class="tn-btn tn-sell" id="tnSellBtn" onclick="showPage('sell')">Vendi</button>
       </div>
     </div>
-    <div class="tn-locale-menu" id="tnLocaleMenu"></div>
-    <div class="tn-profile-menu" id="tnProfileMenu">
-      <div class="tn-menu-section">
-        <button class="tn-menu-link" id="tnMenuProfileBtn" data-nav-view="profile" onclick="closeProfileMenu();showBuyView('profile')" aria-label="Apri profilo">Profilo</button>
-        <button class="tn-menu-link tn-fav" id="tnMenuFavBtn" data-nav-view="fav" onclick="closeProfileMenu();showBuyView('fav')" aria-label="Apri preferiti">Preferiti <span class="badge" id="fav-badge" style="display:none">0</span></button>
-        <button class="tn-menu-link tn-chat" id="tnMenuChatBtn" data-nav-view="chat" onclick="closeProfileMenu();showBuyView('chat')" aria-label="Apri messaggi">Messaggi <span class="badge" id="chat-badge" style="display:none">0</span></button>
-      </div>
-      <div class="tn-menu-divider"></div>
-      <div class="tn-menu-section">
-        <button class="tn-menu-link" id="modeToggle" onclick="toggleDarkLight()" aria-label="Cambia tema">Tema</button>
-        <button class="tn-menu-link" id="langToggle" onclick="switchLang()" aria-label="Cambia lingua">EN</button>
-        <button class="tn-menu-link" id="tnMenuAuthBtn">Accedi</button>
-        <button class="tn-menu-link" id="opsBtn" style="display:none" onclick="closeProfileMenu();showBuyView('ops')">Ops</button>
-      </div>
-    </div>
+	    <div class="tn-locale-menu" id="tnLocaleMenu"></div>
+	    <div class="tn-profile-menu" id="tnProfileMenu">
+	      <div class="tn-menu-section">
+	        <button class="tn-menu-link" id="tnMenuAccountBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','overview')" aria-label="Apri il mio account">Il mio account</button>
+	        <button class="tn-menu-link" id="tnMenuOrdersBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('buyer','orders')" aria-label="Apri i miei ordini">I miei ordini</button>
+	        <button class="tn-menu-link" id="tnMenuSalesBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('seller','dashboard')" aria-label="Apri le mie vendite">Le mie vendite</button>
+	      </div>
+	      <div class="tn-menu-divider"></div>
+	      <div class="tn-menu-section">
+	        <button class="tn-menu-link" id="tnMenuBillingBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','settings_account')" aria-label="Apri indirizzi e pagamenti">Indirizzi e pagamenti</button>
+	        <button class="tn-menu-link" id="tnMenuSavedSearchBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','shopping_saved_searches')" aria-label="Apri ricerche salvate e alert">Ricerche salvate e alert</button>
+	        <button class="tn-menu-link" id="tnMenuSettingsBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','settings_profile')" aria-label="Apri impostazioni">Impostazioni</button>
+	        <button class="tn-menu-link" id="tnMenuSupportBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','help_contact')" aria-label="Apri assistenza">👩‍💼 Assistenza</button>
+	      </div>
+	      <div class="tn-menu-divider"></div>
+	      <div class="tn-menu-section">
+	        <button class="tn-menu-link" id="opsBtn" style="display:none" onclick="closeProfileMenu();showBuyView('ops')">Dashboard admin</button>
+	        <button class="tn-menu-link" id="tnMenuAuthBtn">Accedi</button>
+	      </div>
+	    </div>
     <div class="tn-mobile-menu" id="tnMobileMenu">
       <div class="tn-mobile-menu__panel">
         <div class="tn-mobile-menu__head">

@@ -3962,6 +3962,113 @@ body.light-mode .notif-bell:hover {
   margin: 0;
 }
 
+.irisx-chat-action-bar,
+.irisx-chat-offer-zone {
+  padding: 0 1.15rem 1rem;
+}
+
+.irisx-chat-action-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.irisx-chat-action-copy {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 220px;
+  flex: 1 1 280px;
+}
+
+.irisx-chat-action-copy strong {
+  color: rgba(255,255,255,.92);
+  font-size: .88rem;
+}
+
+.irisx-chat-action-copy span {
+  color: rgba(255,255,255,.52);
+  font-size: .76rem;
+  line-height: 1.55;
+}
+
+.irisx-chat-action-buttons {
+  display: flex;
+  gap: .7rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.irisx-chat-action-btn {
+  min-height: 42px !important;
+  padding: .72rem 1rem !important;
+}
+
+.irisx-chat-action-btn--primary {
+  background: linear-gradient(135deg, #F1324F, #EE756D) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
+
+.irisx-chat-offer-card {
+  display: grid;
+  gap: .72rem;
+  padding: 1rem 1.05rem;
+  border: 1px solid rgba(255,169,181,.12);
+  border-radius: 20px;
+  background: rgba(255,255,255,.04);
+}
+
+.irisx-chat-offer-card.is-live {
+  background: linear-gradient(180deg, rgba(241,50,79,.12), rgba(255,255,255,.02));
+}
+
+.irisx-chat-offer-card--empty {
+  background: rgba(255,255,255,.025);
+}
+
+.irisx-chat-offer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .8rem;
+}
+
+.irisx-chat-offer-head strong {
+  display: block;
+  margin-top: .16rem;
+  color: rgba(255,255,255,.94);
+  font-size: 1rem;
+}
+
+.irisx-chat-offer-kicker {
+  font-size: .62rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.42);
+}
+
+.irisx-chat-offer-meta {
+  display: flex;
+  gap: .75rem 1rem;
+  flex-wrap: wrap;
+  color: rgba(255,255,255,.58);
+  font-size: .76rem;
+}
+
+.irisx-chat-offer-note {
+  color: rgba(255,255,255,.7);
+  font-size: .78rem;
+  line-height: 1.6;
+}
+
+.irisx-chat-offer-actions {
+  display: flex;
+  gap: .7rem;
+  flex-wrap: wrap;
+}
+
 .cm-msgs {
   padding: 1.15rem 1.15rem 1.25rem;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.02));
@@ -3982,16 +4089,14 @@ body.light-mode .notif-bell:hover {
 
 .cm-input {
   padding: 0.95rem 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
+  gap: .8rem;
 }
 
-.irisx-chat-attach,
 .cm-send {
   height: 46px;
-}
-
-.irisx-chat-attach {
-  flex: 0 0 46px;
 }
 
 .cm-input input {
@@ -4001,6 +4106,13 @@ body.light-mode .notif-bell:hover {
 
 .cm-send {
   padding-inline: 1rem;
+}
+
+.irisx-chat-composer-note {
+  grid-column: 1 / -1;
+  color: rgba(255,255,255,.48);
+  font-size: .72rem;
+  line-height: 1.5;
 }
 
 .offer-modal {
@@ -9248,6 +9360,33 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
     margin: 0 !important;
   }
 
+  body.irisx-luxury .irisx-chat-action-bar,
+  body.irisx-luxury .irisx-chat-offer-zone {
+    padding: 0 18px 14px !important;
+  }
+
+  body.irisx-luxury .irisx-chat-action-copy strong,
+  body.irisx-luxury .irisx-chat-offer-head strong {
+    color: #1a1530 !important;
+  }
+
+  body.irisx-luxury .irisx-chat-action-copy span,
+  body.irisx-luxury .irisx-chat-offer-meta,
+  body.irisx-luxury .irisx-chat-offer-note,
+  body.irisx-luxury .irisx-chat-offer-kicker {
+    color: rgba(26,21,48,.58) !important;
+  }
+
+  body.irisx-luxury .irisx-chat-offer-card {
+    border-color: rgba(241,50,79,.12) !important;
+    background: #ffffff !important;
+    box-shadow: 0 12px 30px rgba(120,20,40,.06);
+  }
+
+  body.irisx-luxury .irisx-chat-offer-card.is-live {
+    background: linear-gradient(180deg, rgba(241,50,79,.08), rgba(252,158,122,.08)) !important;
+  }
+
   body.irisx-luxury .cm-msgs {
     min-height: 220px;
     padding: 14px 18px 18px !important;
@@ -9302,8 +9441,12 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   }
 
   body.irisx-luxury .cm-send,
-  body.irisx-luxury .irisx-chat-attach {
+  body.irisx-luxury .irisx-chat-action-btn {
     border-radius: 16px !important;
+  }
+
+  body.irisx-luxury .irisx-chat-composer-note {
+    color: rgba(26,21,48,.52) !important;
   }
 
   body.irisx-luxury #profile-view {

@@ -7569,6 +7569,45 @@
       return;
     }
 
+    if (state.opsModalMode === "chat-report") {
+      const conversation = getChatConversationById(state.opsModalPayload && state.opsModalPayload.conversationId);
+      const reportOptions = getChatReportOptions();
+      const product = conversation && (conversation.product || getListingById(conversation.listingId || conversation.productId));
+      const scope = conversation ? getChatConversationScope(conversation) : "buying";
+      const counterparty = conversation ? (scope === "selling" ? conversation.buyer : conversation.seller) : null;
+      modal.innerHTML =
+        "<div class=\"irisx-modal-backdrop\"></div><div class=\"irisx-modal-card irisx-modal-card--support\"><div class=\"irisx-card-head\"><div><div class=\"irisx-title\">" +
+        langText("Segnala conversazione", "Report conversation") +
+        "</div><div class=\"irisx-subtitle\">" +
+        langText("Invia il contesto al team assistenza IRIS. Nessuna immagine, nessun canale esterno.", "Send the context to IRIS support. No images, no external channels.") +
+        "</div></div><button class=\"irisx-close\" onclick=\"closeOpsModal()\">✕</button></div><div class=\"irisx-card-body\">" +
+        (conversation ? `<div class="irisx-support-context-card">
+          <div class="irisx-support-context-kicker">${langText("Contesto collegato automaticamente", "Context linked automatically")}</div>
+          <div class="irisx-support-context-grid">
+            <div><strong>${langText("Contatto", "Counterparty")}</strong><span>${escapeHtml(counterparty && counterparty.name ? counterparty.name : langText("Membro", "Member"))}</span></div>
+            <div><strong>${langText("Ruolo", "Role")}</strong><span>${escapeHtml(langText(scope === "selling" ? "Lato venditore" : "Lato acquirente", scope === "selling" ? "Seller side" : "Buyer side"))}</span></div>
+            <div><strong>${langText("Articolo", "Listing")}</strong><span>${escapeHtml(product ? `${product.brand} ${product.name}` : langText("Non collegato", "Not linked"))}</span></div>
+            <div><strong>${langText("Conversazione", "Conversation")}</strong><span>${escapeHtml(conversation.id)}</span></div>
+          </div>
+        </div>` : "") +
+        "<div class=\"irisx-form-grid irisx-form-grid--support\"><div class=\"irisx-field\"><label for=\"opsChatReason\">" +
+        langText("Motivo", "Reason") +
+        "</label><select id=\"opsChatReason\">" +
+        reportOptions.map(function (option) {
+          return `<option value="${escapeHtml(option.id)}">${escapeHtml(langText(option.it, option.en))}</option>`;
+        }).join("") +
+        "</select></div><div class=\"irisx-field irisx-field--full\"><label for=\"opsChatMessage\">" +
+        langText("Dettagli", "Details") +
+        "</label><textarea id=\"opsChatMessage\" placeholder=\"" +
+        escapeHtml(langText("Spiega cosa e successo in chat: comportamento sospetto, richiesta di pagamento esterno, pressione fuori piattaforma o altro.", "Explain what happened in chat: suspicious behaviour, off-platform payment request, outside-platform pressure, or anything else.")) +
+        "\"></textarea></div></div><div class=\"irisx-actions\"><button class=\"irisx-primary\" onclick=\"submitOpsModal()\">" +
+        langText("Invia ad assistenza", "Send to support") +
+        "</button><button class=\"irisx-secondary\" onclick=\"closeOpsModal()\">" +
+        langText("Annulla", "Cancel") +
+        "</button></div></div></div>";
+      return;
+    }
+
     if (state.opsModalMode === "review") {
       modal.innerHTML =
         "<div class=\"irisx-modal-backdrop\"></div><div class=\"irisx-modal-card\"><div class=\"irisx-card-head\"><div><div class=\"irisx-title\">" +
@@ -7596,6 +7635,11 @@
 
     if (state.opsModalMode === "support") {
       submitSupportTicket(state.opsModalPayload.orderId);
+      return;
+    }
+
+    if (state.opsModalMode === "chat-report") {
+      submitChatSupportTicket(state.opsModalPayload.conversationId);
       return;
     }
 
@@ -9125,6 +9169,9 @@
         renderOfferModal();
         renderNotifications();
         renderProfilePanel();
+        if (qs("#chat-view") && qs("#chat-view").classList.contains("active")) {
+          renderChats();
+        }
         return;
       }
 
@@ -12318,14 +12365,274 @@
     if (chatProduct && !qs("#irisxChatRoleMeta")) {
       chatProduct.insertAdjacentHTML("beforebegin", "<div class=\"irisx-chat-role-meta\" id=\"irisxChatRoleMeta\"></div>");
     }
+    if (chatProduct && !qs("#irisxChatActionBar")) {
+      chatProduct.insertAdjacentHTML("afterend", "<div class=\"irisx-chat-action-bar\" id=\"irisxChatActionBar\"></div><div class=\"irisx-chat-offer-zone\" id=\"irisxChatOfferZone\"></div>");
+    }
     const inputWrap = qs(".cm-input");
-    if (inputWrap && !qs("#chatAttachBtn")) {
-      inputWrap.insertAdjacentHTML("afterbegin", "<button class=\"irisx-chat-attach\" id=\"chatAttachBtn\" onclick=\"openChatAttachmentPlaceholder()\">+</button>");
+    if (inputWrap && !qs("#irisxChatComposerNote")) {
+      inputWrap.insertAdjacentHTML("beforeend", "<div class=\"irisx-chat-composer-note\" id=\"irisxChatComposerNote\"></div>");
     }
   }
 
-  function openChatAttachmentPlaceholder() {
-    showToast(langText("Allegati predisposti come placeholder del prototipo.", "Attachments are prepared as a prototype placeholder."));
+  function getChatConversationById(conversationId) {
+    const match = chats.find(function (thread) {
+      return String(thread.id) === String(conversationId || "");
+    });
+    return match ? normalizeChatThread(match) : null;
+  }
+
+  function getOffersForConversation(conversation) {
+    if (!conversation) {
+      return [];
+    }
+    const listingId = String(conversation.listingId || conversation.productId || (conversation.product && conversation.product.id) || "");
+    const sellerEmail = normalizeEmail(conversation.sellerEmail || (conversation.seller && conversation.seller.email) || "");
+    const buyerEmail = normalizeEmail(conversation.buyerEmail || (conversation.buyer && conversation.buyer.email) || "");
+    return state.offers
+      .map(normalizeOfferRecord)
+      .filter(function (offer) {
+        return String(offer.listingId || offer.productId || "") === listingId &&
+          normalizeEmail(offer.sellerEmail) === sellerEmail &&
+          normalizeEmail(offer.buyerEmail) === buyerEmail;
+      })
+      .sort(function (left, right) {
+        return Number(right.updatedAt || right.createdAt || 0) - Number(left.updatedAt || left.createdAt || 0);
+      });
+  }
+
+  function getCurrentOfferForConversation(conversation) {
+    const offers = getOffersForConversation(conversation);
+    return offers[0] || null;
+  }
+
+  function getChatReportOptions() {
+    return [
+      { id: "suspicious_behavior", it: "Comportamento sospetto", en: "Suspicious behaviour", severity: "support" },
+      { id: "off_platform_request", it: "Richiesta di pagamento esterno", en: "Off-platform payment request", severity: "dispute" },
+      { id: "abusive_language", it: "Linguaggio offensivo", en: "Abusive language", severity: "support" },
+      { id: "counterfeit_request", it: "Dubbi su autenticita o merce", en: "Authenticity or counterfeit concern", severity: "dispute" },
+      { id: "chat_other", it: "Altro nella conversazione", en: "Other conversation issue", severity: "support" }
+    ];
+  }
+
+  function getChatReportLabel(reasonId) {
+    const option = getChatReportOptions().find(function (entry) {
+      return entry.id === reasonId;
+    });
+    return option ? langText(option.it, option.en) : langText("Conversazione", "Conversation");
+  }
+
+  function renderChatComposerNote() {
+    const note = qs("#irisxChatComposerNote");
+    if (!note) {
+      return;
+    }
+    note.textContent = langText(
+      "Solo testo, offerte IRIS e segnalazioni assistite. Nessun allegato immagine in chat.",
+      "Text only, IRIS offers and assisted reports. No image attachments in chat."
+    );
+  }
+
+  function renderChatActionArea(conversation) {
+    const actionBar = qs("#irisxChatActionBar");
+    const offerZone = qs("#irisxChatOfferZone");
+    if (!actionBar || !offerZone) {
+      return;
+    }
+    if (!conversation) {
+      actionBar.innerHTML = "";
+      offerZone.innerHTML = "";
+      return;
+    }
+    const scope = getChatConversationScope(conversation);
+    const product = conversation.product || getListingById(conversation.listingId || conversation.productId);
+    const currentOffer = getCurrentOfferForConversation(conversation);
+    const canMakeOffer = Boolean(
+      product &&
+      scope === "buying" &&
+      product.offersEnabled !== false &&
+      !isCurrentUserListingOwner(product)
+    );
+    const primaryAction = canMakeOffer
+      ? `<button class="irisx-secondary irisx-chat-action-btn irisx-chat-action-btn--primary" onclick="openChatOfferFlow('${escapeHtml(conversation.id)}')">${langText("Fai un'offerta", "Make offer")}</button>`
+      : product
+        ? `<button class="irisx-secondary irisx-chat-action-btn" onclick="showDetail(${inlineJsValue(product.id)})">${langText("Apri articolo", "Open listing")}</button>`
+        : "";
+    actionBar.innerHTML = `
+      <div class="irisx-chat-action-copy">
+        <strong>${escapeHtml(scope === "selling" ? langText("Gestisci buyer e offerta", "Manage buyer and offer") : langText("Parla col seller in modo sicuro", "Chat safely with the seller"))}</strong>
+        <span>${escapeHtml(scope === "selling"
+          ? langText("Messaggi, offerte ricevute e segnalazioni passano tutte da IRIS.", "Messages, received offers, and reports all stay inside IRIS.")
+          : langText("Usa solo messaggi testuali. Offerte e segnalazioni restano tracciate dentro IRIS.", "Use text-only messages. Offers and reports stay tracked inside IRIS."))}</span>
+      </div>
+      <div class="irisx-chat-action-buttons">
+        ${primaryAction}
+        <button class="irisx-secondary irisx-chat-action-btn" onclick="openChatReportModal('${escapeHtml(conversation.id)}')">${langText("Segnala a assistenza", "Report to support")}</button>
+      </div>
+    `;
+    if (!currentOffer) {
+      offerZone.innerHTML = product && canMakeOffer
+        ? `<div class="irisx-chat-offer-card irisx-chat-offer-card--empty">
+            <div class="irisx-chat-offer-copy">
+              <strong>${escapeHtml(langText("Nessuna offerta inviata ancora", "No offer sent yet"))}</strong>
+              <span>${escapeHtml(langText("Se il prezzo non ti convince, puoi inviare un'offerta vincolante direttamente da questa chat.", "If the price does not work for you, you can send a binding offer directly from this chat."))}</span>
+            </div>
+          </div>`
+        : "";
+      return;
+    }
+    const offerStatus = getOfferStatusLabel(currentOffer);
+    const authStatus = getOfferAuthorizationLabel(currentOffer);
+    const sellerPendingActions = scope === "selling" && currentOffer.status === "pending" && !isOfferExpired(currentOffer)
+      ? `<div class="irisx-chat-offer-actions">
+          <button class="irisx-primary" onclick="respondToOfferFromChat('${currentOffer.id}','accepted')">${langText("Accetta offerta", "Accept offer")}</button>
+          <button class="irisx-secondary" onclick="respondToOfferFromChat('${currentOffer.id}','declined')">${langText("Rifiuta", "Decline")}</button>
+        </div>`
+      : currentOffer.orderId
+        ? `<div class="irisx-chat-offer-actions"><button class="irisx-secondary" onclick="openOrderDetail('${currentOffer.orderId}','${scope === "selling" ? "seller" : "buyer"}')">${langText("Apri ordine", "Open order")}</button></div>`
+        : "";
+    offerZone.innerHTML = `
+      <div class="irisx-chat-offer-card${currentOffer.status === "pending" ? " is-live" : ""}">
+        <div class="irisx-chat-offer-head">
+          <div>
+            <div class="irisx-chat-offer-kicker">${escapeHtml(langText("Offerta collegata alla conversazione", "Offer linked to this conversation"))}</div>
+            <strong>${escapeHtml(formatCurrency(currentOffer.offerAmount || currentOffer.amount || 0))}</strong>
+          </div>
+          <span class="irisx-badge${currentOffer.status === "pending" ? "" : " irisx-badge--soft"}">${escapeHtml(offerStatus)}</span>
+        </div>
+        <div class="irisx-chat-offer-meta">
+          <span>${escapeHtml(langText("Autorizzazione", "Authorization"))}: ${escapeHtml(authStatus)}</span>
+          <span>${escapeHtml(langText("Scadenza", "Expiration"))}: ${escapeHtml(formatDateTime(currentOffer.expiresAt))}</span>
+        </div>
+        <div class="irisx-chat-offer-note">${escapeHtml(getOfferStateCopy(currentOffer, scope === "selling" ? "seller" : "buyer", isOfferExpired(currentOffer)))}</div>
+        ${sellerPendingActions}
+      </div>
+    `;
+  }
+
+  function openChatOfferFlow(conversationId) {
+    const conversation = getChatConversationById(conversationId);
+    const product = conversation && (conversation.product || getListingById(conversation.listingId || conversation.productId));
+    if (!conversation || !product) {
+      showToast(langText("Articolo collegato alla chat non disponibile.", "Linked listing is not available."));
+      return;
+    }
+    openOffer(product.id);
+  }
+
+  async function respondToOfferFromChat(offerId, decision) {
+    await respondToOffer(offerId, decision);
+    if (qs("#chat-view") && qs("#chat-view").classList.contains("active")) {
+      renderChats();
+    }
+  }
+
+  function openChatReportModal(conversationId) {
+    const conversation = getChatConversationById(conversationId);
+    if (!conversation) {
+      showToast(langText("Conversazione non disponibile.", "Conversation not available."));
+      return;
+    }
+    openOpsModal("chat-report", { conversationId: conversation.id });
+  }
+
+  async function submitChatSupportTicket(conversationId) {
+    const conversation = getChatConversationById(conversationId);
+    if (!conversation || !state.currentUser) {
+      return;
+    }
+    const reasonField = qs("#opsChatReason");
+    const messageField = qs("#opsChatMessage");
+    const reason = reasonField ? reasonField.value.trim() : "suspicious_behavior";
+    const message = messageField ? messageField.value.trim() : "";
+    if (!message) {
+      showToast(langText("Spiega cosa e successo nella conversazione.", "Explain what happened in the conversation."));
+      return;
+    }
+    const issue = getChatReportOptions().find(function (entry) { return entry.id === reason; }) || getChatReportOptions()[0];
+    const product = conversation.product || getListingById(conversation.listingId || conversation.productId) || null;
+    const relatedOrder = product ? getRelevantOrderForListing(product) : null;
+    const requesterRole = getChatConversationScope(conversation) === "selling" ? "seller" : "buyer";
+    const counterparty = requesterRole === "seller" ? conversation.buyer : conversation.seller;
+    const ticket = normalizeSupportTicketRecord({
+      id: createId("tkt"),
+      orderId: relatedOrder ? relatedOrder.id : "",
+      orderNumber: relatedOrder ? relatedOrder.number : ("CHAT-" + String(conversation.id).slice(-6)),
+      productId: product ? product.id : "",
+      productTitle: product ? `${product.brand} ${product.name}` : langText("Conversazione senza articolo", "Conversation without listing"),
+      buyerEmail: normalizeEmail(conversation.buyerEmail || (conversation.buyer && conversation.buyer.email) || ""),
+      sellerEmail: normalizeEmail(conversation.sellerEmail || (conversation.seller && conversation.seller.email) || ""),
+      requesterId: state.currentUser.id || "",
+      requesterEmail: normalizeEmail(state.currentUser.email || ""),
+      requesterRole: requesterRole,
+      severity: issue.severity || "support",
+      status: issue.severity === "dispute" ? "in_review" : "open",
+      reason: issue.id,
+      message: message,
+      contextSnapshot: {
+        source: "chat",
+        conversationId: conversation.id,
+        counterpartName: counterparty && counterparty.name ? counterparty.name : "",
+        counterpartEmail: counterparty && counterparty.email ? counterparty.email : "",
+        listingId: product ? product.id : "",
+        listingTitle: product ? `${product.brand} ${product.name}` : "",
+        latestMessage: conversation.msgs.length ? conversation.msgs[conversation.msgs.length - 1].text : ""
+      },
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
+    state.supportTickets.unshift(ticket);
+    persistSupportTickets();
+    try {
+      const remoteTicket = await saveSupportTicketToSupabase(ticket);
+      state.supportTickets = state.supportTickets.map(function (candidate) {
+        return candidate.id === ticket.id ? remoteTicket : candidate;
+      });
+      persistSupportTickets();
+    } catch (error) {
+      console.warn("[IRIS] Unable to save chat support ticket to Supabase", error);
+    }
+    if (relatedOrder) {
+      updateOrderRecord(relatedOrder.id, function (currentOrder) {
+        currentOrder.supportTicketIds.push(ticket.id);
+        appendOrderEvent(currentOrder, "chat_report_opened", langText("Segnalazione chat aperta", "Chat report opened"), {
+          ticketId: ticket.id,
+          conversationId: conversation.id
+        });
+        return currentOrder;
+      });
+    }
+    enqueueEmail("support-request", PLATFORM_CONFIG.supportEmail, {
+      preview: `${ticket.orderNumber} - ${message}`
+    });
+    enqueueEmail("issue-reported", ticket.requesterEmail, {
+      preview: message
+    });
+    createNotification({
+      audience: "admin",
+      kind: "support",
+      title: langText("Segnalazione chat", "Chat report"),
+      body: `${ticket.productTitle} · ${getChatReportLabel(ticket.reason)}`,
+      recipientEmail: PLATFORM_CONFIG.ownerEmail,
+      conversationId: conversation.id
+    });
+    createNotification({
+      audience: "user",
+      kind: "support",
+      title: langText("Segnalazione inviata", "Report sent"),
+      body: ticket.productTitle,
+      recipientEmail: ticket.requesterEmail,
+      conversationId: conversation.id
+    });
+    recordAuditEvent("chat_report_opened", conversation.id, {
+      ticketId: ticket.id,
+      reason: ticket.reason
+    });
+    closeOpsModal();
+    renderProfilePanel();
+    renderOpsView();
+    renderNotifications();
+    showToast(langText("Segnalazione inviata al team assistenza.", "Report sent to the support team."));
   }
 
   function getChatUnreadCount() {
@@ -13577,11 +13884,17 @@
       renderProfilePanel();
       renderNotifications();
       renderOpsView();
+      if (qs("#chat-view") && qs("#chat-view").classList.contains("active")) {
+        renderChats();
+      }
       return;
     }
     renderProfilePanel();
     renderNotifications();
     renderOpsView();
+    if (qs("#chat-view") && qs("#chat-view").classList.contains("active")) {
+      renderChats();
+    }
     showToast(normalizedDecision === "accepted"
       ? langText("Offerta accettata e pagamento catturato.", "Offer accepted and payment captured.")
       : langText("Offerta rifiutata e autorizzazione rilasciata.", "Offer declined and authorization released."));
@@ -15589,6 +15902,7 @@
 
   renderChats = function () {
     ensureChatUiEnhancements();
+    renderChatComposerNote();
     const list = qs("#chatList");
     const listTitle = qs(".cl-title");
     const messages = qs("#cmMsgs");
@@ -15629,6 +15943,7 @@
       if (productPreview) {
         productPreview.innerHTML = "";
       }
+      renderChatActionArea(null);
       if (roleMeta) {
         roleMeta.textContent = scopeCopy.subtitle;
       }
@@ -15702,6 +16017,7 @@
         ? `<button class="irisx-chat-product-card" onclick="showDetail(${inlineJsValue(conversation.product.id)})"><strong>${escapeHtml(conversation.product.brand)}</strong><span>${escapeHtml(conversation.product.name)}</span><em>${escapeHtml(formatCurrency(conversation.product.price || 0))}</em><small class="irisx-chat-role-line"><span class="irisx-chat-role-badge">${escapeHtml(getChatRoleBadgeLabel(conversation))}</span><span>${escapeHtml(getChatRoleContext(conversation))}</span></small></button>`
         : "";
     }
+    renderChatActionArea(conversation);
     if (messages) {
       messages.innerHTML = conversation.msgs.length
         ? conversation.msgs.map(function (message) {
@@ -16217,7 +16533,7 @@
   }
 
   function getIssueLabel(issueId) {
-    const issue = getIssueOptions().find(function (option) { return option.id === issueId; });
+    const issue = getIssueOptions().concat(getChatReportOptions()).find(function (option) { return option.id === issueId; });
     return issue ? langText(issue.it, issue.en) : langText("Supporto", "Support");
   }
 
@@ -16766,7 +17082,9 @@
   window.setCheckoutStep = setCheckoutStep;
   window.finalizeCheckout = finalizeCheckout;
   window.backToChats = backToChats;
-  window.openChatAttachmentPlaceholder = openChatAttachmentPlaceholder;
+  window.openChatOfferFlow = openChatOfferFlow;
+  window.respondToOfferFromChat = respondToOfferFromChat;
+  window.openChatReportModal = openChatReportModal;
   window.reportListing = reportListing;
   window.toggleProfileMenu = toggleProfileMenu;
   window.closeProfileMenu = closeProfileMenu;

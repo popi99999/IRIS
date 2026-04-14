@@ -2005,6 +2005,72 @@ body.light-mode .irisx-home-strip span {
   gap: 1rem;
 }
 
+.irisx-admin-sidebar {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+
+.irisx-section-tabs--admin {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.irisx-admin-command-grid,
+.irisx-admin-two-col {
+  display: grid;
+  gap: 1rem;
+}
+
+.irisx-admin-command-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.irisx-admin-two-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.irisx-admin-command-card {
+  display: grid;
+  gap: 0.45rem;
+  min-height: 132px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.irisx-admin-command-card strong {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.irisx-admin-command-card span {
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.irisx-inline-card--admin {
+  align-items: flex-start;
+}
+
+.irisx-inline-card--admin > div:first-child {
+  min-width: 0;
+}
+
+.irisx-inline-card--admin .irisx-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.irisx-admin-meta {
+  max-width: 320px;
+  font-size: 0.68rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.46);
+  word-break: break-word;
+}
+
 .irisx-static-field {
   min-height: 44px;
   display: flex;
@@ -7564,6 +7630,10 @@ body.irisx-luxury .det-section--seller{
 }
 
 @media (max-width:900px){
+  .irisx-admin-two-col {
+    grid-template-columns: 1fr;
+  }
+
   body.irisx-luxury .tn-row--main{
     display:grid;
     position:static;
@@ -7803,6 +7873,15 @@ body.irisx-luxury .det-section--seller{
 .irisx-addr-item:hover {
   background: rgba(255,169,181,.12);
   color: #fff;
+}
+
+body.irisx-luxury.irisx-white-theme .irisx-admin-command-card strong {
+  color: #111827 !important;
+}
+
+body.irisx-luxury.irisx-white-theme .irisx-admin-command-card span,
+body.irisx-luxury.irisx-white-theme .irisx-admin-meta {
+  color: rgba(17,24,39,.64) !important;
 }
 
 body.irisx-luxury .irisx-addr-drop {

@@ -7649,6 +7649,101 @@
     }
   }
 
+  function getAdminChatThreads() {
+    if (typeof chats === "undefined" || !Array.isArray(chats)) {
+      return [];
+    }
+    return chats
+      .map(normalizeChatThread)
+      .sort(function (left, right) { return Number(right.updatedAt || 0) - Number(left.updatedAt || 0); });
+  }
+
+  function getAdminSectionHint(sectionId) {
+    const hints = {
+      overview: langText("Snapshot generale e code urgenti.", "Global snapshot and urgent queues."),
+      users: langText("Verifica account, blocchi e stato utente.", "Account verification, blocks, and user status."),
+      listings: langText("Bozze, annunci live, archivi e seller.", "Drafts, live listings, archives, and sellers."),
+      orders: langText("Lifecycle ordine, shipping e stato buyer.", "Order lifecycle, shipping, and buyer state."),
+      payments: langText("Stripe, payout, refund e mismatch.", "Stripe, payouts, refunds, and mismatches."),
+      support: langText("Ticket, dispute, outbox e assistenza.", "Tickets, disputes, outbox, and support."),
+      chats: langText("Conversazioni e contesto prodotto.", "Conversations and product context."),
+      authentication: langText("Ordini e richieste in revisione.", "Orders and requests under review."),
+      moderation: langText("Blocchi, segnalazioni e rischio.", "Blocks, reports, and risk."),
+      audit: langText("Storico azioni e tracciabilità.", "Action history and traceability."),
+      content: langText("Policy, pagine trust e mail.", "Policies, trust pages, and mail."),
+      settings: langText("Fee, owner inbox e setup operativo.", "Fees, owner inbox, and operational setup.")
+    };
+    return hints[sectionId] || "";
+  }
+
+  function adminQuickBanUser(email) {
+    if (!isCurrentUserAdmin()) {
+      showToast(langText("Azione riservata agli admin.", "Admin-only action."));
+      return;
+    }
+    const normalizedEmail = normalizeEmail(email);
+    const user = state.users.find(function (candidate) {
+      return normalizeEmail(candidate.email) === normalizedEmail;
+    }) || null;
+    if (!user) {
+      showToast(langText("Utente non trovato.", "User not found."));
+      return;
+    }
+    banIdentityIdentifiers(user.email, user.phone, langText("Bloccato da dashboard admin", "Blocked from admin dashboard"));
+    state.users = state.users.map(function (candidate) {
+      if (normalizeEmail(candidate.email) !== normalizedEmail) {
+        return candidate;
+      }
+      return Object.assign({}, candidate, { accountStatus: "blocked" });
+    });
+    saveJson(STORAGE_KEYS.users, state.users);
+    recordAuditEvent("admin_user_blocked", user.email, {
+      userId: user.id || "",
+      phone: user.phone || ""
+    });
+    renderOpsView();
+    showToast(langText("Account bloccato.", "Account blocked."));
+  }
+
+  function adminRestoreUserAccount(email) {
+    if (!isCurrentUserAdmin()) {
+      showToast(langText("Azione riservata agli admin.", "Admin-only action."));
+      return;
+    }
+    const normalizedEmail = normalizeEmail(email);
+    const user = state.users.find(function (candidate) {
+      return normalizeEmail(candidate.email) === normalizedEmail;
+    }) || null;
+    if (!user) {
+      showToast(langText("Utente non trovato.", "User not found."));
+      return;
+    }
+    state.banRegistry = normalizeBanRegistry({
+      entries: state.banRegistry.entries.map(function (entry) {
+        if (
+          (entry.type === "email" && normalizeEmail(entry.value) === normalizedEmail) ||
+          (entry.type === "phone" && normalizePhoneNumber(entry.value) === normalizePhoneNumber(user.phone || ""))
+        ) {
+          return Object.assign({}, entry, { active: false });
+        }
+        return entry;
+      })
+    });
+    persistBanRegistry();
+    state.users = state.users.map(function (candidate) {
+      if (normalizeEmail(candidate.email) !== normalizedEmail) {
+        return candidate;
+      }
+      return Object.assign({}, candidate, { accountStatus: "active" });
+    });
+    saveJson(STORAGE_KEYS.users, state.users);
+    recordAuditEvent("admin_user_restored", user.email, {
+      userId: user.id || ""
+    });
+    renderOpsView();
+    showToast(langText("Account riattivato.", "Account restored."));
+  }
+
   function renderOpsView() {
     const container = qs("#ops-view");
     if (!container) {
@@ -7660,63 +7755,349 @@
       return;
     }
 
-    const pendingShipments = state.orders.filter(function (order) { return order.status === "paid"; }).length;
-    const openTickets = state.supportTickets.filter(function (ticket) { return ticket.status !== "resolved"; }).length;
-    const readyPayouts = state.orders.filter(function (order) { return order.payment && order.payment.payoutStatus === "ready"; }).length;
+    const users = getRecentAdminUsers();
+    const listings = state.listings.slice().sort(function (left, right) {
+      return Number(right.date || right.createdAt || 0) - Number(left.date || left.createdAt || 0);
+    });
+    const orders = state.orders.slice().sort(function (left, right) {
+      return Number(right.createdAt || 0) - Number(left.createdAt || 0);
+    });
+    const supportTickets = state.supportTickets.slice().sort(function (left, right) {
+      return Number(right.updatedAt || right.createdAt || 0) - Number(left.updatedAt || left.createdAt || 0);
+    });
+    const auditLog = state.auditLog.slice().sort(function (left, right) {
+      return Number(right.at || 0) - Number(left.at || 0);
+    });
+    const measurementRequests = state.measurementRequests.slice().sort(function (left, right) {
+      return Number(right.updatedAt || right.createdAt || 0) - Number(left.updatedAt || left.createdAt || 0);
+    });
+    const emailOutbox = state.emailOutbox.slice().sort(function (left, right) {
+      return Number(right.createdAt || 0) - Number(left.createdAt || 0);
+    });
+    const chatThreads = getAdminChatThreads();
+    const activeBanEntries = state.banRegistry.entries.filter(function (entry) { return entry.active !== false; });
+    const openTickets = supportTickets.filter(function (ticket) { return ticket.status !== "resolved"; });
+    const disputeTickets = openTickets.filter(function (ticket) { return ticket.severity === "dispute"; });
+    const readyPayouts = orders.filter(function (order) { return order.payment && order.payment.payoutStatus === "ready"; });
+    const pendingShipments = orders.filter(function (order) {
+      return ["paid", "awaiting_shipment", "in_authentication"].includes(order.status);
+    });
+    const authOrders = orders.filter(function (order) { return order.status === "in_authentication"; });
+    const draftListings = listings.filter(function (listing) { return (listing.listingStatus || "draft") === "draft"; });
+    const archivedListings = listings.filter(function (listing) { return listing.inventoryStatus === "archived"; });
+    const reportedChats = supportTickets.filter(function (ticket) { return String(ticket.reason || "").indexOf("chat_") === 0; });
+    const unreadAdminNotifications = state.notifications.filter(function (notification) {
+      return notification.audience === "admin" && notification.unread;
+    });
+    const sections = [
+      { id: "overview", label: langText("Panoramica", "Overview"), count: openTickets.length + readyPayouts.length },
+      { id: "users", label: langText("Utenti", "Users"), count: users.length },
+      { id: "listings", label: langText("Annunci", "Listings"), count: listings.length },
+      { id: "orders", label: langText("Ordini", "Orders"), count: orders.length },
+      { id: "payments", label: langText("Pagamenti", "Payments"), count: readyPayouts.length },
+      { id: "support", label: langText("Assistenza", "Support"), count: openTickets.length },
+      { id: "chats", label: langText("Chat & offerte", "Chats & offers"), count: chatThreads.length },
+      { id: "authentication", label: langText("Autenticazione", "Authentication"), count: authOrders.length + measurementRequests.length },
+      { id: "moderation", label: langText("Moderazione", "Moderation"), count: activeBanEntries.length + reportedChats.length },
+      { id: "audit", label: langText("Audit log", "Audit log"), count: auditLog.length },
+      { id: "content", label: langText("Contenuti", "Content"), count: emailOutbox.length },
+      { id: "settings", label: langText("Impostazioni", "Settings"), count: 0 }
+    ];
 
-    container.innerHTML =
-      "<div class=\"irisx-ops-shell\"><div class=\"irisx-profile-head\"><div class=\"irisx-profile-title\">OPS</div><div class=\"irisx-kicker\">" +
-      langText("Console owner", "Owner console") +
-      "</div></div><div class=\"irisx-ops-grid\"><section class=\"irisx-account-card\"><h3>" +
-      langText("Panoramica", "Overview") +
-      "</h3><div class=\"irisx-account-stats\"><div class=\"irisx-account-stat\"><strong>" +
-      state.orders.length +
-      "</strong><span>" +
-      langText("ordini", "orders") +
-      "</span></div><div class=\"irisx-account-stat\"><strong>" +
-      pendingShipments +
-      "</strong><span>" +
-      langText("da spedire", "to ship") +
-      "</span></div><div class=\"irisx-account-stat\"><strong>" +
-      openTickets +
-      "</strong><span>" +
-      langText("ticket aperti", "open tickets") +
-      "</span></div><div class=\"irisx-account-stat\"><strong>" +
-      readyPayouts +
-      "</strong><span>" +
-      langText("payout ready", "payout ready") +
-      "</span></div></div></section><section class=\"irisx-account-card\"><h3>" +
-      langText("Outbox email", "Email outbox") +
-      "</h3><div class=\"irisx-order-list\">" +
-      (state.emailOutbox.length
-        ? state.emailOutbox.slice(0, 6).map(function (mail) {
-            return "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" + escapeHtml(mail.subject) + "</strong><span>" + escapeHtml(mail.to) + "</span></div><div class=\"irisx-order-items\"><div>" + escapeHtml(mail.type) + "</div><div>" + formatRelativeTime(mail.createdAt) + "</div></div></div>";
-          }).join("")
-        : "<div class=\"irisx-empty-state\">" + langText("Nessuna email in coda.", "No queued emails.") + "</div>") +
-      "</div></section></div><div class=\"irisx-profile-section\"><div class=\"irisx-profile-head\"><div class=\"irisx-profile-title\">" +
-      langText("Ordini", "Orders") +
-      "</div></div><div class=\"irisx-order-list\">" +
-      (state.orders.length
-        ? state.orders.map(function (order) {
-            const canMarkPayout = order.payment && order.payment.payoutStatus === "ready";
-            return "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" + escapeHtml(order.number) + "</strong><span>" + escapeHtml(getOrderStatusLabel(order)) + "</span></div><div class=\"irisx-order-items\"><div>" + escapeHtml(order.buyerEmail) + " - " + escapeHtml(formatCurrency(order.total)) + "</div><div>" + escapeHtml(order.items.map(function (item) { return item.brand + " " + item.name; }).join(", ")) + "</div></div>" + (canMarkPayout ? "<div class=\"irisx-actions\"><button class=\"irisx-secondary\" onclick=\"markOrderPayoutPaid('" + order.id + "')\">" + langText("Segna payout pagato", "Mark payout paid") + "</button></div>" : "") + "</div>";
-          }).join("")
-        : "<div class=\"irisx-empty-state\">" + langText("Nessun ordine ancora.", "No orders yet.") + "</div>") +
-      "</div></div><div class=\"irisx-profile-section\"><div class=\"irisx-profile-head\"><div class=\"irisx-profile-title\">" +
-      langText("Supporto", "Support") +
-      "</div></div><div class=\"irisx-order-list\">" +
-      (state.supportTickets.length
-        ? state.supportTickets.map(function (ticket) {
-            return "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" + escapeHtml(ticket.id) + "</strong><span>" + escapeHtml(ticket.status) + "</span></div><div class=\"irisx-order-items\"><div>" + escapeHtml(ticket.reason) + " - " + escapeHtml(ticket.buyerEmail) + "</div><div>" + escapeHtml(ticket.message) + "</div></div>" + (ticket.status !== "resolved" ? "<div class=\"irisx-actions\"><button class=\"irisx-secondary\" onclick=\"resolveSupportTicket('" + ticket.id + "')\">" + langText("Segna risolto", "Mark resolved") + "</button></div>" : "") + "</div>";
-          }).join("")
-        : "<div class=\"irisx-empty-state\">" + langText("Nessun ticket aperto.", "No open tickets.") + "</div>") +
-      "</div></div><div class=\"irisx-profile-section\"><div class=\"irisx-profile-head\"><div class=\"irisx-profile-title\">" +
-      langText("Utenti recenti", "Recent users") +
-      "</div></div><div class=\"irisx-order-list\">" +
-      getRecentAdminUsers().slice(0, 6).map(function (user) {
-        return "<div class=\"irisx-order-card\"><div class=\"irisx-order-head\"><strong>" + escapeHtml(user.name || user.email) + "</strong><span>" + escapeHtml(user.role || "member") + "</span></div><div class=\"irisx-order-items\"><div>" + escapeHtml(user.email) + "</div></div></div>";
-      }).join("") +
-      "</div></div></div>";
+    if (!sections.some(function (section) { return section.id === state.adminSection; })) {
+      state.adminSection = "overview";
+    }
+
+    const summaryCards = [
+      { value: orders.length, label: langText("Ordini totali", "Total orders") },
+      { value: openTickets.length, label: langText("Ticket aperti", "Open tickets") },
+      { value: readyPayouts.length, label: langText("Payout da chiudere", "Ready payouts") },
+      { value: activeBanEntries.length, label: langText("Blocchi attivi", "Active blocks") },
+      { value: chatThreads.length, label: langText("Conversazioni", "Conversations") },
+      { value: unreadAdminNotifications.length, label: langText("Alert admin", "Admin alerts") }
+    ];
+
+    const sidebarHtml = sections.map(function (section) {
+      return `<button class="irisx-sidebar-link${state.adminSection === section.id ? " on" : ""}" onclick="setAdminSection('${section.id}')">
+        <span class="irisx-sidebar-link__main">
+          <strong>${escapeHtml(section.label)}</strong>
+          <small>${escapeHtml(getAdminSectionHint(section.id))}</small>
+        </span>
+        <em>${section.count ? escapeHtml(String(section.count)) : "•"}</em>
+      </button>`;
+    }).join("");
+
+    let content = "";
+    if (state.adminSection === "users") {
+      content = users.length ? `<div class="irisx-card-stack">${users.map(function (user) {
+        const normalizedEmail = normalizeEmail(user.email);
+        const listingCount = listings.filter(function (listing) { return normalizeEmail(listing.ownerEmail) === normalizedEmail; }).length;
+        const buyerOrderCount = orders.filter(function (order) { return normalizeEmail(order.buyerEmail) === normalizedEmail; }).length;
+        const sellerOrderCount = orders.filter(function (order) {
+          return order.items.some(function (item) { return normalizeEmail(item.sellerEmail) === normalizedEmail; });
+        }).length;
+        const isBlocked = (user.accountStatus || "active") === "blocked" || isEmailBanned(user.email);
+        const verificationBits = [
+          user.verification && user.verification.emailVerified ? langText("email ok", "email ok") : langText("email pending", "email pending"),
+          user.verification && user.verification.phoneVerified ? langText("telefono ok", "phone ok") : langText("telefono pending", "phone pending")
+        ];
+        return `<div class="irisx-inline-card irisx-inline-card--admin">
+          <div>
+            <strong>${escapeHtml(user.name || user.email)}</strong>
+            <span>${escapeHtml(user.email)} · ${escapeHtml(user.role || "member")} · ${escapeHtml(verificationBits.join(" · "))}</span>
+            <em>${buyerOrderCount} ${langText("ordini buyer", "buyer orders")} · ${sellerOrderCount} ${langText("ordini seller", "seller orders")} · ${listingCount} ${langText("annunci", "listings")}</em>
+          </div>
+          <div class="irisx-actions">
+            <span class="irisx-badge">${escapeHtml(user.accountStatus || (isBlocked ? "blocked" : "active"))}</span>
+            ${isBlocked ? `<button class="irisx-secondary" onclick="adminRestoreUserAccount('${escapeHtml(user.email)}')">${langText("Riattiva", "Restore")}</button>` : `<button class="irisx-secondary" onclick="adminQuickBanUser('${escapeHtml(user.email)}')">${langText("Blocca", "Block")}</button>`}
+          </div>
+        </div>`;
+      }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun utente disponibile.", "No users available.")}</div>`;
+    } else if (state.adminSection === "listings") {
+      content = listings.length ? `<div class="irisx-card-stack">${listings.map(function (listing) {
+        const listingStatus = listing.listingStatus || "draft";
+        const inventoryStatus = listing.inventoryStatus || "active";
+        return `<div class="irisx-inline-card irisx-inline-card--admin">
+          <div>
+            <strong>${escapeHtml(listing.brand)} ${escapeHtml(listing.name)}</strong>
+            <span>${escapeHtml(listing.ownerEmail || "")} · ${escapeHtml(formatCurrency(listing.price || 0))}</span>
+            <em>${escapeHtml(listingStatus)} · ${escapeHtml(inventoryStatus)} · ${escapeHtml(listing.cat || "")}</em>
+          </div>
+          <div class="irisx-actions">
+            <span class="irisx-badge">${escapeHtml(listingStatus)}</span>
+            ${listingStatus === "draft" ? `<button class="irisx-secondary" onclick="publishDraftListing('${listing.id}')">${langText("Pubblica", "Publish")}</button>` : ""}
+            ${inventoryStatus !== "archived" ? `<button class="irisx-secondary" onclick="archiveListing('${listing.id}')">${langText("Archivia", "Archive")}</button>` : ""}
+          </div>
+        </div>`;
+      }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun annuncio disponibile.", "No listings available.")}</div>`;
+    } else if (state.adminSection === "orders") {
+      content = orders.length ? `<div class="irisx-order-list">${orders.map(function (order) {
+        return `<div class="irisx-order-card">
+          <div class="irisx-order-head"><strong>${escapeHtml(order.number)}</strong><span class="irisx-badge">${escapeHtml(getOrderStatusLabel(order))}</span></div>
+          <div class="irisx-order-items">
+            <div>${escapeHtml(order.buyerEmail)}</div>
+            <div>${escapeHtml(order.items.map(function (item) { return `${item.brand} ${item.name}`; }).join(", "))}</div>
+            <div>${escapeHtml(formatCurrency(order.total || 0))}</div>
+          </div>
+          <div class="irisx-actions">${getOrderLifecycleActions(order, "admin").join("")}</div>
+        </div>`;
+      }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun ordine ancora.", "No orders yet.")}</div>`;
+    } else if (state.adminSection === "payments") {
+      content = orders.length ? `<div class="irisx-card-stack">${orders.map(function (order) {
+        const payment = order.payment || {};
+        return `<div class="irisx-inline-card irisx-inline-card--admin">
+          <div>
+            <strong>${escapeHtml(order.number)}</strong>
+            <span>${langText("Totale", "Total")}: ${escapeHtml(formatCurrency(order.total || 0))} · ${langText("Netto seller", "Seller net")}: ${escapeHtml(formatCurrency(payment.sellerNet || 0))}</span>
+            <em>${escapeHtml(payment.status || "captured")} · ${escapeHtml(payment.payoutStatus || "pending")} · ${escapeHtml(payment.refundStatus || "none")}</em>
+          </div>
+          <div class="irisx-actions">
+            <span class="irisx-badge">${escapeHtml(payment.payoutStatus || "pending")}</span>
+            ${payment.payoutStatus === "ready" ? `<button class="irisx-secondary" onclick="markOrderPayoutPaid('${order.id}')">${langText("Segna pagato", "Mark paid")}</button>` : ""}
+          </div>
+        </div>`;
+      }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun pagamento disponibile.", "No payments available.")}</div>`;
+    } else if (state.adminSection === "support") {
+      content = `
+        <div class="irisx-admin-two-col">
+          <div class="irisx-workspace-card">
+            <div class="irisx-section-head"><div><h3>${langText("Inbox ticket", "Support inbox")}</h3><span>${langText("Dispute, assistenza e richieste operative.", "Disputes, support, and operational requests.")}</span></div></div>
+            ${renderSupportTicketsMarkup(supportTickets)}
+          </div>
+          <div class="irisx-workspace-card">
+            <div class="irisx-section-head"><div><h3>${langText("Email outbox", "Email outbox")}</h3><span>${langText("Trigger e template già messi in coda.", "Queued triggers and templates.")}</span></div></div>
+            ${emailOutbox.length ? `<div class="irisx-card-stack">${emailOutbox.slice(0, 10).map(function (mail) {
+              return `<div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${escapeHtml(mail.subject)}</strong><span>${escapeHtml(mail.to)}</span><em>${escapeHtml(mail.type)} · ${escapeHtml(formatRelativeTime(mail.createdAt))}</em></div></div>`;
+            }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessuna email in coda.", "No queued emails.")}</div>`}
+          </div>
+        </div>`;
+    } else if (state.adminSection === "chats") {
+      content = chatThreads.length ? `<div class="irisx-card-stack">${chatThreads.map(function (thread) {
+        const lastMessage = thread.msgs[thread.msgs.length - 1] || { text: "", at: 0 };
+        return `<div class="irisx-inline-card irisx-inline-card--admin">
+          <div>
+            <strong>${escapeHtml((thread.product && `${thread.product.brand} ${thread.product.name}`) || langText("Conversazione", "Conversation"))}</strong>
+            <span>${escapeHtml(thread.buyerName || langText("Buyer", "Buyer"))} → ${escapeHtml(thread.sellerName || langText("Seller", "Seller"))}</span>
+            <em>${escapeHtml(lastMessage.text || langText("Nessun messaggio ancora.", "No messages yet."))} · ${escapeHtml(formatRelativeTime(lastMessage.at || thread.updatedAt))}</em>
+          </div>
+          <div class="irisx-actions">
+            ${thread.unreadCount ? `<span class="irisx-badge">${thread.unreadCount} ${langText("non letti", "unread")}</span>` : ""}
+            ${thread.offerId ? `<span class="irisx-badge">${langText("Offerta", "Offer")}</span>` : ""}
+          </div>
+        </div>`;
+      }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessuna conversazione disponibile.", "No conversations available.")}</div>`;
+    } else if (state.adminSection === "authentication") {
+      content = `
+        <div class="irisx-admin-two-col">
+          <div class="irisx-workspace-card">
+            <div class="irisx-section-head"><div><h3>${langText("Ordini in autenticazione", "Orders in authentication")}</h3><span>${langText("Ordini già presi in carico dal team autenticazione.", "Orders already handled by the authentication team.")}</span></div></div>
+            ${authOrders.length ? `<div class="irisx-card-stack">${authOrders.map(function (order) {
+              return `<div class="irisx-inline-card irisx-inline-card--admin">
+                <div>
+                  <strong>${escapeHtml(order.number)}</strong>
+                  <span>${escapeHtml(order.items.map(function (item) { return `${item.brand} ${item.name}`; }).join(", "))}</span>
+                  <em>${escapeHtml(order.buyerEmail)} · ${escapeHtml(getOrderStatusLabel(order))}</em>
+                </div>
+                <div class="irisx-actions">${getOrderLifecycleActions(order, "admin").join("")}</div>
+              </div>`;
+            }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun ordine in autenticazione.", "No orders in authentication.")}</div>`}
+          </div>
+          <div class="irisx-workspace-card">
+            <div class="irisx-section-head"><div><h3>${langText("Richieste misure / verifica", "Measurement / verification requests")}</h3><span>${langText("Richieste aperte dai buyer per chiarire fit e dettagli.", "Requests opened by buyers for fit and detail checks.")}</span></div></div>
+            ${measurementRequests.length ? `<div class="irisx-card-stack">${measurementRequests.map(function (request) {
+              const listing = getListingById(request.listingId);
+              return `<div class="irisx-inline-card irisx-inline-card--admin">
+                <div>
+                  <strong>${escapeHtml(listing ? `${listing.brand} ${listing.name}` : request.listingId)}</strong>
+                  <span>${escapeHtml(request.requesterEmail || "")} → ${escapeHtml(request.sellerEmail || "")}</span>
+                  <em>${escapeHtml(request.status || "open")} · ${escapeHtml(formatRelativeTime(request.updatedAt || request.createdAt))}</em>
+                </div>
+              </div>`;
+            }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessuna richiesta attiva.", "No active requests.")}</div>`}
+          </div>
+        </div>`;
+    } else if (state.adminSection === "moderation") {
+      content = `
+        <div class="irisx-admin-two-col">
+          <div class="irisx-workspace-card">
+            <div class="irisx-section-head"><div><h3>${langText("Blocchi e identità sospette", "Blocks and risky identities")}</h3><span>${langText("Email e telefoni bannati o sospesi dal team.", "Emails and phones blocked or suspended by the team.")}</span></div></div>
+            ${activeBanEntries.length ? `<div class="irisx-card-stack">${activeBanEntries.map(function (entry) {
+              return `<div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${escapeHtml(entry.value)}</strong><span>${escapeHtml(entry.type)}</span><em>${escapeHtml(entry.reason || langText("Nessun motivo specificato", "No reason given"))}</em></div></div>`;
+            }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun blocco attivo.", "No active blocks.")}</div>`}
+          </div>
+          <div class="irisx-workspace-card">
+            <div class="irisx-section-head"><div><h3>${langText("Segnalazioni critiche", "Critical reports")}</h3><span>${langText("Chat segnalate, dispute e ordini fragili da seguire.", "Reported chats, disputes, and fragile orders to monitor.")}</span></div></div>
+            ${(reportedChats.length || disputeTickets.length || archivedListings.length) ? `<div class="irisx-card-stack">
+              ${reportedChats.slice(0, 6).map(function (ticket) {
+                return `<div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${escapeHtml(ticket.reason || "chat_report")}</strong><span>${escapeHtml(ticket.orderNumber || ticket.id)}</span><em>${escapeHtml(ticket.message)}</em></div></div>`;
+              }).join("")}
+              ${disputeTickets.slice(0, 6).map(function (ticket) {
+                return `<div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${escapeHtml(ticket.orderNumber || ticket.id)}</strong><span>${langText("Disputa", "Dispute")} · ${escapeHtml(ticket.reason || "support")}</span><em>${escapeHtml(ticket.message)}</em></div><div class="irisx-actions">${ticket.status !== "resolved" ? `<button class="irisx-secondary" onclick="resolveSupportTicket('${ticket.id}')">${langText("Risolvi", "Resolve")}</button>` : ""}</div></div>`;
+              }).join("")}
+            </div>` : `<div class="irisx-empty-state">${langText("Nessun caso critico aperto.", "No critical cases open.")}</div>`}
+          </div>
+        </div>`;
+    } else if (state.adminSection === "audit") {
+      content = auditLog.length ? `<div class="irisx-card-stack">${auditLog.slice(0, 40).map(function (entry) {
+        return `<div class="irisx-inline-card irisx-inline-card--admin">
+          <div>
+            <strong>${escapeHtml(entry.summary || entry.type)}</strong>
+            <span>${escapeHtml(entry.type)}</span>
+            <em>${escapeHtml(formatRelativeTime(entry.at))}</em>
+          </div>
+          ${entry.meta ? `<div class="irisx-admin-meta">${escapeHtml(JSON.stringify(entry.meta))}</div>` : ""}
+        </div>`;
+      }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun log disponibile.", "No audit log available.")}</div>`;
+    } else if (state.adminSection === "content") {
+      content = `
+        <div class="irisx-admin-two-col">
+          <div class="irisx-workspace-card">
+            <div class="irisx-section-head"><div><h3>${langText("Policy e pagine trust", "Policies and trust pages")}</h3><span>${langText("Apertura rapida dei contenuti statici principali.", "Quick access to core static content.")}</span></div></div>
+            <div class="irisx-policy-grid">${Object.keys(POLICY_PAGE_CONTENT).map(function (key) {
+              const page = POLICY_PAGE_CONTENT[key];
+              return `<button class="irisx-policy-card" onclick="openStatic('${key}')"><strong>${escapeHtml(page.title)}</strong><span>${escapeHtml(page.subtitle)}</span></button>`;
+            }).join("")}</div>
+          </div>
+          <div class="irisx-workspace-card">
+            <div class="irisx-section-head"><div><h3>${langText("Code email", "Email queue")}</h3><span>${langText("Cronologia recente delle email generate dall'app.", "Recent history of emails generated by the app.")}</span></div></div>
+            ${emailOutbox.length ? `<div class="irisx-card-stack">${emailOutbox.slice(0, 12).map(function (mail) {
+              return `<div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${escapeHtml(mail.subject)}</strong><span>${escapeHtml(mail.to)}</span><em>${escapeHtml(mail.type)} · ${escapeHtml(formatRelativeTime(mail.createdAt))}</em></div></div>`;
+            }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessuna email registrata.", "No emails recorded.")}</div>`}
+          </div>
+        </div>`;
+    } else if (state.adminSection === "settings") {
+      content = `<div class="irisx-summary-grid">
+        <div class="irisx-summary-card"><strong>${Math.round(PLATFORM_CONFIG.selfServeFeeRate * 100)}%</strong><span>${langText("Commissione self-serve", "Self-serve fee")}</span></div>
+        <div class="irisx-summary-card"><strong>${Math.round(PLATFORM_CONFIG.conciergeFeeRate * 100)}%</strong><span>${langText("Commissione concierge", "Concierge fee")}</span></div>
+        <div class="irisx-summary-card"><strong>${escapeHtml(formatCurrency(PLATFORM_CONFIG.shippingCost))}</strong><span>${langText("Costo spedizione", "Shipping cost")}</span></div>
+        <div class="irisx-summary-card"><strong>${escapeHtml(PLATFORM_CONFIG.ownerEmail)}</strong><span>${langText("Inbox owner", "Owner inbox")}</span></div>
+      </div>
+      <div class="irisx-workspace-card">
+        <div class="irisx-section-head"><div><h3>${langText("Setup operativo", "Operational setup")}</h3><span>${langText("Qui concentrerei fee, payout rules, support routing, alert admin e connettori esterni.", "This is where I would centralize fees, payout rules, support routing, admin alerts, and external connectors.")}</span></div></div>
+        <div class="irisx-card-stack">
+          <div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${langText("Stripe", "Stripe")}</strong><span>${langText("Pagamenti, refund, payout, webhook.", "Payments, refunds, payouts, webhooks.")}</span></div><span class="irisx-badge">${langText("Connesso", "Connected")}</span></div>
+          <div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${langText("Supabase", "Supabase")}</strong><span>${langText("Auth, ordini, notifiche, ticket e log.", "Auth, orders, notifications, tickets, and logs.")}</span></div><span class="irisx-badge">${langText("Core", "Core")}</span></div>
+          <div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${langText("Resend / email", "Resend / email")}</strong><span>${langText("Outbox e trigger transazionali.", "Outbox and transactional triggers.")}</span></div><span class="irisx-badge">${langText("Ops", "Ops")}</span></div>
+        </div>
+      </div>`;
+    } else {
+      content = `
+        <div class="irisx-summary-grid irisx-summary-grid--workspace">
+          ${summaryCards.map(function (card) {
+            return `<div class="irisx-summary-card"><strong>${escapeHtml(String(card.value))}</strong><span>${escapeHtml(card.label)}</span></div>`;
+          }).join("")}
+        </div>
+        <div class="irisx-admin-command-grid">
+          <button class="irisx-workspace-card irisx-admin-command-card" onclick="setAdminSection('support')">
+            <strong>${langText("Coda urgente", "Urgent queue")}</strong>
+            <span>${openTickets.length} ${langText("ticket aperti", "open tickets")} · ${disputeTickets.length} ${langText("dispute", "disputes")}</span>
+          </button>
+          <button class="irisx-workspace-card irisx-admin-command-card" onclick="setAdminSection('payments')">
+            <strong>${langText("Pagamenti da chiudere", "Payments to close")}</strong>
+            <span>${readyPayouts.length} ${langText("payout pronti", "ready payouts")} · ${pendingShipments.length} ${langText("ordini in mano al team", "orders in flow")}</span>
+          </button>
+          <button class="irisx-workspace-card irisx-admin-command-card" onclick="setAdminSection('authentication')">
+            <strong>${langText("Coda autenticazione", "Authentication queue")}</strong>
+            <span>${authOrders.length} ${langText("ordini in autenticazione", "orders in authentication")} · ${measurementRequests.length} ${langText("richieste buyer", "buyer requests")}</span>
+          </button>
+        </div>
+        <div class="irisx-admin-two-col">
+          <div class="irisx-workspace-card">
+            <div class="irisx-section-head"><div><h3>${langText("Alert da guardare subito", "Immediate alerts")}</h3><span>${langText("Le cose che ti bloccano davvero il marketplace.", "The items that can really block the marketplace.")}</span></div></div>
+            <div class="irisx-card-stack">
+              <div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${langText("Spedizioni in attesa", "Pending shipments")}</strong><span>${pendingShipments.length} ${langText("ordini da seguire", "orders to monitor")}</span><em>${langText("Pagati ma non ancora chiusi operativamente.", "Paid orders not yet closed operationally.")}</em></div><button class="irisx-secondary" onclick="setAdminSection('orders')">${langText("Apri", "Open")}</button></div>
+              <div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${langText("Ticket aperti", "Open tickets")}</strong><span>${openTickets.length} ${langText("casi vivi", "live cases")}</span><em>${langText("Supporto, dispute e segnalazioni buyer/seller.", "Support, disputes, and buyer/seller reports.")}</em></div><button class="irisx-secondary" onclick="setAdminSection('support')">${langText("Apri", "Open")}</button></div>
+              <div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${langText("Blocchi e moderazione", "Blocks and moderation")}</strong><span>${activeBanEntries.length} ${langText("blocchi attivi", "active blocks")}</span><em>${langText("Identità sospette, chat segnalate, casi rischio.", "Suspicious identities, reported chats, risky cases.")}</em></div><button class="irisx-secondary" onclick="setAdminSection('moderation')">${langText("Apri", "Open")}</button></div>
+            </div>
+          </div>
+          <div class="irisx-workspace-card">
+            <div class="irisx-section-head"><div><h3>${langText("Snapshot business", "Business snapshot")}</h3><span>${langText("Domande base a cui devi rispondere in 10 secondi.", "Questions you need answered in 10 seconds.")}</span></div></div>
+            <div class="irisx-card-stack">
+              <div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${langText("Utenti", "Users")}</strong><span>${users.length} ${langText("account registrati", "registered accounts")}</span><em>${draftListings.length} ${langText("bozze listing", "draft listings")} · ${archivedListings.length} ${langText("archiviati", "archived")}</em></div></div>
+              <div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${langText("Chat e offerte", "Chats and offers")}</strong><span>${chatThreads.length} ${langText("conversazioni totali", "total conversations")}</span><em>${reportedChats.length} ${langText("chat segnalate", "reported chats")} · ${state.offers.length} ${langText("offerte registrate", "stored offers")}</em></div></div>
+              <div class="irisx-inline-card irisx-inline-card--admin"><div><strong>${langText("Audit", "Audit")}</strong><span>${auditLog.length} ${langText("eventi loggati", "logged events")}</span><em>${langText("Ogni azione admin importante dovrebbe finire qui.", "Every important admin action should land here.")}</em></div><button class="irisx-secondary" onclick="setAdminSection('audit')">${langText("Apri log", "Open log")}</button></div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    container.innerHTML = `<div class="irisx-workspace irisx-workspace--admin">
+      <aside class="irisx-workspace-sidebar irisx-admin-sidebar">
+        <div class="irisx-user-card">
+          <div class="irisx-user-avatar">OPS</div>
+          <div class="irisx-user-meta">
+            <strong>${langText("Dashboard admin", "Admin dashboard")}</strong>
+            <span>${escapeHtml(PLATFORM_CONFIG.ownerEmail)}</span>
+            <em>${langText("Controllo completo di utenti, ordini, pagamenti e rischi.", "Full control over users, orders, payments, and risk.")}</em>
+          </div>
+        </div>
+        <div class="irisx-summary-grid irisx-summary-grid--sidebar">
+          <div class="irisx-summary-card"><strong>${orders.length}</strong><span>${langText("Ordini", "Orders")}</span></div>
+          <div class="irisx-summary-card"><strong>${openTickets.length}</strong><span>${langText("Ticket", "Tickets")}</span></div>
+          <div class="irisx-summary-card"><strong>${readyPayouts.length}</strong><span>${langText("Payout", "Payouts")}</span></div>
+          <div class="irisx-summary-card"><strong>${activeBanEntries.length}</strong><span>${langText("Blocchi", "Blocks")}</span></div>
+        </div>
+        <div class="irisx-sidebar-menu">
+          <div class="irisx-sidebar-group">
+            <div class="irisx-sidebar-group-title">${langText("Sezioni operative", "Operational sections")}</div>
+            <div class="irisx-sidebar-group-list">${sidebarHtml}</div>
+          </div>
+        </div>
+      </aside>
+      <div class="irisx-workspace-main">
+        <div class="irisx-workspace-head irisx-admin-head">
+          <div>
+            <div class="irisx-kicker">${langText("Control room", "Control room")}</div>
+            <div class="irisx-title">${langText("IRIS Admin", "IRIS Admin")}</div>
+            <div class="irisx-subtitle">${langText("Qui dentro gestisci marketplace, supporto, pagamenti, autenticazione, moderazione e audit senza passare dal profilo normale.", "Manage marketplace, support, payments, authentication, moderation, and audit here without going through the normal profile.")}</div>
+          </div>
+        </div>
+        <div class="irisx-section-tabs irisx-section-tabs--admin">${sections.map(function (section) {
+          return `<button class="irisx-section-tab${state.adminSection === section.id ? " on" : ""}" onclick="setAdminSection('${section.id}')">${escapeHtml(section.label)}</button>`;
+        }).join("")}</div>
+        <div class="irisx-workspace-content">${content}</div>
+      </div>
+    </div>`;
   }
 
   function createOrderFromCheckout(items, shipping, context) {
@@ -17362,6 +17743,8 @@
   window.requestVerificationCode = requestVerificationCode;
   window.confirmVerificationCode = confirmVerificationCode;
   window.banIdentityIdentifiers = banIdentityIdentifiers;
+  window.adminQuickBanUser = adminQuickBanUser;
+  window.adminRestoreUserAccount = adminRestoreUserAccount;
   window.saveShoppingPreferences = saveShoppingPreferences;
   window.saveSizeProfile = saveSizeProfile;
   window.addSavedSearch = addSavedSearch;
@@ -17377,6 +17760,7 @@
   window.toggleListingOffers = toggleListingOffers;
   window.archiveListing = archiveListing;
   window.generateShippingLabel = generateShippingLabel;
+  window.markOrderInAuthentication = markOrderInAuthentication;
   window.respondToOffer = respondToOffer;
   window.renderOrderDetailModal = renderOrderDetailModal;
   window.openOrderDetail = openOrderDetail;

@@ -4003,6 +4003,9 @@ body.light-mode .notif-bell:hover {
 .irisx-chat-action-btn {
   min-height: 42px !important;
   padding: .72rem 1rem !important;
+  border-color: rgba(238,117,109,.24) !important;
+  background: linear-gradient(180deg, rgba(252,158,122,.12), rgba(255,255,255,.04)) !important;
+  color: rgba(255,255,255,.92) !important;
 }
 
 .irisx-chat-action-btn--primary {
@@ -4015,17 +4018,17 @@ body.light-mode .notif-bell:hover {
   display: grid;
   gap: .72rem;
   padding: 1rem 1.05rem;
-  border: 1px solid rgba(255,169,181,.12);
+  border: 1px solid rgba(252,158,122,.18);
   border-radius: 20px;
-  background: rgba(255,255,255,.04);
+  background: linear-gradient(180deg, rgba(252,158,122,.08), rgba(255,255,255,.03));
 }
 
 .irisx-chat-offer-card.is-live {
-  background: linear-gradient(180deg, rgba(241,50,79,.12), rgba(255,255,255,.02));
+  background: linear-gradient(180deg, rgba(241,50,79,.14), rgba(238,117,109,.08) 58%, rgba(252,158,122,.06));
 }
 
 .irisx-chat-offer-card--empty {
-  background: rgba(255,255,255,.025);
+  background: linear-gradient(180deg, rgba(252,158,122,.06), rgba(255,255,255,.025));
 }
 
 .irisx-chat-offer-head {
@@ -4046,7 +4049,7 @@ body.light-mode .notif-bell:hover {
   font-size: .62rem;
   letter-spacing: .18em;
   text-transform: uppercase;
-  color: rgba(255,255,255,.42);
+  color: rgba(252,158,122,.86);
 }
 
 .irisx-chat-offer-meta {
@@ -9378,19 +9381,19 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   }
 
   body.irisx-luxury .irisx-chat-offer-card {
-    border-color: rgba(241,50,79,.12) !important;
-    background: #ffffff !important;
-    box-shadow: 0 12px 30px rgba(120,20,40,.06);
+    border-color: rgba(238,117,109,.18) !important;
+    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(252,158,122,.08)) !important;
+    box-shadow: 0 12px 30px rgba(188,148,130,.12);
   }
 
   body.irisx-luxury .irisx-chat-offer-card.is-live {
-    background: linear-gradient(180deg, rgba(241,50,79,.08), rgba(252,158,122,.08)) !important;
+    background: linear-gradient(180deg, rgba(241,50,79,.1), rgba(238,117,109,.08) 52%, rgba(252,158,122,.14)) !important;
   }
 
   body.irisx-luxury .cm-msgs {
     min-height: 220px;
     padding: 14px 18px 18px !important;
-    background: #FFF9FA !important;
+    background: linear-gradient(180deg, #FFF9FA 0%, #FFF7F5 100%) !important;
   }
 
   body.irisx-luxury #chat-view .irisx-empty-state {
@@ -9399,7 +9402,7 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
     place-items: center;
     text-align: center;
     padding: 22px 16px !important;
-    border: 1px dashed rgba(241,50,79,.14);
+    border: 1px dashed rgba(238,117,109,.22);
     border-radius: 18px;
     background: #ffffff;
     color: rgba(26,21,48,.58) !important;
@@ -9422,8 +9425,8 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
 
   body.irisx-luxury .msg.them,
   body.irisx-luxury .msg.other {
-    background: #ffffff !important;
-    border: 1px solid rgba(241,50,79,.08);
+    background: linear-gradient(180deg, #ffffff, rgba(252,158,122,.07)) !important;
+    border: 1px solid rgba(238,117,109,.14);
     color: #1a1530 !important;
   }
 
@@ -9434,8 +9437,8 @@ body.irisx-luxury.irisx-white-theme .irisx-toast span {
   }
 
   body.irisx-luxury .cm-input input {
-    background: #FFF7F8 !important;
-    border: 1px solid rgba(241,50,79,.12) !important;
+    background: linear-gradient(180deg, #FFF8F8, #FFF5F2) !important;
+    border: 1px solid rgba(238,117,109,.18) !important;
     color: #1a1530 !important;
     border-radius: 16px !important;
   }

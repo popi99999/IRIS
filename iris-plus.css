@@ -11609,11 +11609,11 @@ body.irisx-luxury #tnSellBtn,
 body.irisx-luxury .tn-sell,
 body.irisx-luxury.irisx-white-theme #tnSellBtn,
 body.irisx-luxury.irisx-white-theme .tn-sell {
-  min-width: 140px !important;
+  min-width: 138px !important;
   min-height: 50px !important;
   padding: 0 22px !important;
-  font-size: 0.88rem !important;
+  font-size: 1rem !important;
   font-weight: 700 !important;
-  letter-spacing: 0.18em !important;
+  letter-spacing: 0.15em !important;
   line-height: 1 !important;
 }

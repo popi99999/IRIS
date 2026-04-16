@@ -11382,3 +11382,91 @@ body.irisx-luxury.irisx-white-theme .sort-btn.active {
     width: 100%;
   }
 }
+
+/* Raise the minimum readability of close controls and utility labels. */
+.irisx-close,
+.sm-close,
+body.irisx-luxury .tn-mobile-menu__close,
+.offer-shell__icon {
+  width: 44px;
+  height: 44px;
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+body.irisx-luxury .tn-mobile-menu__close,
+.offer-shell__icon {
+  border-radius: 50%;
+}
+
+.notif-title,
+.notif-clear,
+.af-chip,
+.af-chip button,
+.sort-btn,
+.f-fit-btn,
+body.irisx-luxury .f-close,
+.irisx-chat-composer-note {
+  letter-spacing: normal;
+}
+
+.notif-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  opacity: 0.78;
+}
+
+.notif-clear {
+  min-height: 34px;
+  padding: 0 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.af-chip {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.af-chip button,
+body.irisx-luxury .af-chip button {
+  width: 26px;
+  height: 26px;
+  font-size: 1rem;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.sort-btn {
+  min-height: 38px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.f-fit-btn {
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+body.irisx-luxury .f-close {
+  min-height: 34px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.irisx-chat-composer-note {
+  font-size: 0.8rem;
+}
+
+body.irisx-luxury.irisx-white-theme .notif-title,
+body.irisx-luxury.irisx-white-theme .notif-clear,
+body.irisx-luxury.irisx-white-theme .sort-btn,
+body.irisx-luxury.irisx-white-theme .af-chip,
+body.irisx-luxury.irisx-white-theme .af-chip button {
+  color: rgba(26, 21, 48, 0.82) !important;
+}

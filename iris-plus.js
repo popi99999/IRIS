@@ -5186,6 +5186,12 @@
     return curLang === "it" ? it : en;
   }
 
+  function normalizeString(value) {
+    return String(value == null ? "" : value)
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
   function normalizeEmail(value) {
     return String(value || "").trim().toLowerCase();
   }

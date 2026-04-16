@@ -119,6 +119,26 @@ async function fetchConversation(conversationId: string) {
   return data ?? null;
 }
 
+async function fetchRecentSenderMessages(conversationId: string, senderEmail: string) {
+  const normalizedEmail = normalizeEmail(senderEmail);
+  if (!normalizedEmail) {
+    return [];
+  }
+  const { data, error } = await getSupabaseAdmin()
+    .from("conversation_messages")
+    .select("body")
+    .eq("conversation_id", conversationId)
+    .eq("sender_email", normalizedEmail)
+    .order("sent_at_ms", { ascending: false })
+    .limit(8);
+  if (error) {
+    throw new HttpError("Unable to load recent chat context", 500, error.message);
+  }
+  return Array.isArray(data)
+    ? data.map((row) => String(row?.body || "").trim()).filter(Boolean).reverse()
+    : [];
+}
+
 async function ensureConversation(
   conversationId: string,
   snapshot: ConversationSnapshot | undefined,
@@ -254,10 +274,37 @@ Deno.serve(async (request) => {
       });
     }
 
+    const recentMessages = await fetchRecentSenderMessages(conversationId, String(user.email || ""));
     const moderation = moderateChatMessage(rawMessage, {
       channel: "chat",
       actorRole: senderRole,
+      recentMessages,
+      priorViolationCount: moderationState.violationCount,
     });
+
+    if (moderation.riskLevel === "suspicious") {
+      await insertModerationEvent({
+        id: uuid("chatmod"),
+        user_id: String(user.id || ""),
+        conversation_id: conversationId,
+        raw_message_redacted: redactMessageForAudit(rawMessage),
+        normalized_forms: {
+          ...moderation.normalizedForms,
+          score: moderation.score,
+          riskLevel: moderation.riskLevel,
+          categories: moderation.categories,
+          reasonCodes: moderation.reasonCodes,
+          semanticSignals: moderation.semanticSignals,
+        },
+        triggered_rules: moderation.reasonCodes,
+        matched_fragments: moderation.matchedFragments,
+        violation_type: moderation.violationType,
+        confidence: moderation.confidence,
+        strike_count: moderationState.violationCount,
+        action_taken: "allowed_suspicious",
+        created_at_ms: now,
+      });
+    }
 
     if (!moderation.allowed) {
       const escalation = applyModerationEscalation(moderationState, moderation, now);
@@ -267,8 +314,15 @@ Deno.serve(async (request) => {
         user_id: String(user.id || ""),
         conversation_id: conversationId,
         raw_message_redacted: redactMessageForAudit(rawMessage),
-        normalized_forms: moderation.normalizedForms,
-        triggered_rules: moderation.matchedRules,
+        normalized_forms: {
+          ...moderation.normalizedForms,
+          score: moderation.score,
+          riskLevel: moderation.riskLevel,
+          categories: moderation.categories,
+          reasonCodes: moderation.reasonCodes,
+          semanticSignals: moderation.semanticSignals,
+        },
+        triggered_rules: moderation.reasonCodes,
         matched_fragments: moderation.matchedFragments,
         violation_type: moderation.violationType,
         confidence: moderation.confidence,
@@ -321,6 +375,7 @@ Deno.serve(async (request) => {
       ok: true,
       allowed: true,
       blocked: false,
+      moderation,
       conversationId,
       message: insertedMessage,
       moderationState: serializeModerationState({

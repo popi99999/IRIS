@@ -1,0 +1,30 @@
+export const RECONSTRUCTION_CUES = [
+  { id: "translate", phrase: "traduci", score: 18 },
+  { id: "english", phrase: "in inglese", score: 18 },
+  { id: "first_letters", phrase: "prime lettere", score: 22 },
+  { id: "initials", phrase: "iniziali", score: 22 },
+  { id: "first_three_letters", phrase: "prime tre lettere", score: 26 },
+  { id: "join_pieces", phrase: "unisci", score: 22 },
+  { id: "combine_pieces", phrase: "metti insieme i pezzi", score: 26 },
+  { id: "add_piece", phrase: "aggiungi", score: 18 },
+  { id: "first_part", phrase: "prima parte", score: 20 },
+  { id: "second_part", phrase: "seconda parte", score: 20 },
+  { id: "remove_letter", phrase: "togli una lettera", score: 24 },
+  { id: "read_backwards", phrase: "leggi al contrario", score: 24 },
+  { id: "anagram", phrase: "anagramma", score: 24 },
+  { id: "read_initials", phrase: "leggi le iniziali", score: 24 },
+  { id: "read_first_letters", phrase: "leggi le prime lettere", score: 26 },
+  { id: "understand_it", phrase: "hai capito dove", score: 20 },
+  { id: "interpret", phrase: "basta interpretare", score: 18 },
+];
+
+export const RECONSTRUCTION_GLUE_PHRASES = [
+  "te lo faccio capire a pezzi",
+  "la parola viene da due pezzi",
+  "prendi la prima lettera di ogni parola",
+  "usa l iniziale di ogni parola",
+  "usa l'iniziale di ogni parola",
+  "leggi le prime lettere",
+  "unisci le sillabe",
+  "metti insieme i pezzi",
+];

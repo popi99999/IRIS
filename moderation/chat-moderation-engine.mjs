@@ -563,22 +563,39 @@ export const EMPTY_CHAT_MODERATION_STATE = {
 };
 
 export function normalizeChatModerationState(record, now = Date.now()) {
-  const source = Object.assign({}, EMPTY_CHAT_MODERATION_STATE, record || {});
-  const bannedUntilMs = source.chatBannedUntil
-    ? new Date(source.chatBannedUntil).getTime()
+  const source = record || {};
+  const violationCount = Math.max(
+    0,
+    Number(source.violationCount ?? source.violation_count ?? EMPTY_CHAT_MODERATION_STATE.violationCount ?? 0),
+  );
+  const lastViolationAtMs = Math.max(
+    0,
+    Number(source.lastViolationAtMs ?? source.last_violation_at_ms ?? EMPTY_CHAT_MODERATION_STATE.lastViolationAtMs ?? 0),
+  );
+  const lastViolationReason = String(
+    source.lastViolationReason ?? source.last_violation_reason ?? EMPTY_CHAT_MODERATION_STATE.lastViolationReason ?? "",
+  );
+  const lastAction = String(
+    source.lastAction ?? source.last_action ?? EMPTY_CHAT_MODERATION_STATE.lastAction ?? "",
+  );
+  const chatBanned = Boolean(source.chatBanned ?? source.chat_banned ?? EMPTY_CHAT_MODERATION_STATE.chatBanned ?? false);
+  const chatBannedUntil = source.chatBannedUntil ?? source.chat_banned_until ?? EMPTY_CHAT_MODERATION_STATE.chatBannedUntil ?? null;
+  const moderationNotes = source.moderationNotes ?? source.moderation_notes ?? EMPTY_CHAT_MODERATION_STATE.moderationNotes ?? {};
+  const bannedUntilMs = chatBannedUntil
+    ? new Date(chatBannedUntil).getTime()
     : 0;
-  const isSuspended = Boolean(source.chatBanned || (bannedUntilMs && bannedUntilMs > now));
+  const isSuspended = Boolean(chatBanned || (bannedUntilMs && bannedUntilMs > now));
   return {
     userId: String(source.userId || source.user_id || ""),
-    violationCount: Math.max(0, Number(source.violationCount ?? source.violation_count ?? 0)),
-    lastViolationAtMs: Math.max(0, Number(source.lastViolationAtMs ?? source.last_violation_at_ms ?? 0)),
-    lastViolationReason: String(source.lastViolationReason ?? source.last_violation_reason ?? ""),
-    lastAction: String(source.lastAction ?? source.last_action ?? ""),
-    chatBanned: Boolean(source.chatBanned ?? source.chat_banned ?? false),
-    chatBannedUntil: source.chatBannedUntil ?? source.chat_banned_until ?? null,
-    moderationNotes: source.moderationNotes ?? source.moderation_notes ?? {},
+    violationCount,
+    lastViolationAtMs,
+    lastViolationReason,
+    lastAction,
+    chatBanned,
+    chatBannedUntil,
+    moderationNotes,
     isSuspended,
-    activeWarningLevel: isSuspended ? 3 : Math.min(2, Math.max(0, Number(source.violationCount ?? source.violation_count ?? 0))),
+    activeWarningLevel: isSuspended ? 3 : Math.min(2, violationCount),
   };
 }
 

@@ -6,6 +6,15 @@ type AdminClient = SupabaseClient;
 
 let supabaseAdmin: AdminClient | null = null;
 
+function isMissingAdminUsersTable(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+  const code = String((error as { code?: unknown }).code ?? "");
+  const message = String((error as { message?: unknown }).message ?? "");
+  return code === "PGRST205" || message.includes("public.admin_users") || message.includes("admin_users");
+}
+
 function createAdminClient(): AdminClient {
   return createClient(
     requireEnv("SUPABASE_URL"),
@@ -101,6 +110,9 @@ export async function fetchAdminAccessByEmail(email: string) {
     .ilike("email", normalized)
     .maybeSingle();
   if (error) {
+    if (isMissingAdminUsersTable(error)) {
+      return null;
+    }
     throw error;
   }
   return data ?? null;
@@ -118,6 +130,9 @@ export async function isUserAdmin(user: Pick<User, "id" | "email"> | null | unde
       .eq("user_id", user.id)
       .maybeSingle();
     if (error) {
+      if (isMissingAdminUsersTable(error)) {
+        return false;
+      }
       throw error;
     }
     adminAccess = data ?? null;

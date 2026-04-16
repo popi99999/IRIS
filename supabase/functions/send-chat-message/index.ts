@@ -26,6 +26,20 @@ type SendChatMessageBody = {
   conversation?: ConversationSnapshot;
 };
 
+function serializeUnknownError(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (error && typeof error === "object") {
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
+  }
+  return String(error);
+}
+
 function normalizeUuid(value: unknown) {
   const normalized = String(value || "").trim();
   return normalized || null;
@@ -319,6 +333,6 @@ Deno.serve(async (request) => {
       return errorResponse(error.message, error.status, error.details);
     }
     console.error("[IRIS] send-chat-message failed", error);
-    return errorResponse("Unable to send chat message", 500, error instanceof Error ? error.message : String(error));
+    return errorResponse("Unable to send chat message", 500, serializeUnknownError(error));
   }
 });

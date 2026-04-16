@@ -11604,3 +11604,16 @@ body.irisx-luxury.irisx-white-theme .af-chip,
 body.irisx-luxury.irisx-white-theme .af-chip button {
   color: rgba(26, 21, 48, 0.82) !important;
 }
+
+body.irisx-luxury #tnSellBtn,
+body.irisx-luxury .tn-sell,
+body.irisx-luxury.irisx-white-theme #tnSellBtn,
+body.irisx-luxury.irisx-white-theme .tn-sell {
+  min-width: 148px !important;
+  min-height: 50px !important;
+  padding: 0 24px !important;
+  font-size: 0.94rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.18em !important;
+  line-height: 1 !important;
+}

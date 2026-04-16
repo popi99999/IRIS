@@ -2054,6 +2054,38 @@
     syncDialogFocus("irisxChatModerationModal", false);
   }
 
+  function getChatModerationVisualMarkup(stage) {
+    const visualClass = `irisx-chat-moderation-visual irisx-chat-moderation-visual--${stage === "chat_banned" ? "banned" : (stage === "warning_2" ? "warning_2" : "warning_1")}`;
+    return `<div class="${visualClass}" aria-hidden="true">
+      <svg viewBox="0 0 320 260" role="presentation" focusable="false">
+        <defs>
+          <linearGradient id="irisModerationGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFE6DB" />
+            <stop offset="55%" stop-color="#FFB59F" />
+            <stop offset="100%" stop-color="#F1324F" />
+          </linearGradient>
+          <linearGradient id="irisModerationPanel" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFF8F4" stop-opacity="0.98" />
+            <stop offset="100%" stop-color="#FFDCCD" stop-opacity="0.95" />
+          </linearGradient>
+        </defs>
+        <circle cx="72" cy="72" r="58" fill="url(#irisModerationGlow)" opacity="0.18"></circle>
+        <circle cx="258" cy="56" r="44" fill="url(#irisModerationGlow)" opacity="0.14"></circle>
+        <path d="M66 188c0-12 10-22 22-22h126c12 0 22 10 22 22v10c0 12-10 22-22 22H88c-12 0-22-10-22-22v-10z" fill="#120E1B" opacity="0.95"></path>
+        <rect x="82" y="58" width="156" height="104" rx="22" fill="url(#irisModerationPanel)" stroke="rgba(241,50,79,0.24)"></rect>
+        <path d="M132 162l-22 24v-24h22z" fill="url(#irisModerationPanel)"></path>
+        <path d="M183 86l42 70c4 6-1 14-9 14h-84c-8 0-13-8-9-14l42-70c4-7 14-7 18 0z" fill="#14101D"></path>
+        <path d="M192 105l-4 33a8 8 0 0 1-16 0l-4-33a12 12 0 0 1 24 0z" fill="url(#irisModerationGlow)"></path>
+        <circle cx="180" cy="151" r="8" fill="url(#irisModerationGlow)"></circle>
+        <path d="M74 198h154" stroke="#F3E5DD" stroke-width="8" stroke-linecap="round" opacity="0.92"></path>
+        <path d="M92 214h120" stroke="#F3E5DD" stroke-width="8" stroke-linecap="round" opacity="0.6"></path>
+        <path d="M248 176c20 0 36-16 36-36s-16-36-36-36c-20 0-36 16-36 36s16 36 36 36z" fill="#140C14"></path>
+        <path d="M231 123l34 34" stroke="url(#irisModerationGlow)" stroke-width="10" stroke-linecap="round"></path>
+        <path d="M265 123l-34 34" stroke="url(#irisModerationGlow)" stroke-width="10" stroke-linecap="round"></path>
+      </svg>
+    </div>`;
+  }
+
   function openChatModerationModal(stage, payload) {
     const modal = qs("#irisxChatModerationModal");
     if (!modal) {
@@ -2061,21 +2093,30 @@
     }
     const config = getChatModerationStageConfig(stage);
     const fragments = Array.isArray(payload && payload.fragments) ? payload.fragments.filter(Boolean).slice(0, 4) : [];
+    const consequenceCopy = config.stage === "chat_banned"
+      ? langText("La chat resta disattivata in modo definitivo su questo account.", "Chat stays permanently disabled on this account.")
+      : (config.stage === "warning_2"
+        ? langText("Un altro tentativo blocchera' definitivamente la chat.", "One more attempt will permanently disable chat.")
+        : langText("Questo e' un avviso reale: il prossimo step sale di gravita'.", "This is a real warning: the next step escalates."));
     modal.innerHTML = `<div class="irisx-modal-backdrop"></div><div class="irisx-modal-card irisx-modal-card--moderation irisx-modal-card--moderation-${config.stage}">
       <div class="irisx-card-head irisx-card-head--moderation">
         <div>
           <div class="irisx-kicker">${escapeHtml(config.eyebrow)}</div>
-          <div class="irisx-title">${escapeHtml(config.title)}</div>
-          <div class="irisx-subtitle">${escapeHtml(config.body)}</div>
+          <div class="irisx-title">${escapeHtml(langText("Avviso di sicurezza chat", "Chat safety alert"))}</div>
         </div>
         <button class="irisx-close" aria-label="${escapeHtml(langText("Chiudi", "Close"))}" onclick="closeChatModerationModal()">✕</button>
       </div>
       <div class="irisx-card-body irisx-card-body--moderation">
         <div class="irisx-chat-moderation-hero">
-          <div class="irisx-chat-moderation-badge">${escapeHtml(config.badge)}</div>
-          <strong>${escapeHtml(langText("Comunicazione protetta", "Protected communication"))}</strong>
-          <span>${escapeHtml(langText("IRIS blocca contatti esterni, pagamenti esterni, piattaforme esterne ed emoji prima che il messaggio entri in conversazione.", "IRIS blocks external contacts, off-platform payments, external platforms, and emoji before the message reaches the conversation."))}</span>
+          <div class="irisx-chat-moderation-copy">
+            <div class="irisx-chat-moderation-badge">${escapeHtml(config.badge)}</div>
+            <strong>${escapeHtml(config.title)}</strong>
+            <p>${escapeHtml(config.body)}</p>
+            <div class="irisx-chat-moderation-consequence">${escapeHtml(consequenceCopy)}</div>
+          </div>
+          ${getChatModerationVisualMarkup(config.stage)}
         </div>
+        <div class="irisx-chat-moderation-policy">${escapeHtml(langText("IRIS blocca contatti esterni, pagamenti esterni, piattaforme esterne ed emoji prima che il messaggio entri in conversazione.", "IRIS blocks external contacts, off-platform payments, external platforms, and emoji before the message reaches the conversation."))}</div>
         ${fragments.length ? `<div class="irisx-chat-moderation-fragments">${fragments.map(function (fragment) { return `<span>${escapeHtml(fragment)}</span>`; }).join("")}</div>` : ""}
         <div class="irisx-actions irisx-actions--moderation">
           <button class="irisx-primary" type="button" onclick="closeChatModerationModal()">${escapeHtml(langText("Ho capito", "Understood"))}</button>

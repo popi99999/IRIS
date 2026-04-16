@@ -2012,7 +2012,7 @@
       return {
         stage: "chat_banned",
         eyebrow: langText("IRIS Trust & Safety", "IRIS Trust & Safety"),
-        title: langText("Account sospeso dalla chat", "Chat access suspended"),
+        title: langText("Chat sospesa", "Chat suspended"),
         body: langText(
           "Il tuo accesso alla chat è stato sospeso per violazione ripetuta delle regole di sicurezza di IRIS. Contatta il supporto se ritieni che si tratti di un errore.",
           "Your chat access has been suspended for repeated violations of IRIS security rules. Contact support if you believe this is an error."
@@ -14072,8 +14072,8 @@
     note.classList.toggle("is-blocked", blocked);
     note.textContent = blocked
       ? langText(
-        "Chat bloccata: non puoi più inviare messaggi. Il team sicurezza IRIS ha sospeso il tuo accesso per violazioni ripetute.",
-        "Chat locked: you can no longer send messages. IRIS Trust & Safety suspended your access for repeated violations."
+        "Chat sospesa: non puoi piu inviare messaggi. Puoi ancora acquistare e vendere su IRIS, ma non puoi piu usare la chat.",
+        "Chat suspended: you can no longer send messages. You can still buy and sell on IRIS, but you can no longer use chat."
       )
       : langText(
         "Solo testo, offerte IRIS e segnalazioni assistite. Emoji, contatti esterni, piattaforme esterne e pagamenti esterni vengono bloccati prima dell'invio.",

@@ -77,7 +77,9 @@ const secondCopy = moderation.getModerationStageCopy("warning_2", "it");
 const banCopy = moderation.getModerationStageCopy("chat_banned", "it");
 assert(firstCopy.title === "Messaggio bloccato", "warning_1 copy mismatch", firstCopy);
 assert(firstCopy.text.includes("prossima violazione"), "warning_1 escalation copy mismatch", firstCopy);
-assert(secondCopy.title === "Account sospeso dalla chat", "warning_2 copy mismatch", secondCopy);
-assert(banCopy.title === "Account sospeso dalla chat", "chat_banned copy mismatch", banCopy);
+assert(secondCopy.title === "Chat sospesa", "warning_2 copy mismatch", secondCopy);
+assert(secondCopy.text.includes("acquistare e vendere"), "warning_2 scope copy mismatch", secondCopy);
+assert(banCopy.title === "Chat sospesa", "chat_banned copy mismatch", banCopy);
+assert(banCopy.text.includes("acquistare e vendere"), "chat_banned scope copy mismatch", banCopy);
 
 console.log("IRIS chat moderation validation passed.");

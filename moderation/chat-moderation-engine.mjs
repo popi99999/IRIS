@@ -648,16 +648,16 @@ export function getModerationStageCopy(stage, locale = "it") {
         : "You cannot share external contacts, external platforms, external payment methods, or emoji. All communication and all payments must stay on IRIS. This is your first and only tolerance: one more violation will permanently ban you from chat.",
     },
     warning_2: {
-      title: isItalian ? "Account sospeso dalla chat" : "Chat access suspended",
+      title: isItalian ? "Chat sospesa" : "Chat suspended",
       text: isItalian
-        ? "Hai tentato di aggirare le regole della piattaforma. Il tuo accesso alla chat e' stato sospeso."
-        : "You attempted to bypass the platform rules. Your chat access has been suspended.",
+        ? "Hai tentato di aggirare le regole della piattaforma. Il tuo accesso alla chat e' stato sospeso in modo definitivo. Puoi ancora acquistare e vendere su IRIS, ma non puoi piu usare la chat."
+        : "You attempted to bypass the platform rules. Your chat access has been permanently suspended. You can still buy and sell on IRIS, but you can no longer use chat.",
     },
     chat_banned: {
-      title: isItalian ? "Account sospeso dalla chat" : "Chat access suspended",
+      title: isItalian ? "Chat sospesa" : "Chat suspended",
       text: isItalian
-        ? "Il tuo accesso alla chat è stato sospeso per violazione ripetuta delle regole di sicurezza di IRIS. Contatta il supporto se ritieni che si tratti di un errore."
-        : "Your chat access has been suspended for repeated violations of IRIS security rules. Contact support if you believe this is an error.",
+        ? "Il tuo accesso alla chat e' stato sospeso in modo definitivo per violazione ripetuta delle regole di sicurezza di IRIS. Puoi ancora acquistare e vendere su IRIS, ma non puoi piu usare la chat. Contatta il supporto se ritieni che si tratti di un errore."
+        : "Your chat access has been permanently suspended for repeated violations of IRIS security rules. You can still buy and sell on IRIS, but you can no longer use chat. Contact support if you believe this is an error.",
     },
   };
   return copy[stage] || copy.warning_1;

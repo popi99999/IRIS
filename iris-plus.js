@@ -6564,8 +6564,8 @@
       kicker: "",
       title: "Authentic luxury.\nFinally accessible.",
       text: "Every piece certified by our team of experts. Hermès, Chanel, Louis Vuitton — authenticated one by one, delivered to your door.",
-      primaryCta: "Discover products",
-      secondaryCta: "Why IRIS",
+      primaryCta: "Browse the collection",
+      secondaryCta: "Sell with IRIS",
       featuredTitle: "Collector's Pieces",
       featuredNote: "A curated selection of the most sought-after pieces.",
       buyTitle: "Shop with confidence",
@@ -6954,9 +6954,7 @@
     const editorialProduct = featured.find(function (product) {
       return Array.isArray(product.images) && product.images.length;
     }) || featured[0] || null;
-    const proofText = "";
-    const primaryHeroCta = langText("Scopri i prodotti", "Discover products");
-    const secondaryHeroCta = langText("Perché IRIS", "Why IRIS");
+    const proofText = (copy.buyPoints && copy.buyPoints[0]) || copy.featuredNote || copy.text;
     const renderSignature = getHomeRenderSignature(copy, featured, proofText);
     const forceRender = Boolean(options && options.force);
     if (!forceRender && state.homeRenderSignature === renderSignature && !container.classList.contains("irisx-home--loading")) {
@@ -6990,9 +6988,10 @@
           <div class="irisx-home-copy">
             ${copy.kicker ? `<div class="irisx-home-kicker">${escapeHtml(copy.kicker)}</div><div class="irisx-home-rule"></div>` : ""}
             <h1 class="irisx-home-title">${escapeHtml(copy.title).replace(/\n/g, "<br>")}</h1>
+            <div class="irisx-home-proof">${escapeHtml(proofText)}</div>
             <div class="irisx-home-actions">
-              <button class="irisx-home-action primary" onclick="showBuyView('shop')">${escapeHtml(primaryHeroCta)}</button>
-              <button class="irisx-home-action secondary" onclick="openStatic('about')">${escapeHtml(secondaryHeroCta)}</button>
+              <button class="irisx-home-action primary" onclick="showBuyView('shop')">${escapeHtml(copy.primaryCta)}</button>
+              <button class="irisx-home-action secondary" onclick="showPage('sell')">${escapeHtml(copy.secondaryCta)}</button>
             </div>
           </div>
           <button class="irisx-home-scroll" aria-label="${escapeHtml(langText("Scorri", "Scroll"))}" onclick="document.getElementById('irisTrustBar') && document.getElementById('irisTrustBar').scrollIntoView({behavior:'smooth',block:'start'})"></button>
@@ -11653,7 +11652,7 @@
       ")\"><button class=\"pc-heart" +
       (liked ? " liked" : "") +
       "\" aria-label=\"" +
-      escapeHtml(liked ? langText("Rimuovi dai preferiti", "Remove from favorites") : langText("Aggiungi ai preferiti", "Add to favorites")) +
+      escapeHtml(langText("Aggiungi ai preferiti", "Add to favorites")) +
       "\" onclick=\"event.stopPropagation();toggleFav(" +
       productIdExpr +
       ",this)\">" +
@@ -17811,11 +17810,6 @@
       const localModeration = moderationApi.moderateChatMessage(messageText, {
         channel: "chat",
         actorRole: getChatConversationScope(conversation) === "selling" ? "seller" : "buyer",
-        recentMessages: (conversation.msgs || [])
-          .filter(function (message) { return message.from === "me"; })
-          .slice(-6)
-          .map(function (message) { return String(message.text || ""); }),
-        priorViolationCount: Number(state.chatModeration && state.chatModeration.violationCount || 0),
       });
       const serverResponse = await appendChatMessageToSupabase(conversation, messageText);
       if (serverResponse && serverResponse.moderationState) {
@@ -17836,13 +17830,6 @@
       }
 
       input.value = "";
-      const finalModeration = serverResponse && serverResponse.moderation ? serverResponse.moderation : localModeration;
-      if (finalModeration && finalModeration.riskLevel === "suspicious") {
-        showToast(langText(
-          "Per sicurezza, evita riferimenti a contatti esterni o metodi di pagamento fuori piattaforma.",
-          "For safety, avoid references to external contacts or off-platform payments.",
-        ));
-      }
       try {
         await refreshSupabaseChats();
         openChatById(serverResponse.conversationId || conversation.id);
@@ -18467,8 +18454,8 @@
       </div>
       <div class="irisx-detail-action-stack irisx-detail-action-stack--compact">
         <div class="irisx-detail-secondary-actions irisx-detail-secondary-actions--sold">
-          <button class="det-fav irisx-detail-fav-pill" aria-label="${escapeHtml(favoriteLabel)}" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button>
-          ${relatedOrder ? `<button class="irisx-secondary" aria-label="${langText("Apri supporto ordine", "Open order support")}" onclick="openSupportModal('${escapeHtml(relatedOrder.id)}', { productId: '${escapeHtml(product.id)}', issueType: 'order_problem' })">${langText("Supporto ordine", "Order support")}</button>` : `<button class="irisx-secondary" aria-label="${langText("Segnala questo annuncio", "Report this listing")}" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button>`}
+          <button class="det-fav irisx-detail-fav-pill" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button>
+          ${relatedOrder ? `<button class="irisx-secondary" onclick="openSupportModal('${escapeHtml(relatedOrder.id)}', { productId: '${escapeHtml(product.id)}', issueType: 'order_problem' })">${langText("Supporto ordine", "Order support")}</button>` : `<button class="irisx-secondary" onclick="reportListing(${productIdExpr})">${langText("Segnala", "Report")}</button>`}
         </div>
         ${relatedOrder ? `<div class="irisx-note irisx-note--compact">${langText("Hai acquistato o gestito questo ordine su IRIS: puoi aprire assistenza o disputa senza reinserire i dati del prodotto.", "You bought or handled this order on IRIS: support and disputes already include the product context.")}</div>` : ""}
       </div>`;
@@ -18476,34 +18463,34 @@
     if (ownListing) {
       return `<div class="irisx-note irisx-note--owner">${langText("Stai guardando un tuo annuncio. Da qui puoi gestirlo, ma non comprarlo o fare offerte.", "You are viewing your own listing. From here you can manage it, but not buy it or make offers.")}</div>
       <div class="irisx-detail-action-stack">
-        <button class="det-buy" aria-label="${langText("Modifica questo annuncio", "Edit this listing")}" onclick="loadDraftIntoSellForm(${productIdExpr})">${langText("Modifica annuncio", "Edit listing")}</button>
+        <button class="det-buy" onclick="loadDraftIntoSellForm(${productIdExpr})">${langText("Modifica annuncio", "Edit listing")}</button>
         <div class="irisx-detail-secondary-actions irisx-detail-secondary-actions--owner">
-          <button class="irisx-secondary" aria-label="${langText("Apri l'area vendite", "Open seller area")}" onclick="showBuyView('profile');setProfileArea('seller','active')">${langText("Area vendite", "Seller area")}</button>
-          <button class="irisx-secondary" aria-label="${product.offersEnabled ? langText("Disattiva le offerte per questo annuncio", "Disable offers for this listing") : langText("Attiva le offerte per questo annuncio", "Enable offers for this listing")}" onclick="toggleListingOffers(${productIdExpr})">${product.offersEnabled ? langText("Disattiva offerte", "Disable offers") : langText("Attiva offerte", "Enable offers")}</button>
+          <button class="irisx-secondary" onclick="showBuyView('profile');setProfileArea('seller','active')">${langText("Area vendite", "Seller area")}</button>
+          <button class="irisx-secondary" onclick="toggleListingOffers(${productIdExpr})">${product.offersEnabled ? langText("Disattiva offerte", "Disable offers") : langText("Attiva offerte", "Enable offers")}</button>
         </div>
-        <div class="irisx-detail-utility-actions irisx-detail-utility-actions--compact"><button class="det-fav irisx-detail-fav-pill" aria-label="${escapeHtml(favoriteLabel)}" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button></div>
+        <div class="irisx-detail-utility-actions irisx-detail-utility-actions--compact"><button class="det-fav irisx-detail-fav-pill" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button></div>
         <div class="irisx-note irisx-note--compact">${product.offersEnabled ? minimumOfferLine : langText("Le offerte sono disattivate su questo annuncio.", "Offers are disabled on this listing.")}</div>
       </div>`;
     }
     const secondaryPrimaryButtons = [];
     if (product.offersEnabled) {
-      secondaryPrimaryButtons.push(`<button class="det-offer" aria-label="${t("make_offer")}" onclick="openOffer(${productIdExpr})">${t("make_offer")}</button>`);
+      secondaryPrimaryButtons.push(`<button class="det-offer" onclick="openOffer(${productIdExpr})">${t("make_offer")}</button>`);
     }
-    secondaryPrimaryButtons.push(`<button class="irisx-secondary" aria-label="${t("add_to_cart")}" onclick="addToCart(${productIdExpr})">${t("add_to_cart")}</button>`);
+    secondaryPrimaryButtons.push(`<button class="irisx-secondary" onclick="addToCart(${productIdExpr})">${t("add_to_cart")}</button>`);
     const offerNote = product.offersEnabled
       ? minimumOfferLine
       : langText("Questo seller ha disattivato le offerte su questo articolo.", "This seller has disabled offers on this listing.");
     return `<div class="irisx-detail-action-stack">
-      <button class="det-buy" aria-label="${langText("Acquista ora questo articolo", "Buy this item now")}" onclick="buyNow(${productIdExpr})">${t("buy_now")} · ${formatCurrency(product.price)}</button>
+      <button class="det-buy" onclick="buyNow(${productIdExpr})">${t("buy_now")} · ${formatCurrency(product.price)}</button>
       <div class="irisx-detail-secondary-actions">
         ${secondaryPrimaryButtons.join("")}
       </div>
       <div class="irisx-detail-utility-actions irisx-detail-utility-actions--balanced">
-        <button class="det-fav irisx-detail-fav-pill" aria-label="${escapeHtml(favoriteLabel)}" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button>
-        <button class="irisx-secondary" aria-label="${langText("Apri chat con il venditore", "Open chat with the seller")}" onclick="openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>
+        <button class="det-fav irisx-detail-fav-pill" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button>
+        <button class="irisx-secondary" onclick="openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>
       </div>
       <div class="irisx-note irisx-note--offer">${offerNote}</div>
-      <button class="irisx-link-btn irisx-link-btn--quiet" aria-label="${langText("Segnala questo annuncio", "Report this listing")}" onclick="reportListing(${productIdExpr})">${langText("Segnala annuncio", "Report listing")}</button>
+      <button class="irisx-link-btn irisx-link-btn--quiet" onclick="reportListing(${productIdExpr})">${langText("Segnala annuncio", "Report listing")}</button>
     </div>`;
   };
 
@@ -18547,13 +18534,17 @@
     const sellerIdExpr = inlineJsValue(seller.id);
     const productIdExpr = inlineJsValue(product.id);
     const sellerPrimaryAction = viewerOwnsListing
-      ? `<button class="seller-chat" aria-label="${langText("Modifica questo annuncio", "Edit this listing")}" onclick="event.stopPropagation();loadDraftIntoSellForm(${productIdExpr})">${langText("Modifica", "Edit")}</button>`
-      : `<button class="seller-chat" aria-label="${langText("Apri chat con il venditore", "Open chat with the seller")}" onclick="event.stopPropagation();openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>`;
+      ? `<button class="seller-chat" onclick="event.stopPropagation();loadDraftIntoSellForm(${productIdExpr})">${langText("Modifica", "Edit")}</button>`
+      : `<button class="seller-chat" onclick="event.stopPropagation();openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>`;
     const sellerCardClick = viewerOwnsListing
       ? `showBuyView('profile');setProfileArea('seller','active')`
       : `showSeller('${escapeHtml(seller.id)}')`;
     const similar = prods.filter(function (item) { return !sameEntityId(item.id, product.id) && (item.brand === product.brand || item.cat === product.cat); }).slice(0, 4);
-    const detailShippingTrustMarkup = "";
+    const detailShippingTrustMarkup = `<div class="irisx-detail-core-grid">
+      <div class="irisx-inline-card"><div><strong>${langText("Spedizione tracciata", "Tracked shipping")}</strong><span>${langText("Assicurata e monitorata da IRIS.", "Insured and monitored by IRIS.")}</span></div><em>${formatCurrency(SHIPPING_COST)}</em></div>
+      <div class="irisx-inline-card"><div><strong>${langText("Offerte", "Offers")}</strong><span>${product.offersEnabled ? (product.minimumOfferAmount ? `${langText("Offerta minima", "Minimum offer")}: ${formatCurrency(product.minimumOfferAmount)}` : langText("Offerte attive", "Offers active")) : langText("Offerte disattivate", "Offers disabled")}</span></div></div>
+      <div class="irisx-inline-card irisx-inline-card--trust"><div><strong>${langText("Trust IRIS", "IRIS trust")}</strong><span>${trustMeta.verified ? langText("Autenticato da IRIS con protezione acquisto.", "Authenticated by IRIS with purchase protection.") : langText("Checkout protetto e assistenza premium disponibili.", "Protected checkout and premium support available.")}</span></div></div>
+    </div>`;
     const sellerTrustBadges = [
       isVerifiedSellerProfile(seller) ? langText("Seller verificato", "Verified seller") : "",
       `${seller.sales} ${t("sales")}`,
@@ -18586,7 +18577,7 @@
             </div>
             ${getDetailActionsMarkup(product, liked)}
             ${detailShippingTrustMarkup}
-            <div class="det-section det-section--seller"><div class="det-section-title">${viewerOwnsListing ? langText("Gestione annuncio", "Listing management") : t("seller")}</div><div class="seller-card seller-card--elevated" onclick="${sellerCardClick}"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta">${escapeHtml(seller.city)} · ${escapeHtml(langText("Risposta premium IRIS", "Premium IRIS support"))}</div><div class="irisx-seller-badges">${sellerTrustBadges}</div></div>${sellerPrimaryAction}</div>${!viewerOwnsListing ? `<button class="irisx-link-btn irisx-link-btn--quiet" aria-label="${langText("Segnala questo annuncio", "Report this listing")}" onclick="event.stopPropagation();reportListing(${productIdExpr})">${langText("Segnala annuncio", "Report listing")}</button>` : ""}</div>
+            <div class="det-section det-section--seller"><div class="det-section-title">${viewerOwnsListing ? langText("Gestione annuncio", "Listing management") : t("seller")}</div><div class="seller-card seller-card--elevated" onclick="${sellerCardClick}"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta">${escapeHtml(seller.city)} · ${escapeHtml(langText("Risposta premium IRIS", "Premium IRIS support"))}</div><div class="irisx-seller-badges">${sellerTrustBadges}</div></div>${sellerPrimaryAction}</div>${!viewerOwnsListing ? `<button class="irisx-link-btn irisx-link-btn--quiet" onclick="event.stopPropagation();reportListing(${productIdExpr})">${langText("Segnala annuncio", "Report listing")}</button>` : ""}</div>
           </section>
         </div>
       </section>

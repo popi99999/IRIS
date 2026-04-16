@@ -33,7 +33,6 @@
 <link rel="apple-touch-icon" sizes="512x512" href="./icons/icon-512.png">
 <link rel="manifest" href="./manifest.json">
 <link rel="stylesheet" href="./iris-plus.css">
-<link rel="stylesheet" href="./iris-foundation.css">
 <title>IRIS — Luxury Fashion Marketplace</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Il marketplace italiano per la moda di lusso.","potentialAction":{"@type":"SearchAction","target":"https://popi99999.github.io/IRIS/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Luxury Fashion Marketplace italiano"}</script>
@@ -2293,7 +2292,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 	            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 4.5 3 3 3-3"/></svg>
 	          </span>
 	        </button>
-        <button class="tn-btn tn-auth" id="tnHeaderAuthBtn" type="button" onclick="handleAuthButtonClick()" aria-label="Accedi o crea account">Accedi</button>
+        <button class="tn-btn tn-auth" id="tnHeaderAuthBtn" type="button" onclick="handleAuthButtonClick()" aria-label="Accedi">Accedi</button>
         <button class="tn-btn tn-icon tn-favorites" id="tnFavBtn" data-nav-view="fav" onclick="showBuyView('fav')" aria-label="Apri preferiti">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13.2 2.9 8.5A3.2 3.2 0 0 1 7.7 4.2L8 4.5l.3-.3a3.2 3.2 0 0 1 4.8 4.3L8 13.2Z"/></svg>
           <span class="badge" id="fav-top-badge" style="display:none">0</span>
@@ -2309,7 +2308,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
         <button class="tn-btn tn-chat" data-nav-view="chat" onclick="showBuyView('chat')" aria-label="Apri messaggi"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5h11v8h-7l-4 3v-3z"/></svg><span class="badge" id="chat-top-badge">2</span></button>
         <button class="tn-btn tn-profile" data-nav-view="profile" onclick="showBuyView('profile')" aria-label="Apri profilo"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 14.5c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg></button>
         <button class="lang-toggle" id="tnLangToggleLegacy" onclick="switchLang()">EN</button>
-        <button class="tn-btn tn-sell" id="tnSellBtn" onclick="showPage('sell')" aria-label="Vai alla pagina Vendi">Vendi</button>
+        <button class="tn-btn tn-sell" id="tnSellBtn" onclick="showPage('sell')">Vendi</button>
       </div>
     </div>
 	    <div class="tn-locale-menu" id="tnLocaleMenu"></div>
@@ -2347,10 +2346,10 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           <button class="tn-mobile-link" id="tnMobileFavBtn" onclick="closeMobileNav();showBuyView('fav')" aria-label="Apri preferiti">Preferiti</button>
           <button class="tn-mobile-link" id="tnMobileChatBtn" onclick="closeMobileNav();showBuyView('chat')" aria-label="Apri messaggi">Messaggi</button>
           <button class="tn-mobile-link" id="tnMobileCartBtn" onclick="closeMobileNav();openCart()">Carrello</button>
-          <button class="tn-mobile-link tn-mobile-link--primary" id="tnMobileSellBtn" onclick="closeMobileNav();showPage('sell')" aria-label="Vai alla pagina Vendi">Vendi</button>
+          <button class="tn-mobile-link tn-mobile-link--primary" id="tnMobileSellBtn" onclick="closeMobileNav();showPage('sell')">Vendi</button>
           <button class="tn-mobile-link" id="tnMobileThemeBtn" onclick="toggleDarkLight()" aria-label="Cambia tema">Tema</button>
           <button class="tn-mobile-link" id="tnMobileLangBtn" onclick="switchLang()" aria-label="Cambia lingua">Lingua</button>
-          <button class="tn-mobile-link" id="tnMobileAuthBtn" onclick="handleAuthButtonClick()" aria-label="Apri accesso o esci">Accedi / Esci</button>
+          <button class="tn-mobile-link" id="tnMobileAuthBtn" onclick="handleAuthButtonClick()">Accedi / Esci</button>
         </div>
       </div>
     </div>

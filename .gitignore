@@ -1,5 +1,4 @@
 .playwright-cli/
-.npm-cache/
 .DS_Store
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/

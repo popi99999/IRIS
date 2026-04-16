@@ -68,16 +68,21 @@ assert(strikeState.lastAction === "warning_1", "First strike should trigger warn
 
 strikeState = moderation.applyModerationEscalation(strikeState, expectBlocked("pagami con paypal", "external_payment"), Date.now()).state;
 assert(strikeState.violationCount === 2, "Second strike was not recorded correctly.", strikeState);
-assert(strikeState.isSuspended === true, "Second strike should suspend chat immediately.", strikeState);
-assert(strikeState.lastAction === "chat_banned", "Second strike should trigger chat_banned.", strikeState);
+assert(strikeState.isSuspended === false, "Second strike should still be a final warning.", strikeState);
+assert(strikeState.lastAction === "warning_2", "Second strike should trigger warning_2.", strikeState);
+
+strikeState = moderation.applyModerationEscalation(strikeState, expectBlocked("v i n t e d", "external_platform"), Date.now()).state;
+assert(strikeState.violationCount === 3, "Third strike was not recorded correctly.", strikeState);
+assert(strikeState.isSuspended === true, "Third strike should suspend chat.", strikeState);
+assert(strikeState.lastAction === "chat_banned", "Third strike should trigger chat_banned.", strikeState);
 assert(moderation.isChatSuspended(strikeState) === true, "Suspended user should remain blocked.", strikeState);
 
 const firstCopy = moderation.getModerationStageCopy("warning_1", "it");
 const secondCopy = moderation.getModerationStageCopy("warning_2", "it");
 const banCopy = moderation.getModerationStageCopy("chat_banned", "it");
 assert(firstCopy.title === "Messaggio bloccato", "warning_1 copy mismatch", firstCopy);
-assert(firstCopy.text.includes("prossima violazione"), "warning_1 escalation copy mismatch", firstCopy);
-assert(secondCopy.title === "Chat sospesa", "warning_2 copy mismatch", secondCopy);
+assert(firstCopy.text.includes("prima violazione"), "warning_1 escalation copy mismatch", firstCopy);
+assert(secondCopy.title === "Ultimo avvertimento", "warning_2 copy mismatch", secondCopy);
 assert(secondCopy.text.includes("acquistare e vendere"), "warning_2 scope copy mismatch", secondCopy);
 assert(banCopy.title === "Chat sospesa", "chat_banned copy mismatch", banCopy);
 assert(banCopy.text.includes("acquistare e vendere"), "chat_banned scope copy mismatch", banCopy);

@@ -578,7 +578,7 @@ export function normalizeChatModerationState(record, now = Date.now()) {
     chatBannedUntil: source.chatBannedUntil ?? source.chat_banned_until ?? null,
     moderationNotes: source.moderationNotes ?? source.moderation_notes ?? {},
     isSuspended,
-    activeWarningLevel: isSuspended ? 2 : Math.min(1, Math.max(0, Number(source.violationCount ?? source.violation_count ?? 0))),
+    activeWarningLevel: isSuspended ? 3 : Math.min(2, Math.max(0, Number(source.violationCount ?? source.violation_count ?? 0))),
   };
 }
 
@@ -602,8 +602,8 @@ export function applyModerationEscalation(currentState, moderationResult, now = 
   }
 
   const nextStrikeCount = current.violationCount + 1;
-  const shouldBan = Boolean(nextStrikeCount >= 2);
-  const action = shouldBan ? "chat_banned" : "warning_1";
+  const shouldBan = Boolean(nextStrikeCount >= 3);
+  const action = shouldBan ? "chat_banned" : nextStrikeCount === 2 ? "warning_2" : "warning_1";
   const nextState = normalizeChatModerationState({
     userId: current.userId,
     violationCount: nextStrikeCount,
@@ -644,14 +644,14 @@ export function getModerationStageCopy(stage, locale = "it") {
     warning_1: {
       title: isItalian ? "Messaggio bloccato" : "Message blocked",
       text: isItalian
-        ? "Non puoi condividere contatti esterni, piattaforme esterne, metodi di pagamento esterni o emoji. Tutta la comunicazione e tutti i pagamenti devono restare su IRIS. Questa e' la tua prima e unica tolleranza: alla prossima violazione verrai bannato dalla chat."
-        : "You cannot share external contacts, external platforms, external payment methods, or emoji. All communication and all payments must stay on IRIS. This is your first and only tolerance: one more violation will permanently ban you from chat.",
+        ? "Non puoi condividere contatti esterni, piattaforme esterne, metodi di pagamento esterni o emoji. Tutta la comunicazione e tutti i pagamenti devono restare su IRIS. Questa e' la tua prima violazione."
+        : "You cannot share external contacts, external platforms, external payment methods, or emoji. All communication and all payments must stay on IRIS. This is your first violation.",
     },
     warning_2: {
-      title: isItalian ? "Chat sospesa" : "Chat suspended",
+      title: isItalian ? "Ultimo avvertimento" : "Final warning",
       text: isItalian
-        ? "Hai tentato di aggirare le regole della piattaforma. Il tuo accesso alla chat e' stato sospeso in modo definitivo. Puoi ancora acquistare e vendere su IRIS, ma non puoi piu usare la chat."
-        : "You attempted to bypass the platform rules. Your chat access has been permanently suspended. You can still buy and sell on IRIS, but you can no longer use chat.",
+        ? "Hai tentato di aggirare le regole della piattaforma. Un'altra violazione comportera' la sospensione definitiva della chat. Potrai ancora acquistare e vendere su IRIS, ma non usare la chat."
+        : "You attempted to bypass the platform rules. One more violation will permanently suspend chat. You will still be able to buy and sell on IRIS, but not use chat.",
     },
     chat_banned: {
       title: isItalian ? "Chat sospesa" : "Chat suspended",

@@ -2014,8 +2014,8 @@
         eyebrow: langText("IRIS Trust & Safety", "IRIS Trust & Safety"),
         title: langText("Chat sospesa", "Chat suspended"),
         body: langText(
-          "Il tuo accesso alla chat è stato sospeso per violazione ripetuta delle regole di sicurezza di IRIS. Contatta il supporto se ritieni che si tratti di un errore.",
-          "Your chat access has been suspended for repeated violations of IRIS security rules. Contact support if you believe this is an error."
+          "Il tuo accesso alla chat e' stato sospeso in modo definitivo per violazione ripetuta delle regole di sicurezza di IRIS. Puoi ancora acquistare e vendere su IRIS, ma non puoi piu usare la chat. Contatta il supporto se ritieni che si tratti di un errore.",
+          "Your chat access has been permanently suspended for repeated violations of IRIS security rules. You can still buy and sell on IRIS, but you can no longer use chat. Contact support if you believe this is an error."
         ),
         badge: "3 / 3",
       };
@@ -2026,8 +2026,8 @@
         eyebrow: langText("IRIS Trust & Safety", "IRIS Trust & Safety"),
         title: langText("Ultimo avvertimento", "Final warning"),
         body: langText(
-          "Hai tentato di aggirare le regole della piattaforma. Un'altra violazione comporterà la sospensione automatica del tuo account dalla chat.",
-          "You attempted to bypass the platform rules. One more violation will trigger an automatic suspension from chat."
+          "Hai tentato di aggirare le regole della piattaforma. Un'altra violazione comportera' la sospensione definitiva della chat. Potrai ancora acquistare e vendere su IRIS, ma non usare la chat.",
+          "You attempted to bypass the platform rules. One more violation will permanently suspend chat. You will still be able to buy and sell on IRIS, but not use chat."
         ),
         badge: "2 / 3",
       };
@@ -2037,7 +2037,7 @@
       eyebrow: langText("IRIS Trust & Safety", "IRIS Trust & Safety"),
       title: langText("Messaggio bloccato", "Message blocked"),
       body: langText(
-        "Non puoi condividere contatti esterni, piattaforme esterne, metodi di pagamento esterni o emoji. Tutta la comunicazione e tutti i pagamenti devono restare su IRIS. Questa è la tua prima violazione.",
+        "Non puoi condividere contatti esterni, piattaforme esterne, metodi di pagamento esterni o emoji. Tutta la comunicazione e tutti i pagamenti devono restare su IRIS. Questa e' la tua prima violazione.",
         "You cannot share external contacts, external platforms, external payment methods, or emoji. All communication and all payments must stay on IRIS. This is your first violation."
       ),
       badge: "1 / 3",

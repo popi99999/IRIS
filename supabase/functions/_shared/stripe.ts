@@ -58,6 +58,24 @@ export function defaultSuccessUrl(path = "/"): string {
   return `${getPublicSiteUrl()}${path}`;
 }
 
+export function sanitizeReturnUrl(candidate: string | null | undefined, fallbackPath = "/"): string {
+  const fallback = defaultSuccessUrl(fallbackPath);
+  const raw = String(candidate ?? "").trim();
+  if (!raw) {
+    return fallback;
+  }
+  try {
+    const publicOrigin = new URL(getPublicSiteUrl()).origin;
+    const url = new URL(raw, fallback);
+    if (url.origin !== publicOrigin) {
+      return fallback;
+    }
+    return url.toString();
+  } catch {
+    return fallback;
+  }
+}
+
 export function appendUrlParams(baseUrl: string, params: Record<string, string | number | boolean | null | undefined>): string {
   const url = new URL(baseUrl || defaultSuccessUrl("/"));
   Object.entries(params).forEach(([key, value]) => {

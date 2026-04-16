@@ -33,9 +33,16 @@ response="$(
     -d "url=$WEBHOOK_URL" \
     -d "enabled_events[]=checkout.session.completed" \
     -d "enabled_events[]=checkout.session.expired" \
+    -d "enabled_events[]=checkout.session.async_payment_failed" \
+    -d "enabled_events[]=payment_intent.succeeded" \
     -d "enabled_events[]=payment_intent.captured" \
     -d "enabled_events[]=payment_intent.payment_failed" \
-    -d "enabled_events[]=payment_intent.canceled"
+    -d "enabled_events[]=payment_intent.canceled" \
+    -d "enabled_events[]=charge.refunded" \
+    -d "enabled_events[]=charge.dispute.created" \
+    -d "enabled_events[]=charge.dispute.closed" \
+    -d "enabled_events[]=transfer.created" \
+    -d "enabled_events[]=account.updated"
 )"
 
 echo "$response"

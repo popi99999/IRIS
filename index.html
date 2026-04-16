@@ -2212,10 +2212,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 <!-- ═══════ INTRO ═══════ -->
 <div id="intro" onclick="skipIntro()" style="display:none">
   <!-- 4K luxury video background -->
-  <video id="i-vid" autoplay muted loop playsinline preload="auto">
-    
-    
-  </video>
+  <video id="i-vid" autoplay muted loop playsinline preload="auto"></video>
   <div id="intro-bg"></div>
   <div class="i-lux"><div class="i-lux-shine"></div></div>
   <!-- Floating luxury elements -->
@@ -2406,7 +2403,9 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
         <div class="f-group">
           <div class="f-label" onclick="toggleFilter(this)">Taglia</div>
           <div class="f-body">
-            <input class="f-search" placeholder="es. M, 42, 30cm..." id="f-size" oninput="applyFilters()">
+            <input type="hidden" id="f-size">
+            <div class="irisx-size-filter-panel" id="irisxSizeFilterPanel"></div>
+            <div class="irisx-size-filter-hint" id="irisxSizeFilterHint">Le taglie si adattano a categoria, brand e tipo di prodotto.</div>
           </div>
         </div>
 
@@ -2619,7 +2618,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           <input type="file" id="fileIn" multiple accept="image/*" style="display:none" required>
           <div class="form-fields">
             <div class="fg"><label class="fl" for="sf-cat">Categoria *</label><select class="fsel" id="sf-cat" required onchange="handleSellTaxonomyChange('category');updateFee()"><option value="">Seleziona</option></select></div>
-            <div class="fg"><label class="fl" for="sf-brand">Brand / Designer *</label><select class="fsel" id="sf-brand" required><option value="">Seleziona brand</option><optgroup label="Ultra Lusso"><option>Hermès</option><option>Chanel</option><option>Louis Vuitton</option><option>Dior</option><option>Bottega Veneta</option></optgroup><optgroup label="Lusso"><option>Gucci</option><option>Prada</option><option>Valentino</option><option>Versace</option><option>Fendi</option><option>Burberry</option><option>Moncler</option><option>Stone Island</option></optgroup><optgroup label="Contemporary"><option>Balenciaga</option><option>Off-White</option><option>Jacquemus</option><option>Amiri</option><option>Rick Owens</option><option>Maison Margiela</option></optgroup><option>Altro</option></select></div>
+            <div class="fg"><label class="fl" for="sf-brand">Brand / Designer *</label><select class="fsel" id="sf-brand" required onchange="handleSellTaxonomyChange('brand')"><option value="">Seleziona brand</option><optgroup label="Ultra Lusso"><option>Hermès</option><option>Chanel</option><option>Louis Vuitton</option><option>Dior</option><option>Bottega Veneta</option></optgroup><optgroup label="Lusso"><option>Gucci</option><option>Prada</option><option>Valentino</option><option>Versace</option><option>Fendi</option><option>Burberry</option><option>Moncler</option><option>Stone Island</option></optgroup><optgroup label="Contemporary"><option>Balenciaga</option><option>Off-White</option><option>Jacquemus</option><option>Amiri</option><option>Rick Owens</option><option>Maison Margiela</option></optgroup><option>Altro</option></select></div>
             <div class="fg"><label class="fl" for="sf-name">Nome articolo *</label><input class="fi" id="sf-name" placeholder="es. Gucci GG Marmont Shoulder Bag" required></div>
             <div class="fr">
               <div class="fg" id="irisxSubcategoryGroup"><label class="fl" id="sf-subcat-label" for="sf-subcat">Sottocategoria *</label><select class="fsel" id="sf-subcat" required onchange="handleSellTaxonomyChange('subcategory')"><option value="">Seleziona</option></select></div>
@@ -3209,7 +3208,8 @@ function t(key){return i18n[curLang][key]||i18n.it[key]||key}
 function switchLang(){
   curLang=curLang==='it'?'en':'it';
   localStorage.setItem('iris-lang',curLang);
-  document.getElementById('langToggle').textContent=curLang==='it'?'EN':'IT';
+  const langToggle=document.getElementById('langToggle');
+  if(langToggle)langToggle.textContent=curLang==='it'?'EN':'IT';
   document.documentElement.lang=curLang;
   applyLang();
 }
@@ -3276,14 +3276,17 @@ let darkMode=localStorage.getItem('iris-mode')!=='light';
 function toggleDarkLight(){
   darkMode=!darkMode;
   document.body.classList.toggle('light-mode',!darkMode);
-  document.getElementById('modeToggle').textContent=darkMode?'☀️':'🌙';
+  const modeToggle=document.getElementById('modeToggle');
+  if(modeToggle)modeToggle.textContent=darkMode?'☀️':'🌙';
   localStorage.setItem('iris-mode',darkMode?'dark':'light');
 }
 // Init mode
 if(!darkMode)document.body.classList.add('light-mode');
-document.getElementById('modeToggle').textContent=darkMode?'☀️':'🌙';
+const modeToggle=document.getElementById('modeToggle');
+if(modeToggle)modeToggle.textContent=darkMode?'☀️':'🌙';
 // Init lang
-document.getElementById('langToggle').textContent=curLang==='it'?'EN':'IT';
+const langToggle=document.getElementById('langToggle');
+if(langToggle)langToggle.textContent=curLang==='it'?'EN':'IT';
 
 /* ═══════ NOTIFICATIONS ═══════ */
 let notifications=[

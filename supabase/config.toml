@@ -1,31 +1,34 @@
 project_id = "xzhgyamzfthqrcaljdqv"
 
 [functions.create-checkout-session]
-verify_jwt = false
+verify_jwt = true
 
 [functions.create-offer-authorization]
-verify_jwt = false
+verify_jwt = true
 
 [functions.respond-to-offer]
-verify_jwt = false
+verify_jwt = true
 
 [functions.stripe-webhook]
 verify_jwt = false
 
 [functions.release-payout]
-verify_jwt = false
+verify_jwt = true
 
 [functions.create-connect-account]
-verify_jwt = false
+verify_jwt = true
 
 [functions.create-connect-account-link]
-verify_jwt = false
+verify_jwt = true
 
 [functions.mark-order-shipped]
-verify_jwt = false
+verify_jwt = true
 
 [functions.confirm-order-delivery]
-verify_jwt = false
+verify_jwt = true
+
+[functions.send-chat-message]
+verify_jwt = true
 
 [functions.run-marketplace-maintenance]
 verify_jwt = false

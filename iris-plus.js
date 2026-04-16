@@ -15,7 +15,8 @@
     measurementRequests: "iris-measurement-requests",
     auditLog: "iris-audit-log",
     chats: "iris-chats",
-    reviews: "iris-reviews"
+    reviews: "iris-reviews",
+    chatModeration: "iris-chat-moderation"
   };
   const COOKIE_CONSENT_KEY = "iris-cookie-consent";
   const PLACEHOLDER_IMAGES = {
@@ -29,9 +30,6 @@
 
   const PLATFORM_CONFIG = {
     ownerEmail: "irisadminojmpx0nd@deltajohnsons.com",
-    adminEmails: ["irisadminojmpx0nd@deltajohnsons.com"],
-    ownerBootstrapEnabled: true,
-    ownerBootstrapPasswordHash: "fe13fc274cf33ed4deecd239cdde4ce8b2b4323bfbf37a6dcd90e368f02779df",
     supportEmail: "support@iris-fashion.it",
     emailFrom: "IRIS <noreply@iris-fashion.it>",
     platformFeeRate: 0.12,
@@ -78,11 +76,14 @@
   let supabaseReviewsInitialized = false;
   let supabaseMeasurementRequestsInitialized = false;
   let supabaseNotificationsInitialized = false;
+  let chatModerationModulePromise = null;
+  let chatModerationSyncPromise = null;
+  let lastChatModerationUserKey = "";
   const SELL_TAXONOMY = {
     clothing: {
       it: "Abbigliamento",
       en: "Clothing",
-      sizeMode: "alpha",
+      sizeMode: "apparel_alpha",
       fitEnabled: true,
       dimensionsLabel: { it: "Misure / lunghezze", en: "Measurements / lengths" },
       dimensionsPlaceholder: {
@@ -209,7 +210,7 @@
     shoes: {
       it: "Scarpe",
       en: "Shoes",
-      sizeMode: "eu_shoes",
+      sizeMode: "shoes_eu",
       fitEnabled: false,
       dimensionsLabel: { it: "Dettagli scarpa", en: "Shoe details" },
       dimensionsPlaceholder: {
@@ -274,7 +275,7 @@
         en: "Accessories use different fields depending on type. Belts use a dedicated size, while others remain one size."
       },
       subcategories: {
-        belt: { it: "Cintura", en: "Belt", sizeMode: "belt" },
+        belt: { it: "Cintura", en: "Belt", sizeMode: "belts_cm" },
         wallet: { it: "Portafoglio", en: "Wallet" },
         cardholder: { it: "Portacarte", en: "Cardholder" },
         eyewear: { it: "Occhiali", en: "Eyewear" },
@@ -298,7 +299,7 @@
         en: "Jewelry relies on subcategories and measurements rather than a rigid standard size."
       },
       subcategories: {
-        ring: { it: "Anello", en: "Ring" },
+        ring: { it: "Anello", en: "Ring", sizeMode: "rings_numeric" },
         bracelet: { it: "Bracciale", en: "Bracelet" },
         necklace: { it: "Collana", en: "Necklace" },
         earrings: { it: "Orecchini", en: "Earrings" },
@@ -322,6 +323,132 @@
       subcategories: {
         watch: { it: "Orologio", en: "Watch" },
         strap: { it: "Cinturino", en: "Strap" }
+      }
+    }
+  };
+
+  const SIZE_SCHEMA_LIBRARY = {
+    apparel_alpha: {
+      id: "apparel_alpha",
+      family: "apparel",
+      filterable: true,
+      allowOriginalLabel: true,
+      showOriginalByDefault: false,
+      label: { it: "Taglia standard", en: "Standard size" },
+      originalLabel: { it: "Etichetta originale", en: "Original label" },
+      standardLabel: { it: "Equivalente standard", en: "Standard equivalent" },
+      filterGroupLabel: { it: "Taglie standard", en: "Standard sizes" },
+      hint: {
+        it: "Usa una taglia standard per il catalogo. Se il brand usa codici diversi, conservali nel campo etichetta originale.",
+        en: "Use a standard catalog size. If the brand uses different codes, preserve them in the original label field."
+      },
+      placeholder: { it: "es. IT 40 / FR 36", en: "e.g. IT 40 / FR 36" },
+      options: ["XXS", "XS", "S", "M", "L", "XL", "XXL"].map(function (value) {
+        return { id: value, label: value, standardEquivalent: value };
+      })
+    },
+    apparel_numeric_designer: {
+      id: "apparel_numeric_designer",
+      family: "apparel",
+      filterable: true,
+      allowOriginalLabel: true,
+      showOriginalByDefault: true,
+      label: { it: "Taglia designer", en: "Designer size" },
+      originalLabel: { it: "Taglia originale brand", en: "Original brand size" },
+      standardLabel: { it: "Fit standard", en: "Standard fit" },
+      filterGroupLabel: { it: "Taglie designer", en: "Designer sizing" },
+      hint: {
+        it: "La taglia originale del brand resta sempre visibile. L'equivalente standard compare solo se affidabile.",
+        en: "The brand's original size always stays visible. The standard equivalent appears only when reliable."
+      },
+      placeholder: { it: "es. Balenciaga 2", en: "e.g. Balenciaga 2" },
+      options: ["0", "1", "2", "3", "4", "5"].map(function (value) {
+        return { id: value, label: value };
+      })
+    },
+    shoes_eu: {
+      id: "shoes_eu",
+      family: "shoes",
+      filterable: true,
+      allowOriginalLabel: true,
+      showOriginalByDefault: true,
+      label: { it: "Taglia EU", en: "EU size" },
+      originalLabel: { it: "Etichetta originale", en: "Original label" },
+      standardLabel: { it: "Sistema catalogo", en: "Catalog system" },
+      filterGroupLabel: { it: "Scarpe · EU", en: "Shoes · EU" },
+      hint: {
+        it: "Per le scarpe il catalogo filtra in EU. Se l'etichetta è US o UK, la conserviamo come taglia originale.",
+        en: "For shoes the catalog filters in EU. If the label is US or UK, we keep it as the original size."
+      },
+      placeholder: { it: "es. US 9 / UK 8", en: "e.g. US 9 / UK 8" }
+    },
+    belts_cm: {
+      id: "belts_cm",
+      family: "belt",
+      filterable: true,
+      allowOriginalLabel: true,
+      showOriginalByDefault: true,
+      label: { it: "Misura cintura", en: "Belt size" },
+      originalLabel: { it: "Codice originale", en: "Original code" },
+      standardLabel: { it: "Misura catalogo", en: "Catalog size" },
+      filterGroupLabel: { it: "Cinture · cm", en: "Belts · cm" },
+      hint: {
+        it: "Le cinture usano una misura in cm. Eventuali codici brand restano nel campo originale.",
+        en: "Belts use a measurement in cm. Any brand codes stay in the original field."
+      },
+      placeholder: { it: "es. 90 / 95", en: "e.g. 90 / 95" }
+    },
+    rings_numeric: {
+      id: "rings_numeric",
+      family: "ring",
+      filterable: true,
+      allowOriginalLabel: true,
+      showOriginalByDefault: true,
+      label: { it: "Misura anello", en: "Ring size" },
+      originalLabel: { it: "Misura originale", en: "Original size" },
+      standardLabel: { it: "Sistema catalogo", en: "Catalog system" },
+      filterGroupLabel: { it: "Anelli", en: "Rings" },
+      hint: {
+        it: "Per gli anelli usiamo misure numeriche dedicate. Se il brand usa un sistema diverso, mantienilo nel campo originale.",
+        en: "Rings use dedicated numeric sizes. If the brand uses a different system, keep it in the original field."
+      },
+      placeholder: { it: "es. US 7", en: "e.g. US 7" }
+    },
+    one_size: {
+      id: "one_size",
+      family: "one_size",
+      filterable: false,
+      allowOriginalLabel: false,
+      showOriginalByDefault: false,
+      label: { it: "Taglia", en: "Size" },
+      originalLabel: { it: "Etichetta originale", en: "Original label" },
+      standardLabel: { it: "Equivalente standard", en: "Standard equivalent" },
+      filterGroupLabel: { it: "Taglia", en: "Size" },
+      hint: {
+        it: "Questa categoria non usa una taglia moda classica.",
+        en: "This category does not use a classic fashion size."
+      },
+      placeholder: { it: "es. etichetta interna", en: "e.g. inner label" }
+    }
+  };
+
+  const BRAND_SIZE_RULES = {
+    balenciaga: {
+      clothing: {
+        default: {
+          schemaId: "apparel_numeric_designer",
+          reliableStandardEquivalent: true,
+          labelPrefix: "Balenciaga",
+          filterGroupLabel: { it: "Balenciaga numerico", en: "Balenciaga numeric" },
+          standardMap: {
+            "0": "XS",
+            "1": "S",
+            "2": "M",
+            "3": "L",
+            "4": "XL",
+            "5": "XXL"
+          }
+        }
       }
     }
   };
@@ -448,6 +575,7 @@
     users: loadJson(STORAGE_KEYS.users, []).map(function(u) { var c = Object.assign({}, u); delete c.password; return c; }),
     banRegistry: loadJson(STORAGE_KEYS.banRegistry, { emails: [], phones: [], entries: [] }),
     currentUser: loadJson(STORAGE_KEYS.session, null),
+    sessionVerified: false,
     recentSearches: loadJson(STORAGE_KEYS.recentSearches, []),
     cart: loadJson(STORAGE_KEYS.cart, []),
     listings: loadJson(STORAGE_KEYS.listings, []),
@@ -458,6 +586,7 @@
     supportTickets: loadJson(STORAGE_KEYS.supportTickets, []),
     measurementRequests: loadJson(STORAGE_KEYS.measurementRequests, []),
     auditLog: loadJson(STORAGE_KEYS.auditLog, []),
+    chatModeration: loadJson(STORAGE_KEYS.chatModeration, null),
     reviews: loadJson(STORAGE_KEYS.reviews, []),
     pendingAction: null,
     authMode: "login",
@@ -480,8 +609,14 @@
     offerSubmitting: false,
     connectReturn: null,
     homeRenderSignature: null,
-    detailImageOptimizations: {}
+    detailImageOptimizations: {},
+    searchDebounceTimer: null,
+    autocompleteActiveIndex: -1,
+    autocompleteQueryKey: "",
+    chatSendPending: false,
   };
+
+  let activeDialogState = null;
 
   const existingFavorites = loadJson(STORAGE_KEYS.favorites, []);
   if (existingFavorites.length) {
@@ -560,6 +695,265 @@
     return Array.from((root || document).querySelectorAll(selector));
   }
 
+  function getFocusableElements(root) {
+    return qsa(
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      root,
+    ).filter(function (element) {
+      if (!(element instanceof HTMLElement)) {
+        return false;
+      }
+      if (element.hidden || element.getAttribute("aria-hidden") === "true") {
+        return false;
+      }
+      return Boolean(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
+    });
+  }
+
+  function releaseDialogFocusTrap(restoreFocus) {
+    if (!activeDialogState) {
+      return;
+    }
+    document.removeEventListener("keydown", activeDialogState.keydownHandler, true);
+    const restoreTarget = activeDialogState.restoreTarget;
+    activeDialogState = null;
+    if (restoreFocus !== false && restoreTarget instanceof HTMLElement && document.contains(restoreTarget)) {
+      restoreTarget.focus({ preventScroll: true });
+    }
+  }
+
+  function getDialogCloseHandler(dialogId) {
+    if (dialogId === "irisxAuthModal") {
+      return closeAuthModal;
+    }
+    if (dialogId === "irisxCartDrawer") {
+      return closeCart;
+    }
+    if (dialogId === "irisxCheckoutModal") {
+      return closeCheckout;
+    }
+    if (dialogId === "irisxOpsModal") {
+      return closeOpsModal;
+    }
+    if (dialogId === "irisxChatModerationModal") {
+      return closeChatModerationModal;
+    }
+    if (dialogId === "offerModal" && typeof closeOffer === "function") {
+      return closeOffer;
+    }
+    return null;
+  }
+
+  function resolveDialogInitialFocus(dialog, preferredSelectors) {
+    const selectors = Array.isArray(preferredSelectors)
+      ? preferredSelectors
+      : [preferredSelectors];
+    for (const selector of selectors) {
+      if (!selector) {
+        continue;
+      }
+      const candidate = qs(selector, dialog);
+      if (candidate instanceof HTMLElement) {
+        return candidate;
+      }
+    }
+    return getFocusableElements(dialog)[0] || dialog;
+  }
+
+  function syncDialogFocus(dialogId, isOpen, preferredSelectors) {
+    const dialog = qs("#" + dialogId);
+    if (!dialog) {
+      return;
+    }
+
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-hidden", isOpen ? "false" : "true");
+
+    if (!isOpen) {
+      if (activeDialogState && activeDialogState.id === dialogId) {
+        releaseDialogFocusTrap(true);
+      }
+      return;
+    }
+
+    releaseDialogFocusTrap(false);
+    const restoreTarget = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const keydownHandler = function (event) {
+      if (!activeDialogState || activeDialogState.id !== dialogId) {
+        return;
+      }
+      if (event.key === "Escape") {
+        const closeHandler = getDialogCloseHandler(dialogId);
+        if (closeHandler) {
+          event.preventDefault();
+          closeHandler();
+        }
+        return;
+      }
+      if (event.key !== "Tab") {
+        return;
+      }
+      const focusable = getFocusableElements(dialog);
+      if (!focusable.length) {
+        event.preventDefault();
+        dialog.focus({ preventScroll: true });
+        return;
+      }
+      const currentIndex = focusable.indexOf(document.activeElement);
+      let nextIndex = currentIndex;
+      if (event.shiftKey) {
+        nextIndex = currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1;
+      } else {
+        nextIndex = currentIndex === -1 || currentIndex === focusable.length - 1 ? 0 : currentIndex + 1;
+      }
+      event.preventDefault();
+      focusable[nextIndex].focus({ preventScroll: true });
+    };
+
+    activeDialogState = {
+      id: dialogId,
+      keydownHandler: keydownHandler,
+      restoreTarget: restoreTarget,
+    };
+    document.addEventListener("keydown", keydownHandler, true);
+    requestAnimationFrame(function () {
+      const target = resolveDialogInitialFocus(dialog, preferredSelectors);
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+      if (!target.hasAttribute("tabindex") && target === dialog) {
+        target.setAttribute("tabindex", "-1");
+      }
+      target.focus({ preventScroll: true });
+    });
+  }
+
+  function clearPendingSearchWork() {
+    if (state.searchDebounceTimer) {
+      clearTimeout(state.searchDebounceTimer);
+      state.searchDebounceTimer = null;
+    }
+  }
+
+  function getAutocompleteEntries(dropdown) {
+    return qsa(".ac-entry", dropdown || qs("#acDropdown"));
+  }
+
+  function syncAutocompleteAria(dropdown, isOpen) {
+    const input = qs("#searchInput");
+    const entries = getAutocompleteEntries(dropdown);
+    if (dropdown) {
+      dropdown.setAttribute("role", "listbox");
+    }
+    entries.forEach(function (entry, index) {
+      entry.id = entry.id || `irisx-ac-option-${index}`;
+      entry.setAttribute("role", "option");
+      entry.setAttribute("aria-selected", index === state.autocompleteActiveIndex ? "true" : "false");
+      entry.classList.toggle("is-active", index === state.autocompleteActiveIndex);
+    });
+    if (!input) {
+      return;
+    }
+    input.setAttribute("role", "combobox");
+    input.setAttribute("aria-autocomplete", "list");
+    input.setAttribute("aria-haspopup", "listbox");
+    input.setAttribute("aria-controls", "acDropdown");
+    input.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    const activeEntry = entries[state.autocompleteActiveIndex];
+    if (activeEntry) {
+      input.setAttribute("aria-activedescendant", activeEntry.id);
+    } else {
+      input.removeAttribute("aria-activedescendant");
+    }
+  }
+
+  function setAutocompleteOpen(dropdown, isOpen) {
+    if (!dropdown) {
+      return;
+    }
+    dropdown.classList.toggle("open", Boolean(isOpen));
+    if (!isOpen) {
+      state.autocompleteActiveIndex = -1;
+    }
+    syncAutocompleteAria(dropdown, Boolean(isOpen));
+  }
+
+  function setAutocompleteActiveIndex(index, dropdown) {
+    const targetDropdown = dropdown || qs("#acDropdown");
+    const entries = getAutocompleteEntries(targetDropdown);
+    if (!entries.length) {
+      state.autocompleteActiveIndex = -1;
+      syncAutocompleteAria(targetDropdown, Boolean(targetDropdown && targetDropdown.classList.contains("open")));
+      return;
+    }
+    const boundedIndex = Math.max(0, Math.min(index, entries.length - 1));
+    state.autocompleteActiveIndex = boundedIndex;
+    syncAutocompleteAria(targetDropdown, Boolean(targetDropdown && targetDropdown.classList.contains("open")));
+    const activeEntry = entries[boundedIndex];
+    if (activeEntry && typeof activeEntry.scrollIntoView === "function") {
+      activeEntry.scrollIntoView({ block: "nearest" });
+    }
+  }
+
+  function scheduleSearchInputUpdate(value) {
+    clearPendingSearchWork();
+    state.searchDebounceTimer = window.setTimeout(function () {
+      const searchValue = String(value || "").trim();
+      if (qs("#shop-view.active")) {
+        handleSearch(searchValue);
+      } else {
+        filters.search = searchValue;
+      }
+      renderAutocompleteSuggestions(searchValue, {
+        forceOpen: document.activeElement === qs("#searchInput"),
+      });
+      updateSearchSaveButton();
+    }, 140);
+  }
+
+  function commitSearchQuery(value) {
+    const query = String(value || "").trim();
+    if (!query) {
+      return;
+    }
+    clearPendingSearchWork();
+    if (qs("#shop-view.active")) {
+      handleSearch(query);
+      registerRecentSearch(query);
+      const dropdown = qs("#acDropdown");
+      setAutocompleteOpen(dropdown, false);
+      return;
+    }
+    applyAutocompleteSelection("search", query);
+  }
+
+  function enhanceInteractiveSurfaces(root) {
+    qsa(".pc[onclick], .seller-card[onclick]", root).forEach(function (surface) {
+      if (surface.dataset.irisSurfaceReady === "true") {
+        return;
+      }
+      surface.dataset.irisSurfaceReady = "true";
+      surface.setAttribute("role", "link");
+      surface.setAttribute("tabindex", surface.getAttribute("tabindex") || "0");
+      if (!surface.getAttribute("aria-label")) {
+        const label = qsa(".p-brand, .p-name, .seller-name", surface)
+          .map(function (node) { return String(node.textContent || "").trim(); })
+          .filter(Boolean)
+          .join(" · ");
+        if (label) {
+          surface.setAttribute("aria-label", label);
+        }
+      }
+      surface.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          surface.click();
+        }
+      });
+    });
+  }
+
   function getTaxonomyLabel(entry) {
     if (!entry) {
       return "";
@@ -594,22 +988,205 @@
     return options;
   }
 
-  function getSellSizeOptions(sizeMode) {
-    if (sizeMode === "alpha") {
-      return ["XXS", "XS", "S", "M", "L", "XL", "XXL"].map(function (value) {
-        return { id: value, label: value };
+  function normalizeBrandSizeKey(value) {
+    return normalizeSearchText(value || "")
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+  }
+
+  function normalizeSizeSchemaId(schemaId) {
+    const normalized = normalizeSearchText(schemaId || "");
+    if (!normalized) {
+      return "";
+    }
+    if (["alpha", "apparel alpha", "apparel_alpha"].includes(normalized)) {
+      return "apparel_alpha";
+    }
+    if (["apparel numeric designer", "apparel_numeric_designer", "designer numeric"].includes(normalized)) {
+      return "apparel_numeric_designer";
+    }
+    if (["eu shoes", "eu_shoes", "shoes eu", "shoes_eu"].includes(normalized)) {
+      return "shoes_eu";
+    }
+    if (["belt", "belts cm", "belts_cm"].includes(normalized)) {
+      return "belts_cm";
+    }
+    if (["ring", "rings numeric", "rings_numeric"].includes(normalized)) {
+      return "rings_numeric";
+    }
+    if (["one size", "one_size"].includes(normalized)) {
+      return "one_size";
+    }
+    return SIZE_SCHEMA_LIBRARY[schemaId] ? schemaId : "";
+  }
+
+  function getSizeSchemaDefinition(schemaId) {
+    const resolvedSchemaId = normalizeSizeSchemaId(schemaId) || "one_size";
+    return SIZE_SCHEMA_LIBRARY[resolvedSchemaId] || SIZE_SCHEMA_LIBRARY.one_size;
+  }
+
+  function getBrandSizeRule(brand, categoryKey, subcategoryKey) {
+    const brandConfig = BRAND_SIZE_RULES[normalizeBrandSizeKey(brand)];
+    if (!brandConfig || !categoryKey) {
+      return null;
+    }
+    const categoryConfig = brandConfig[categoryKey];
+    if (!categoryConfig) {
+      return null;
+    }
+    if (subcategoryKey && categoryConfig[subcategoryKey]) {
+      return categoryConfig[subcategoryKey];
+    }
+    if (categoryConfig.subcategories && subcategoryKey && categoryConfig.subcategories[subcategoryKey]) {
+      return categoryConfig.subcategories[subcategoryKey];
+    }
+    return categoryConfig.default || categoryConfig;
+  }
+
+  function getSizeSchemaBaseOptions(schemaId) {
+    const normalizedSchemaId = normalizeSizeSchemaId(schemaId) || "one_size";
+    const schema = getSizeSchemaDefinition(normalizedSchemaId);
+    let options = [];
+    if (Array.isArray(schema.options) && schema.options.length) {
+      options = schema.options.map(function (option) {
+        return Object.assign({}, option);
       });
+    } else if (normalizedSchemaId === "shoes_eu") {
+      options = buildRangeOptions(34, 48, 0.5);
+    } else if (normalizedSchemaId === "belts_cm") {
+      options = buildRangeOptions(65, 110, 5);
+    } else if (normalizedSchemaId === "rings_numeric") {
+      options = buildRangeOptions(44, 70, 1);
+    } else if (normalizedSchemaId === "one_size") {
+      options = [{ id: "one_size", label: langText("Taglia unica", "One size") }];
     }
-    if (sizeMode === "eu_shoes") {
-      return buildRangeOptions(34, 48, 0.5);
+    return options.map(function (option, index) {
+      return Object.assign({ order: index }, option);
+    });
+  }
+
+  function getStandardEquivalentForSize(rawValue, option, brandRule) {
+    if (option && option.standardEquivalent) {
+      return option.standardEquivalent;
     }
-    if (sizeMode === "belt") {
-      return buildRangeOptions(65, 110, 5);
+    if (
+      brandRule &&
+      brandRule.reliableStandardEquivalent &&
+      brandRule.standardMap &&
+      Object.prototype.hasOwnProperty.call(brandRule.standardMap, rawValue)
+    ) {
+      return brandRule.standardMap[rawValue];
     }
-    if (sizeMode === "one_size") {
-      return [{ id: "one_size", label: langText("Taglia unica", "One size") }];
+    return "";
+  }
+
+  function formatCatalogSizeLabel(schemaId, primaryValue, standardEquivalent) {
+    if (!primaryValue) {
+      return "";
     }
-    return [];
+    if (schemaId === "one_size") {
+      return langText("Taglia unica", "One size");
+    }
+    if (schemaId === "shoes_eu") {
+      return `EU ${primaryValue}`;
+    }
+    if (schemaId === "belts_cm") {
+      return `${primaryValue} cm`;
+    }
+    if (standardEquivalent && normalizeSearchText(standardEquivalent) !== normalizeSearchText(primaryValue)) {
+      return `${primaryValue} / ${standardEquivalent}`;
+    }
+    return primaryValue;
+  }
+
+  function getSizeFilterGroupLabel(schema, brandRule) {
+    if (brandRule && brandRule.filterGroupLabel) {
+      return getTaxonomyLabel(brandRule.filterGroupLabel);
+    }
+    return getTaxonomyLabel(schema.filterGroupLabel);
+  }
+
+  function buildConfiguredSizeOptions(schemaId, brandRule) {
+    return getSizeSchemaBaseOptions(schemaId).map(function (option) {
+      const primaryValue = String(option.label || option.id || "").trim();
+      const rawValue = String(option.id || "").trim();
+      const standardEquivalent = getStandardEquivalentForSize(rawValue, option, brandRule);
+      return Object.assign({}, option, {
+        rawValue: rawValue,
+        primaryValue: primaryValue || rawValue,
+        standardEquivalent: standardEquivalent,
+        label: formatCatalogSizeLabel(schemaId, primaryValue || rawValue, standardEquivalent)
+      });
+    });
+  }
+
+  function getResolvedSizeContext(categoryKey, subcategoryKey, brand, explicitSchemaId) {
+    const category = getSellCategoryDefinition(categoryKey);
+    const subcategory = getSellSubcategoryDefinition(categoryKey, subcategoryKey);
+    const brandRule = getBrandSizeRule(brand, categoryKey, subcategoryKey);
+    const schemaId = normalizeSizeSchemaId(explicitSchemaId) ||
+      normalizeSizeSchemaId((brandRule && brandRule.schemaId) || "") ||
+      normalizeSizeSchemaId((subcategory && subcategory.sizeMode) || (category && category.sizeMode) || "one_size") ||
+      "one_size";
+    const schema = getSizeSchemaDefinition(schemaId);
+    return {
+      schemaId: schemaId,
+      schema: schema,
+      category: category,
+      subcategory: subcategory,
+      brandRule: brandRule,
+      options: buildConfiguredSizeOptions(schemaId, brandRule),
+      label: getTaxonomyLabel(schema.label),
+      originalLabel: getTaxonomyLabel(schema.originalLabel),
+      standardLabel: getTaxonomyLabel(schema.standardLabel),
+      hint: getTaxonomyLabel(schema.hint),
+      placeholder: getTaxonomyLabel(schema.placeholder),
+      filterGroupLabel: getSizeFilterGroupLabel(schema, brandRule)
+    };
+  }
+
+  function normalizeStoredSizeValue(rawValue, schemaId) {
+    const resolvedSchemaId = normalizeSizeSchemaId(schemaId) || "one_size";
+    const raw = String(rawValue || "").trim();
+    if (!raw) {
+      return resolvedSchemaId === "one_size" ? "one_size" : "";
+    }
+    if (resolvedSchemaId === "one_size") {
+      return "one_size";
+    }
+    if (resolvedSchemaId === "apparel_alpha") {
+      const normalized = raw.toUpperCase().replace(/\s+/g, "");
+      const directMatch = ["XXS", "XS", "S", "M", "L", "XL", "XXL"].find(function (value) {
+        return value === normalized;
+      });
+      if (directMatch) {
+        return directMatch;
+      }
+      const slashMatch = raw.split("/").map(function (part) { return part.trim().toUpperCase(); }).find(function (value) {
+        return ["XXS", "XS", "S", "M", "L", "XL", "XXL"].includes(value);
+      });
+      return slashMatch || normalized;
+    }
+    if (resolvedSchemaId === "apparel_numeric_designer") {
+      const match = raw.match(/\b(\d+)\b/);
+      return match ? match[1] : raw;
+    }
+    if (["shoes_eu", "belts_cm", "rings_numeric"].includes(resolvedSchemaId)) {
+      const match = raw.match(/\d+([.,]\d+)?/);
+      return match ? match[0].replace(",", ".") : raw;
+    }
+    return raw;
+  }
+
+  function getSellSizeOptions(sizeMode, brand, categoryKey, subcategoryKey) {
+    return getResolvedSizeContext(categoryKey, subcategoryKey, brand, sizeMode).options.map(function (option) {
+      return {
+        id: option.id,
+        label: option.label,
+        order: option.order,
+        standardEquivalent: option.standardEquivalent || ""
+      };
+    });
   }
 
   function syncSelectOptions(select, options, placeholder, selectedValue) {
@@ -650,10 +1227,8 @@
     return String(field.options[field.selectedIndex].textContent || "").trim();
   }
 
-  function getResolvedSellSizeMode(categoryKey, subcategoryKey) {
-    const category = getSellCategoryDefinition(categoryKey);
-    const subcategory = getSellSubcategoryDefinition(categoryKey, subcategoryKey);
-    return (subcategory && subcategory.sizeMode) || (category && category.sizeMode) || "one_size";
+  function getResolvedSellSizeMode(categoryKey, subcategoryKey, brand, explicitSchemaId) {
+    return getResolvedSizeContext(categoryKey, subcategoryKey, brand, explicitSchemaId).schemaId;
   }
 
   function getMeasurementSchemaKey(categoryKey, subcategoryKey) {
@@ -974,42 +1549,81 @@
 
   function inferSellSizeSchema(listing) {
     if (listing && listing.sizeSchema) {
-      return listing.sizeSchema;
+      return normalizeSizeSchemaId(listing.sizeSchema) || "one_size";
     }
     const categoryKey = inferSellCategoryKey(listing);
     const subcategoryKey = (listing && listing.subcategoryKey) || inferSellSubcategoryKey(listing, categoryKey);
-    if (categoryKey === "shoes") return "eu_shoes";
-    if (categoryKey === "bags" || categoryKey === "jewelry" || categoryKey === "watches") return "one_size";
-    if (categoryKey === "accessories" && subcategoryKey === "belt") return "belt";
-    if (categoryKey === "accessories") return "one_size";
-    if (categoryKey === "clothing") return "alpha";
+    const brand = listing && listing.brand;
+    if (categoryKey) {
+      return getResolvedSellSizeMode(categoryKey, subcategoryKey, brand);
+    }
     const normalizedSize = normalizeSearchText((listing && listing.sz) || "");
     if (normalizedSize === "one size" || normalizedSize === "taglia unica") return "one_size";
-    if (/^(eu\s*)?\d+([.,]\d+)?$/.test(String((listing && listing.sz) || "").trim().toLowerCase())) return "eu_shoes";
-    return "alpha";
+    if (/^(eu\s*)?\d+([.,]\d+)?$/.test(String((listing && listing.sz) || "").trim().toLowerCase())) return "shoes_eu";
+    return getBrandSizeRule(brand, "clothing", "") ? "apparel_numeric_designer" : "apparel_alpha";
   }
 
   function getSellFormSizeValue(listing, explicitCategoryKey, explicitSubcategoryKey) {
     const categoryKey = explicitCategoryKey || inferSellCategoryKey(listing);
     const subcategoryKey = explicitSubcategoryKey || inferSellSubcategoryKey(listing, categoryKey);
-    const sizeMode = (listing && listing.sizeSchema) || getResolvedSellSizeMode(categoryKey, subcategoryKey);
-    const rawSize = String((listing && listing.sz) || "").trim();
-    if (sizeMode === "one_size") {
-      return "one_size";
-    }
-    if (sizeMode === "eu_shoes") {
-      return rawSize.replace(/^EU\s+/i, "").trim();
-    }
-    if (sizeMode === "belt") {
-      const match = rawSize.match(/\d+([.,]\d+)?/);
-      return match ? match[0].replace(",", ".") : rawSize;
-    }
-    return rawSize;
+    const brand = listing && listing.brand;
+    const sizeMode = (listing && listing.sizeSchema) || getResolvedSellSizeMode(categoryKey, subcategoryKey, brand);
+    return normalizeStoredSizeValue((listing && listing.sz) || "", sizeMode);
+  }
+
+  function getListingSizePresentation(listing, overrides) {
+    const source = listing || {};
+    const categoryKey = (overrides && overrides.categoryKey) || source.categoryKey || inferSellCategoryKey(source);
+    const subcategoryKey = (overrides && overrides.subcategoryKey) || source.subcategoryKey || inferSellSubcategoryKey(source, categoryKey);
+    const brand = (overrides && overrides.brand) !== undefined ? overrides.brand : source.brand;
+    const schemaId = getResolvedSellSizeMode(
+      categoryKey,
+      subcategoryKey,
+      brand,
+      (overrides && overrides.sizeSchema) !== undefined ? overrides.sizeSchema : source.sizeSchema
+    );
+    const context = getResolvedSizeContext(categoryKey, subcategoryKey, brand, schemaId);
+    const rawStoredValue = (overrides && overrides.sizeValue) !== undefined ? overrides.sizeValue : source.sz;
+    const normalizedValue = normalizeStoredSizeValue(rawStoredValue, schemaId);
+    const explicitOriginal = String((overrides && overrides.sizeOriginal) !== undefined ? overrides.sizeOriginal : (source.sizeOriginal || "")).trim();
+    const matchedOption = context.options.find(function (option) {
+      return String(option.id) === String(normalizedValue);
+    }) || null;
+    const primaryValue = String((matchedOption && matchedOption.primaryValue) || normalizedValue || rawStoredValue || "").trim();
+    const standardEquivalent = String((matchedOption && matchedOption.standardEquivalent) || "").trim();
+    const normalizedRawStored = normalizeSearchText(rawStoredValue || "");
+    const displayLabel = schemaId === "one_size"
+      ? (explicitOriginal || langText("Taglia unica", "One size"))
+      : formatCatalogSizeLabel(schemaId, primaryValue, standardEquivalent);
+    const originalDisplayValue = schemaId === "apparel_numeric_designer"
+      ? (explicitOriginal || primaryValue)
+      : (explicitOriginal && normalizeSearchText(explicitOriginal) !== normalizeSearchText(primaryValue) ? explicitOriginal : "");
+    const filterable = Boolean(context.schema.filterable && primaryValue);
+    const brandSpecific = Boolean(context.brandRule && normalizeBrandSizeKey(brand));
+    const filterKey = filterable
+      ? [brandSpecific ? normalizeBrandSizeKey(brand) : "", schemaId, primaryValue].filter(Boolean).join("::")
+      : "";
+    return {
+      schemaId: schemaId,
+      schema: context.schema,
+      brandRule: context.brandRule,
+      rawValue: primaryValue,
+      originalValue: originalDisplayValue,
+      standardEquivalent: standardEquivalent && normalizeSearchText(standardEquivalent) !== normalizeSearchText(primaryValue) ? standardEquivalent : "",
+      displayLabel: displayLabel || langText("N/A", "N/A"),
+      filterable: filterable,
+      filterKey: filterKey,
+      filterLabel: displayLabel || primaryValue || langText("N/A", "N/A"),
+      filterGroupLabel: context.filterGroupLabel,
+      filterOrder: matchedOption ? matchedOption.order : 999,
+      showInSummary: Boolean(filterable && context.schema.family !== "one_size")
+    };
   }
 
   function getListingDisplaySize(listing) {
-    if (inferSellSizeSchema(listing) === "one_size" || normalizeSearchText((listing && listing.sz) || "") === "one size" || normalizeSearchText((listing && listing.sz) || "") === "taglia unica") {
-      return listing && listing.subcategory ? listing.subcategory : langText("Taglia unica", "One size");
+    const presentation = getListingSizePresentation(listing);
+    if (presentation.displayLabel) {
+      return presentation.displayLabel;
     }
     return (listing && listing.sz) || langText("N/A", "N/A");
   }
@@ -1054,14 +1668,76 @@
     const seller = buildListingSeller(listing || {});
     const colorLabel = getFacetLabel("colors", (listing && listing.color) || "");
     const gender = inferListingGender(listing);
+    const sizePresentation = getListingSizePresentation(listing);
     return [
       gender !== "Unisex" ? langText(gender === "Men" ? "Uomo" : "Donna", gender) : langText("Unisex", "Unisex"),
-      getListingDisplaySize(listing),
+      sizePresentation.showInSummary ? sizePresentation.displayLabel : "",
       colorLabel,
       seller.name
     ].filter(function (value) {
       return value && value !== langText("Non indicato", "Not specified");
     }).join(" · ");
+  }
+
+  function collectCatalogSizeFilterOptions(products) {
+    const groupMap = new Map();
+    (products || []).forEach(function (product) {
+      const presentation = getListingSizePresentation(product);
+      if (!presentation.filterable || !presentation.filterKey) {
+        return;
+      }
+      const groupKey = `${presentation.filterGroupLabel}::${presentation.schemaId}`;
+      if (!groupMap.has(groupKey)) {
+        groupMap.set(groupKey, {
+          key: groupKey,
+          label: presentation.filterGroupLabel,
+          options: new Map()
+        });
+      }
+      const group = groupMap.get(groupKey);
+      if (!group.options.has(presentation.filterKey)) {
+        group.options.set(presentation.filterKey, {
+          key: presentation.filterKey,
+          label: presentation.filterLabel,
+          order: presentation.filterOrder,
+          count: 0
+        });
+      }
+      group.options.get(presentation.filterKey).count += 1;
+    });
+
+    return Array.from(groupMap.values())
+      .map(function (group) {
+        return {
+          key: group.key,
+          label: group.label,
+          options: Array.from(group.options.values()).sort(function (left, right) {
+            if (left.order !== right.order) {
+              return left.order - right.order;
+            }
+            return left.label.localeCompare(right.label, undefined, { numeric: true, sensitivity: "base" });
+          })
+        };
+      })
+      .sort(function (left, right) {
+        return left.label.localeCompare(right.label, undefined, { sensitivity: "base" });
+      });
+  }
+
+  function resolveSizeFilterLabel(filterKey, products) {
+    if (!filterKey) {
+      return "";
+    }
+    const groups = collectCatalogSizeFilterOptions(products && products.length ? products : getVisibleCatalogProducts());
+    for (const group of groups) {
+      const match = group.options.find(function (option) {
+        return option.key === filterKey;
+      });
+      if (match) {
+        return match.label;
+      }
+    }
+    return filterKey.split("::").slice(-1)[0] || filterKey;
   }
 
   function getPlaceholderImageByCategory(category) {
@@ -1286,6 +1962,180 @@
     return data;
   }
 
+  function normalizeChatModerationState(record) {
+    const source = record || {};
+    const bannedUntil = source.chatBannedUntil || source.chat_banned_until || null;
+    const bannedUntilMs = bannedUntil ? new Date(bannedUntil).getTime() : 0;
+    const chatBanned = Boolean(source.chatBanned ?? source.chat_banned ?? false);
+    const violationCount = Math.max(0, Number(source.violationCount ?? source.violation_count ?? 0));
+    return {
+      userId: String(source.userId || source.user_id || ""),
+      violationCount: violationCount,
+      lastViolationAtMs: Math.max(0, Number(source.lastViolationAtMs ?? source.last_violation_at_ms ?? 0)),
+      lastViolationReason: String(source.lastViolationReason ?? source.last_violation_reason ?? ""),
+      lastAction: String(source.lastAction ?? source.last_action ?? ""),
+      chatBanned: chatBanned,
+      chatBannedUntil: bannedUntil,
+      moderationNotes: source.moderationNotes || source.moderation_notes || {},
+      isSuspended: Boolean(chatBanned || (bannedUntilMs && bannedUntilMs > Date.now())),
+      activeWarningLevel: chatBanned ? 3 : Math.min(2, violationCount),
+    };
+  }
+
+  function persistChatModeration() {
+    saveJson(STORAGE_KEYS.chatModeration, state.chatModeration);
+  }
+
+  function applyChatModerationState(nextState) {
+    state.chatModeration = normalizeChatModerationState(nextState);
+    persistChatModeration();
+    renderChatComposerNote();
+    if (qs("#chat-view") && qs("#chat-view").classList.contains("active") && curChat) {
+      const input = qs("#chatInput");
+      if (state.chatModeration.isSuspended && input) {
+        input.blur();
+      }
+    }
+  }
+
+  function resetChatModerationState() {
+    applyChatModerationState(null);
+  }
+
+  function isChatSuspended() {
+    return Boolean(state.chatModeration && normalizeChatModerationState(state.chatModeration).isSuspended);
+  }
+
+  function getChatModerationStageConfig(stage) {
+    const normalizedStage = stage === "chat_banned" ? "chat_banned" : (stage === "warning_2" ? "warning_2" : "warning_1");
+    if (normalizedStage === "chat_banned") {
+      return {
+        stage: "chat_banned",
+        eyebrow: langText("IRIS Trust & Safety", "IRIS Trust & Safety"),
+        title: langText("Account sospeso dalla chat", "Chat access suspended"),
+        body: langText(
+          "Il tuo accesso alla chat è stato sospeso per violazione ripetuta delle regole di sicurezza di IRIS. Contatta il supporto se ritieni che si tratti di un errore.",
+          "Your chat access has been suspended for repeated violations of IRIS security rules. Contact support if you believe this is an error."
+        ),
+        badge: "3 / 3",
+      };
+    }
+    if (normalizedStage === "warning_2") {
+      return {
+        stage: "warning_2",
+        eyebrow: langText("IRIS Trust & Safety", "IRIS Trust & Safety"),
+        title: langText("Ultimo avvertimento", "Final warning"),
+        body: langText(
+          "Hai tentato di aggirare le regole della piattaforma. Un'altra violazione comporterà la sospensione automatica del tuo account dalla chat.",
+          "You attempted to bypass the platform rules. One more violation will trigger an automatic suspension from chat."
+        ),
+        badge: "2 / 3",
+      };
+    }
+    return {
+      stage: "warning_1",
+      eyebrow: langText("IRIS Trust & Safety", "IRIS Trust & Safety"),
+      title: langText("Messaggio bloccato", "Message blocked"),
+      body: langText(
+        "Non puoi condividere contatti esterni, piattaforme esterne, metodi di pagamento esterni o emoji. Tutta la comunicazione e tutti i pagamenti devono restare su IRIS. Questa è la tua prima violazione.",
+        "You cannot share external contacts, external platforms, external payment methods, or emoji. All communication and all payments must stay on IRIS. This is your first violation."
+      ),
+      badge: "1 / 3",
+    };
+  }
+
+  function closeChatModerationModal() {
+    const modal = qs("#irisxChatModerationModal");
+    if (!modal) {
+      return;
+    }
+    modal.classList.remove("open");
+    modal.innerHTML = "";
+    syncDialogFocus("irisxChatModerationModal", false);
+  }
+
+  function openChatModerationModal(stage, payload) {
+    const modal = qs("#irisxChatModerationModal");
+    if (!modal) {
+      return;
+    }
+    const config = getChatModerationStageConfig(stage);
+    const fragments = Array.isArray(payload && payload.fragments) ? payload.fragments.filter(Boolean).slice(0, 4) : [];
+    modal.innerHTML = `<div class="irisx-modal-backdrop"></div><div class="irisx-modal-card irisx-modal-card--moderation irisx-modal-card--moderation-${config.stage}">
+      <div class="irisx-card-head irisx-card-head--moderation">
+        <div>
+          <div class="irisx-kicker">${escapeHtml(config.eyebrow)}</div>
+          <div class="irisx-title">${escapeHtml(config.title)}</div>
+          <div class="irisx-subtitle">${escapeHtml(config.body)}</div>
+        </div>
+        <button class="irisx-close" aria-label="${escapeHtml(langText("Chiudi", "Close"))}" onclick="closeChatModerationModal()">✕</button>
+      </div>
+      <div class="irisx-card-body irisx-card-body--moderation">
+        <div class="irisx-chat-moderation-hero">
+          <div class="irisx-chat-moderation-badge">${escapeHtml(config.badge)}</div>
+          <strong>${escapeHtml(langText("Comunicazione protetta", "Protected communication"))}</strong>
+          <span>${escapeHtml(langText("IRIS blocca contatti esterni, pagamenti esterni, piattaforme esterne ed emoji prima che il messaggio entri in conversazione.", "IRIS blocks external contacts, off-platform payments, external platforms, and emoji before the message reaches the conversation."))}</span>
+        </div>
+        ${fragments.length ? `<div class="irisx-chat-moderation-fragments">${fragments.map(function (fragment) { return `<span>${escapeHtml(fragment)}</span>`; }).join("")}</div>` : ""}
+        <div class="irisx-actions irisx-actions--moderation">
+          <button class="irisx-primary" type="button" onclick="closeChatModerationModal()">${escapeHtml(langText("Ho capito", "Understood"))}</button>
+        </div>
+      </div>
+    </div>`;
+    modal.classList.add("open");
+    syncDialogFocus("irisxChatModerationModal", true, [".irisx-primary", ".irisx-close"]);
+  }
+
+  async function getChatModerationApi() {
+    if (!chatModerationModulePromise) {
+      chatModerationModulePromise = import("./moderation/chat-moderation-engine.mjs");
+    }
+    return chatModerationModulePromise;
+  }
+
+  async function fetchChatModerationStateFromSupabase() {
+    const client = getSupabaseClient();
+    const userId = getCurrentSupabaseUserId();
+    if (!client || !userId) {
+      return normalizeChatModerationState(null);
+    }
+    const response = await client
+      .from("chat_moderation_users")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (response.error) {
+      throw response.error;
+    }
+    return normalizeChatModerationState(response.data || { userId: userId });
+  }
+
+  async function refreshChatModerationState(force) {
+    const userKey = getCurrentSupabaseUserId() || normalizeEmail(state.currentUser && state.currentUser.email) || "";
+    if (!userKey) {
+      lastChatModerationUserKey = "";
+      resetChatModerationState();
+      return state.chatModeration;
+    }
+    if (!force && chatModerationSyncPromise && lastChatModerationUserKey === userKey) {
+      return chatModerationSyncPromise;
+    }
+    lastChatModerationUserKey = userKey;
+    chatModerationSyncPromise = fetchChatModerationStateFromSupabase()
+      .then(function (nextState) {
+        applyChatModerationState(nextState);
+        return state.chatModeration;
+      })
+      .catch(function (error) {
+        console.warn("[IRIS] Unable to sync chat moderation state", error);
+        return state.chatModeration;
+      })
+      .finally(function () {
+        chatModerationSyncPromise = null;
+      });
+    return chatModerationSyncPromise;
+  }
+
   function consumeStripeReturnFromUrl() {
     try {
       const currentUrl = new URL(window.location.href);
@@ -1443,12 +2293,13 @@
     const normalizedUser = normalizeUserWorkspace(Object.assign({}, user || {}, {
       id: (authUser && authUser.id) || (user && user.id) || ""
     }));
-    return {
+    const normalizedEmail = normalizeEmail((authUser && authUser.email) || normalizedUser.email);
+    const normalizedRole = normalizeString(normalizedUser.platformRole || normalizedUser.role).toLowerCase();
+    const payload = {
       id: (authUser && authUser.id) || normalizedUser.id,
-      email: normalizeEmail((authUser && authUser.email) || normalizedUser.email),
+      email: normalizedEmail,
       full_name: normalizedUser.name || "",
       phone: normalizedUser.phone || "",
-      role: normalizedUser.role || deriveUserRole(normalizedUser.email),
       city: normalizedUser.city || "",
       country: normalizedUser.country || getWorkspaceDefaultCountry(),
       bio: normalizedUser.bio || "",
@@ -1471,17 +2322,23 @@
       ban_reason: normalizedUser.banReason || "",
       banned_at: normalizedUser.bannedAt || null
     };
+    if (normalizedRole) {
+      payload.role = normalizedRole === "admin" ? "admin" : normalizedRole;
+    }
+    return payload;
   }
 
   function buildWorkspaceUserFromSupabase(authUser, profile) {
     const rawProfile = profile || {};
     const profileVerification = rawProfile.verification || {};
+    const normalizedEmail = normalizeEmail((authUser && authUser.email) || rawProfile.email || "");
     return normalizeUserWorkspace({
       id: authUser && authUser.id,
       name: rawProfile.full_name || (authUser && authUser.user_metadata && (authUser.user_metadata.full_name || authUser.user_metadata.name)) || "",
-      email: normalizeEmail((authUser && authUser.email) || rawProfile.email || ""),
+      email: normalizedEmail,
       phone: normalizePhoneNumber(rawProfile.phone || (authUser && authUser.phone) || ((authUser && authUser.user_metadata && authUser.user_metadata.phone) || "")),
-      role: rawProfile.role || ((authUser && authUser.user_metadata && authUser.user_metadata.role) || deriveUserRole((authUser && authUser.email) || rawProfile.email || "")),
+      platformRole: normalizeString(rawProfile.role || ""),
+      role: sanitizeWorkspaceRole(rawProfile.role),
       city: rawProfile.city || "",
       country: rawProfile.country || getWorkspaceDefaultCountry(),
       bio: rawProfile.bio || "",
@@ -1869,6 +2726,21 @@
     };
   }
 
+  function buildConversationModerationSnapshot(thread) {
+    const normalized = normalizeChatThread(thread);
+    return {
+      id: String(normalized.id),
+      listingId: normalized.listingId || normalized.productId || "",
+      productId: normalized.productId || normalized.listingId || "",
+      sellerId: normalized.sellerId || "",
+      sellerEmail: normalizeEmail(normalized.sellerEmail || ""),
+      sellerName: normalized.sellerName || "",
+      buyerId: normalized.buyerId || "",
+      buyerEmail: normalizeEmail(normalized.buyerEmail || ""),
+      buyerName: normalized.buyerName || "",
+    };
+  }
+
   function buildSupabaseConversationMessagePayload(conversationId, message, thread) {
     const normalized = normalizeChatMessageRecord(message);
     const normalizedThread = normalizeChatThread(thread || { id: conversationId });
@@ -2164,53 +3036,25 @@
     if (conversationResponse.error) {
       throw conversationResponse.error;
     }
-    const messages = Array.isArray(normalized.msgs) ? normalized.msgs.map(normalizeChatMessageRecord) : [];
-    if (messages.length) {
-      const messagePayloads = messages.map(function (message) {
-        return buildSupabaseConversationMessagePayload(normalized.id, message, normalized);
-      });
-      const messagesResponse = await client
-        .from("conversation_messages")
-        .upsert(messagePayloads, { onConflict: "id" });
-      if (messagesResponse.error) {
-        throw messagesResponse.error;
-      }
-    }
-    const conversationRow = Object.assign({}, conversationResponse.data, {
-      conversation_messages: messages.map(function (message) {
-        return buildSupabaseConversationMessagePayload(normalized.id, message, normalized);
-      })
-    });
-    return buildChatThreadFromSupabaseRow(conversationRow);
+    return normalizeChatThread(Object.assign({}, normalized, {
+      unreadCount: Number(conversationResponse.data && conversationResponse.data.unread_count || normalized.unreadCount || 0),
+      updatedAt: Number(conversationResponse.data && conversationResponse.data.updated_at_ms || normalized.updatedAt || Date.now()),
+    }));
   }
 
   async function appendChatMessageToSupabase(thread, message) {
-    const client = getSupabaseClient();
-    if (!client || !getCurrentSupabaseUserId()) {
-      return normalizeChatThread(thread);
-    }
     const normalizedThread = normalizeChatThread(thread);
-    const conversationResponse = await client
-      .from("conversations")
-      .upsert(buildSupabaseConversationPayload(normalizedThread), { onConflict: "id" })
-      .select("*")
-      .single();
-    if (conversationResponse.error) {
-      throw conversationResponse.error;
+    const messageText = typeof message === "string"
+      ? String(message || "").trim()
+      : String(message && message.text || "").trim();
+    if (!messageText) {
+      return { ok: true, allowed: false, blocked: true };
     }
-    const payload = buildSupabaseConversationMessagePayload(normalizedThread.id, message, normalizedThread);
-    const messageResponse = await client.from("conversation_messages").upsert(payload, { onConflict: "id" }).select("*").single();
-    if (messageResponse.error) {
-      throw messageResponse.error;
-    }
-    const currentMessages = Array.isArray(normalizedThread.msgs) ? normalizedThread.msgs.map(normalizeChatMessageRecord) : [];
-    const remoteMessage = buildChatMessageFromSupabaseRow(messageResponse.data, normalizedThread);
-    const mergedThread = normalizeChatThread(Object.assign({}, normalizedThread, {
-      msgs: currentMessages.concat(remoteMessage),
-      updatedAt: Number(remoteMessage.at || Date.now())
-    }));
-    await client.from("conversations").upsert(buildSupabaseConversationPayload(mergedThread), { onConflict: "id" });
-    return mergedThread;
+    return invokeSupabaseFunction("send-chat-message", {
+      conversationId: normalizedThread.id,
+      body: messageText,
+      conversation: buildConversationModerationSnapshot(normalizedThread),
+    });
   }
 
   async function refreshSupabaseChats() {
@@ -3112,9 +3956,10 @@
     return Boolean(cachedUser && cachedUser.authProvider && cachedUser.authProvider !== "supabase");
   }
 
-  function applyAuthenticatedUser(nextUser) {
+  function applyAuthenticatedUser(nextUser, options) {
     const normalized = normalizeUserWorkspace(nextUser);
     state.currentUser = normalized;
+    state.sessionVerified = !options || options.verified !== false;
     saveJson(STORAGE_KEYS.session, state.currentUser);
     mergeUserIntoLocalCache(normalized);
     syncCurrentUserSeller();
@@ -3128,8 +3973,9 @@
     return normalized;
   }
 
-  function clearAuthenticatedUser() {
+  function clearAuthenticatedUser(options) {
     state.currentUser = null;
+    state.sessionVerified = !options || options.verified !== false;
     state.cart = [];
     state.orders = [];
     state.offers = [];
@@ -3165,9 +4011,9 @@
   async function syncCurrentUserFromSupabaseSession(session) {
     if (!session || !session.user) {
       if (state.currentUser && isLocalOnlySessionUser(state.currentUser)) {
-        return applyAuthenticatedUser(state.currentUser);
+        return applyAuthenticatedUser(state.currentUser, { verified: true });
       }
-      clearAuthenticatedUser();
+      clearAuthenticatedUser({ verified: true });
       return null;
     }
     let profile = null;
@@ -3182,7 +4028,6 @@
           email: session.user.email || "",
           name: (session.user.user_metadata && (session.user.user_metadata.full_name || session.user.user_metadata.name)) || "",
           phone: (session.user.user_metadata && session.user.user_metadata.phone) || "",
-          role: deriveUserRole(session.user.email || ""),
           country: getWorkspaceDefaultCountry()
         }, session.user);
       } catch (error) {
@@ -3200,10 +4045,10 @@
       } catch (error) {
         console.warn("[IRIS] Unable to sign out blocked user", error);
       }
-      clearAuthenticatedUser();
+      clearAuthenticatedUser({ verified: true });
       return null;
     }
-    const applied = applyAuthenticatedUser(nextUser);
+    const applied = applyAuthenticatedUser(nextUser, { verified: true });
     refreshSupabaseListings().catch(function (error) {
       console.warn("[IRIS] Unable to refresh listings after auth sync", error);
     });
@@ -3252,6 +4097,7 @@
       return;
     }
     supabaseBridgeInitialized = true;
+    state.sessionVerified = false;
     client.auth.onAuthStateChange(function (event, session) {
       if (event === "PASSWORD_RECOVERY") {
         state.authMode = "recovery";
@@ -3891,7 +4737,7 @@
     pushValues(snapshot.genders, function (value) { return getFilterTokenLabel("genders", value); });
     pushValues(snapshot.trust, function (value) { return getFilterTokenLabel("trust", value); });
     if (snapshot.size) {
-      segments.push(langText("Taglia", "Size") + " " + snapshot.size);
+      segments.push(langText("Taglia", "Size") + " " + resolveSizeFilterLabel(snapshot.size));
     }
     if (snapshot.pmin || snapshot.pmax) {
       if (snapshot.pmin && snapshot.pmax) {
@@ -4011,9 +4857,10 @@
   }
 
   function applyAutocompleteSelection(type, value) {
+    clearPendingSearchWork();
     const dropdown = document.getElementById("acDropdown");
     if (dropdown) {
-      dropdown.classList.remove("open");
+      setAutocompleteOpen(dropdown, false);
     }
 
     if (type === "product") {
@@ -4083,9 +4930,14 @@
     const canOpenDropdown = interactiveOpen || isInputActive;
 
     const normalized = normalizeSearchText(query);
+    const queryKey = normalized || "__discovery__";
+    if (state.autocompleteQueryKey !== queryKey) {
+      state.autocompleteActiveIndex = -1;
+      state.autocompleteQueryKey = queryKey;
+    }
     if (!normalized.length) {
       if (!canOpenDropdown) {
-        dropdown.classList.remove("open");
+        setAutocompleteOpen(dropdown, false);
         return;
       }
       const savedMarkup = getAutocompleteSavedSearches()
@@ -4141,7 +4993,7 @@
       ].filter(Boolean).join("");
 
       dropdown.innerHTML = sections ? `<div class="ac-shell ac-shell--discovery">${sections}</div>` : "";
-      dropdown.classList.toggle("open", Boolean(sections) && canOpenDropdown);
+      setAutocompleteOpen(dropdown, Boolean(sections) && canOpenDropdown);
       return;
     }
 
@@ -4221,7 +5073,7 @@
     html += `</div>`;
 
     dropdown.innerHTML = html;
-    dropdown.classList.toggle("open", Boolean(suggestionMarkup || brandMarkup || productMarkup) && canOpenDropdown);
+    setAutocompleteOpen(dropdown, Boolean(suggestionMarkup || brandMarkup || productMarkup) && canOpenDropdown);
   }
 
   function rebindMarketplaceSearch() {
@@ -4233,47 +5085,50 @@
     const input = original.cloneNode(true);
     input.removeAttribute("oninput");
     input.value = filters.search || "";
+    input.setAttribute("autocomplete", "off");
     input.addEventListener("input", function () {
-      if (qs("#shop-view.active")) {
-        handleSearch(this.value);
-      } else {
-        filters.search = (this.value || "").trim();
-      }
-      renderAutocompleteSuggestions(this.value, { forceOpen: true });
+      scheduleSearchInputUpdate(this.value);
       updateSearchSaveButton();
     });
     input.addEventListener("focus", function () {
+      clearPendingSearchWork();
       renderAutocompleteSuggestions(this.value, { forceOpen: true });
       updateSearchSaveButton();
     });
     input.addEventListener("keydown", function (event) {
+      const dropdown = document.getElementById("acDropdown");
+      const entries = getAutocompleteEntries(dropdown);
+      const isDropdownOpen = Boolean(dropdown && dropdown.classList.contains("open") && entries.length);
+      if ((event.key === "ArrowDown" || event.key === "ArrowUp") && isDropdownOpen) {
+        event.preventDefault();
+        const direction = event.key === "ArrowDown" ? 1 : -1;
+        const nextIndex = state.autocompleteActiveIndex === -1
+          ? (direction > 0 ? 0 : entries.length - 1)
+          : (state.autocompleteActiveIndex + direction + entries.length) % entries.length;
+        setAutocompleteActiveIndex(nextIndex, dropdown);
+        return;
+      }
       if (event.key === "Enter") {
         const value = this.value.trim();
         if (!value) {
           return;
         }
         event.preventDefault();
-        registerRecentSearch(value);
-        handleSearch(value);
-        renderAutocompleteSuggestions(value, { forceOpen: true });
-        const dropdown = document.getElementById("acDropdown");
-        if (dropdown) {
-          dropdown.classList.remove("open");
+        if (isDropdownOpen && state.autocompleteActiveIndex > -1 && entries[state.autocompleteActiveIndex]) {
+          entries[state.autocompleteActiveIndex].click();
+          return;
         }
+        commitSearchQuery(value);
       }
       if (event.key === "Escape") {
-        const dropdown = document.getElementById("acDropdown");
-        if (dropdown) {
-          dropdown.classList.remove("open");
-        }
+        clearPendingSearchWork();
+        setAutocompleteOpen(dropdown, false);
       }
     });
     input.addEventListener("blur", function () {
       setTimeout(function () {
-        const dropdown = document.getElementById("acDropdown");
-        if (dropdown) {
-          dropdown.classList.remove("open");
-        }
+        clearPendingSearchWork();
+        setAutocompleteOpen(document.getElementById("acDropdown"), false);
         updateSearchSaveButton();
       }, 180);
     });
@@ -4824,57 +5679,17 @@
     return formatter.format(-diffDays, "day");
   }
 
-  function deriveUserRole(email) {
-    return PLATFORM_CONFIG.adminEmails.includes(normalizeEmail(email)) ? "admin" : "member";
+  function sanitizeWorkspaceRole(role) {
+    const normalizedRole = normalizeString(role).toLowerCase();
+    return normalizedRole === "admin" ? "admin" : "member";
   }
 
   function isAdminUser(user) {
-    return Boolean(user && deriveUserRole(user.email) === "admin");
+    return Boolean(user && sanitizeWorkspaceRole(user.platformRole || user.role) === "admin");
   }
 
   function isCurrentUserAdmin() {
-    return isAdminUser(state.currentUser);
-  }
-
-  async function sha256Hex(value) {
-    if (!window.crypto || !window.crypto.subtle) {
-      return "";
-    }
-    const buffer = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(value || "")));
-    return Array.from(new Uint8Array(buffer)).map(function (byte) {
-      return byte.toString(16).padStart(2, "0");
-    }).join("");
-  }
-
-  function isOwnerBootstrapEmail(email) {
-    return normalizeEmail(email) === normalizeEmail(PLATFORM_CONFIG.ownerEmail);
-  }
-
-  async function canUseOwnerBootstrap(email, password) {
-    if (!PLATFORM_CONFIG.ownerBootstrapEnabled || !isOwnerBootstrapEmail(email) || !password) {
-      return false;
-    }
-    return (await sha256Hex(password)) === String(PLATFORM_CONFIG.ownerBootstrapPasswordHash || "");
-  }
-
-  function buildOwnerBootstrapUser(email) {
-    const existing = getCachedUserByEmail(email) || {};
-    const verifiedAt = new Date().toISOString();
-    return normalizeUserWorkspace(Object.assign({}, existing, {
-      id: existing.id || "iris-owner-bootstrap",
-      name: existing.name || "IRIS Owner",
-      email: normalizeEmail(email),
-      role: "admin",
-      city: existing.city || "Milano",
-      country: existing.country || getWorkspaceDefaultCountry(),
-      memberSince: existing.memberSince || String(new Date().getFullYear()),
-      verification: Object.assign({}, existing.verification || {}, {
-        emailVerified: true,
-        emailVerifiedAt: (existing.verification && existing.verification.emailVerifiedAt) || verifiedAt,
-        verifiedEmail: normalizeEmail(email)
-      }),
-      authProvider: "bootstrap"
-    }));
+    return Boolean(state.sessionVerified && isAdminUser(state.currentUser));
   }
 
   function ensureSellerEmail(seller) {
@@ -5441,7 +6256,7 @@
     state.users = state.users.map(function (user) {
       return normalizeUserWorkspace(Object.assign({}, user, {
         email: normalizeEmail(user.email),
-        role: user.role || deriveUserRole(user.email)
+        role: sanitizeWorkspaceRole(user.platformRole || user.role)
       }));
     });
     saveJson(STORAGE_KEYS.users, state.users);
@@ -5461,7 +6276,7 @@
     if (state.currentUser) {
       state.currentUser = normalizeUserWorkspace(Object.assign({}, state.currentUser, {
         email: normalizeEmail(state.currentUser.email),
-        role: state.currentUser.role || deriveUserRole(state.currentUser.email)
+        role: sanitizeWorkspaceRole(state.currentUser.platformRole || state.currentUser.role)
       }));
       if (state.currentUser.accountStatus === "banned" || getBlockedIdentityMessage(state.currentUser.email, state.currentUser.phone)) {
         state.currentUser = null;
@@ -5784,6 +6599,7 @@
           "<div class=\"irisx-drawer\" id=\"irisxCartDrawer\" role=\"dialog\" aria-modal=\"true\"></div>" +
           "<div class=\"irisx-modal\" id=\"irisxCheckoutModal\" role=\"dialog\" aria-modal=\"true\"></div>" +
           "<div class=\"irisx-modal\" id=\"irisxOrderModal\" role=\"dialog\" aria-modal=\"true\"></div>" +
+          "<div class=\"irisx-modal\" id=\"irisxChatModerationModal\" role=\"dialog\" aria-modal=\"true\"></div>" +
           "<div class=\"irisx-toast-stack\" id=\"irisxToastStack\"></div>"
       );
     }
@@ -5835,6 +6651,7 @@
     const categorySelect = qs("#sf-cat");
     const subcategorySelect = qs("#sf-subcat");
     const typeSelect = qs("#sf-type");
+    const brandField = qs("#sf-brand");
     const sizeSelect = qs("#sf-size");
     const sizeOriginalField = qs("#sf-size-original");
     const sizeLabel = qs("#sf-size-label");
@@ -5875,13 +6692,15 @@
 
     const subcategoryKey = subcategorySelect.value;
     const subcategory = getSellSubcategoryDefinition(categoryKey, subcategoryKey);
+    const brandValue = preservedValues && preservedValues.brand !== undefined ? preservedValues.brand : (brandField ? brandField.value : "");
     const typeValue = preservedValues && preservedValues.typeKey !== undefined ? preservedValues.typeKey : typeSelect.value;
     const typeOptions = subcategory && Array.isArray(subcategory.types) ? buildOptionList(subcategory.types) : [];
     syncSelectOptions(typeSelect, typeOptions, langText("Seleziona tipo", "Select type"), typeValue);
 
-    const sizeMode = getResolvedSellSizeMode(categoryKey, subcategoryKey);
+    const sizeMode = getResolvedSellSizeMode(categoryKey, subcategoryKey, brandValue);
+    const sizeContext = getResolvedSizeContext(categoryKey, subcategoryKey, brandValue, sizeMode);
     const sizeValue = preservedValues && preservedValues.size !== undefined ? preservedValues.size : sizeSelect.value;
-    syncSelectOptions(sizeSelect, getSellSizeOptions(sizeMode), langText("Seleziona taglia", "Select size"), sizeValue);
+    syncSelectOptions(sizeSelect, getSellSizeOptions(sizeMode, brandValue, categoryKey, subcategoryKey), langText("Seleziona taglia", "Select size"), sizeValue);
 
     if (subcategoryLabel) subcategoryLabel.textContent = `${langText("Sottocategoria", "Subcategory")} *`;
     if (typeLabel) typeLabel.textContent = langText("Tipo", "Type");
@@ -5892,38 +6711,20 @@
     }
 
     if (sizeLabel) {
-      if (sizeMode === "eu_shoes") {
-        sizeLabel.textContent = `${langText("Taglia EU", "EU size")} *`;
-      } else if (sizeMode === "belt") {
-        sizeLabel.textContent = `${langText("Taglia cintura", "Belt size")} *`;
-      } else if (sizeMode === "alpha") {
-        sizeLabel.textContent = `${langText("Taglia standard", "Standard size")} *`;
-      } else {
-        sizeLabel.textContent = langText("Taglia", "Size");
-      }
+      sizeLabel.textContent = sizeContext.schema.filterable
+        ? `${sizeContext.label} *`
+        : langText("Taglia", "Size");
     }
 
     if (sizeOriginalLabel) {
-      sizeOriginalLabel.textContent = langText("Taglia etichetta originale", "Original label size");
+      sizeOriginalLabel.textContent = sizeContext.originalLabel;
     }
     if (sizeOriginalField) {
-      sizeOriginalField.placeholder = sizeMode === "eu_shoes"
-        ? langText("es. US 9 / UK 8", "e.g. US 9 / UK 8")
-        : sizeMode === "belt"
-          ? langText("es. 90 / 95", "e.g. 90 / 95")
-          : langText("es. 2, 48, L", "e.g. 2, 48, L");
+      sizeOriginalField.placeholder = sizeContext.placeholder;
     }
 
     if (sizeHint) {
-      if (sizeMode === "eu_shoes") {
-        sizeHint.textContent = langText("Seleziona una taglia EU per i filtri. Se l'etichetta riporta US o UK, scrivila nel campo originale.", "Pick an EU size for filters. If the label says US or UK, add it in the original size field.");
-      } else if (sizeMode === "belt") {
-        sizeHint.textContent = langText("Per le cinture usiamo una misura standard in cm. Eventuali codici brand restano nel campo originale.", "Belts use a standard measurement in cm. Brand-specific codes can stay in the original size field.");
-      } else if (sizeMode === "alpha") {
-        sizeHint.textContent = langText("Usa una taglia standard per il catalogo. Se il brand usa 1/2/3 o altre sigle, scrivile nel campo originale.", "Use a standard catalog size. If the brand uses 1/2/3 or other codes, add them in the original size field.");
-      } else {
-        sizeHint.textContent = langText("Per questa categoria lavoriamo senza una taglia moda classica.", "This category does not use a classic fashion size.");
-      }
+      sizeHint.textContent = sizeContext.hint;
     }
 
     if (dimensionsLabel) {
@@ -5937,17 +6738,17 @@
 
     setSellFieldVisibility("#irisxTypeGroup", typeOptions.length > 0);
     setSellFieldVisibility("#irisxFitGroup", Boolean(category && category.fitEnabled));
-    setSellFieldVisibility("#irisxSizeGroup", sizeMode !== "one_size");
-    setSellFieldVisibility("#irisxSizeOriginalGroup", ["alpha", "eu_shoes", "belt"].includes(sizeMode));
+    setSellFieldVisibility("#irisxSizeGroup", Boolean(sizeContext.schema.filterable));
+    setSellFieldVisibility("#irisxSizeOriginalGroup", Boolean(sizeContext.schema.allowOriginalLabel));
     renderSellMeasurementFields(categoryKey, subcategoryKey, measurementValues);
 
     if (fitSelect && !(category && category.fitEnabled)) {
       fitSelect.value = "—";
     }
-    if (sizeOriginalField && !["alpha", "eu_shoes", "belt"].includes(sizeMode)) {
+    if (sizeOriginalField && !sizeContext.schema.allowOriginalLabel) {
       sizeOriginalField.value = "";
     }
-    if (sizeMode === "one_size") {
+    if (!sizeContext.schema.filterable) {
       sizeSelect.value = "one_size";
     }
   }
@@ -5957,6 +6758,7 @@
       categoryKey: qs("#sf-cat") ? qs("#sf-cat").value : "",
       subcategoryKey: qs("#sf-subcat") ? qs("#sf-subcat").value : "",
       typeKey: qs("#sf-type") ? qs("#sf-type").value : "",
+      brand: qs("#sf-brand") ? qs("#sf-brand").value : "",
       size: qs("#sf-size") ? qs("#sf-size").value : ""
     };
     if (scope === "category") {
@@ -5967,6 +6769,10 @@
     }
     if (scope === "subcategory") {
       nextValues.typeKey = "";
+      nextValues.size = "";
+      if (qs("#sf-size-original")) qs("#sf-size-original").value = "";
+    }
+    if (scope === "brand") {
       nextValues.size = "";
       if (qs("#sf-size-original")) qs("#sf-size-original").value = "";
     }
@@ -6002,16 +6808,32 @@
       };
     }
 
-    const sizeMode = getResolvedSellSizeMode(categoryKey, subcategoryKey);
+    const brand = readSellField("#sf-brand");
+    const sizeMode = getResolvedSellSizeMode(categoryKey, subcategoryKey, brand);
+    const sizeContext = getResolvedSizeContext(categoryKey, subcategoryKey, brand, sizeMode);
     const sizeValue = readSellField("#sf-size");
-    if (["alpha", "eu_shoes", "belt"].includes(sizeMode) && !sizeValue) {
+    if (sizeContext.schema.filterable && !sizeValue) {
       return {
         ok: false,
-        error: sizeMode === "eu_shoes"
+        error: sizeMode === "shoes_eu"
           ? langText("Inserisci una taglia EU valida.", "Choose a valid EU size.")
           : langText("Inserisci una taglia valida.", "Choose a valid size.")
       };
     }
+    const normalizedSizeValue = sizeContext.schema.filterable
+      ? normalizeStoredSizeValue(sizeValue, sizeMode)
+      : "one_size";
+    const sizeOriginal = sizeContext.schemaId === "apparel_numeric_designer"
+      ? (readSellField("#sf-size-original") || normalizedSizeValue)
+      : readSellField("#sf-size-original");
+    const sizePresentation = getListingSizePresentation({
+      brand: brand,
+      categoryKey: categoryKey,
+      subcategoryKey: subcategoryKey,
+      sizeSchema: sizeMode,
+      sz: normalizedSizeValue,
+      sizeOriginal: sizeOriginal
+    });
 
     return {
       ok: true,
@@ -6022,12 +6844,10 @@
       typeKey: type ? type.id : "",
       typeLabel: type ? (getSelectedOptionLabel("#sf-type") || getTaxonomyLabel(type)) : "",
       sizeMode: sizeMode,
-      sizeDisplay: sizeMode === "one_size"
-        ? langText("Taglia unica", "One size")
-        : sizeMode === "eu_shoes" && sizeValue
-          ? `EU ${sizeValue}`
-          : sizeValue,
-      sizeOriginal: readSellField("#sf-size-original"),
+      sizeValue: normalizedSizeValue,
+      sizeDisplay: sizePresentation.displayLabel,
+      sizeOriginal: sizeOriginal,
+      sizeStandard: sizePresentation.standardEquivalent,
       fit: category.fitEnabled ? (readSellField("#sf-fit") || "Regular") : "—",
       emoji: getSellEmojiForTaxonomy(categoryKey, subcategoryKey)
     };
@@ -6193,6 +7013,7 @@
       hv.playbackRate = 0.78;
       hv.addEventListener("canplay", function() { hv.classList.add("on"); }, { once: true });
     }
+    enhanceInteractiveSurfaces(container);
     bindLuxuryReveal();
   }
 
@@ -6350,7 +7171,7 @@
     if (autocomplete) {
       autocomplete.style.display = showSearch ? "" : "none";
       if (!showSearch) {
-        autocomplete.classList.remove("open");
+        setAutocompleteOpen(autocomplete, false);
       }
     }
     if (mobileTrigger) {
@@ -6939,6 +7760,7 @@
     qsa(".static-modal").forEach(function (modal) {
       modal.setAttribute("role", "dialog");
       modal.setAttribute("aria-modal", "true");
+      modal.setAttribute("aria-hidden", modal.classList.contains("open") ? "false" : "true");
     });
     qsa(".sm-close").forEach(function (button) {
       button.setAttribute("aria-label", langText("Chiudi", "Close"));
@@ -6955,6 +7777,7 @@
       });
     });
 
+    enhanceInteractiveSurfaces(document);
   }
 
   function hydrateLocalListings() {
@@ -7530,6 +8353,7 @@
     state.opsModalPayload = payload || null;
     renderOpsModal();
     qs("#irisxOpsModal").classList.add("open");
+    syncDialogFocus("irisxOpsModal", true, ["#opsCarrier", "#opsReviewTitle", "#opsReplyBody", ".irisx-primary", ".irisx-close"]);
   }
 
   function closeOpsModal() {
@@ -7539,6 +8363,7 @@
     if (modal) {
       modal.classList.remove("open");
     }
+    syncDialogFocus("irisxOpsModal", false);
   }
 
   function renderOpsModal() {
@@ -9346,6 +10171,7 @@
             </div>
           </div>
         `;
+        syncDialogFocus("offerModal", modal.classList.contains("open"), [".offer-send", ".offer-cancel", ".offer-shell__icon"]);
         return;
       }
 
@@ -9440,6 +10266,7 @@
             </div>
           </div>
         `;
+        syncDialogFocus("offerModal", modal.classList.contains("open"), [".offer-send", ".offer-payment-choice", ".offer-shell__icon--back", ".offer-shell__icon"]);
         return;
       }
 
@@ -9484,6 +10311,7 @@
           }
         } catch(e) {}
       }
+      syncDialogFocus("offerModal", modal.classList.contains("open"), ["#offerInput", ".offer-send", ".offer-shell__icon"]);
     }
 
     openOffer = function (id) {
@@ -9518,6 +10346,7 @@
           modal.classList.add("open");
         }
         renderOfferModal();
+        syncDialogFocus("offerModal", true, ["#offerInput", ".offer-send", ".offer-shell__icon"]);
       });
     };
     window.openOffer = openOffer;
@@ -9532,6 +10361,7 @@
       state.offerStatus = null;
       state.offerSubmitting = false;
       state.offerDraft = null;
+      syncDialogFocus("offerModal", false);
     };
     window.closeOffer = closeOffer;
 
@@ -9849,12 +10679,96 @@
       if (kind === "materials") {
         return value;
       }
+      if (kind === "size") {
+        return resolveSizeFilterLabel(value);
+      }
       if (kind === "trust") {
         const option = getTrustFilterOptions().find(function (item) { return item.id === value; });
         return option ? option.label : value;
       }
       return getFacetLabel(kind, value);
     }
+
+    function matchesCatalogFilters(product, options) {
+      const config = options || {};
+      const minPrice = parseLocalizedNumberInput(filters.pmin);
+      const maxPrice = parseLocalizedNumberInput(filters.pmax);
+      const searchQuery = normalizeSearchText(filters.search);
+      const normalizedCategory = normalizeCategoryValue(product.cat);
+      const convertedPrice = convertBaseEurAmount(product.price);
+      const searchable = getProductSearchIndex(product);
+      const trustMeta = getListingTrustMeta(product);
+      const gender = inferListingGender(product);
+      const material = String(product.material || "").trim();
+      const sizePresentation = getListingSizePresentation(product);
+
+      if (filters.cats.length && !filters.cats.includes(normalizedCategory)) return false;
+      if (filters.brands.length && !filters.brands.includes(product.brand)) return false;
+      if (filters.conds.length && !filters.conds.includes(product.cond)) return false;
+      if (filters.fits.length && !filters.fits.includes(product.fit)) return false;
+      if (filters.colors.length && !filters.colors.includes(product.color)) return false;
+      if (filters.genders.length && !filters.genders.includes(gender)) return false;
+      if (filters.materials.length && !filters.materials.includes(material)) return false;
+      if (filters.trust.includes("verified") && !trustMeta.verified) return false;
+      if (filters.trust.includes("authenticated") && !trustMeta.authenticated) return false;
+      if (filters.trust.includes("guaranteed") && !trustMeta.guaranteed) return false;
+      if (!config.ignoreSize && filters.size && sizePresentation.filterKey !== filters.size) return false;
+      if (minPrice !== null && convertedPrice < minPrice) return false;
+      if (maxPrice !== null && convertedPrice > maxPrice) return false;
+      if (searchQuery && !searchable.includes(searchQuery)) return false;
+      return true;
+    }
+
+    function renderSizeFilterPanel() {
+      const panel = qs("#irisxSizeFilterPanel");
+      const hint = qs("#irisxSizeFilterHint");
+      const sizeInput = qs("#f-size");
+      if (!panel) {
+        return;
+      }
+      const candidateProducts = getVisibleCatalogProducts().filter(function (product) {
+        return matchesCatalogFilters(product, { ignoreSize: true });
+      });
+      const groups = collectCatalogSizeFilterOptions(candidateProducts);
+      const optionKeys = groups.reduce(function (accumulator, group) {
+        group.options.forEach(function (option) {
+          accumulator.push(option.key);
+        });
+        return accumulator;
+      }, []);
+
+      if (filters.size && optionKeys.indexOf(filters.size) === -1) {
+        filters.size = "";
+      }
+      if (sizeInput) {
+        sizeInput.value = filters.size || "";
+      }
+
+      if (!groups.length) {
+        panel.innerHTML = `<div class="irisx-size-filter-empty">${escapeHtml(langText("Nessuna taglia coerente per i filtri attuali.", "No coherent size options for the current filters."))}</div>`;
+        if (hint) {
+          hint.textContent = langText("Le opzioni taglia appaiono solo quando categoria, brand e risultati usano uno schema compatibile.", "Size options appear only when category, brand, and results use a compatible schema.");
+        }
+        return;
+      }
+
+      panel.innerHTML = groups.map(function (group) {
+        const optionsMarkup = group.options.map(function (option) {
+          return `<button type="button" class="irisx-filter-chip${filters.size === option.key ? " is-active" : ""}" onclick="toggleSizeFilter('${escapeHtml(option.key)}')">${escapeHtml(option.label)}</button>`;
+        }).join("");
+        return `<div class="irisx-filter-group irisx-filter-group--size"><span class="irisx-filter-label">${escapeHtml(group.label)}</span><div class="irisx-filter-chip-row">${optionsMarkup}</div></div>`;
+      }).join("");
+      if (hint) {
+        hint.textContent = langText("La taglia originale del brand resta sempre nel dato prodotto. L'equivalente standard compare solo quando il mapping e affidabile.", "The brand's original size always stays in the product data. The standard equivalent only appears when the mapping is reliable.");
+      }
+    }
+
+    toggleSizeFilter = function (filterKey) {
+      ensureExtendedFilters();
+      filters.size = filters.size === filterKey ? "" : filterKey;
+      applyFilters();
+    };
+    window.toggleSizeFilter = toggleSizeFilter;
 
     function focusFilterPanel(panelId) {
       const panel = qs("#filtersPanel");
@@ -9952,12 +10866,37 @@
       const trustChips = getTrustFilterOptions().map(function (option) {
         return `<button class="irisx-filter-chip irisx-filter-chip--trust${filters.trust.includes(option.id) ? " is-active" : ""}" onclick="toggleFilterChip('trust', '${escapeHtml(option.id)}')">${escapeHtml(option.label)}</button>`;
       }).join("");
-      host.innerHTML = `<div class="irisx-shop-browse">
-        <div class="irisx-shop-browse-row">${browseMarkup}</div>
-        <div class="irisx-fdrop-bar">${brandDrop}${condDrop}${catDrop}${genderDrop}</div>
-        <div class="irisx-filter-rail">
-          <div class="irisx-filter-group irisx-filter-group--trust"><span class="irisx-filter-label">${escapeHtml(langText("Fiducia IRIS", "IRIS trust"))}</span><div class="irisx-filter-chip-row">${trustChips}</div></div>
-          <div class="active-filters irisx-active-filter-row" id="activeFilterChips"></div>
+      const discoveryKicker = langText("Shop edit", "Shop edit");
+      const discoveryTitle = langText("Esplora l'archivio con filtri più precisi", "Explore the archive with sharper filters");
+      const discoverySummary = langText(
+        "Designer, categoria, genere e fiducia IRIS in un unico rail più ordinato.",
+        "Designer, category, gender and IRIS trust in one tighter rail."
+      );
+      host.innerHTML = `<div class="irisx-shop-browse irisx-shop-discovery-deck">
+        <div class="irisx-shop-discovery-head">
+          <div class="irisx-shop-discovery-intro">
+            <span class="irisx-shop-discovery-kicker">${escapeHtml(discoveryKicker)}</span>
+            <div class="irisx-shop-discovery-title">${escapeHtml(discoveryTitle)}</div>
+          </div>
+          <div class="irisx-shop-discovery-summary">${escapeHtml(discoverySummary)}</div>
+        </div>
+        <div class="irisx-shop-discovery-section irisx-shop-discovery-section--browse">
+          <span class="irisx-shop-discovery-eyebrow">${escapeHtml(langText("Scorciatoie curatoriali", "Curated shortcuts"))}</span>
+          <div class="irisx-shop-browse-row">${browseMarkup}</div>
+        </div>
+        <div class="irisx-shop-discovery-section irisx-shop-discovery-section--filters">
+          <span class="irisx-shop-discovery-eyebrow">${escapeHtml(langText("Affina la ricerca", "Refine the search"))}</span>
+          <div class="irisx-fdrop-bar">${brandDrop}${condDrop}${catDrop}${genderDrop}</div>
+        </div>
+        <div class="irisx-shop-discovery-section irisx-shop-discovery-section--meta" id="irisxShopMetaRow">
+          <div class="irisx-filter-group irisx-filter-group--trust">
+            <span class="irisx-shop-discovery-eyebrow">${escapeHtml(langText("Fiducia IRIS", "IRIS trust"))}</span>
+            <div class="irisx-filter-chip-row">${trustChips}</div>
+          </div>
+          <div class="irisx-shop-selection is-empty" id="irisxShopSelection">
+            <span class="irisx-shop-discovery-eyebrow">${escapeHtml(langText("Selezione attiva", "Active selection"))}</span>
+            <div class="active-filters irisx-active-filter-row" id="activeFilterChips"></div>
+          </div>
         </div>
       </div>`;
     }
@@ -10019,6 +10958,7 @@
       if (qs("#f-pmax")) {
         qs("#f-pmax").value = filters.pmax || "";
       }
+      renderSizeFilterPanel();
       renderHorizontalFilterRail();
     };
 
@@ -10057,34 +10997,8 @@
 
     getFiltered = function () {
       ensureExtendedFilters();
-      const minPrice = parseLocalizedNumberInput(filters.pmin);
-      const maxPrice = parseLocalizedNumberInput(filters.pmax);
-      const sizeQuery = normalizeSearchText(filters.size);
-      const searchQuery = normalizeSearchText(filters.search);
-
       const items = getVisibleCatalogProducts().filter(function (product) {
-        const normalizedCategory = normalizeCategoryValue(product.cat);
-        const convertedPrice = convertBaseEurAmount(product.price);
-        const searchable = getProductSearchIndex(product);
-        const trustMeta = getListingTrustMeta(product);
-        const gender = inferListingGender(product);
-        const material = String(product.material || "").trim();
-
-        if (filters.cats.length && !filters.cats.includes(normalizedCategory)) return false;
-        if (filters.brands.length && !filters.brands.includes(product.brand)) return false;
-        if (filters.conds.length && !filters.conds.includes(product.cond)) return false;
-        if (filters.fits.length && !filters.fits.includes(product.fit)) return false;
-        if (filters.colors.length && !filters.colors.includes(product.color)) return false;
-        if (filters.genders.length && !filters.genders.includes(gender)) return false;
-        if (filters.materials.length && !filters.materials.includes(material)) return false;
-        if (filters.trust.includes("verified") && !trustMeta.verified) return false;
-        if (filters.trust.includes("authenticated") && !trustMeta.authenticated) return false;
-        if (filters.trust.includes("guaranteed") && !trustMeta.guaranteed) return false;
-        if (sizeQuery && !normalizeSearchText(product.sz + " " + product.dims).includes(sizeQuery)) return false;
-        if (minPrice !== null && convertedPrice < minPrice) return false;
-        if (maxPrice !== null && convertedPrice > maxPrice) return false;
-        if (searchQuery && !searchable.includes(searchQuery)) return false;
-        return true;
+        return matchesCatalogFilters(product);
       });
 
       if (curSort === "price_asc") items.sort(function (a, b) { return a.price - b.price; });
@@ -10333,6 +11247,7 @@
     };
 
     render = function () {
+      renderSizeFilterPanel();
       const items = getFiltered().filter(isProductPurchasable);
       const grid = qs("#grid");
       const activeFilters = qs("#activeFilterChips") || qs("#activeFilters");
@@ -10348,7 +11263,7 @@
       filters.trust.forEach((value) => chips.push({ label: getFilterTokenLabel("trust", value), type: "trust", value: value }));
       filters.fits.forEach((value) => chips.push({ label: getFacetLabel("fits", value), type: "fits", value: value }));
       filters.colors.forEach((value) => chips.push({ label: getFacetLabel("colors", value), type: "colors", value: value }));
-      if (filters.size) chips.push({ label: t("size") + ": " + filters.size, type: "size", value: filters.size });
+      if (filters.size) chips.push({ label: t("size") + ": " + resolveSizeFilterLabel(filters.size), type: "size", value: filters.size });
       if (filters.pmin) chips.push({ label: t("price_min") + ": " + formatLocalCurrencyValue(filters.pmin), type: "pmin", value: filters.pmin });
       if (filters.pmax) chips.push({ label: t("price_max") + ": " + formatLocalCurrencyValue(filters.pmax), type: "pmax", value: filters.pmax });
       if (filters.search) chips.push({ label: t("search_short") + ": " + filters.search, type: "search", value: filters.search });
@@ -10367,8 +11282,17 @@
           )
           .join("");
       }
+      const activeSelection = qs("#irisxShopSelection");
+      const metaRow = qs("#irisxShopMetaRow");
+      if (activeSelection) {
+        activeSelection.classList.toggle("is-empty", chips.length === 0);
+      }
+      if (metaRow) {
+        metaRow.classList.toggle("has-selection", chips.length > 0);
+      }
 
       grid.innerHTML = items.map((product) => productCardMarkup(product)).join("");
+      enhanceInteractiveSurfaces(grid);
       renderHomeView();
       updateSearchSaveButton();
     };
@@ -10410,6 +11334,7 @@
           );
         })
         .join("");
+      enhanceInteractiveSurfaces(grid);
     };
 
     showDetail = function (id) {
@@ -10557,6 +11482,7 @@
       detailView.style.display = "block";
       detailView.classList.add("active");
       syncTopnavChrome("detail");
+      enhanceInteractiveSurfaces(detailView);
       window.scrollTo(0, 0);
       updateMeta("IRIS - " + product.brand + " " + product.name, product.desc.substring(0, 160));
     };
@@ -11018,11 +11944,13 @@
     state.authReturnView = getCurrentReturnView();
     renderAuthModal();
     qs("#irisxAuthModal").classList.add("open");
+    syncDialogFocus("irisxAuthModal", true, ["#irisxAuthEmail", "#irisxAuthName", "#irisxAuthPassword", ".irisx-close"]);
   }
 
   function closeAuthModal() {
     state.authReturnView = "home";
     qs("#irisxAuthModal").classList.remove("open");
+    syncDialogFocus("irisxAuthModal", false);
   }
 
   function switchAuthMode(mode) {
@@ -11095,6 +12023,7 @@
       "')\">" +
       switchLabel +
       "</button></div><div class=\"irisx-status irisx-hidden\" id=\"irisxAuthStatus\"></div></div></div>";
+    syncDialogFocus("irisxAuthModal", modal.classList.contains("open"), ["#irisxAuthEmail", "#irisxAuthName", "#irisxAuthPassword", ".irisx-close"]);
   }
 
   function getReadableAuthErrorMessage(error, fallbackIt, fallbackEn) {
@@ -11218,7 +12147,8 @@
           name: (existingGoogleUser && existingGoogleUser.name) || u.displayName || "Utente Google",
           email: normalizedEmail,
           phone: (existingGoogleUser && existingGoogleUser.phone) || "",
-          role: deriveUserRole(normalizedEmail),
+          platformRole: normalizeString((existingGoogleUser && existingGoogleUser.platformRole) || (existingGoogleUser && existingGoogleUser.role) || ""),
+          role: sanitizeWorkspaceRole((existingGoogleUser && (existingGoogleUser.platformRole || existingGoogleUser.role)) || ""),
           city: (existingGoogleUser && existingGoogleUser.city) || "",
           country: (existingGoogleUser && existingGoogleUser.country) || "Italia",
           bio: (existingGoogleUser && existingGoogleUser.bio) || "",
@@ -11473,8 +12403,7 @@
             profile = await upsertSupabaseProfile({
               email: email,
               name: (authUser.user_metadata && (authUser.user_metadata.full_name || authUser.user_metadata.name)) || "",
-              phone: phone,
-              role: deriveUserRole(email)
+              phone: phone
             }, authUser);
           }
           const profilePhone = normalizePhoneNumber(profile && profile.phone);
@@ -11502,8 +12431,7 @@
             emailRedirectTo: getSupabaseRedirectUrl(),
             data: {
               full_name: name,
-              phone: phone,
-              role: deriveUserRole(email)
+              phone: phone
             }
           }
         });
@@ -11517,7 +12445,6 @@
             name: name,
             email: email,
             phone: phone,
-            role: deriveUserRole(email),
             city: curLang === "it" ? "Italia" : "Italy",
             country: curLang === "it" ? "Italia" : "Italy",
             bio: "",
@@ -11545,13 +12472,6 @@
         );
         return;
       } catch (error) {
-        if (isLogin && await canUseOwnerBootstrap(email, password)) {
-          const nextUser = buildOwnerBootstrapUser(email);
-          applyAuthenticatedUser(nextUser);
-          showToast(langText("Accesso admin temporaneo attivo.", "Temporary admin access enabled."));
-          finalizeAuthSuccess(state.authReturnView);
-          return;
-        }
         // Track failed login attempts for rate limiting
         if (isLogin && email) {
           var rlKeyFail = "iris-rl-" + btoa(email).replace(/[^a-z0-9]/gi, "");
@@ -11573,13 +12493,6 @@
     }
 
     // Supabase auth is required — no local fallback allowed
-    if (isLogin && await canUseOwnerBootstrap(email, password)) {
-      const nextUser = buildOwnerBootstrapUser(email);
-      applyAuthenticatedUser(nextUser);
-      showToast(langText("Accesso admin temporaneo attivo.", "Temporary admin access enabled."));
-      finalizeAuthSuccess(state.authReturnView);
-      return;
-    }
     setInlineStatus(
       status,
       langText(
@@ -11736,6 +12649,11 @@
     cleanupNavbar();
     syncHeaderActionVisibility();
     updateSearchSaveButton();
+    if (state.currentUser && isSupabaseEnabled() && getCurrentSupabaseUserId()) {
+      refreshChatModerationState();
+    } else {
+      resetChatModerationState();
+    }
   }
 
   function requireAuth(callback) {
@@ -11835,10 +12753,12 @@
   function openCart() {
     renderCartDrawer();
     qs("#irisxCartDrawer").classList.add("open");
+    syncDialogFocus("irisxCartDrawer", true, [".irisx-primary", ".irisx-secondary", ".irisx-close"]);
   }
 
   function closeCart() {
     qs("#irisxCartDrawer").classList.remove("open");
+    syncDialogFocus("irisxCartDrawer", false);
   }
 
   function renderCartDrawer() {
@@ -11912,6 +12832,7 @@
       "</div><div class=\"irisx-drawer-foot\">" +
       footerHtml +
       "</div></div>";
+    syncDialogFocus("irisxCartDrawer", drawer.classList.contains("open"), [".irisx-primary", ".irisx-secondary", ".irisx-close"]);
   }
 
   function buyNow(productId) {
@@ -11956,11 +12877,13 @@
 
     renderCheckoutModal();
     qs("#irisxCheckoutModal").classList.add("open");
+    syncDialogFocus("irisxCheckoutModal", true, ["#checkoutName", "#checkoutShippingMethod", ".irisx-primary", ".irisx-close"]);
   }
 
   function closeCheckout() {
     qs("#irisxCheckoutModal").classList.remove("open");
     state.checkoutSubmitting = false;
+    syncDialogFocus("irisxCheckoutModal", false);
   }
 
   function renderCheckoutModal() {
@@ -12282,7 +13205,7 @@
       subcategoryKey: taxonomy.subcategoryKey,
       productType: taxonomy.typeLabel,
       productTypeKey: taxonomy.typeKey,
-      sz: taxonomy.sizeDisplay,
+      sz: taxonomy.sizeValue,
       sizeOriginal: taxonomy.sizeOriginal,
       sizeSchema: taxonomy.sizeMode,
       cond: condition,
@@ -12975,6 +13898,7 @@
     if (!state.editingListingId) state.editingListingId = null;
     if (!state.activeDetailListingId) state.activeDetailListingId = null;
     if (!state.chatScope) state.chatScope = "buying";
+    state.chatModeration = normalizeChatModerationState(state.chatModeration);
     state.banRegistry = normalizeBanRegistry(state.banRegistry);
     if (state.currentUser) {
       state.currentUser = normalizeUserWorkspace(state.currentUser);
@@ -13121,13 +14045,40 @@
 
   function renderChatComposerNote() {
     const note = qs("#irisxChatComposerNote");
+    const input = qs("#chatInput");
+    const sendButton = qs(".cm-send");
+    const moderationState = normalizeChatModerationState(state.chatModeration);
+    const blocked = moderationState.isSuspended;
+    if (sendButton) {
+      if (!sendButton.dataset.defaultLabel) {
+        sendButton.dataset.defaultLabel = sendButton.textContent || langText("Invia", "Send");
+      }
+      sendButton.disabled = blocked || state.chatSendPending;
+      sendButton.setAttribute("aria-disabled", sendButton.disabled ? "true" : "false");
+      sendButton.textContent = state.chatSendPending
+        ? langText("Controllo…", "Checking…")
+        : (sendButton.dataset.defaultLabel || langText("Invia", "Send"));
+    }
+    if (input) {
+      input.disabled = blocked || state.chatSendPending;
+      input.setAttribute("aria-disabled", input.disabled ? "true" : "false");
+      input.placeholder = blocked
+        ? langText("Chat sospesa dal team sicurezza IRIS", "Chat suspended by IRIS trust & safety")
+        : langText("Scrivi un messaggio...", "Write a message...");
+    }
     if (!note) {
       return;
     }
-    note.textContent = langText(
-      "Solo testo, offerte IRIS e segnalazioni assistite. Nessun allegato immagine in chat.",
-      "Text only, IRIS offers and assisted reports. No image attachments in chat."
-    );
+    note.classList.toggle("is-blocked", blocked);
+    note.textContent = blocked
+      ? langText(
+        "Chat bloccata: non puoi più inviare messaggi. Il team sicurezza IRIS ha sospeso il tuo accesso per violazioni ripetute.",
+        "Chat locked: you can no longer send messages. IRIS Trust & Safety suspended your access for repeated violations."
+      )
+      : langText(
+        "Solo testo, offerte IRIS e segnalazioni assistite. Emoji, contatti esterni, piattaforme esterne e pagamenti esterni vengono bloccati prima dell'invio.",
+        "Text only, IRIS offers and assisted reports. Emoji, external contacts, external platforms, and off-platform payments are blocked before sending."
+      );
   }
 
   function getChatThreadAvatarMarkup(thread) {
@@ -15121,7 +16072,7 @@
       subcategoryKey: taxonomy.ok ? taxonomy.subcategoryKey : "",
       productType: taxonomy.ok ? taxonomy.typeLabel : "",
       productTypeKey: taxonomy.ok ? taxonomy.typeKey : "",
-      sz: taxonomy.ok ? taxonomy.sizeDisplay : langText("Taglia unica", "One size"),
+      sz: taxonomy.ok ? taxonomy.sizeValue : "one_size",
       sizeOriginal: taxonomy.ok ? taxonomy.sizeOriginal : "",
       sizeSchema: taxonomy.ok ? taxonomy.sizeMode : "one_size",
       cond: qsa(".cond-btn.sel").map(function (button) { return button.textContent.trim(); })[0] || langText("Da definire", "To define"),
@@ -15217,11 +16168,12 @@
     const subcategoryKey = listing.subcategoryKey || inferSellSubcategoryKey(listing, categoryKey);
     const productTypeKey = listing.productTypeKey || inferSellTypeKey(listing, categoryKey, subcategoryKey);
     const sizeValue = getSellFormSizeValue(listing, categoryKey, subcategoryKey);
-    const sizeMode = (listing && listing.sizeSchema) || getResolvedSellSizeMode(categoryKey, subcategoryKey);
+    const sizeMode = (listing && listing.sizeSchema) || getResolvedSellSizeMode(categoryKey, subcategoryKey, listing.brand);
     ensureSellTaxonomyUi({
       categoryKey: categoryKey,
       subcategoryKey: subcategoryKey,
       typeKey: productTypeKey,
+      brand: listing.brand,
       size: sizeValue,
       measurements: listing.measurements || {}
     });
@@ -15232,7 +16184,7 @@
       "#sf-subcat": subcategoryKey,
       "#sf-type": productTypeKey,
       "#sf-size": sizeValue,
-      "#sf-size-original": listing.sizeOriginal || (sizeMode === "belt" && listing.sz && listing.sz !== sizeValue ? listing.sz : ""),
+      "#sf-size-original": listing.sizeOriginal || ((sizeMode === "belts_cm" || sizeMode === "apparel_numeric_designer") && listing.sz && listing.sz !== sizeValue ? listing.sz : ""),
       "#sf-color": listing.color,
       "#sf-fit": listing.fit,
       "#sf-material": listing.material,
@@ -15251,6 +16203,7 @@
       categoryKey: qs("#sf-cat") ? qs("#sf-cat").value : "",
       subcategoryKey: qs("#sf-subcat") ? qs("#sf-subcat").value : "",
       typeKey: qs("#sf-type") ? qs("#sf-type").value : "",
+      brand: qs("#sf-brand") ? qs("#sf-brand").value : "",
       size: qs("#sf-size") ? qs("#sf-size").value : "",
       measurements: listing.measurements || {}
     });
@@ -16779,10 +17732,11 @@
     if (input && window.innerWidth > 700) {
       input.focus();
     }
+    renderChatComposerNote();
     renderNotifications();
   };
 
-  sendChat = function () {
+  sendChat = async function () {
     if (!curChat) {
       return;
     }
@@ -16791,38 +17745,80 @@
       showToast(langText("Scrivi un messaggio prima di inviare.", "Write a message before sending."));
       return;
     }
+    if (isChatSuspended()) {
+      openChatModerationModal("chat_banned");
+      renderChatComposerNote();
+      return;
+    }
     const conversationIndex = chats.findIndex(function (thread) { return thread.id === curChat; });
     if (conversationIndex === -1) {
       return;
     }
     const conversation = normalizeChatThread(chats[conversationIndex]);
     const messageText = input.value.trim();
-    conversation.msgs.push({
-      id: createId("msg"),
-      from: "me",
-      text: messageText,
-      time: langText("Ora", "Now"),
-      at: Date.now()
-    });
-    conversation.updatedAt = Date.now();
-    chats.splice(conversationIndex, 1);
-    chats.unshift(conversation);
-    input.value = "";
-    persistChats();
-    openChatById(curChat);
-    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
-      const lastMessage = conversation.msgs[conversation.msgs.length - 1];
-      appendChatMessageToSupabase(conversation, lastMessage).then(function (remoteThread) {
-        const remoteThreadIndex = chats.findIndex(function (thread) { return String(thread.id) === String(remoteThread.id); });
-        if (remoteThreadIndex > -1) {
-          chats.splice(remoteThreadIndex, 1);
-        }
-        chats.unshift(remoteThread);
-        persistChats();
-        openChatById(remoteThread.id);
-      }).catch(function (error) {
-        console.warn("[IRIS] Unable to sync chat message to Supabase", error);
+    state.chatSendPending = true;
+    renderChatComposerNote();
+    try {
+      const moderationApi = await getChatModerationApi();
+      const localModeration = moderationApi.moderateChatMessage(messageText, {
+        channel: "chat",
+        actorRole: getChatConversationScope(conversation) === "selling" ? "seller" : "buyer",
       });
+      const serverResponse = await appendChatMessageToSupabase(conversation, messageText);
+      if (serverResponse && serverResponse.moderationState) {
+        applyChatModerationState(serverResponse.moderationState);
+      }
+      if (!serverResponse || serverResponse.allowed === false) {
+        recordAuditEvent("chat_message_blocked", conversation.id, {
+          violationType: serverResponse && serverResponse.moderation && serverResponse.moderation.violationType || localModeration.violationType,
+          matchedRules: serverResponse && serverResponse.moderation && serverResponse.moderation.matchedRules || localModeration.matchedRules,
+        });
+        openChatModerationModal(
+          serverResponse && serverResponse.action ? serverResponse.action : (localModeration.shouldBan ? "chat_banned" : "warning_1"),
+          {
+            fragments: serverResponse && serverResponse.moderation && serverResponse.moderation.matchedFragments || localModeration.matchedFragments,
+          }
+        );
+        return;
+      }
+
+      input.value = "";
+      try {
+        await refreshSupabaseChats();
+        openChatById(serverResponse.conversationId || conversation.id);
+      } catch (syncError) {
+        console.warn("[IRIS] Unable to refresh chat after send", syncError);
+        const freshConversation = normalizeChatThread(Object.assign({}, conversation, {
+          msgs: (conversation.msgs || []).concat(normalizeChatMessageRecord({
+            id: serverResponse.message && serverResponse.message.id ? serverResponse.message.id : createId("msg"),
+            from: "me",
+            text: messageText,
+            time: langText("Ora", "Now"),
+            at: serverResponse.message && serverResponse.message.sent_at_ms ? Number(serverResponse.message.sent_at_ms) : Date.now(),
+          })),
+          updatedAt: serverResponse.message && serverResponse.message.sent_at_ms ? Number(serverResponse.message.sent_at_ms) : Date.now(),
+        }));
+        const existingIndex = chats.findIndex(function (thread) { return String(thread.id) === String(freshConversation.id); });
+        if (existingIndex > -1) {
+          chats.splice(existingIndex, 1);
+        }
+        chats.unshift(freshConversation);
+        persistChats();
+        openChatById(freshConversation.id);
+      }
+      recordAuditEvent("chat_message_sent", conversation.id, {
+        messageId: serverResponse.message && serverResponse.message.id ? serverResponse.message.id : "",
+      });
+      if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
+        await refreshChatModerationState(true);
+      }
+    } catch (error) {
+      console.warn("[IRIS] Unable to send chat message", error);
+      showToast(error && error.message ? error.message : langText("Impossibile inviare il messaggio.", "Unable to send the message."));
+      return;
+    } finally {
+      state.chatSendPending = false;
+      renderChatComposerNote();
     }
     const counterparty = conversation.with || normalizeChatParticipant(null, langText("Member", "Member"), "");
     ensureSellerEmail(counterparty);
@@ -16843,6 +17839,7 @@
   window.openChat = openChat;
   window.backToChats = backToChats;
   window.sendChat = sendChat;
+  window.closeChatModerationModal = closeChatModerationModal;
   window.__irisModernChatFlow = {
     render: renderChats,
     openById: openChatById,
@@ -17196,6 +18193,7 @@
         <div class="irisx-actions">${primaryAction}${secondaryAction}${!state.checkoutStatus ? `<button class="irisx-secondary" onclick="closeCheckout()">${langText("Chiudi", "Close")}</button>` : ""}</div>
       </div>
     </div>`;
+    syncDialogFocus("irisxCheckoutModal", modal.classList.contains("open"), ["#checkoutName", "#checkoutShippingMethod", ".irisx-primary", ".irisx-close"]);
   };
 
   submitCheckout = function () {
@@ -17473,9 +18471,13 @@
     const colorLabel = getFacetLabel("colors", product.color);
     const conditionLabel = getFacetLabel("conds", product.cond);
     const originalPrice = getListingOriginalPrice(product);
-    const sizeDisplay = getListingDisplaySize(product);
-    const sizeOriginalMarkup = product.sizeOriginal
-      ? `<div class="det-fit-item"><div class="det-fit-label">${langText("Etichetta originale", "Original label")}</div><div class="det-fit-value">${escapeHtml(product.sizeOriginal)}</div></div>`
+    const sizePresentation = getListingSizePresentation(product);
+    const sizeDisplay = sizePresentation.displayLabel;
+    const sizeOriginalMarkup = sizePresentation.originalValue
+      ? `<div class="det-fit-item"><div class="det-fit-label">${langText("Taglia originale", "Original size")}</div><div class="det-fit-value">${escapeHtml(sizePresentation.originalValue)}</div></div>`
+      : "";
+    const sizeStandardMarkup = sizePresentation.standardEquivalent
+      ? `<div class="det-fit-item"><div class="det-fit-label">${langText("Fit standard", "Standard fit")}</div><div class="det-fit-value">${escapeHtml(sizePresentation.standardEquivalent)}</div></div>`
       : "";
     const viewerOwnsListing = isCurrentUserListingOwner(product);
     const chips = getListingChips(product);
@@ -17536,7 +18538,7 @@
         <div class="irisx-detail-lower-grid">
           <div class="irisx-detail-lower-main">
             <div class="det-section"><div class="det-section-title">${t("details")}</div><div class="det-chips">${chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div></div>
-            <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(sizeDisplay)}</div></div>${sizeOriginalMarkup}<div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
+            <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(sizeDisplay)}</div></div>${sizeOriginalMarkup}${sizeStandardMarkup}<div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
             ${renderMeasurementsSection(product)}
             <div class="det-section"><div class="det-section-title">${t("description")}</div><div class="det-desc">${escapeHtml(product.desc)}</div></div>
           </div>
@@ -17772,6 +18774,7 @@
     var sellerView = document.getElementById("seller-view");
     if (sellerView) {
       sellerView.innerHTML = html;
+      enhanceInteractiveSurfaces(sellerView);
     }
   }
 
@@ -17868,7 +18871,11 @@
   renderProfilePanel();
   renderOpsView();
   renderSellerProfileView();
+  applyChatModerationState(state.chatModeration);
   renderChats();
+  getChatModerationApi().catch(function (error) {
+    console.warn("[IRIS] Unable to load chat moderation engine", error);
+  });
 
   function showToast(message) {
     const stack = qs("#irisxToastStack");

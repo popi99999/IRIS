@@ -1,6 +1,6 @@
 import { normalizeEmail, normalizeString, readJsonBody } from "../_shared/env.ts";
 import { handleOptions, errorResponse, HttpError, jsonResponse } from "../_shared/http.ts";
-import { fetchOrderById, getRequestUser, tryUpsertIntoTable, upsertNotification } from "../_shared/supabase.ts";
+import { fetchOrderById, getRequestUser, isUserAdmin, tryUpsertIntoTable, upsertNotification } from "../_shared/supabase.ts";
 import { sendTransactionalEmail } from "../_shared/email.ts";
 
 type Body = {
@@ -30,7 +30,7 @@ Deno.serve(async (request) => {
 
     const currentUserEmail = normalizeEmail(user.email);
     const sellerEmails = Array.isArray(order.seller_emails) ? order.seller_emails.map((entry) => normalizeEmail(entry)) : [];
-    const isAdmin = ["owner@iris-fashion.it", "admin@iris-fashion.it", "support@iris-fashion.it"].includes(currentUserEmail);
+    const isAdmin = await isUserAdmin(user);
     if (!isAdmin && !sellerEmails.includes(currentUserEmail)) {
       throw new HttpError("You cannot update this shipment", 403);
     }

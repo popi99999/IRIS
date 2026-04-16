@@ -5,6 +5,7 @@ import {
   fetchOfferById,
   getRequestUser,
   getSupabaseAdmin,
+  isUserAdmin,
   tryInsertIntoTable,
   tryUpsertIntoTable,
   upsertNotification,
@@ -44,6 +45,118 @@ async function captureOfferPaymentIntent(offer: Record<string, unknown>) {
     throw new HttpError("Offer is missing Stripe payment intent reference", 409);
   }
   return await getStripe().paymentIntents.capture(paymentIntentId);
+}
+
+async function refundOfferPaymentIntent(paymentIntentId: string, offerId: string, orderId: string) {
+  if (!paymentIntentId) {
+    return null;
+  }
+  try {
+    return await getStripe().refunds.create({
+      payment_intent: paymentIntentId,
+      reason: "requested_by_customer",
+      metadata: {
+        iris_flow: "offer_finalize_recovery",
+        iris_offer_id: offerId,
+        iris_order_id: orderId,
+      },
+    });
+  } catch (error) {
+    console.error("[respond-to-offer] unable to refund captured payment intent", error);
+    return null;
+  }
+}
+
+async function reserveOfferForDecision(offerId: string, decision: "accepted" | "declined", actorEmail: string) {
+  const admin = getSupabaseAdmin();
+  const now = Date.now();
+  const { data, error } = await admin
+    .from("offers")
+    .update({
+      status: "processing",
+      decision_in_progress: decision,
+      processing_by_email: actorEmail,
+      processing_started_at_ms: now,
+      updated_at_ms: now,
+    })
+    .eq("id", offerId)
+    .eq("status", "pending")
+    .select("*")
+    .maybeSingle();
+  if (error) {
+    throw new HttpError("Unable to reserve offer for processing", 500, error.message);
+  }
+  if (!data) {
+    throw new HttpError("This offer can no longer be managed", 409);
+  }
+  return data as Record<string, unknown>;
+}
+
+async function claimListingForOfferProcessing(listingId: string) {
+  const admin = getSupabaseAdmin();
+  const { data, error } = await admin
+    .from("listings")
+    .update({
+      inventory_status: "offer_processing",
+    })
+    .eq("id", listingId)
+    .neq("inventory_status", "sold")
+    .neq("inventory_status", "offer_processing")
+    .select("*")
+    .maybeSingle();
+  if (error) {
+    throw new HttpError("Unable to reserve listing for offer processing", 500, error.message);
+  }
+  if (!data) {
+    throw new HttpError("Listing is no longer available for this offer", 409);
+  }
+  return data as Record<string, unknown>;
+}
+
+async function restoreListingInventory(listingId: string, previousInventoryStatus: string) {
+  if (!listingId) {
+    return;
+  }
+  try {
+    await getSupabaseAdmin()
+      .from("listings")
+      .update({
+        inventory_status: previousInventoryStatus || null,
+      })
+      .eq("id", listingId);
+  } catch (error) {
+    console.error("[respond-to-offer] unable to restore listing inventory status", error);
+  }
+}
+
+async function markListingSold(listingId: string, orderId: string) {
+  if (!listingId) {
+    return;
+  }
+  try {
+    await getSupabaseAdmin()
+      .from("listings")
+      .update({
+        inventory_status: "sold",
+        order_id: orderId,
+        sold_at: new Date().toISOString(),
+      })
+      .eq("id", listingId);
+  } catch (error) {
+    console.error("[respond-to-offer] unable to mark listing sold", error);
+  }
+}
+
+async function sendOfferEmailSafely(
+  templateKey: string,
+  email: string,
+  context: Record<string, unknown>,
+) {
+  try {
+    await sendTransactionalEmail(templateKey, email, context);
+  } catch (error) {
+    console.warn("[respond-to-offer] transactional email failed", templateKey, email, error);
+  }
 }
 
 async function declineCompetingOffers(listingId: string, acceptedOfferId: string) {
@@ -95,7 +208,7 @@ Deno.serve(async (request) => {
     const buyerEmail = normalizeEmail(offer.buyer_email ?? offer.buyerEmail ?? "");
     const sellerEmail = normalizeEmail(offer.seller_email ?? offer.sellerEmail ?? "");
     const userEmail = normalizeEmail(user.email);
-    const isAdmin = ["owner@iris-fashion.it", "admin@iris-fashion.it", "support@iris-fashion.it"].includes(userEmail);
+    const isAdmin = await isUserAdmin(user);
     if (!isAdmin && userEmail !== sellerEmail) {
       throw new HttpError("You cannot manage this offer", 403);
     }
@@ -104,10 +217,12 @@ Deno.serve(async (request) => {
       throw new HttpError("This offer can no longer be managed", 409);
     }
 
-    if (Number(offer.expires_at_ms ?? 0) > 0 && Date.now() > Number(offer.expires_at_ms ?? 0)) {
-      await cancelOfferPaymentIntent(offer);
+    const reservedOffer = await reserveOfferForDecision(offerId, decision, userEmail);
+
+    if (Number(reservedOffer.expires_at_ms ?? 0) > 0 && Date.now() > Number(reservedOffer.expires_at_ms ?? 0)) {
+      await cancelOfferPaymentIntent(reservedOffer);
       const expiredOffer = {
-        ...offer,
+        ...reservedOffer,
         status: "declined",
         payment_authorization_status: "authorization_released",
         released_at_ms: Date.now(),
@@ -126,11 +241,13 @@ Deno.serve(async (request) => {
     if (!listing) {
       throw new HttpError("Listing not found", 404);
     }
+    const listingId = String(listing.id ?? reservedOffer.listing_id ?? reservedOffer.listingId ?? "");
+    const previousInventoryStatus = String(listing.inventory_status ?? listing.inventoryStatus ?? "");
 
     if (decision === "declined") {
-      const cancelledIntent = await cancelOfferPaymentIntent(offer);
+      const cancelledIntent = await cancelOfferPaymentIntent(reservedOffer);
       const declinedOffer = {
-        ...offer,
+        ...reservedOffer,
         status: "declined",
         payment_authorization_status: "authorization_released",
         released_at_ms: Date.now(),
@@ -139,24 +256,24 @@ Deno.serve(async (request) => {
       };
       await tryUpsertIntoTable("offers", declinedOffer, "id");
       await upsertNotification({
-        recipient_id: offer.buyer_id ?? null,
+        recipient_id: reservedOffer.buyer_id ?? null,
         recipient_email: buyerEmail,
         audience: "user",
         kind: "offer",
         title: "Offerta rifiutata",
-        body: `${offer.product_brand ?? offer.productBrand ?? ""} ${offer.product_name ?? offer.productName ?? ""}`.trim(),
+        body: `${reservedOffer.product_brand ?? reservedOffer.productBrand ?? ""} ${reservedOffer.product_name ?? reservedOffer.productName ?? ""}`.trim(),
         order_id: "",
-        product_id: String(offer.product_id ?? offer.productId ?? listing.id ?? ""),
+        product_id: String(reservedOffer.product_id ?? reservedOffer.productId ?? listing.id ?? ""),
         scope: "offer",
         unread: true,
       });
-      await sendTransactionalEmail("offer-declined", buyerEmail, {
+      await sendOfferEmailSafely("offer-declined", buyerEmail, {
         offerId,
         listingId: listing.id,
-        productTitle: `${offer.product_brand ?? offer.productBrand ?? ""} ${offer.product_name ?? offer.productName ?? ""}`.trim(),
+        productTitle: `${reservedOffer.product_brand ?? reservedOffer.productBrand ?? ""} ${reservedOffer.product_name ?? reservedOffer.productName ?? ""}`.trim(),
         sellerEmail,
         reason: body.reason ?? "",
-        paymentIntentId: String(cancelledIntent?.id ?? offer.payment_intent_reference ?? ""),
+        paymentIntentId: String(cancelledIntent?.id ?? reservedOffer.payment_intent_reference ?? ""),
       });
       return jsonResponse({
         ok: true,
@@ -167,16 +284,31 @@ Deno.serve(async (request) => {
       });
     }
 
+    try {
+      await claimListingForOfferProcessing(listingId);
+    } catch (error) {
+      await cancelOfferPaymentIntent(reservedOffer);
+      await tryUpsertIntoTable("offers", {
+        ...reservedOffer,
+        status: "declined",
+        payment_authorization_status: "authorization_released",
+        release_reason: "listing_unavailable",
+        released_at_ms: Date.now(),
+        updated_at_ms: Date.now(),
+      }, "id");
+      throw error;
+    }
+
     const orderPayload = buildOfferOrderPayload({
       buyer: {
-        id: String(offer.buyer_id ?? ""),
+        id: String(reservedOffer.buyer_id ?? ""),
         email: buyerEmail,
-        name: normalizeString(offer.buyer_name ?? offer.buyerName ?? ""),
+        name: normalizeString(reservedOffer.buyer_name ?? reservedOffer.buyerName ?? ""),
       },
-      offer,
+      offer: reservedOffer,
       listing,
       payment: {
-        paymentIntentId: String(offer.payment_intent_reference ?? offer.paymentIntentReference ?? ""),
+        paymentIntentId: String(reservedOffer.payment_intent_reference ?? reservedOffer.paymentIntentReference ?? ""),
         paymentIntentStatus: "requires_capture",
         chargeId: "",
         transferGroup: buildTransferGroup(`order_${offerId}`),
@@ -192,8 +324,9 @@ Deno.serve(async (request) => {
 
     let capturedIntent;
     try {
-      capturedIntent = await captureOfferPaymentIntent(offer);
+      capturedIntent = await captureOfferPaymentIntent(reservedOffer);
     } catch (error) {
+      await restoreListingInventory(listingId, previousInventoryStatus);
       await tryUpsertIntoTable("orders", {
         ...orderPayload,
         status: "payment_failed",
@@ -203,6 +336,13 @@ Deno.serve(async (request) => {
           paymentIntentStatus: "capture_failed",
           captureFailedAt: new Date().toISOString(),
         },
+      }, "id");
+      await tryUpsertIntoTable("offers", {
+        ...reservedOffer,
+        status: "declined",
+        payment_authorization_status: "capture_failed",
+        release_reason: "capture_failed",
+        updated_at_ms: Date.now(),
       }, "id");
       throw error;
     }
@@ -217,7 +357,7 @@ Deno.serve(async (request) => {
     orderPayload.payment.capturedAt = new Date().toISOString();
 
     const acceptedOffer = {
-      ...offer,
+      ...reservedOffer,
       status: "paid",
       order_id: orderPayload.id,
       payment_authorization_status: "paid",
@@ -227,12 +367,63 @@ Deno.serve(async (request) => {
     const savedOrder = await tryUpsertIntoTable("orders", orderPayload, "id");
     if (!savedOrder) {
       console.error("[respond-to-offer] CRITICAL: order finalization failed after payment capture. orderId:", orderPayload.id, "paymentIntentId:", capturedIntent.id);
-      throw new HttpError("Payment captured but order finalization failed. Contact support with reference: " + orderPayload.id, 500);
+      const refund = await refundOfferPaymentIntent(capturedIntent.id, offerId, orderPayload.id);
+      await restoreListingInventory(listingId, previousInventoryStatus);
+      await tryUpsertIntoTable("orders", {
+        ...orderPayload,
+        status: refund ? "refunded" : "payment_review",
+        payment: {
+          ...orderPayload.payment,
+          status: refund ? "refunded" : "capture_recovery_pending",
+          paymentIntentStatus: refund ? "refunded" : String(capturedIntent.status ?? "succeeded"),
+          refundId: refund ? String(refund.id ?? "") : "",
+          refundedAt: refund ? new Date().toISOString() : null,
+          recoveryReason: "order_finalize_failed",
+        },
+      }, "id");
+      await tryUpsertIntoTable("offers", {
+        ...reservedOffer,
+        status: "declined",
+        order_id: orderPayload.id,
+        payment_authorization_status: refund ? "authorization_released" : "capture_recovery_pending",
+        release_reason: "order_finalize_failed",
+        updated_at_ms: Date.now(),
+      }, "id");
+      throw new HttpError(
+        refund
+          ? "Payment captured but automatically refunded after order finalization failure. Reference: " + orderPayload.id
+          : "Payment captured but recovery requires manual support intervention. Reference: " + orderPayload.id,
+        500,
+      );
     }
-    await tryUpsertIntoTable("offers", acceptedOffer, "id");
+    const savedAcceptedOffer = await tryUpsertIntoTable("offers", acceptedOffer, "id");
+    if (!savedAcceptedOffer) {
+      console.error("[respond-to-offer] CRITICAL: accepted offer finalization failed after payment capture. orderId:", orderPayload.id, "offerId:", offerId);
+      const refund = await refundOfferPaymentIntent(capturedIntent.id, offerId, orderPayload.id);
+      await restoreListingInventory(listingId, previousInventoryStatus);
+      await tryUpsertIntoTable("orders", {
+        ...orderPayload,
+        status: refund ? "refunded" : "payment_review",
+        payment: {
+          ...orderPayload.payment,
+          status: refund ? "refunded" : "capture_recovery_pending",
+          paymentIntentStatus: refund ? "refunded" : String(capturedIntent.status ?? "succeeded"),
+          refundId: refund ? String(refund.id ?? "") : "",
+          refundedAt: refund ? new Date().toISOString() : null,
+          recoveryReason: "offer_finalize_failed",
+        },
+      }, "id");
+      throw new HttpError(
+        refund
+          ? "Payment captured but automatically refunded after offer finalization failure. Reference: " + orderPayload.id
+          : "Payment captured but offer finalization requires manual support intervention. Reference: " + orderPayload.id,
+        500,
+      );
+    }
+    await markListingSold(listingId, orderPayload.id);
     await tryInsertIntoTable("notifications", {
       id: `ntf_${crypto.randomUUID()}`,
-      recipient_id: offer.buyer_id ?? null,
+      recipient_id: reservedOffer.buyer_id ?? null,
       recipient_email: buyerEmail,
       audience: "user",
       kind: "offer",
@@ -241,27 +432,32 @@ Deno.serve(async (request) => {
       link: "",
       conversation_id: "",
       order_id: orderPayload.id,
-      product_id: String(offer.product_id ?? offer.productId ?? listing.id ?? ""),
+      product_id: String(reservedOffer.product_id ?? reservedOffer.productId ?? listing.id ?? ""),
       scope: "offer",
       unread: true,
       created_at_ms: Date.now(),
       updated_at_ms: Date.now(),
     });
-    const releasedOffers = await declineCompetingOffers(String(offer.listing_id ?? offer.listingId ?? listing.id), offerId);
+    let releasedOffers: Record<string, unknown>[] = [];
+    try {
+      releasedOffers = await declineCompetingOffers(listingId, offerId);
+    } catch (error) {
+      console.error("[respond-to-offer] unable to decline competing offers after acceptance", error);
+    }
 
-    await sendTransactionalEmail("offer-accepted", buyerEmail, {
+    await sendOfferEmailSafely("offer-accepted", buyerEmail, {
       offerId,
       orderId: orderPayload.id,
       orderNumber: orderPayload.number,
       listingId: listing.id,
-      productTitle: `${offer.product_brand ?? offer.productBrand ?? ""} ${offer.product_name ?? offer.productName ?? ""}`.trim(),
-      amount: `${normalizeAmount(offer.offer_amount ?? offer.offerAmount ?? offer.amount, 0).toFixed(2)} ${String(orderPayload.payment.currency ?? "EUR")}`,
+      productTitle: `${reservedOffer.product_brand ?? reservedOffer.productBrand ?? ""} ${reservedOffer.product_name ?? reservedOffer.productName ?? ""}`.trim(),
+      amount: `${normalizeAmount(reservedOffer.offer_amount ?? reservedOffer.offerAmount ?? reservedOffer.amount, 0).toFixed(2)} ${String(orderPayload.payment.currency ?? "EUR")}`,
       sellerEmail,
     });
-    await sendTransactionalEmail("checkout-confirmation", buyerEmail, {
+    await sendOfferEmailSafely("checkout-confirmation", buyerEmail, {
       orderId: orderPayload.id,
       orderNumber: orderPayload.number,
-      productTitle: `${offer.product_brand ?? offer.productBrand ?? ""} ${offer.product_name ?? offer.productName ?? ""}`.trim(),
+      productTitle: `${reservedOffer.product_brand ?? reservedOffer.productBrand ?? ""} ${reservedOffer.product_name ?? reservedOffer.productName ?? ""}`.trim(),
       amount: `${orderPayload.total.toFixed(2)} ${String(orderPayload.payment.currency ?? "EUR")}`,
     });
 

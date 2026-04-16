@@ -1,0 +1,53 @@
+name: IRIS CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Frontend syntax
+        run: |
+          node --check iris-plus.js
+          node --check sw.js
+
+      - name: Script syntax
+        run: |
+          bash -n scripts/backend-go-live.sh scripts/setup-stripe-webhook.sh scripts/supabase-deploy-functions.sh scripts/supabase-set-secrets.sh scripts/trigger-maintenance.sh
+
+      - name: Hardening checks
+        run: node scripts/check-hardening.mjs
+
+      - name: Chat moderation validation
+        run: node scripts/validate-chat-moderation.mjs
+
+      - name: Edge parse checks
+        run: node scripts/check-edge-parsing.mjs
+
+      - name: Public commerce smoke
+        run: node scripts/smoke-commerce.mjs
+
+      - name: Authenticated commerce smoke
+        if: ${{ secrets.SMOKE_EMAIL != '' && secrets.SMOKE_PASSWORD != '' && secrets.SMOKE_LISTING_ID != '' && secrets.SUPABASE_ANON_KEY != '' }}
+        env:
+          SMOKE_EMAIL: ${{ secrets.SMOKE_EMAIL }}
+          SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
+          SMOKE_LISTING_ID: ${{ secrets.SMOKE_LISTING_ID }}
+          SMOKE_OFFER_AMOUNT: ${{ secrets.SMOKE_OFFER_AMOUNT }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          PUBLIC_SITE_URL: https://popi99999.github.io/IRIS/
+          SUPABASE_FUNCTIONS_BASE_URL: https://xzhgyamzfthqrcaljdqv.supabase.co/functions/v1
+        run: node scripts/smoke-commerce.mjs

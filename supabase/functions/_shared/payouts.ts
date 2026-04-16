@@ -1,6 +1,7 @@
 import { normalizeEmail, normalizeString } from "./env.ts";
 import {
   fetchProfileByEmail,
+  getSupabaseAdmin,
   tryInsertIntoTable,
   tryUpsertIntoTable,
 } from "./supabase.ts";
@@ -35,6 +36,100 @@ export function computePayoutAmount(order: Record<string, unknown>): number {
   return Number.isFinite(value) ? value : 0;
 }
 
+function buildPayoutIdempotencyKey(orderId: string) {
+  return `iris_payout_${orderId}`;
+}
+
+async function fetchPayoutRelease(orderId: string) {
+  const { data, error } = await getSupabaseAdmin()
+    .from("payout_releases")
+    .select("*")
+    .eq("order_id", orderId)
+    .maybeSingle();
+  if (error) {
+    throw error;
+  }
+  return data ?? null;
+}
+
+async function claimPayoutRelease(order: Record<string, unknown>, sellerEmail: string, accountId: string, payoutAmount: number, currency: string, transferGroup: string) {
+  const admin = getSupabaseAdmin();
+  const orderId = String(order.id ?? "");
+  const idempotencyKey = buildPayoutIdempotencyKey(orderId);
+  const record = {
+    order_id: orderId,
+    seller_email: sellerEmail,
+    payout_account_id: accountId,
+    payout_amount: payoutAmount,
+    currency,
+    transfer_group: transferGroup,
+    idempotency_key: idempotencyKey,
+    status: "processing",
+    last_error: "",
+  };
+
+  try {
+    const { data, error } = await admin
+      .from("payout_releases")
+      .insert(record)
+      .select("*")
+      .maybeSingle();
+    if (error) {
+      throw error;
+    }
+    return { claimed: true, release: data ?? record, idempotencyKey };
+  } catch (error: any) {
+    if (error?.code !== "23505") {
+      throw error;
+    }
+  }
+
+  const existing = await fetchPayoutRelease(orderId);
+  if (!existing) {
+    throw new HttpError("Unable to acquire payout lock", 500);
+  }
+  if (String(existing.status ?? "") === "released" && String(existing.stripe_transfer_id ?? "")) {
+    return { claimed: false, release: existing, idempotencyKey: String(existing.idempotency_key ?? idempotencyKey) };
+  }
+  if (String(existing.status ?? "") === "processing") {
+    throw new HttpError("Payout is already being released", 409);
+  }
+
+  const { data, error } = await admin
+    .from("payout_releases")
+    .update({
+      seller_email: sellerEmail,
+      payout_account_id: accountId,
+      payout_amount: payoutAmount,
+      currency,
+      transfer_group: transferGroup,
+      idempotency_key: idempotencyKey,
+      status: "processing",
+      last_error: "",
+    })
+    .eq("order_id", orderId)
+    .in("status", ["failed", "blocked"])
+    .select("*")
+    .maybeSingle();
+  if (error) {
+    throw error;
+  }
+  if (!data) {
+    throw new HttpError("Payout is not releasable", 409);
+  }
+  return { claimed: true, release: data, idempotencyKey };
+}
+
+async function markPayoutReleaseStatus(orderId: string, patch: Record<string, unknown>) {
+  const { error } = await getSupabaseAdmin()
+    .from("payout_releases")
+    .update(patch)
+    .eq("order_id", orderId);
+  if (error) {
+    throw error;
+  }
+}
+
 export async function releaseStripePayoutForOrder(order: Record<string, unknown>, sellerEmail?: string) {
   const normalizedSellerEmail = normalizeEmail(
     sellerEmail ??
@@ -62,17 +157,35 @@ export async function releaseStripePayoutForOrder(order: Record<string, unknown>
 
   const payment = (order.payment ?? {}) as Record<string, unknown>;
   const currency = String(payment.currency ?? order.currency ?? "EUR").toUpperCase();
-  const transfer = await getStripe().transfers.create({
-    amount: Math.round(payoutAmount * 100),
-    currency: currency.toLowerCase(),
-    destination: accountId,
-    transfer_group: String(payment.transferGroup ?? `iris_${order.id}`),
-    metadata: {
-      iris_order_id: String(order.id ?? ""),
-      iris_order_number: String(order.number ?? ""),
-      iris_seller_email: normalizedSellerEmail,
-    },
-  });
+  const transferGroup = String(payment.transferGroup ?? `iris_${order.id}`);
+  const payoutClaim = await claimPayoutRelease(order, normalizedSellerEmail, accountId, payoutAmount, currency, transferGroup);
+
+  let transfer;
+  if (!payoutClaim.claimed) {
+    transfer = await getStripe().transfers.retrieve(String(payoutClaim.release.stripe_transfer_id ?? ""));
+  } else {
+    try {
+      transfer = await getStripe().transfers.create({
+        amount: Math.round(payoutAmount * 100),
+        currency: currency.toLowerCase(),
+        destination: accountId,
+        transfer_group: transferGroup,
+        metadata: {
+          iris_order_id: String(order.id ?? ""),
+          iris_order_number: String(order.number ?? ""),
+          iris_seller_email: normalizedSellerEmail,
+        },
+      }, {
+        idempotencyKey: payoutClaim.idempotencyKey,
+      });
+    } catch (error) {
+      await markPayoutReleaseStatus(String(order.id ?? ""), {
+        status: "failed",
+        last_error: error instanceof Error ? error.message : String(error ?? "transfer_failed"),
+      });
+      throw error;
+    }
+  }
 
   const updatedPayment = {
     ...payment,
@@ -85,10 +198,16 @@ export async function releaseStripePayoutForOrder(order: Record<string, unknown>
   const updatedOrder = {
     ...order,
     payment: updatedPayment,
+    payout_status: "released",
     status: String(order.status || "") === "completed" ? "completed" : "completed",
     delivered_at: order.delivered_at ?? new Date().toISOString(),
   };
 
+  await markPayoutReleaseStatus(String(order.id ?? ""), {
+    status: "released",
+    stripe_transfer_id: transfer.id,
+    last_error: "",
+  });
   await tryUpsertIntoTable("orders", updatedOrder, "id");
   await tryInsertIntoTable("notifications", {
     id: `ntf_${crypto.randomUUID()}`,

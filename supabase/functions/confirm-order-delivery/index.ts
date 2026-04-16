@@ -1,6 +1,6 @@
 import { normalizeEmail, readJsonBody } from "../_shared/env.ts";
 import { handleOptions, errorResponse, HttpError, jsonResponse } from "../_shared/http.ts";
-import { fetchOrderById, getRequestUser, tryUpsertIntoTable, upsertNotification } from "../_shared/supabase.ts";
+import { fetchOrderById, getRequestUser, isUserAdmin, tryUpsertIntoTable, upsertNotification } from "../_shared/supabase.ts";
 import { releaseStripePayoutForOrder } from "../_shared/payouts.ts";
 
 type Body = {
@@ -26,7 +26,7 @@ Deno.serve(async (request) => {
     }
 
     const currentUserEmail = normalizeEmail(user.email);
-    const isAdmin = ["owner@iris-fashion.it", "admin@iris-fashion.it", "support@iris-fashion.it"].includes(currentUserEmail);
+    const isAdmin = await isUserAdmin(user);
     const isBuyer = normalizeEmail(order.buyer_email ?? "") === currentUserEmail || String(order.buyer_id ?? "") === String(user.id);
     if (!isBuyer && !isAdmin) {
       throw new HttpError("You cannot confirm this delivery", 403);

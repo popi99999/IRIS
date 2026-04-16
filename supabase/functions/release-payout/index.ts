@@ -3,6 +3,7 @@ import { handleOptions, errorResponse, HttpError, jsonResponse } from "../_share
 import {
   fetchOrderById,
   getRequestUser,
+  isUserAdmin,
 } from "../_shared/supabase.ts";
 import { isEligibleForPayout, releaseStripePayoutForOrder } from "../_shared/payouts.ts";
 
@@ -32,7 +33,7 @@ Deno.serve(async (request) => {
     const orderSellerEmails = Array.isArray(order.seller_emails) ? order.seller_emails.map((email) => normalizeEmail(email)) : [];
     const targetSellerEmail = normalizeEmail(body.sellerEmail ?? orderSellerEmails[0] ?? "");
     const currentUserEmail = normalizeEmail(user.email);
-    const isAdmin = ["owner@iris-fashion.it", "admin@iris-fashion.it", "support@iris-fashion.it"].includes(currentUserEmail);
+    const isAdmin = await isUserAdmin(user);
     if (body.force && !isAdmin) {
       throw new HttpError("Only admins can force payout release", 403);
     }

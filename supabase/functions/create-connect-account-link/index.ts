@@ -1,7 +1,8 @@
-import { getPublicSiteUrl, normalizeString, readJsonBody } from "../_shared/env.ts";
+import { normalizeString, readJsonBody } from "../_shared/env.ts";
 import { handleOptions, errorResponse, HttpError, jsonResponse } from "../_shared/http.ts";
 import { fetchProfileById, getRequestUser, updateProfilePayoutSettings } from "../_shared/supabase.ts";
 import { getStripe } from "../_shared/stripe.ts";
+import { sanitizeReturnUrl } from "../_shared/stripe.ts";
 
 type Body = {
   refreshUrl?: string;
@@ -53,8 +54,8 @@ Deno.serve(async (request) => {
       });
     }
 
-    const refreshUrl = body.refreshUrl || `${getPublicSiteUrl()}/?connect=refresh`;
-    const returnUrl = body.returnUrl || `${getPublicSiteUrl()}/?connect=return`;
+    const refreshUrl = sanitizeReturnUrl(body.refreshUrl, "/?connect=refresh");
+    const returnUrl = sanitizeReturnUrl(body.returnUrl, "/?connect=return");
     const link = await getStripe().accountLinks.create({
       account: accountId,
       refresh_url: refreshUrl,

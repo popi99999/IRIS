@@ -2,7 +2,7 @@ import { normalizeAmount, normalizeEmail, normalizeString, readJsonBody, uuid } 
 import { handleOptions, errorResponse, HttpError, jsonResponse } from "../_shared/http.ts";
 import { getRequestUser, getSupabaseAdmin, tryInsertIntoTable, tryUpsertIntoTable } from "../_shared/supabase.ts";
 import { calculateCheckoutTotals, buildOrderPayload, buildTransferGroup, resolveShippingFee, resolveShippingMethod } from "../_shared/marketplace.ts";
-import { getStripe, stringifyStripeMetadata, toStripeAmount, defaultSuccessUrl, appendUrlParams } from "../_shared/stripe.ts";
+import { getStripe, stringifyStripeMetadata, toStripeAmount, defaultSuccessUrl, appendUrlParams, sanitizeReturnUrl } from "../_shared/stripe.ts";
 
 type CheckoutItemInput = {
   listingId?: string;
@@ -83,7 +83,7 @@ Deno.serve(async (request) => {
       }
       const listingStatus = String(listing.listing_status ?? listing.listingStatus ?? "");
       const inventoryStatus = String(listing.inventory_status ?? listing.inventoryStatus ?? "");
-      if (listingStatus !== "published" || inventoryStatus === "archived" || inventoryStatus === "sold") {
+      if (listingStatus !== "published" || inventoryStatus === "archived" || inventoryStatus === "sold" || inventoryStatus === "offer_processing") {
         throw new HttpError(`Listing unavailable: ${normalizeString(listing.name ?? listing.brand ?? listing.id)}`, 409);
       }
       return {
@@ -138,14 +138,14 @@ Deno.serve(async (request) => {
       lineItems.push(buildCheckoutLineItem("Shipping", totals.shippingFee, currency));
     }
 
-    const baseReturnUrl = body.successUrl || defaultSuccessUrl("/");
+    const baseReturnUrl = sanitizeReturnUrl(body.successUrl, "/");
     const successUrl = appendUrlParams(baseReturnUrl, {
       stripe_flow: "checkout",
       stripe_status: "success",
       order_id: orderId,
       session_id: "{CHECKOUT_SESSION_ID}",
     });
-    const cancelUrl = appendUrlParams(body.cancelUrl || baseReturnUrl, {
+    const cancelUrl = appendUrlParams(sanitizeReturnUrl(body.cancelUrl, "/") || baseReturnUrl, {
       stripe_flow: "checkout",
       stripe_status: "cancel",
       order_id: orderId,

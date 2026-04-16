@@ -28,6 +28,76 @@ function parseMetadataList(value: unknown): string[] {
   return raw.split(",").map((entry) => entry.trim()).filter(Boolean);
 }
 
+const ORDER_STATUS_RANK: Record<string, number> = {
+  pending: 0,
+  pending_payment: 1,
+  pending_capture: 2,
+  payment_review: 3,
+  paid: 4,
+  awaiting_shipment: 5,
+  shipped: 6,
+  in_authentication: 7,
+  dispatched_to_buyer: 8,
+  delivered: 9,
+  buyer_confirmed_delivery: 10,
+  completed: 11,
+  partially_refunded: 12,
+  refunded: 13,
+  cancelled: 13,
+  payment_failed: 13,
+};
+
+const PAYMENT_STATUS_RANK: Record<string, number> = {
+  pending: 0,
+  requires_action: 0,
+  authorized: 1,
+  authorization_pending: 1,
+  pending_capture: 2,
+  processing: 2,
+  captured: 3,
+  paid: 3,
+  partially_refunded: 4,
+  refunded: 5,
+  reversed: 5,
+};
+
+function getOrderStatusRank(status: unknown) {
+  return ORDER_STATUS_RANK[String(status ?? "").toLowerCase()] ?? -1;
+}
+
+function shouldPromoteOrderStatus(currentStatus: unknown, targetStatus: unknown) {
+  return getOrderStatusRank(targetStatus) >= getOrderStatusRank(currentStatus);
+}
+
+function canTransitionOrderToFailure(status: unknown) {
+  return ["pending", "pending_payment", "pending_capture", "payment_review"].includes(String(status ?? "").toLowerCase());
+}
+
+function getPaymentStatusRank(status: unknown) {
+  return PAYMENT_STATUS_RANK[String(status ?? "").toLowerCase()] ?? -1;
+}
+
+function shouldPromotePaymentStatus(currentStatus: unknown, targetStatus: unknown) {
+  const normalizedCurrent = String(currentStatus ?? "").toLowerCase();
+  const normalizedTarget = String(targetStatus ?? "").toLowerCase();
+  if (!normalizedTarget) return false;
+  if (["refunded", "partially_refunded", "reversed"].includes(normalizedCurrent) && normalizedTarget === "captured") {
+    return false;
+  }
+  if (["failed", "payment_failed", "cancelled", "canceled"].includes(normalizedTarget)) {
+    return !["captured", "paid", "partially_refunded", "refunded", "reversed"].includes(normalizedCurrent);
+  }
+  return getPaymentStatusRank(normalizedTarget) >= getPaymentStatusRank(normalizedCurrent);
+}
+
+function normalizeFailureOrderStatus(status: string) {
+  return status === "payment_failed" ? "payment_failed" : "cancelled";
+}
+
+function normalizeFailurePaymentStatus(status: string) {
+  return status === "payment_failed" ? "failed" : "cancelled";
+}
+
 function buildShippingFromSession(session: any, fallback: Record<string, unknown>) {
   const shippingAddress = session.shipping_details?.address ?? session.customer_details?.address ?? {};
   return {
@@ -106,6 +176,10 @@ async function handleOfferCheckoutCompleted(session: any) {
   const buyerName = normalizeString(metadata.buyerName ?? session.customer_details?.name ?? "");
   const sellerEmail = normalizeEmail(metadata.sellerEmail ?? listing.owner_email ?? listing.ownerEmail ?? "");
   const existing = await fetchOfferById(offerId);
+  const existingStatus = String(existing?.status ?? "");
+  if (existing && !["awaiting_authorization", "pending"].includes(existingStatus)) {
+    return;
+  }
 
   const offerRecord = {
     ...(existing ?? {}),
@@ -269,8 +343,23 @@ async function handleCheckoutCompleted(session: any) {
   orderPayload.payment.transferGroup = String(metadata.transferGroup ?? metadata.transfer_group ?? buildTransferGroup(orderId));
 
   const existing = await fetchOrderById(orderId);
-  await tryUpsertIntoTable("orders", orderPayload, "id");
-  await persistOrderItemsIfAvailable(orderPayload);
+  const mergedOrder = existing
+    ? {
+        ...existing,
+        ...orderPayload,
+        status: shouldPromoteOrderStatus(existing.status, orderPayload.status) ? orderPayload.status : String(existing.status ?? ""),
+        payment_status: shouldPromotePaymentStatus(existing.payment_status ?? existing.payment?.status, "captured")
+          ? "captured"
+          : String(existing.payment_status ?? existing.payment?.status ?? ""),
+        payment: {
+          ...(existing.payment ?? {}),
+          ...(orderPayload.payment ?? {}),
+          status: "captured",
+        },
+      }
+    : orderPayload;
+  await tryUpsertIntoTable("orders", mergedOrder, "id");
+  await persistOrderItemsIfAvailable(mergedOrder);
   await persistPaymentRecordIfAvailable({
     id: `pay_${crypto.randomUUID()}`,
     order_id: orderId,
@@ -300,7 +389,7 @@ async function handleCheckoutCompleted(session: any) {
     await updateListingSold(String(listing.id ?? ""), orderId);
   }
 
-  if (!existing || String(existing.status ?? "") !== "paid") {
+  if (!existing || !["paid", "awaiting_shipment", "shipped", "in_authentication", "dispatched_to_buyer", "delivered", "buyer_confirmed_delivery", "completed"].includes(String(existing.status ?? ""))) {
     const buyerPhone = normalizeString((orderPayload.shipping as any)?.phone ?? "");
     await upsertNotification({
       recipient_id: buyerId || null,
@@ -353,6 +442,9 @@ async function handlePaymentIntentCaptured(intent: any) {
   if (offerId) {
     const offer = await fetchOfferById(offerId);
     if (offer) {
+      if (["declined", "refunded"].includes(String(offer.status ?? ""))) {
+        return;
+      }
       const listing = await fetchListingById(String(offer.listing_id ?? offer.listingId ?? metadata.listingId ?? ""));
       const existingOrderId = String(offer.order_id ?? offer.orderId ?? "");
       const paidOffer = {
@@ -370,6 +462,9 @@ async function handlePaymentIntentCaptured(intent: any) {
           if (existingOrder) {
             orderPayload = {
               ...existingOrder,
+              payment_status: shouldPromotePaymentStatus(existingOrder.payment_status ?? existingOrder.payment?.status, "captured")
+                ? "captured"
+                : String(existingOrder.payment_status ?? existingOrder.payment?.status ?? ""),
               payment: {
                 ...(existingOrder.payment ?? {}),
                 paymentIntentId: String(intent.id ?? ""),
@@ -379,7 +474,7 @@ async function handlePaymentIntentCaptured(intent: any) {
                 status: "captured",
                 capturedAt: new Date().toISOString(),
               },
-              status: "paid",
+              status: shouldPromoteOrderStatus(existingOrder.status, "paid") ? "paid" : String(existingOrder.status ?? ""),
             };
             await tryUpsertIntoTable("orders", orderPayload, "id");
           }
@@ -446,6 +541,9 @@ async function handlePaymentIntentCaptured(intent: any) {
   if (orderId) {
     const existing = await fetchOrderById(orderId);
     if (!existing) return;
+    if (!shouldPromoteOrderStatus(existing.status, "paid")) {
+      return;
+    }
     const payment = {
       ...(existing.payment ?? {}),
       paymentIntentId: String(intent.id ?? ""),
@@ -457,6 +555,9 @@ async function handlePaymentIntentCaptured(intent: any) {
     };
     const orderPayload = {
       ...existing,
+      payment_status: shouldPromotePaymentStatus(existing.payment_status ?? existing.payment?.status, "captured")
+        ? "captured"
+        : String(existing.payment_status ?? existing.payment?.status ?? ""),
       payment,
       status: "paid",
     };
@@ -471,6 +572,9 @@ async function handlePaymentIntentClosed(intent: any, status: string) {
   if (offerId) {
     const offer = await fetchOfferById(offerId);
     if (!offer) return;
+    if (!["awaiting_authorization", "pending", "processing"].includes(String(offer.status ?? ""))) {
+      return;
+    }
     const updatedOffer = {
       ...offer,
       status: "declined",
@@ -485,46 +589,110 @@ async function handlePaymentIntentClosed(intent: any, status: string) {
   if (orderId) {
     const order = await fetchOrderById(orderId);
     if (!order) return;
+    if (!canTransitionOrderToFailure(order.status)) {
+      return;
+    }
     const payment = {
       ...(order.payment ?? {}),
       paymentIntentId: String(intent.id ?? ""),
       paymentIntentStatus: status,
-      status,
+      status: normalizeFailurePaymentStatus(status),
       canceledAt: status === "canceled" ? new Date().toISOString() : undefined,
     };
     await tryUpsertIntoTable("orders", {
       ...order,
+      payment_status: normalizeFailurePaymentStatus(status),
       payment,
-      status,
+      status: normalizeFailureOrderStatus(status),
     }, "id");
   }
 }
 
-// Idempotency: track processed Stripe event IDs in the DB to prevent double-processing
-async function isEventAlreadyProcessed(eventId: string): Promise<boolean> {
-  const { data } = await getSupabaseAdmin()
-    .from("email_outbox")
-    .select("id")
-    .eq("provider_message_id", `stripe_evt_${eventId}`)
-    .limit(1);
-  return Array.isArray(data) && data.length > 0;
+async function claimStripeWebhookEvent(eventId: string, eventType: string, payload: Record<string, unknown>) {
+  const admin = getSupabaseAdmin();
+  try {
+    const { data, error } = await admin
+      .from("stripe_webhook_events")
+      .insert({
+        id: eventId,
+        event_type: eventType,
+        status: "processing",
+        payload,
+      })
+      .select("*")
+      .maybeSingle();
+    if (error) {
+      throw error;
+    }
+    return { claimed: true, duplicate: false, event: data ?? null };
+  } catch (error: any) {
+    if (error?.code !== "23505") {
+      throw error;
+    }
+  }
+
+  const { data: existing, error: existingError } = await admin
+    .from("stripe_webhook_events")
+    .select("*")
+    .eq("id", eventId)
+    .maybeSingle();
+  if (existingError) {
+    throw existingError;
+  }
+  if (!existing) {
+    throw new HttpError("Unable to resolve webhook lock", 500);
+  }
+  const existingStatus = String(existing.status ?? "");
+  if (existingStatus === "processed" || existingStatus === "processing") {
+    return { claimed: false, duplicate: true, event: existing };
+  }
+
+  const { data: retried, error: retryError } = await admin
+    .from("stripe_webhook_events")
+    .update({
+      event_type: eventType,
+      status: "processing",
+      attempts_count: Number(existing.attempts_count ?? 1) + 1,
+      payload,
+      last_error: "",
+    })
+    .eq("id", eventId)
+    .eq("status", "failed")
+    .select("*")
+    .maybeSingle();
+  if (retryError) {
+    throw retryError;
+  }
+  if (!retried) {
+    return { claimed: false, duplicate: true, event: existing };
+  }
+  return { claimed: true, duplicate: false, event: retried };
 }
 
-async function markEventProcessed(eventId: string, eventType: string): Promise<void> {
-  try {
-    await getSupabaseAdmin().from("email_outbox").insert({
-      template_key: "generic",
-      recipient_email: "webhook@iris-internal",
-      subject: `Stripe event processed: ${eventType}`,
-      html_body: "",
-      text_body: "",
-      status: "sent",
-      provider: "stripe_webhook",
-      provider_message_id: `stripe_evt_${eventId}`,
-      payload: { eventId, eventType },
-    });
-  } catch {
-    // best-effort — idempotency log failure is non-blocking
+async function markStripeWebhookProcessed(eventId: string): Promise<void> {
+  const { error } = await getSupabaseAdmin()
+    .from("stripe_webhook_events")
+    .update({
+      status: "processed",
+      processed_at: new Date().toISOString(),
+      last_error: "",
+    })
+    .eq("id", eventId);
+  if (error) {
+    throw error;
+  }
+}
+
+async function markStripeWebhookFailed(eventId: string, errorMessage: string): Promise<void> {
+  const { error } = await getSupabaseAdmin()
+    .from("stripe_webhook_events")
+    .update({
+      status: "failed",
+      last_error: errorMessage,
+    })
+    .eq("id", eventId);
+  if (error) {
+    console.warn("[stripe-webhook] unable to mark failed event", eventId, error);
   }
 }
 
@@ -539,8 +707,18 @@ async function handleAsyncPaymentFailed(session: any) {
 
   if (orderId) {
     const existing = await fetchOrderById(orderId);
-    if (existing && existing.status === "pending") {
-      await tryUpsertIntoTable("orders", { ...existing, status: "payment_failed", payment_status: "failed" }, "id");
+    if (existing && canTransitionOrderToFailure(existing.status)) {
+      await tryUpsertIntoTable("orders", {
+        ...existing,
+        status: "payment_failed",
+        payment_status: "failed",
+        payment: {
+          ...(existing.payment ?? {}),
+          status: "failed",
+          paymentIntentStatus: "payment_failed",
+          failedAt: new Date().toISOString(),
+        },
+      }, "id");
     }
   }
 
@@ -570,10 +748,17 @@ async function handlePaymentIntentSucceeded(intent: any) {
   if (!orderId) return;
   const existing = await fetchOrderById(orderId);
   if (!existing) return;
+  const nextPaymentStatus = shouldPromotePaymentStatus(existing.payment_status ?? existing.payment?.status, "captured")
+    ? "captured"
+    : String(existing.payment_status ?? existing.payment?.status ?? "");
+  const nextOrderStatus = shouldPromoteOrderStatus(existing.status, "paid")
+    ? "paid"
+    : String(existing.status ?? "");
   await tryUpsertIntoTable("orders", {
     ...existing,
-    payment_status: "captured",
-    payment_captured_at: new Date().toISOString(),
+    status: nextOrderStatus,
+    payment_status: nextPaymentStatus,
+    payment_captured_at: nextPaymentStatus === "captured" ? new Date().toISOString() : existing.payment_captured_at ?? null,
   }, "id");
   await tryUpsertIntoTable("payments", {
     provider_payment_intent_id: String(intent.id ?? ""),
@@ -830,8 +1015,11 @@ Deno.serve(async (request) => {
     eventType = event.type;
     console.log(`[stripe-webhook] received event: ${eventType} (${eventId})`);
 
-    // Idempotency: skip if already processed
-    if (await isEventAlreadyProcessed(eventId)) {
+    const webhookClaim = await claimStripeWebhookEvent(eventId, eventType, {
+      eventId,
+      eventType,
+    });
+    if (!webhookClaim.claimed) {
       console.log(`[stripe-webhook] skipping duplicate event: ${eventId}`);
       return jsonResponse({ ok: true, received: true, duplicate: true, event: eventType });
     }
@@ -881,9 +1069,12 @@ Deno.serve(async (request) => {
         break;
     }
 
-    await markEventProcessed(eventId, eventType);
+    await markStripeWebhookProcessed(eventId);
     return jsonResponse({ ok: true, received: true, event: eventType });
   } catch (error) {
+    if (eventId) {
+      await markStripeWebhookFailed(eventId, error instanceof Error ? error.message : String(error ?? "Unexpected error"));
+    }
     if (error instanceof HttpError) {
       return errorResponse(error.message, error.status, error.details);
     }

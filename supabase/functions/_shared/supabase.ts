@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient, type User } from "npm:@supabase/supabase-js@2";
-import { getEnv, normalizeEmail, requireEnv } from "./env.ts";
+import { getEnv, normalizeEmail, normalizeString, requireEnv } from "./env.ts";
 import { HttpError } from "./http.ts";
 
 type AdminClient = SupabaseClient;
@@ -28,7 +28,7 @@ export function getSupabaseAdmin(): AdminClient {
 }
 
 export function getSupabasePublicClient(): SupabaseClient {
-  const key = getEnv("SUPABASE_ANON_KEY", requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
+  const key = requireEnv("SUPABASE_ANON_KEY");
   return createClient(requireEnv("SUPABASE_URL"), key, {
     auth: {
       autoRefreshToken: false,
@@ -88,6 +88,44 @@ export async function fetchProfileByEmail(email: string) {
     throw error;
   }
   return data ?? null;
+}
+
+export async function fetchAdminAccessByEmail(email: string) {
+  const normalized = normalizeEmail(email);
+  if (!normalized) {
+    return null;
+  }
+  const { data, error } = await getSupabaseAdmin()
+    .from("admin_users")
+    .select("*")
+    .ilike("email", normalized)
+    .maybeSingle();
+  if (error) {
+    throw error;
+  }
+  return data ?? null;
+}
+
+export async function isUserAdmin(user: Pick<User, "id" | "email"> | null | undefined) {
+  if (!user) {
+    return false;
+  }
+  let adminAccess = null;
+  if (user.id) {
+    const { data, error } = await getSupabaseAdmin()
+      .from("admin_users")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (error) {
+      throw error;
+    }
+    adminAccess = data ?? null;
+  }
+  if (!adminAccess && user.email) {
+    adminAccess = await fetchAdminAccessByEmail(user.email);
+  }
+  return Boolean(adminAccess && normalizeString(adminAccess.role ?? "admin").toLowerCase() === "admin");
 }
 
 export async function updateProfilePayoutSettings(

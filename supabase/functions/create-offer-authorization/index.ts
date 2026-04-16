@@ -6,7 +6,7 @@ import {
   getSupabaseAdmin,
 } from "../_shared/supabase.ts";
 import { calculateLineFees, OFFER_EXPIRY_HOURS } from "../_shared/marketplace.ts";
-import { appendUrlParams, defaultSuccessUrl, getStripe, stringifyStripeMetadata, toStripeAmount } from "../_shared/stripe.ts";
+import { appendUrlParams, defaultSuccessUrl, getStripe, stringifyStripeMetadata, toStripeAmount, sanitizeReturnUrl } from "../_shared/stripe.ts";
 
 type OfferAuthorizationBody = {
   listingId?: string;
@@ -35,6 +35,10 @@ function buildCheckoutLineItem(label: string, amount: number, currency: string) 
   };
 }
 
+function buildOfferAuthorizationIdempotencyKey(offerId: string) {
+  return `iris_offer_auth_${offerId}`;
+}
+
 Deno.serve(async (request) => {
   const preflight = handleOptions(request);
   if (preflight) return preflight;
@@ -58,8 +62,12 @@ Deno.serve(async (request) => {
     if (String(listing.listing_status ?? listing.listingStatus ?? "") !== "published") {
       throw new HttpError("Listing not available for offers", 409);
     }
-    if (String(listing.inventory_status ?? listing.inventoryStatus ?? "") === "archived") {
+    const inventoryStatus = String(listing.inventory_status ?? listing.inventoryStatus ?? "");
+    if (inventoryStatus === "archived") {
       throw new HttpError("Listing already archived", 409);
+    }
+    if (inventoryStatus === "sold" || inventoryStatus === "offer_processing") {
+      throw new HttpError("Listing is no longer available", 409);
     }
     const minimumOfferAmount = normalizeAmount(listing.minimum_offer_amount ?? listing.minimumOfferAmount ?? 0, 0);
     if (minimumOfferAmount > 0 && offerAmount < minimumOfferAmount) {
@@ -74,17 +82,50 @@ Deno.serve(async (request) => {
       throw new HttpError("Cannot offer on your own listing", 409);
     }
 
-    const { data: existingOffers, error: existingError } = await getSupabaseAdmin()
+    const admin = getSupabaseAdmin();
+    const { data: existingOffers, error: existingError } = await admin
       .from("offers")
-      .select("id,status,buyer_email")
+      .select("*")
       .eq("listing_id", listingId)
       .eq("buyer_email", buyerEmail)
-      .in("status", ["pending", "awaiting_authorization"]);
+      .in("status", ["awaiting_authorization", "pending", "processing", "paid"]);
     if (existingError) {
       throw new HttpError("Unable to validate existing offers", 500, existingError.message);
     }
-    if ((existingOffers ?? []).length > 0) {
-      throw new HttpError("You already have an active offer on this listing", 409);
+    const existingOffer = Array.isArray(existingOffers) && existingOffers.length ? existingOffers[0] : null;
+    if (existingOffer) {
+      const existingStatus = String(existingOffer.status ?? "");
+      const existingSessionId = String(existingOffer.checkout_session_id ?? "");
+      const expiresAt = existingOffer.authorization_expires_at
+        ? new Date(String(existingOffer.authorization_expires_at)).getTime()
+        : Number(existingOffer.expires_at_ms ?? 0);
+      if (existingStatus === "awaiting_authorization" && existingSessionId && expiresAt > Date.now()) {
+        const existingSession = await getStripe().checkout.sessions.retrieve(existingSessionId);
+        return jsonResponse({
+          ok: true,
+          offerId: String(existingOffer.id ?? ""),
+          sessionId: existingSession.id,
+          checkoutUrl: existingSession.url,
+          currency: String(existingOffer.currency ?? "EUR").toUpperCase(),
+          authorizedAmount: normalizeAmount(body.authorizedAmount, offerAmount),
+          expiresAt,
+        });
+      }
+      if (["pending", "processing", "paid"].includes(existingStatus)) {
+        throw new HttpError("You already have an active offer on this listing", 409);
+      }
+      if (existingStatus === "awaiting_authorization") {
+        await admin
+          .from("offers")
+          .update({
+            status: "declined",
+            payment_authorization_status: "authorization_released",
+            released_at_ms: Date.now(),
+            release_reason: "authorization_expired",
+            updated_at_ms: Date.now(),
+          })
+          .eq("id", String(existingOffer.id ?? ""));
+      }
     }
 
     const lineFees = calculateLineFees(listing, 1);
@@ -95,6 +136,7 @@ Deno.serve(async (request) => {
     );
     const currency = String(body.currency ?? lineFees.currency ?? listing.price_currency ?? listing.currency ?? "EUR").toUpperCase();
     const offerId = `off_${uuid("iris")}`;
+    const expiresAt = Date.now() + OFFER_EXPIRY_HOURS * 60 * 60 * 1000;
 
     const metadata = stringifyStripeMetadata({
       flow: "offer_authorization",
@@ -126,6 +168,75 @@ Deno.serve(async (request) => {
       }),
     });
 
+    try {
+      const { error: provisionalOfferError } = await admin
+        .from("offers")
+        .insert({
+          id: offerId,
+          listing_id: listingId,
+          product_id: listing.id ?? listingId,
+          product_name: listing.name ?? "",
+          product_brand: listing.brand ?? "",
+          buyer_id: user.id,
+          buyer_email: buyerEmail,
+          buyer_name: normalizeString(user.user_metadata?.full_name ?? user.email ?? ""),
+          seller_id: listing.owner_id ?? null,
+          seller_email: ownerEmail,
+          seller_name: normalizeString(listing.seller_snapshot?.name ?? listing.owner_name ?? ""),
+          offer_amount: offerAmount,
+          currency,
+          status: "awaiting_authorization",
+          created_at_ms: Date.now(),
+          updated_at_ms: Date.now(),
+          expires_at_ms: expiresAt,
+          payment_authorization_status: "authorization_pending",
+          payment_intent_reference: "",
+          authorization_reference: `AUTH-${offerId.slice(-8).toUpperCase()}`,
+          checkout_session_id: "",
+          authorization_expires_at: new Date(expiresAt).toISOString(),
+          order_id: "",
+          shipping_snapshot: body.shippingSnapshot ?? {},
+          payment_method_snapshot: {
+            ...(body.paymentMethodSnapshot ?? {}),
+            id: body.paymentMethodId ?? body.paymentMethodSnapshot?.id ?? "",
+            label: body.paymentMethodLabel ?? body.paymentMethodSnapshot?.label ?? "",
+          },
+          minimum_offer_amount: minimumOfferAmount || null,
+          release_reason: "",
+        });
+      if (provisionalOfferError) {
+        throw provisionalOfferError;
+      }
+    } catch (error: any) {
+      if (error?.code === "23505") {
+        const { data: conflictingOffer } = await admin
+          .from("offers")
+          .select("*")
+          .eq("listing_id", listingId)
+          .eq("buyer_email", buyerEmail)
+          .in("status", ["awaiting_authorization", "pending", "processing"])
+          .order("created_at_ms", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (conflictingOffer && String(conflictingOffer.status ?? "") === "awaiting_authorization" && String(conflictingOffer.checkout_session_id ?? "")) {
+          const existingSession = await getStripe().checkout.sessions.retrieve(String(conflictingOffer.checkout_session_id ?? ""));
+          return jsonResponse({
+            ok: true,
+            offerId: String(conflictingOffer.id ?? ""),
+            sessionId: existingSession.id,
+            checkoutUrl: existingSession.url,
+            currency: String(conflictingOffer.currency ?? currency).toUpperCase(),
+            authorizedAmount,
+            expiresAt: conflictingOffer.authorization_expires_at
+              ? new Date(String(conflictingOffer.authorization_expires_at)).getTime()
+              : Number(conflictingOffer.expires_at_ms ?? expiresAt),
+          });
+        }
+        throw new HttpError("You already have an active offer on this listing", 409);
+      }
+      throw error;
+    }
+
     const lineItems = [
       buildCheckoutLineItem(
         [normalizeString(listing.brand), normalizeString(listing.name)].filter(Boolean).join(" - ") || "IRIS Offer",
@@ -143,7 +254,7 @@ Deno.serve(async (request) => {
       lineItems.push(buildCheckoutLineItem("Shipping", shippingFee, currency));
     }
 
-    const baseReturnUrl = body.returnUrl || defaultSuccessUrl("/");
+    const baseReturnUrl = sanitizeReturnUrl(body.returnUrl, "/");
     const successUrl = appendUrlParams(baseReturnUrl, {
       stripe_flow: "offer",
       stripe_status: "success",
@@ -156,24 +267,50 @@ Deno.serve(async (request) => {
       offer_id: offerId,
     });
 
-    const session = await getStripe().checkout.sessions.create({
-      mode: "payment",
-      customer_email: buyerEmail || undefined,
-      line_items: lineItems,
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      metadata,
-      payment_intent_data: {
-        capture_method: "manual",
+    let session;
+    try {
+      session = await getStripe().checkout.sessions.create({
+        mode: "payment",
+        customer_email: buyerEmail || undefined,
+        line_items: lineItems,
+        success_url: successUrl,
+        cancel_url: cancelUrl,
         metadata,
-      },
-      billing_address_collection: "required",
-      phone_number_collection: { enabled: true },
-      shipping_address_collection: {
-        allowed_countries: ["IT"],
-      },
-      locale: typeof body.locale === "string" && body.locale.toLowerCase().startsWith("en") ? "en-GB" : "it",
-    });
+        payment_intent_data: {
+          capture_method: "manual",
+          metadata,
+        },
+        billing_address_collection: "required",
+        phone_number_collection: { enabled: true },
+        shipping_address_collection: {
+          allowed_countries: ["IT"],
+        },
+        locale: typeof body.locale === "string" && body.locale.toLowerCase().startsWith("en") ? "en-GB" : "it",
+      }, {
+        idempotencyKey: buildOfferAuthorizationIdempotencyKey(offerId),
+      });
+    } catch (error) {
+      await admin
+        .from("offers")
+        .update({
+          status: "declined",
+          payment_authorization_status: "authorization_failed",
+          release_reason: "checkout_session_create_failed",
+          released_at_ms: Date.now(),
+          updated_at_ms: Date.now(),
+        })
+        .eq("id", offerId);
+      throw error;
+    }
+
+    await admin
+      .from("offers")
+      .update({
+        checkout_session_id: String(session.id ?? ""),
+        authorization_expires_at: new Date(expiresAt).toISOString(),
+        updated_at_ms: Date.now(),
+      })
+      .eq("id", offerId);
 
     return jsonResponse({
       ok: true,
@@ -182,7 +319,7 @@ Deno.serve(async (request) => {
       checkoutUrl: session.url,
       currency,
       authorizedAmount,
-      expiresAt: Date.now() + OFFER_EXPIRY_HOURS * 60 * 60 * 1000,
+      expiresAt,
     });
   } catch (error) {
     if (error instanceof HttpError) {

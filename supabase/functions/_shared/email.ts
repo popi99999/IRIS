@@ -87,12 +87,12 @@ Il tuo account è stato creato con successo. Puoi iniziare a esplorare migliaia 
 
     case "verify-email":
       return `Per attivare il tuo account IRIS, conferma il tuo indirizzo email.<br><br>
-${code ? `Il tuo codice di verifica è: <strong style="font-size:24px;letter-spacing:4px">${code}</strong><br><br>Questo codice scade tra 15 minuti.` : `<a href="${verifyUrl}" style="display:inline-block;padding:12px 28px;background:#7C3AED;color:#fff;border-radius:4px;text-decoration:none">Verifica Email →</a><br><br>Questo link scade tra 24 ore.`}<br><br>
+${code ? `Il tuo codice di verifica è: <strong style="font-size:24px;letter-spacing:4px">${code}</strong><br><br>Questo codice scade tra 15 minuti.` : `<a href="${verifyUrl}" style="display:inline-block;padding:12px 28px;background:#F1324F;color:#fff;border-radius:4px;text-decoration:none">Verifica Email →</a><br><br>Questo link scade tra 24 ore.`}<br><br>
 Se non hai creato un account IRIS, ignora questa email.`;
 
     case "password-reset":
       return `Hai richiesto di reimpostare la password del tuo account IRIS.<br><br>
-<a href="${resetUrl}" style="display:inline-block;padding:12px 28px;background:#7C3AED;color:#fff;border-radius:4px;text-decoration:none">Reimposta Password →</a><br><br>
+<a href="${resetUrl}" style="display:inline-block;padding:12px 28px;background:#F1324F;color:#fff;border-radius:4px;text-decoration:none">Reimposta Password →</a><br><br>
 <strong>Questo link scade tra 1 ora.</strong><br><br>
 Se non hai richiesto questo reset, ignora questa email. La tua password non verrà modificata.`;
 
@@ -289,7 +289,17 @@ export async function sendTransactionalEmail(
 
   if (!resendKey) {
     console.warn(`[email] RESEND_API_KEY not set — email queued but not sent: ${templateKey} → ${email}`);
-    return { ok: true, queued: true, outbox };
+    if (outbox && (outbox as Record<string, unknown>).id) {
+      await getSupabaseAdmin()
+        .from("email_outbox")
+        .update({
+          status: "failed",
+          attempts_count: 0,
+          last_error: "RESEND_API_KEY is missing",
+        })
+        .eq("id", (outbox as Record<string, unknown>).id);
+    }
+    return { ok: false, queued: true, error: "RESEND_API_KEY is missing", outbox };
   }
 
   // Attempt send with exponential backoff retry

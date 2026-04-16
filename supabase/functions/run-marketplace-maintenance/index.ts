@@ -70,6 +70,105 @@ Deno.serve(async (request) => {
       });
     }
 
+    const processingRecoveryMinutes = Number(getEnv("OFFER_PROCESSING_RECOVERY_MINUTES", "30"));
+    const processingCutoff = now - processingRecoveryMinutes * 60 * 1000;
+    const { data: staleProcessingOffers, error: staleProcessingError } = await admin
+      .from("offers")
+      .select("*")
+      .eq("status", "processing")
+      .lt("processing_started_at_ms", processingCutoff);
+    if (staleProcessingError) {
+      throw new HttpError("Unable to load stale processing offers", 500, staleProcessingError.message);
+    }
+
+    const recoveredProcessingOfferIds: string[] = [];
+    for (const offer of staleProcessingOffers ?? []) {
+      const paymentIntentId = String(offer.payment_intent_reference ?? "");
+      const listingId = String(offer.listing_id ?? "");
+      const orderId = String(offer.order_id ?? "");
+      let paymentIntent: any = null;
+      if (paymentIntentId) {
+        try {
+          paymentIntent = await getStripe().paymentIntents.retrieve(paymentIntentId);
+        } catch (error) {
+          console.warn("[run-marketplace-maintenance] unable to inspect processing payment intent", paymentIntentId, error);
+        }
+      }
+      const { data: linkedOrder } = orderId
+        ? await admin.from("orders").select("*").eq("id", orderId).maybeSingle()
+        : { data: null as any };
+      const orderStatus = String(linkedOrder?.status ?? "");
+
+      if (linkedOrder && ["paid", "awaiting_shipment", "shipped", "in_authentication", "dispatched_to_buyer", "delivered", "buyer_confirmed_delivery", "completed"].includes(orderStatus)) {
+        await tryUpsertIntoTable("offers", {
+          ...offer,
+          status: "paid",
+          payment_authorization_status: "paid",
+          updated_at_ms: now,
+        }, "id");
+        if (listingId) {
+          await admin.from("listings").update({
+            inventory_status: "sold",
+            order_id: linkedOrder.id,
+            sold_at: linkedOrder.created_at ?? new Date().toISOString(),
+          }).eq("id", listingId);
+        }
+        recoveredProcessingOfferIds.push(String(offer.id));
+        continue;
+      }
+
+      if (paymentIntent && ["succeeded", "processing"].includes(String(paymentIntent.status ?? ""))) {
+        const adminEmails = String(getEnv("ADMIN_EMAILS", "irisadminojmpx0nd@deltajohnsons.com"))
+          .split(",")
+          .map((entry: string) => normalizeEmail(entry))
+          .filter(Boolean)
+          .slice(0, 3);
+        for (const adminEmail of adminEmails) {
+          await sendTransactionalEmail("generic", adminEmail, {
+            offerId: String(offer.id),
+            orderId,
+            body: `Offer ${offer.id} richiede riconciliazione manuale. Payment intent ${paymentIntentId} risulta ${paymentIntent.status}.`,
+          }, {
+            subject: `IRIS - Recovery offer ${offer.id}`,
+          });
+        }
+        await tryUpsertIntoTable("offers", {
+          ...offer,
+          payment_authorization_status: "capture_recovery_pending",
+          release_reason: "processing_timeout_manual_review",
+          updated_at_ms: now,
+        }, "id");
+        continue;
+      }
+
+      if (paymentIntentId && paymentIntent && String(paymentIntent.status ?? "") === "requires_capture") {
+        try {
+          await getStripe().paymentIntents.cancel(paymentIntentId, {
+            cancellation_reason: "abandoned",
+          });
+        } catch (error) {
+          console.warn("[run-marketplace-maintenance] unable to cancel stale processing payment intent", paymentIntentId, error);
+        }
+      }
+
+      await tryUpsertIntoTable("offers", {
+        ...offer,
+        status: "declined",
+        payment_authorization_status: "authorization_released",
+        released_at_ms: now,
+        release_reason: "processing_timeout",
+        updated_at_ms: now,
+      }, "id");
+      if (listingId) {
+        await admin
+          .from("listings")
+          .update({ inventory_status: "published" })
+          .eq("id", listingId)
+          .eq("inventory_status", "offer_processing");
+      }
+      recoveredProcessingOfferIds.push(String(offer.id));
+    }
+
     const { data: payoutOrders, error: payoutError } = await admin
       .from("orders")
       .select("*")
@@ -82,7 +181,7 @@ Deno.serve(async (request) => {
     for (const order of payoutOrders ?? []) {
       const payment = (order.payment ?? {}) as Record<string, unknown>;
       const payoutStatus = String(payment.payoutStatus ?? order.payout_status ?? "");
-      if (["released", "paid"].includes(payoutStatus) || !isEligibleForPayout(String(order.status ?? ""))) {
+      if (["released", "paid", "processing"].includes(payoutStatus) || !isEligibleForPayout(String(order.status ?? ""))) {
         continue;
       }
       // Block payout if there is an active dispute or chargeback
@@ -163,6 +262,7 @@ Deno.serve(async (request) => {
 
     console.log(`[run-marketplace-maintenance] done at ${new Date().toISOString()}`, {
       expiredOfferIds,
+      recoveredProcessingOfferIds,
       releasedPayoutOrderIds,
       remindedOrderIds,
     });
@@ -170,6 +270,7 @@ Deno.serve(async (request) => {
     return jsonResponse({
       ok: true,
       expiredOfferIds,
+      recoveredProcessingOfferIds,
       releasedPayoutOrderIds,
       remindedOrderIds,
       processedAt: new Date().toISOString(),

@@ -10398,6 +10398,10 @@ body.irisx-luxury.irisx-white-theme .tn-sell {
   background: rgba(241,50,79,.1) !important;
   border-color: rgba(241,50,79,.18) !important;
   color: #F1324F !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  letter-spacing: .18em !important;
+  line-height: 1 !important;
 }
 
 body.irisx-luxury:not(.irisx-sell-view) .tn-sell:hover,

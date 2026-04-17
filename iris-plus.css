@@ -10334,9 +10334,9 @@ body.irisx-luxury.irisx-white-theme .f-range input {
 
 body.irisx-luxury:not(.irisx-sell-view) .tn-search input,
 body.irisx-luxury.irisx-white-theme .tn-search input {
-  min-height: 42px !important;
-  padding: .42rem .92rem .42rem 2.18rem !important;
-  font-size: .86rem !important;
+  min-height: 40px !important;
+  padding: .34rem .9rem .34rem 2.12rem !important;
+  font-size: .84rem !important;
 }
 
 body.irisx-luxury:not(.irisx-sell-view) .tn-search::before,
@@ -10426,10 +10426,10 @@ body.irisx-luxury.irisx-white-theme .tn-sell {
 
 body.irisx-luxury:not(.irisx-sell-view) #tnSellBtn,
 body.irisx-luxury.irisx-white-theme #tnSellBtn {
-  min-width: 136px !important;
-  padding: 0 22px !important;
-  font-size: .88rem !important;
-  letter-spacing: .145em !important;
+  min-width: 128px !important;
+  padding: 0 18px !important;
+  font-size: .82rem !important;
+  letter-spacing: .135em !important;
 }
 
 body.irisx-luxury:not(.irisx-sell-view) .tn-sell:hover,

@@ -10317,6 +10317,11 @@ body.irisx-luxury.irisx-white-theme .tn-search::before {
   opacity: .42 !important;
 }
 
+body.irisx-luxury:not(.irisx-sell-view) .tn-search,
+body.irisx-luxury.irisx-white-theme .tn-search {
+  max-width: 252px !important;
+}
+
 body.irisx-luxury:not(.irisx-sell-view) .tn-search input,
 body.irisx-luxury.irisx-white-theme .tn-search input,
 body.irisx-luxury:not(.irisx-sell-view) .f-search,
@@ -10325,6 +10330,20 @@ body.irisx-luxury.irisx-white-theme .f-search,
 body.irisx-luxury.irisx-white-theme .f-range input {
   background: rgba(252,158,122,.08) !important;
   border-color: rgba(241,50,79,.18) !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .tn-search input,
+body.irisx-luxury.irisx-white-theme .tn-search input {
+  min-height: 44px !important;
+  padding: .48rem .92rem .48rem 2.18rem !important;
+  font-size: .88rem !important;
+}
+
+body.irisx-luxury:not(.irisx-sell-view) .tn-search::before,
+body.irisx-luxury.irisx-white-theme .tn-search::before {
+  left: .68rem !important;
+  width: 12px !important;
+  height: 12px !important;
 }
 
 body.irisx-luxury:not(.irisx-sell-view) .tn-search input:focus,
@@ -10398,10 +10417,11 @@ body.irisx-luxury.irisx-white-theme .tn-sell {
   background: rgba(241,50,79,.1) !important;
   border-color: rgba(241,50,79,.18) !important;
   color: #F1324F !important;
-  font-size: 1rem !important;
+  font-size: .94rem !important;
   font-weight: 700 !important;
-  letter-spacing: .18em !important;
+  letter-spacing: .16em !important;
   line-height: 1 !important;
+  padding: .78rem 1.32rem !important;
 }
 
 body.irisx-luxury:not(.irisx-sell-view) .tn-sell:hover,

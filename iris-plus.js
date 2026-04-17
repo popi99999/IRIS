@@ -6988,7 +6988,7 @@
           <div class="irisx-home-copy">
             ${copy.kicker ? `<div class="irisx-home-kicker">${escapeHtml(copy.kicker)}</div><div class="irisx-home-rule"></div>` : ""}
             <h1 class="irisx-home-title">${escapeHtml(copy.title).replace(/\n/g, "<br>")}</h1>
-            <div class="irisx-home-proof">${escapeHtml(proofText)}</div>
+            ${proofText ? `<div class="irisx-home-proof">${escapeHtml(proofText)}</div>` : ""}
             <div class="irisx-home-actions">
               <button class="irisx-home-action primary" onclick="showBuyView('shop')">${escapeHtml(copy.primaryCta)}</button>
               <button class="irisx-home-action secondary" onclick="showPage('sell')">${escapeHtml(copy.secondaryCta)}</button>

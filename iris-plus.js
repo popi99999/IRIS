@@ -6963,10 +6963,6 @@
 
     const trustItems = [
       {
-        glyph: "auth",
-        label: (copy.buyPoints && copy.buyPoints[0]) || langText("100% Autenticato", "100% Authenticated")
-      },
-      {
         glyph: "shipping",
         label: (copy.buyPoints && copy.buyPoints[1]) || langText("Spedizione protetta", "Protected shipping")
       },

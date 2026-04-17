@@ -18539,11 +18539,6 @@
       ? `showBuyView('profile');setProfileArea('seller','active')`
       : `showSeller('${escapeHtml(seller.id)}')`;
     const similar = prods.filter(function (item) { return !sameEntityId(item.id, product.id) && (item.brand === product.brand || item.cat === product.cat); }).slice(0, 4);
-    const detailShippingTrustMarkup = `<div class="irisx-detail-core-grid">
-      <div class="irisx-inline-card"><div><strong>${langText("Spedizione tracciata", "Tracked shipping")}</strong><span>${langText("Assicurata e monitorata da IRIS.", "Insured and monitored by IRIS.")}</span></div><em>${formatCurrency(SHIPPING_COST)}</em></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Offerte", "Offers")}</strong><span>${product.offersEnabled ? (product.minimumOfferAmount ? `${langText("Offerta minima", "Minimum offer")}: ${formatCurrency(product.minimumOfferAmount)}` : langText("Offerte attive", "Offers active")) : langText("Offerte disattivate", "Offers disabled")}</span></div></div>
-      <div class="irisx-inline-card irisx-inline-card--trust"><div><strong>${langText("Trust IRIS", "IRIS trust")}</strong><span>${trustMeta.verified ? langText("Autenticato da IRIS con protezione acquisto.", "Authenticated by IRIS with purchase protection.") : langText("Checkout protetto e assistenza premium disponibili.", "Protected checkout and premium support available.")}</span></div></div>
-    </div>`;
     const sellerTrustBadges = [
       isVerifiedSellerProfile(seller) ? langText("Seller verificato", "Verified seller") : "",
       `${seller.sales} ${t("sales")}`,
@@ -18575,7 +18570,6 @@
               <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
             </div>
             ${getDetailActionsMarkup(product, liked)}
-            ${detailShippingTrustMarkup}
             <div class="det-section det-section--seller"><div class="det-section-title">${viewerOwnsListing ? langText("Gestione annuncio", "Listing management") : t("seller")}</div><div class="seller-card seller-card--elevated" onclick="${sellerCardClick}"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta">${escapeHtml(seller.city)} · ${escapeHtml(langText("Risposta premium IRIS", "Premium IRIS support"))}</div><div class="irisx-seller-badges">${sellerTrustBadges}</div></div>${sellerPrimaryAction}</div>${!viewerOwnsListing ? `<button class="irisx-link-btn irisx-link-btn--quiet" onclick="event.stopPropagation();reportListing(${productIdExpr})">${langText("Segnala annuncio", "Report listing")}</button>` : ""}</div>
           </section>
         </div>

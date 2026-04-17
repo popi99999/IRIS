@@ -23,7 +23,7 @@ window.IRIS_HOME_COPY = {
     featuredNote: "Una selezione esclusiva dei pezzi più ricercati.",
     buyTitle: "Acquista con fiducia",
     buyText: "Una selezione rigorosa di pezzi autenticati dalle Maison più ambite. Ogni articolo ispezionato dalla nostra équipe prima della vendita.",
-    buyPoints: ["100% Autenticato", "Spedizione assicurata", "Reso in 14 giorni"],
+    buyPoints: ["Checkout protetto", "Spedizione assicurata", "Reso in 14 giorni"],
     sellTitle: "Vendi con eleganza",
     sellText: "Carica le foto, imposta il prezzo. Il resto lo facciamo noi — autenticazione, comunicazione, spedizione sicura.",
     sellPoints: ["Autenticazione inclusa", "Massima visibilità", "Pagamento garantito"],
@@ -33,7 +33,7 @@ window.IRIS_HOME_COPY = {
       { title: "Consegna Premium", text: "Imballaggio di lusso, spedizione assicurata, reso garantito in 14 giorni.", tag: "AFFIDABILE" }
     ],
     strip: [
-      { value: "100%", label: "Autenticato" },
+      { value: "IRIS", label: "Verificato" },
       { value: "−40%", label: "vs retail" },
       { value: "48h", label: "Spedizione" }
     ]

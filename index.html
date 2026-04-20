@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="./icons/icon-512.png">
 <link rel="manifest" href="./manifest.json?v=20260417094815">
-<link rel="stylesheet" href="./iris-plus.css?v=20260420163200">
+<link rel="stylesheet" href="./iris-plus.css?v=20260420164500">
 <title>IRIS — Luxury Fashion Marketplace</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Il marketplace italiano per la moda di lusso.","potentialAction":{"@type":"SearchAction","target":"https://popi99999.github.io/IRIS/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Luxury Fashion Marketplace italiano"}</script>
@@ -409,6 +409,7 @@ a:active,button:focus-visible{outline:1px solid rgba(252,158,122,.35);outline-of
 
 /* Sell hero */
 .sh{background:linear-gradient(135deg,#1A0A35 0%,#2D1060 50%,#1A0A35 100%);padding:7rem 0 5rem;text-align:center;position:relative;overflow:hidden}
+.sh-copy{position:relative;z-index:2;width:min(1180px,calc(100vw - 6rem));margin:0 auto;display:grid;justify-items:center;text-align:center}
 .sh::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(124,58,237,.2) 0%,transparent 70%)}
 .sh-label{font-size:.46rem;letter-spacing:.55em;text-transform:uppercase;color:rgba(167,139,250,.4);margin-bottom:1.5rem;position:relative}
 .sh-label:empty{display:none}
@@ -1797,8 +1798,14 @@ body.irisx-luxury .sh{
   padding:9rem 0 6rem;
   background:
     linear-gradient(180deg, rgba(0,0,0,.56), rgba(0,0,0,.8)),
-    radial-gradient(circle at 50% 20%, rgba(123,47,190,.2), transparent 28%),
+    radial-gradient(circle at 50% 22%, rgba(123,47,190,.22), transparent 30%),
+    radial-gradient(circle at 18% 18%, rgba(241,50,79,.08), transparent 20%),
+    radial-gradient(circle at 82% 18%, rgba(252,158,122,.07), transparent 22%),
     #0a0a0a;
+}
+
+body.irisx-luxury .sh-copy{
+  width:min(1120px,calc(100vw - 7rem));
 }
 
 body.irisx-luxury .sh-label{
@@ -1814,11 +1821,15 @@ body.irisx-luxury .sh-title{
   font-style:normal;
   text-shadow:none;
   color:var(--iris-white-strong);
+  width:100%;
+  margin-inline:auto;
 }
 
 body.irisx-luxury .sh-sub{
   color:var(--iris-text-soft);
   font-size:1rem;
+  max-width:min(54rem,100%);
+  margin-inline:auto;
 }
 
 body.irisx-luxury .sell-steps,
@@ -2556,7 +2567,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <ul class="st-nav"><li><a href="#concierge-form">Perché IRIS</a></li></ul>
   </div>
   <div class="sh">
-    <div style="position:relative;z-index:2">
+    <div class="sh-copy">
       <div class="sh-label"></div>
       <div class="sh-title">DAL TUO ARMADIO A CHI LO DESIDERA</div>
       <div class="sh-sub">Vendi in autonomia al 7% · Oppure affidaci la gestione completa al 15%</div>
@@ -3615,7 +3626,7 @@ function updateMeta(title,desc){
 /* ═══════ PWA ═══════ */
 let deferredPrompt=null;
 if('serviceWorker' in navigator && window.location.protocol !== 'file:'){
-  navigator.serviceWorker.register('./sw.js?v=20260420163200').then((registration)=>{
+  navigator.serviceWorker.register('./sw.js?v=20260420164500').then((registration)=>{
     if (registration.waiting) {
       console.info('IRIS service worker update ready.');
     }
@@ -3638,9 +3649,9 @@ function dismissPwa(){document.getElementById('pwaBanner').style.display='none';
 setTimeout(()=>renderFooters(),500);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./supabase-config.js?v=20260420163200"></script>
-<script src="./iris-i18n-config.js?v=20260420163200"></script>
-<script src="./iris-plus.js?v=20260420163200"></script>
+<script src="./supabase-config.js?v=20260420164500"></script>
+<script src="./iris-i18n-config.js?v=20260420164500"></script>
+<script src="./iris-plus.js?v=20260420164500"></script>
 <script>
 /* ═══ OFFER FLOW BRIDGE ═══ */
 if (window.__irisModernOfferFlow) {

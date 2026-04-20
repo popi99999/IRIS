@@ -7276,7 +7276,7 @@
     setNodeText("#tnMenuBillingBtn", langText("Indirizzi e pagamenti", "Addresses and payments"));
     setNodeText("#tnMenuSavedSearchBtn", langText("Ricerche salvate e alert", "Saved searches and alerts"));
     setNodeText("#tnMenuSettingsBtn", langText("Impostazioni", "Settings"));
-    setNodeText("#tnMenuSupportBtn", langText("👩‍💼 Assistenza", "👩‍💼 Assistance"));
+    setNodeText("#tnMenuSupportBtn", langText("🎧 Assistenza", "🎧 Assistance"));
     setNodeText("#opsBtn", langText("Dashboard admin", "Admin dashboard"));
 
     setNodeText("#tnMobileHomeBtn", langText("Home", "Home"));

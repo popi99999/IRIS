@@ -5292,6 +5292,18 @@ body.irisx-luxury .tn-menu-link {
   text-align: left;
 }
 
+body.irisx-luxury .irisx-support-link-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+body.irisx-luxury .irisx-support-link-label svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
 body.irisx-luxury .tn-menu-link:hover,
 body.irisx-luxury .tn-menu-link:focus-visible {
   border-color: rgba(252,158,122,.24);

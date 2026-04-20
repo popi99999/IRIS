@@ -7250,6 +7250,24 @@
     }
   }
 
+  function setSupportMenuLabel(label) {
+    const node = qs("#tnMenuSupportBtn");
+    if (!node) {
+      return;
+    }
+    node.innerHTML =
+      '<span class="irisx-support-link-label">' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M4 12a8 8 0 0 1 16 0"/>' +
+      '<path d="M5.5 11.5h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1.2A1.8 1.8 0 0 1 3.5 15.7v-2.4a1.8 1.8 0 0 1 2-1.8Z"/>' +
+      '<path d="M18.5 11.5h-1a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1.2a1.8 1.8 0 0 0 1.8-1.8v-2.4a1.8 1.8 0 0 0-2-1.8Z"/>' +
+      '<path d="M8.5 17.5v.5a2 2 0 0 0 2 2H12"/>' +
+      '<path d="M12 20h1.6a1.4 1.4 0 1 0 0-2.8H12"/>' +
+      '</svg>' +
+      '<span>' + escapeHtml(label) + '</span>' +
+      '</span>';
+  }
+
   function setButtonLabelWithBadge(selector, label, badgeId) {
     const node = qs(selector);
     if (!node) {
@@ -7276,7 +7294,7 @@
     setNodeText("#tnMenuBillingBtn", langText("Indirizzi e pagamenti", "Addresses and payments"));
     setNodeText("#tnMenuSavedSearchBtn", langText("Ricerche salvate e alert", "Saved searches and alerts"));
     setNodeText("#tnMenuSettingsBtn", langText("Impostazioni", "Settings"));
-    setNodeText("#tnMenuSupportBtn", langText("🎧 Assistenza", "🎧 Assistance"));
+    setSupportMenuLabel(langText("Assistenza", "Assistance"));
     setNodeText("#opsBtn", langText("Dashboard admin", "Admin dashboard"));
 
     setNodeText("#tnMobileHomeBtn", langText("Home", "Home"));

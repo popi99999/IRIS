@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="./icons/icon-512.png">
 <link rel="manifest" href="./manifest.json?v=20260417094815">
-<link rel="stylesheet" href="./iris-plus.css?v=20260420124000">
+<link rel="stylesheet" href="./iris-plus.css?v=20260420140000">
 <title>IRIS — Luxury Fashion Marketplace</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Il marketplace italiano per la moda di lusso.","potentialAction":{"@type":"SearchAction","target":"https://popi99999.github.io/IRIS/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Luxury Fashion Marketplace italiano"}</script>
@@ -2328,7 +2328,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 	        <button class="tn-menu-link" id="tnMenuBillingBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','settings_account')" aria-label="Apri indirizzi e pagamenti">Indirizzi e pagamenti</button>
 	        <button class="tn-menu-link" id="tnMenuSavedSearchBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','shopping_saved_searches')" aria-label="Apri ricerche salvate e alert">Ricerche salvate e alert</button>
 	        <button class="tn-menu-link" id="tnMenuSettingsBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','settings_profile')" aria-label="Apri impostazioni">Impostazioni</button>
-	        <button class="tn-menu-link" id="tnMenuSupportBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','help_contact')" aria-label="Apri assistenza">🎧 Assistenza</button>
+	        <button class="tn-menu-link" id="tnMenuSupportBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','help_contact')" aria-label="Apri assistenza"><span class="irisx-support-link-label"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 16 0"/><path d="M5.5 11.5h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1.2A1.8 1.8 0 0 1 3.5 15.7v-2.4a1.8 1.8 0 0 1 2-1.8Z"/><path d="M18.5 11.5h-1a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1.2a1.8 1.8 0 0 0 1.8-1.8v-2.4a1.8 1.8 0 0 0-2-1.8Z"/><path d="M8.5 17.5v.5a2 2 0 0 0 2 2H12"/><path d="M12 20h1.6a1.4 1.4 0 1 0 0-2.8H12"/></svg><span>Assistenza</span></span></button>
 	      </div>
 	      <div class="tn-menu-divider"></div>
 	      <div class="tn-menu-section">
@@ -3588,7 +3588,7 @@ function updateMeta(title,desc){
 /* ═══════ PWA ═══════ */
 let deferredPrompt=null;
 if('serviceWorker' in navigator && window.location.protocol !== 'file:'){
-  navigator.serviceWorker.register('./sw.js?v=20260420133000').then((registration)=>{
+  navigator.serviceWorker.register('./sw.js?v=20260420140000').then((registration)=>{
     if (registration.waiting) {
       console.info('IRIS service worker update ready.');
     }
@@ -3611,9 +3611,9 @@ function dismissPwa(){document.getElementById('pwaBanner').style.display='none';
 setTimeout(()=>renderFooters(),500);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./supabase-config.js?v=20260420133000"></script>
-<script src="./iris-i18n-config.js?v=20260420133000"></script>
-<script src="./iris-plus.js?v=20260420133000"></script>
+<script src="./supabase-config.js?v=20260420140000"></script>
+<script src="./iris-i18n-config.js?v=20260420140000"></script>
+<script src="./iris-plus.js?v=20260420140000"></script>
 <script>
 /* ═══ OFFER FLOW BRIDGE ═══ */
 if (window.__irisModernOfferFlow) {

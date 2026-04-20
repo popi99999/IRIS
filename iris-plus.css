@@ -8665,13 +8665,25 @@ body.irisx-luxury.irisx-white-theme .sell-topbar {
 }
 body.irisx-luxury.irisx-white-theme .st-logo {
   color: #1a1530 !important;
+  font-size: 1.7rem !important;
+  letter-spacing: .1em !important;
 }
 body.irisx-luxury.irisx-white-theme .st-logo em {
   color: #F1324F !important;
 }
+body.irisx-luxury.irisx-white-theme .st-logo-sep {
+  color: rgba(26,21,48,.54) !important;
+}
+body.irisx-luxury.irisx-white-theme .st-logo-label {
+  letter-spacing: .11em !important;
+}
 body.irisx-luxury.irisx-white-theme .st-back,
 body.irisx-luxury.irisx-white-theme .st-nav a {
-  color: rgba(26,21,48,.68) !important;
+  color: #1a1530 !important;
+  font-weight: 600 !important;
+}
+body.irisx-luxury.irisx-white-theme .st-back {
+  font-size: .74rem !important;
 }
 body.irisx-luxury.irisx-white-theme .st-back:hover,
 body.irisx-luxury.irisx-white-theme .st-nav a:hover {

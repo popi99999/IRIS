@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="./icons/icon-512.png">
 <link rel="manifest" href="./manifest.json?v=20260417094815">
-<link rel="stylesheet" href="./iris-plus.css?v=20260420151500">
+<link rel="stylesheet" href="./iris-plus.css?v=20260420160500">
 <title>IRIS — Luxury Fashion Marketplace</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Il marketplace italiano per la moda di lusso.","potentialAction":{"@type":"SearchAction","target":"https://popi99999.github.io/IRIS/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Luxury Fashion Marketplace italiano"}</script>
@@ -394,14 +394,16 @@ a:active,button:focus-visible{outline:1px solid rgba(252,158,122,.35);outline-of
 
 /* ═══════ SELL PAGE (light) ═══════ */
 #page-sell{background:#F7F5FC;color:#1A0A35;padding-top:80px}
-.sell-topbar{position:fixed;top:0;left:0;right:0;z-index:500;background:#fff;border-bottom:1px solid rgba(124,58,237,.1);padding:0 2rem;display:none;height:54px;align-items:center;justify-content:space-between}
-.sell-topbar.show{display:flex}
-.st-logo{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-style:italic;color:#1A0A35;letter-spacing:.2em}
+.sell-topbar{position:fixed;top:0;left:0;right:0;z-index:500;background:#fff;border-bottom:1px solid rgba(124,58,237,.1);padding:0 2rem;display:none;height:54px;align-items:center;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);column-gap:1.4rem}
+.sell-topbar.show{display:grid}
+.st-logo{justify-self:center;display:inline-flex;align-items:center;gap:.7rem;font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-style:italic;color:#1A0A35;letter-spacing:.18em;white-space:nowrap}
 .st-logo em{color:var(--purple)}
-.st-back{background:none;border:none;color:var(--muted);font-family:inherit;font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;transition:color .3s}
+.st-logo-sep{font-size:.9em;letter-spacing:0;color:rgba(26,10,53,.7)}
+.st-logo-label{font-style:normal;letter-spacing:.14em}
+.st-back{justify-self:start;display:inline-flex;align-items:center;gap:.55rem;background:none;border:none;color:#1A0A35;font-family:inherit;font-size:.68rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;transition:color .3s}
 .st-back:hover{color:var(--purple)}
-.st-nav{display:flex;gap:2rem;list-style:none}
-.st-nav a{font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);transition:color .3s}
+.st-nav{justify-self:end;display:flex;align-items:center;gap:2rem;list-style:none}
+.st-nav a{font-size:.62rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#1A0A35;transition:color .3s}
 .st-nav a:hover{color:var(--purple)}
 @media(max-width:700px){.st-nav{display:none}}
 
@@ -1757,13 +1759,27 @@ body.irisx-luxury.light-mode .st-logo{
   font-family:"Playfair Display",serif;
   color:var(--iris-white);
   font-style:normal;
+  font-size:1.6rem;
+  letter-spacing:.12em;
 }
 
 body.irisx-luxury .st-logo em{color:inherit}
 
+body.irisx-luxury .st-logo-sep{
+  color:rgba(245,240,235,.7);
+}
+
+body.irisx-luxury .st-logo-label{
+  letter-spacing:.12em;
+}
+
 body.irisx-luxury .st-back,
 body.irisx-luxury .st-nav a{
-  color:rgba(245,240,235,.62);
+  color:rgba(245,240,235,.8);
+}
+
+body.irisx-luxury .st-back{
+  font-size:.72rem;
 }
 
 body.irisx-luxury .sh{
@@ -2528,8 +2544,8 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 <div class="page" id="page-sell">
   <div class="sell-topbar" id="sellTopbar">
     <button class="st-back" onclick="backToChoice()">← Torna</button>
-    <span class="st-logo"><em>IRIS</em> · Vendi</span>
-    <ul class="st-nav"><li><a href="#sell-form-sec">Pubblica</a></li><li><a href="#concierge-form">Perché IRIS</a></li></ul>
+    <span class="st-logo"><em>IRIS</em><span class="st-logo-sep" aria-hidden="true">·</span><span class="st-logo-label">Vendi</span></span>
+    <ul class="st-nav"><li><a href="#concierge-form">Perché IRIS</a></li></ul>
   </div>
   <div class="sh">
     <div style="position:relative;z-index:2">
@@ -3588,7 +3604,7 @@ function updateMeta(title,desc){
 /* ═══════ PWA ═══════ */
 let deferredPrompt=null;
 if('serviceWorker' in navigator && window.location.protocol !== 'file:'){
-  navigator.serviceWorker.register('./sw.js?v=20260420151500').then((registration)=>{
+  navigator.serviceWorker.register('./sw.js?v=20260420160500').then((registration)=>{
     if (registration.waiting) {
       console.info('IRIS service worker update ready.');
     }
@@ -3611,9 +3627,9 @@ function dismissPwa(){document.getElementById('pwaBanner').style.display='none';
 setTimeout(()=>renderFooters(),500);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./supabase-config.js?v=20260420151500"></script>
-<script src="./iris-i18n-config.js?v=20260420151500"></script>
-<script src="./iris-plus.js?v=20260420151500"></script>
+<script src="./supabase-config.js?v=20260420160500"></script>
+<script src="./iris-i18n-config.js?v=20260420160500"></script>
+<script src="./iris-plus.js?v=20260420160500"></script>
 <script>
 /* ═══ OFFER FLOW BRIDGE ═══ */
 if (window.__irisModernOfferFlow) {

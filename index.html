@@ -3588,7 +3588,7 @@ function updateMeta(title,desc){
 /* ═══════ PWA ═══════ */
 let deferredPrompt=null;
 if('serviceWorker' in navigator && window.location.protocol !== 'file:'){
-  navigator.serviceWorker.register('./sw.js?v=20260417094815').then((registration)=>{
+  navigator.serviceWorker.register('./sw.js?v=20260420130000').then((registration)=>{
     if (registration.waiting) {
       console.info('IRIS service worker update ready.');
     }
@@ -3611,9 +3611,9 @@ function dismissPwa(){document.getElementById('pwaBanner').style.display='none';
 setTimeout(()=>renderFooters(),500);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./supabase-config.js?v=20260417094815"></script>
-<script src="./iris-i18n-config.js?v=20260417094815"></script>
-<script src="./iris-plus.js?v=20260417094815"></script>
+<script src="./supabase-config.js?v=20260420130000"></script>
+<script src="./iris-i18n-config.js?v=20260420130000"></script>
+<script src="./iris-plus.js?v=20260420130000"></script>
 <script>
 /* ═══ OFFER FLOW BRIDGE ═══ */
 if (window.__irisModernOfferFlow) {

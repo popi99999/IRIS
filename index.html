@@ -2620,7 +2620,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
             <li>✦ Etichetta di spedizione prepagata</li>
             <li>✦ Solo 7% al momento della vendita</li>
           </ul>
-          <a href="#sell-form-sec" class="sp-cta sp-cta--diy">Inizia a vendere →</a>
+          <a href="#sell-form-sec" class="sp-cta sp-cta--diy" onclick="event.preventDefault();openSellFormMode('diy')">Inizia a vendere →</a>
         </div>
 
         <!-- PATH B: Concierge -->
@@ -2637,7 +2637,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
             <li>✦ Imballaggio e spedizione assicurata</li>
             <li>✦ Pagamento protetto, accreditato a vendita conclusa</li>
           </ul>
-          <a href="#concierge-form" class="sp-cta sp-cta--concierge">Affida il tuo pezzo →</a>
+          <a href="#sell-form-sec" class="sp-cta sp-cta--concierge" onclick="event.preventDefault();openSellFormMode('concierge')">Affida il tuo pezzo →</a>
         </div>
 
       </div>
@@ -2659,20 +2659,10 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div class="container">
       <form id="sellForm" class="form-grid" novalidate>
         <div>
-          <!-- Mode selector -->
-          <div style="display:flex;gap:.8rem;margin-bottom:2rem">
-            <label style="flex:1;border:1px solid rgba(124,58,237,.2);padding:1rem;cursor:pointer;border-radius:3px;transition:all .25s" id="lbl-diy">
-              <input type="radio" name="sell-mode" id="sell-mode-diy" value="diy" checked onchange="updateFee();toggleSellMode()" style="display:none">
-              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--purple);margin-bottom:.3rem">Privati · 7%</div>
-              <div style="font-size:.85rem;color:rgba(245,240,235,.92);font-family:'Playfair Display',serif">Vendo da solo</div>
-              <div style="font-size:.7rem;color:rgba(245,240,235,.55);margin-top:.25rem">Gestisci tu le foto e la spedizione</div>
-            </label>
-            <label style="flex:1;border:1px solid rgba(252,158,122,.3);padding:1rem;cursor:pointer;border-radius:3px;background:rgba(252,158,122,.04);transition:all .25s" id="lbl-concierge">
-              <input type="radio" name="sell-mode" id="sell-mode-concierge" value="concierge" onchange="updateFee();toggleSellMode()" style="display:none">
-              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem">★ Concierge · 15%</div>
-              <div style="font-size:.85rem;color:rgba(245,240,235,.92);font-family:'Playfair Display',serif">Affido tutto a IRIS</div>
-              <div style="font-size:.7rem;color:rgba(245,240,235,.55);margin-top:.25rem">Spediscici il pezzo, pensiamo noi</div>
-            </label>
+          <!-- Hidden mode inputs: sell path is chosen above -->
+          <div style="display:none" aria-hidden="true">
+            <input type="radio" name="sell-mode" id="sell-mode-diy" value="diy" checked onchange="updateFee();toggleSellMode()">
+            <input type="radio" name="sell-mode" id="sell-mode-concierge" value="concierge" onchange="updateFee();toggleSellMode()">
           </div>
           <div class="form-title" id="form-main-title">Pubblica il tuo articolo</div>
           <div class="form-sub" id="form-main-sub">Compila i dettagli. Tutti i campi * sono obbligatori.</div>
@@ -3155,22 +3145,38 @@ function updateFee(){
 }
 function selCond(btn){document.querySelectorAll('.cond-btn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel')}
 
+function openSellFormMode(mode){
+  const diyInput=document.getElementById('sell-mode-diy');
+  const conciergeInput=document.getElementById('sell-mode-concierge');
+  const sellFormSection=document.getElementById('sell-form-sec');
+  if(!diyInput||!conciergeInput)return;
+  const isConcierge=mode==='concierge';
+  conciergeInput.checked=isConcierge;
+  diyInput.checked=!isConcierge;
+  toggleSellMode();
+  updateFee();
+  if(sellFormSection){
+    sellFormSection.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
+
 function toggleSellMode(){
-  const isConcierge=document.getElementById('sell-mode-concierge').checked;
+  const conciergeInput=document.getElementById('sell-mode-concierge');
+  const isConcierge=!!(conciergeInput&&conciergeInput.checked);
   const lblDiy=document.getElementById('lbl-diy');
   const lblConc=document.getElementById('lbl-concierge');
   const title=document.getElementById('form-main-title');
   const sub=document.getElementById('form-main-sub');
   const photoBox=document.querySelector('.photo-upload');
   if(isConcierge){
-    lblConc.style.borderColor='var(--gold)';lblConc.style.background='rgba(252,158,122,.08)';
-    lblDiy.style.borderColor='rgba(124,58,237,.12)';lblDiy.style.background='transparent';
+    if(lblConc){lblConc.style.borderColor='var(--gold)';lblConc.style.background='rgba(252,158,122,.08)';}
+    if(lblDiy){lblDiy.style.borderColor='rgba(124,58,237,.12)';lblDiy.style.background='transparent';}
     title.textContent='Richiedi IRIS Concierge';
     sub.innerHTML='Descrivi il pezzo. Ti risponderemo entro 24h con una valutazione gratuita. <strong style="color:var(--purple)">Tu spedisci, noi facciamo tutto il resto.</strong>';
     if(photoBox){photoBox.querySelector('.pu-t').textContent='Aggiungi foto (opzionale)';photoBox.querySelector('.pu-s').textContent='Puoi mandarle dopo — le rifacciamo noi in ogni caso';}
   } else {
-    lblDiy.style.borderColor='rgba(124,58,237,.35)';lblDiy.style.background='rgba(124,58,237,.04)';
-    lblConc.style.borderColor='rgba(252,158,122,.3)';lblConc.style.background='rgba(252,158,122,.04)';
+    if(lblDiy){lblDiy.style.borderColor='rgba(124,58,237,.35)';lblDiy.style.background='rgba(124,58,237,.04)';}
+    if(lblConc){lblConc.style.borderColor='rgba(252,158,122,.3)';lblConc.style.background='rgba(252,158,122,.04)';}
     title.textContent='Pubblica il tuo articolo';
     sub.textContent='Compila i dettagli. Tutti i campi * sono obbligatori.';
     if(photoBox){photoBox.querySelector('.pu-t').textContent='Aggiungi fino a 8 foto';photoBox.querySelector('.pu-s').textContent='JPG o PNG · Max 10MB · La prima sarà la copertina';}

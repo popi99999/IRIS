@@ -11833,9 +11833,10 @@ body.irisx-luxury .tn-sell {
 @media (min-width: 901px) {
   body.irisx-luxury #tnSellBtn,
   body.irisx-luxury.irisx-white-theme #tnSellBtn {
-    height: 60px !important;
-    min-height: 60px !important;
-    padding: 0 20px !important;
-    min-width: 120px !important;
+    height: 54px !important;
+    min-height: 54px !important;
+    padding: 0 18px !important;
+    min-width: 112px !important;
+    box-shadow: 0 8px 18px rgba(241,50,79,.14) !important;
   }
 }

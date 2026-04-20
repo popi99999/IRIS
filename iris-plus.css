@@ -203,6 +203,28 @@ body.irisx-luxury .irisx-detail-stage { min-height: 0 !important; aspect-ratio: 
   font-size: 0.95rem;
 }
 
+.irisx-cart-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(241, 50, 79, 0.18);
+  background: #fff;
+  color: #1a1530;
+  font-size: 1.6rem;
+  line-height: 1;
+  font-weight: 300;
+  border-radius: 0;
+  box-shadow: 0 10px 24px rgba(241, 50, 79, 0.08);
+}
+
+.irisx-cart-close span {
+  display: block;
+  transform: translateY(-1px);
+}
+
 /* ═══ GOOGLE SIGN-IN BUTTON ═══ */
 .irisx-google-btn {
   display: flex;
@@ -9169,6 +9191,14 @@ body.irisx-luxury.irisx-white-theme .cart-drawer {
 body.irisx-luxury.irisx-white-theme .irisx-cart-drawer *,
 body.irisx-luxury.irisx-white-theme .cart-drawer * {
   color: #111827 !important;
+}
+
+body.irisx-luxury.irisx-white-theme .irisx-cart-close,
+body.irisx-luxury.irisx-white-theme .cart-drawer .irisx-cart-close {
+  color: #1a1530 !important;
+  border-color: rgba(241, 50, 79, 0.22) !important;
+  background: #fff !important;
+  box-shadow: 0 10px 24px rgba(241, 50, 79, 0.08) !important;
 }
 
 /* Auth modal */

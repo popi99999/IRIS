@@ -12882,15 +12882,13 @@
         "</button></div>";
 
     drawer.innerHTML =
-      "<div class=\"irisx-drawer-backdrop\"></div><div class=\"irisx-drawer-panel\"><div class=\"irisx-drawer-head\"><div><div class=\"irisx-kicker\">" +
-      langText("Il tuo carrello · IRIS", "Your cart · IRIS") +
-      "</div><div class=\"irisx-title\">" +
+      "<div class=\"irisx-drawer-backdrop\"></div><div class=\"irisx-drawer-panel\"><div class=\"irisx-drawer-head\"><div><div class=\"irisx-title\">" +
       t("cart") +
       "</div><div class=\"irisx-subtitle\">" +
       items.length +
       " " +
       t("cart_items") +
-      "</div></div><button class=\"irisx-close\" onclick=\"closeCart()\" aria-label=\"" + escapeHtml(langText("Chiudi", "Close")) + "\">✕</button></div><div class=\"irisx-drawer-body\">" +
+      "</div></div><button class=\"irisx-close irisx-cart-close\" onclick=\"closeCart()\" aria-label=\"" + escapeHtml(langText("Chiudi", "Close")) + "\"><span aria-hidden=\"true\">&times;</span></button></div><div class=\"irisx-drawer-body\">" +
       itemsHtml +
       "</div><div class=\"irisx-drawer-foot\">" +
       footerHtml +

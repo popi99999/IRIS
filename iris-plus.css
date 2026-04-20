@@ -11917,3 +11917,320 @@ body.irisx-luxury.irisx-white-theme .irisx-home-action.primary:hover {
   border-color: rgba(255, 255, 255, 0.72) !important;
   box-shadow: 0 18px 44px rgba(140, 22, 48, 0.22) !important;
 }
+
+/* IRIS — mobile hard fixes (append at the very end of the existing CSS) */
+
+@media (max-width: 640px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body.irisx-luxury,
+  body.irisx-luxury #page-buy,
+  body.irisx-luxury #page-sell,
+  body.irisx-luxury #home-view,
+  body.irisx-luxury #shop-view,
+  body.irisx-luxury #fav-view,
+  body.irisx-luxury #chat-view,
+  body.irisx-luxury #profile-view,
+  body.irisx-luxury #seller-view,
+  body.irisx-luxury #ops-view,
+  body.irisx-luxury #detail-view {
+    max-width: 100%;
+    overflow-x: hidden !important;
+    overflow-x: clip !important;
+  }
+
+  body.irisx-luxury,
+  body.irisx-luxury *,
+  body.irisx-luxury *::before,
+  body.irisx-luxury *::after {
+    box-sizing: border-box;
+  }
+
+  /* Problem 2 — bottom tab bar cover */
+  body.irisx-luxury #home-view,
+  body.irisx-luxury #shop-view,
+  body.irisx-luxury #fav-view,
+  body.irisx-luxury #chat-view,
+  body.irisx-luxury #profile-view,
+  body.irisx-luxury #seller-view,
+  body.irisx-luxury #ops-view,
+  body.irisx-luxury #detail-view,
+  body.irisx-luxury #page-sell,
+  body.irisx-luxury .site-footer {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.irisx-luxury .irisx-mobile-app-nav,
+  body.irisx-luxury.irisx-white-theme .irisx-mobile-app-nav {
+    padding-bottom: calc(0.55rem + env(safe-area-inset-bottom)) !important;
+    bottom: max(10px, env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Problem 3 — sticky header overlap */
+  body.irisx-luxury #home-view,
+  body.irisx-luxury #shop-view,
+  body.irisx-luxury #fav-view,
+  body.irisx-luxury #chat-view,
+  body.irisx-luxury #profile-view,
+  body.irisx-luxury #seller-view,
+  body.irisx-luxury #ops-view,
+  body.irisx-luxury #detail-view,
+  body.irisx-luxury #page-sell,
+  body.irisx-luxury #sell-form-sec,
+  body.irisx-luxury #concierge-form {
+    scroll-margin-top: calc(var(--iris-mobile-header-height, 80px) + 12px) !important;
+  }
+
+  body.irisx-luxury .irisx-shop-discovery-title,
+  body.irisx-luxury .irisx-home-section-title,
+  body.irisx-luxury .fav-title,
+  body.irisx-luxury .sh-title,
+  body.irisx-luxury .form-title,
+  body.irisx-luxury .prof-title,
+  body.irisx-luxury .cl-title {
+    padding-top: 1rem !important;
+  }
+
+  /* Shared mobile gutters */
+  body.irisx-luxury #shop-view .container,
+  body.irisx-luxury #fav-view .container,
+  body.irisx-luxury #profile-view .container,
+  body.irisx-luxury #seller-view .container,
+  body.irisx-luxury #ops-view.container,
+  body.irisx-luxury #page-sell .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Problem 1 — shop cards overflow right */
+  body.irisx-luxury #shop-view .shop-main {
+    padding: 1rem 0 calc(1.5rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.irisx-luxury .pgrid,
+  body.irisx-luxury #grid,
+  body.irisx-luxury #favGrid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  body.irisx-luxury .pc,
+  body.irisx-luxury .irisx-pc,
+  body.irisx-luxury .pinfo {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  body.irisx-luxury .p-brand,
+  body.irisx-luxury .p-name,
+  body.irisx-luxury .p-meta,
+  body.irisx-luxury .p-seller,
+  body.irisx-luxury .p-city,
+  body.irisx-luxury .p-price,
+  body.irisx-luxury .p-orig {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  /* Problem 6 — filter trust label + results count */
+  body.irisx-luxury .irisx-shop-discovery-head,
+  body.irisx-luxury .irisx-shop-discovery-section--meta,
+  body.irisx-luxury .irisx-shop-discovery-section--meta.has-selection {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  body.irisx-luxury .irisx-shop-discovery-summary {
+    justify-self: stretch !important;
+    max-width: none !important;
+  }
+
+  body.irisx-luxury .shop-bar {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+    margin: 0 0 1rem !important;
+  }
+
+  body.irisx-luxury .shop-sort {
+    grid-column: 1 / -1 !important;
+    margin-left: 0 !important;
+  }
+
+  body.irisx-luxury .shop-count {
+    min-width: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  body.irisx-luxury .irisx-filter-group--trust,
+  body.irisx-luxury .irisx-shop-selection,
+  body.irisx-luxury .active-filters {
+    width: 100% !important;
+  }
+
+  body.irisx-luxury .irisx-filter-group--trust {
+    display: block !important;
+  }
+
+  body.irisx-luxury .irisx-filter-chip-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+  }
+
+  body.irisx-luxury .filter-label,
+  body.irisx-luxury .iris-trust-label,
+  body.irisx-luxury .irisx-filter-label,
+  body.irisx-luxury .irisx-shop-discovery-eyebrow {
+    display: block !important;
+    width: 100% !important;
+    margin-bottom: 0.5rem !important;
+    white-space: normal !important;
+  }
+
+  /* Problem 4 — sell form empty space / rigid grids */
+  body.irisx-luxury .sell-steps {
+    padding: 2rem 0 1.5rem !important;
+  }
+
+  body.irisx-luxury #concierge-form {
+    margin-top: 2rem !important;
+  }
+
+  body.irisx-luxury .steps-grid,
+  body.irisx-luxury .fr {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  body.irisx-luxury .irisx-photo-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 0.5rem !important;
+  }
+
+  body.irisx-luxury #sellTopbar,
+  body.irisx-luxury .sell-topbar {
+    grid-template-columns: auto 1fr auto !important;
+    column-gap: 0.75rem !important;
+    padding: 0 0.75rem !important;
+  }
+
+  body.irisx-luxury #sellTopbar .st-logo,
+  body.irisx-luxury .sell-topbar .st-logo {
+    min-width: 0 !important;
+    font-size: 1.1rem !important;
+  }
+
+  body.irisx-luxury #sellTopbar .st-back,
+  body.irisx-luxury .sell-topbar .st-back {
+    font-size: 0.58rem !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  body.irisx-luxury #sell-form-sec,
+  body.irisx-luxury .sell-form {
+    padding: 1.5rem 0 calc(100px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.irisx-luxury .form-grid {
+    max-width: 100% !important;
+    gap: 1rem !important;
+  }
+
+  body.irisx-luxury .sell-side {
+    position: static !important;
+    top: auto !important;
+  }
+
+  body.irisx-luxury .step-card,
+  body.irisx-luxury .sell-path,
+  body.irisx-luxury .side-card {
+    padding: 1rem !important;
+  }
+
+  body.irisx-luxury .photo-upload {
+    padding: 1.25rem 1rem !important;
+  }
+
+  /* Problem 5 — footer alignment */
+  body.irisx-luxury .footer-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1.5rem 1rem !important;
+    padding: 1.5rem 1rem calc(120px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.irisx-luxury .footer-grid > :first-child {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+
+  body.irisx-luxury .footer-col-title,
+  body.irisx-luxury .footer-links,
+  body.irisx-luxury .footer-links li {
+    text-align: center !important;
+  }
+
+  /* Problem 7 — low contrast on product copy */
+  body.light-mode .det-section-title,
+  body.light-mode .det-fit-label,
+  body.light-mode .det-measurements-copy,
+  body.light-mode .det-measurements-note span,
+  body.light-mode .det-measure-item span,
+  body.light-mode .det-auth li,
+  body.irisx-luxury.irisx-white-theme .det-section-title,
+  body.irisx-luxury.irisx-white-theme .det-fit-label,
+  body.irisx-luxury.irisx-white-theme .det-measurements-copy,
+  body.irisx-luxury.irisx-white-theme .det-measurements-note span,
+  body.irisx-luxury.irisx-white-theme .det-measure-item span,
+  body.irisx-luxury.irisx-white-theme .det-auth li {
+    color: #555 !important;
+    opacity: 1 !important;
+  }
+
+  /* Problem 8 — stray icon under mobile nav */
+  body.irisx-luxury .irisx-home-scroll,
+  body.irisx-luxury .tn-btn.active::after,
+  body.irisx-luxury .irisx-mobile-app-nav::before,
+  body.irisx-luxury .irisx-mobile-app-nav::after {
+    display: none !important;
+    content: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body.irisx-luxury .cond-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body.irisx-luxury .shop-count {
+    font-size: 0.7rem !important;
+  }
+
+  body.irisx-luxury .shop-count span {
+    font-size: 1rem !important;
+  }
+
+  body.irisx-luxury #sellTopbar .st-logo,
+  body.irisx-luxury .sell-topbar .st-logo {
+    font-size: 1rem !important;
+    letter-spacing: 0.14em !important;
+  }
+
+  body.irisx-luxury #sellTopbar .st-back,
+  body.irisx-luxury .sell-topbar .st-back {
+    font-size: 0.52rem !important;
+  }
+
+  body.irisx-luxury .irisx-mobile-app-label {
+    font-size: 0.5rem !important;
+    letter-spacing: 0.06em !important;
+  }
+
+  body.irisx-luxury .footer-grid {
+    gap: 1.25rem 0.875rem !important;
+  }
+}

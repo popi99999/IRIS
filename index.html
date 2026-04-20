@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="./icons/icon-512.png">
 <link rel="manifest" href="./manifest.json?v=20260417094815">
-<link rel="stylesheet" href="./iris-plus.css?v=20260420162000">
+<link rel="stylesheet" href="./iris-plus.css?v=20260420163200">
 <title>IRIS — Luxury Fashion Marketplace</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Il marketplace italiano per la moda di lusso.","potentialAction":{"@type":"SearchAction","target":"https://popi99999.github.io/IRIS/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Luxury Fashion Marketplace italiano"}</script>
@@ -1810,7 +1810,7 @@ body.irisx-luxury .sh-label{
 
 body.irisx-luxury .sh-title{
   font-family:"Playfair Display",serif;
-  font-size:clamp(3rem,6vw,5rem);
+  font-size:clamp(2.35rem,3.8vw,4rem);
   font-style:normal;
   text-shadow:none;
   color:var(--iris-white-strong);
@@ -2559,7 +2559,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     <div style="position:relative;z-index:2">
       <div class="sh-label"></div>
       <div class="sh-title">DAL TUO ARMADIO A CHI LO DESIDERA</div>
-      <div class="sh-sub">Da solo al 7% · Oppure affidaci tutto al 15%</div>
+      <div class="sh-sub">Vendi in autonomia al 7% · Oppure affidaci la gestione completa al 15%</div>
     </div>
   </div>
   <section class="sell-steps irisx-reveal-section">
@@ -3170,7 +3170,7 @@ const i18n={
     footer_about:'Chi siamo',footer_faq:'FAQ',footer_contact:'Contatti',footer_help:'Centro assistenza',
     footer_terms:'Termini',footer_privacy:'Privacy',footer_cookie:'Cookie',
     // Sell page
-    sell_hero_label:'',sell_hero_title:'DAL TUO ARMADIO A CHI LO DESIDERA',sell_hero_sub:'Da solo al 7% · Oppure affidaci tutto al 15%',
+    sell_hero_label:'',sell_hero_title:'DAL TUO ARMADIO A CHI LO DESIDERA',sell_hero_sub:'Vendi in autonomia al 7% · Oppure affidaci la gestione completa al 15%',
     how_works:'Come funziona',four_steps:'Semplice come <em>quattro passi.</em>',
     step1:'Fotografa',step1d:'Scatta foto chiare da più angolazioni.',
     step2:'Pubblica',step2d:'Inserisci brand, condizione e prezzo. Gratis, 2 minuti.',
@@ -3214,7 +3214,7 @@ const i18n={
     footer_start_sell:'Start selling',footer_how:'How it works',footer_fees:'Fees',footer_auth:'Authentication',
     footer_about:'About us',footer_faq:'FAQ',footer_contact:'Contact',footer_help:'Help center',
     footer_terms:'Terms',footer_privacy:'Privacy',footer_cookie:'Cookies',
-    sell_hero_label:'',sell_hero_title:'FROM YOUR CLOSET TO THE ONE WHO WANTS IT',sell_hero_sub:'On your own at 7% · Or let us handle everything at 15%',
+    sell_hero_label:'',sell_hero_title:'FROM YOUR CLOSET TO THE ONE WHO WANTS IT',sell_hero_sub:'Sell independently at 7% · Or let us handle full management at 15%',
     how_works:'How it works',four_steps:'As simple as <em>four steps.</em>',
     step1:'Photograph',step1d:'Take clear photos from multiple angles.',
     step2:'Publish',step2d:'Enter brand, condition and price. Free, 2 minutes.',
@@ -3615,7 +3615,7 @@ function updateMeta(title,desc){
 /* ═══════ PWA ═══════ */
 let deferredPrompt=null;
 if('serviceWorker' in navigator && window.location.protocol !== 'file:'){
-  navigator.serviceWorker.register('./sw.js?v=20260420162000').then((registration)=>{
+  navigator.serviceWorker.register('./sw.js?v=20260420163200').then((registration)=>{
     if (registration.waiting) {
       console.info('IRIS service worker update ready.');
     }
@@ -3638,9 +3638,9 @@ function dismissPwa(){document.getElementById('pwaBanner').style.display='none';
 setTimeout(()=>renderFooters(),500);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./supabase-config.js?v=20260420162000"></script>
-<script src="./iris-i18n-config.js?v=20260420162000"></script>
-<script src="./iris-plus.js?v=20260420162000"></script>
+<script src="./supabase-config.js?v=20260420163200"></script>
+<script src="./iris-i18n-config.js?v=20260420163200"></script>
+<script src="./iris-plus.js?v=20260420163200"></script>
 <script>
 /* ═══ OFFER FLOW BRIDGE ═══ */
 if (window.__irisModernOfferFlow) {

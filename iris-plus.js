@@ -18672,7 +18672,7 @@
     }
     const sellSub = qs(".sh-sub");
     if (sellSub) {
-      sellSub.textContent = langText(`Da solo al ${selfFee}% · Oppure affidaci tutto al ${conciergeFee}%`, `On your own at ${selfFee}% · Or let us handle everything at ${conciergeFee}%`);
+      sellSub.textContent = langText(`Vendi in autonomia al ${selfFee}% · Oppure affidaci la gestione completa al ${conciergeFee}%`, `Sell independently at ${selfFee}% · Or let us handle full management at ${conciergeFee}%`);
     }
     const diyCommission = qsa(".sp-commission")[0];
     if (diyCommission) {

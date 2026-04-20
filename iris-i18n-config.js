@@ -15,9 +15,9 @@ window.IRIS_HOME_COPY = {
   it: {
     sectionKicker: "IRIS edit",
     kicker: "IRIS — Moda d'Autore",
-    title: "Il lusso autentico.\nFinalmente accessibile.",
+    title: "I pezzi che ami\nai prezzi che sogni",
     text: "Ogni articolo certificato dalla nostra équipe di esperti. Hermès, Chanel, Louis Vuitton — autenticati pezzo per pezzo, consegnati a casa tua.",
-    primaryCta: "Scopri la collezione",
+    primaryCta: "Scopri i prodotti",
     secondaryCta: "Vendi con IRIS",
     featuredTitle: "Pezzi da Collezione",
     featuredNote: "Una selezione esclusiva dei pezzi più ricercati.",

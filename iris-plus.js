@@ -6990,7 +6990,6 @@
             <h1 class="irisx-home-title">${escapeHtml(copy.title).replace(/\n/g, "<br>")}</h1>
             <div class="irisx-home-actions">
               <button class="irisx-home-action primary" onclick="showBuyView('shop')">${escapeHtml(copy.primaryCta)}</button>
-              <button class="irisx-home-action secondary" onclick="showPage('sell')">${escapeHtml(copy.secondaryCta)}</button>
             </div>
           </div>
           <button class="irisx-home-scroll" aria-label="${escapeHtml(langText("Scorri", "Scroll"))}" onclick="document.getElementById('irisTrustBar') && document.getElementById('irisTrustBar').scrollIntoView({behavior:'smooth',block:'start'})"></button>

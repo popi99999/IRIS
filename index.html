@@ -426,7 +426,7 @@ a:active,button:focus-visible{outline:1px solid rgba(252,158,122,.35);outline-of
 .step-d{font-size:.78rem;color:var(--muted);line-height:1.9}
 
 /* ═══ SELL PATHS (Two-tier model) ═══ */
-.sell-paths-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:0;align-items:start}
+.sell-paths-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:0;align-items:stretch}
 @media(max-width:700px){.sell-paths-grid{grid-template-columns:1fr}}
 .sell-paths-connector{position:relative;width:min(760px,calc(100% - 4rem));height:96px;margin:0 auto .8rem}
 .sell-paths-connector::before{content:'';position:absolute;left:50%;top:0;width:1px;height:38px;background:rgba(124,58,237,.22);transform:translateX(-50%)}
@@ -435,12 +435,13 @@ a:active,button:focus-visible{outline:1px solid rgba(252,158,122,.35);outline-of
 .sell-paths-connector span::before{left:25%}
 .sell-paths-connector span::after{right:25%}
 @media(max-width:700px){.sell-paths-connector{display:none}}
-.sell-path{border:1px solid rgba(124,58,237,.15);border-radius:4px;padding:2.5rem 2rem;background:#fff;position:relative;transition:box-shadow .3s}
+.sell-path{display:flex;flex-direction:column;height:100%;border:1px solid rgba(124,58,237,.15);border-radius:4px;padding:2.5rem 2rem;background:#fff;position:relative;transition:box-shadow .3s}
 .sell-path:hover{box-shadow:0 8px 40px rgba(124,58,237,.1)}
 .sell-path--featured{border-color:var(--purple);background:linear-gradient(135deg,#1A0A35 0%,#2D1060 100%);color:#fff;box-shadow:0 12px 48px rgba(124,58,237,.25)}
 .sp-badge{display:inline-block;font-size:.42rem;letter-spacing:.3em;text-transform:uppercase;padding:.25rem .8rem;margin-bottom:1.5rem;border-radius:2px}
 .sp-badge--diy{background:rgba(124,58,237,.08);color:var(--purple);border:1px solid rgba(124,58,237,.2)}
 .sp-badge--concierge{background:rgba(252,158,122,.15);color:var(--gold);border:1px solid rgba(252,158,122,.3)}
+.sp-badge{display:none}
 .sp-commission{font-family:'Cormorant Garamond',serif;font-size:4rem;font-weight:300;color:var(--ink);line-height:1}
 .sp-commission span{font-size:2rem}
 .sp-commission--gold{color:var(--gold)}
@@ -455,7 +456,7 @@ a:active,button:focus-visible{outline:1px solid rgba(252,158,122,.35);outline-of
 .sp-list li{font-size:.78rem;color:rgba(26,10,53,.5);display:flex;gap:.5rem}
 .sell-path--featured .sp-list li{color:rgba(255,255,255,.45)}
 .sp-list li::before{content:none}
-.sp-cta{display:block;text-align:center;padding:.85rem 1rem;font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;border-radius:2px;transition:all .3s;cursor:pointer}
+.sp-cta{display:block;text-align:center;padding:.85rem 1rem;font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;border-radius:2px;transition:all .3s;cursor:pointer;margin-top:auto}
 .sp-cta--diy{border:1px solid rgba(124,58,237,.25);color:var(--purple);background:transparent}
 .sp-cta--diy:hover{background:rgba(124,58,237,.06);border-color:var(--purple)}
 .sp-cta--concierge{background:var(--gold);color:#1A0A35;border:none;font-weight:500}
@@ -2581,7 +2582,6 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 
         <!-- PATH A: Autonomo -->
         <div class="sell-path">
-          <div class="sp-badge sp-badge--diy">Autonomo</div>
           <div class="sp-commission">7<span>%</span></div>
           <div class="sp-commission-label">commissione sul venduto</div>
           <div class="sp-title">Vendi da solo</div>
@@ -2598,7 +2598,6 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 
         <!-- PATH B: Concierge -->
         <div class="sell-path sell-path--featured">
-          <div class="sp-badge sp-badge--concierge">★ Consigliato</div>
           <div class="sp-commission sp-commission--gold">15<span>%</span></div>
           <div class="sp-commission-label">commissione sul venduto</div>
           <div class="sp-title">IRIS Concierge</div>

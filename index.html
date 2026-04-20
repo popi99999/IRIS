@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="./icons/icon-512.png">
 <link rel="manifest" href="./manifest.json?v=20260417094815">
-<link rel="stylesheet" href="./iris-plus.css?v=20260420160500">
+<link rel="stylesheet" href="./iris-plus.css?v=20260420162000">
 <title>IRIS — Luxury Fashion Marketplace</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Il marketplace italiano per la moda di lusso.","potentialAction":{"@type":"SearchAction","target":"https://popi99999.github.io/IRIS/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Luxury Fashion Marketplace italiano"}</script>
@@ -411,6 +411,7 @@ a:active,button:focus-visible{outline:1px solid rgba(252,158,122,.35);outline-of
 .sh{background:linear-gradient(135deg,#1A0A35 0%,#2D1060 50%,#1A0A35 100%);padding:7rem 0 5rem;text-align:center;position:relative;overflow:hidden}
 .sh::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(124,58,237,.2) 0%,transparent 70%)}
 .sh-label{font-size:.46rem;letter-spacing:.55em;text-transform:uppercase;color:rgba(167,139,250,.4);margin-bottom:1.5rem;position:relative}
+.sh-label:empty{display:none}
 .sh-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,6vw,6rem);font-weight:300;font-style:italic;color:var(--white);letter-spacing:.04em;text-shadow:0 4px 60px rgba(124,58,237,.3);margin-bottom:1rem;position:relative}
 .sh-sub{font-size:.85rem;color:rgba(255,255,255,.32);letter-spacing:.05em;position:relative}
 
@@ -424,8 +425,15 @@ a:active,button:focus-visible{outline:1px solid rgba(252,158,122,.35);outline-of
 .step-d{font-size:.78rem;color:var(--muted);line-height:1.9}
 
 /* ═══ SELL PATHS (Two-tier model) ═══ */
-.sell-paths-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3rem;align-items:start}
+.sell-paths-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:0;align-items:start}
 @media(max-width:700px){.sell-paths-grid{grid-template-columns:1fr}}
+.sell-paths-connector{position:relative;width:min(760px,calc(100% - 4rem));height:96px;margin:0 auto .8rem}
+.sell-paths-connector::before{content:'';position:absolute;left:50%;top:0;width:1px;height:38px;background:rgba(124,58,237,.22);transform:translateX(-50%)}
+.sell-paths-connector::after{content:'';position:absolute;left:25%;right:25%;top:38px;height:1px;background:rgba(124,58,237,.22)}
+.sell-paths-connector span::before,.sell-paths-connector span::after{content:'';position:absolute;top:38px;width:1px;height:58px;background:rgba(124,58,237,.22)}
+.sell-paths-connector span::before{left:25%}
+.sell-paths-connector span::after{right:25%}
+@media(max-width:700px){.sell-paths-connector{display:none}}
 .sell-path{border:1px solid rgba(124,58,237,.15);border-radius:4px;padding:2.5rem 2rem;background:#fff;position:relative;transition:box-shadow .3s}
 .sell-path:hover{box-shadow:0 8px 40px rgba(124,58,237,.1)}
 .sell-path--featured{border-color:var(--purple);background:linear-gradient(135deg,#1A0A35 0%,#2D1060 100%);color:#fff;box-shadow:0 12px 48px rgba(124,58,237,.25)}
@@ -2271,7 +2279,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
   <div class="ch-div"></div>
   <div class="ch ch-s" onclick="showPage('sell')">
     <div class="ch-c">
-      <div class="ch-lbl">Privati 12% · Concierge 22%</div>
+      <div class="ch-lbl">Da solo al 7% · Concierge al 15%</div>
       <div class="ch-w">Vendi</div>
       <div class="ch-d">Spediscici il pezzo — pensiamo noi a foto, autenticazione e vendita.</div>
       <div class="ch-arr">→</div>
@@ -2549,21 +2557,21 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
   </div>
   <div class="sh">
     <div style="position:relative;z-index:2">
-      <div class="sh-label">Il modo italiano di vendere lusso</div>
-      <div class="sh-title">Vendi come preferisci.</div>
-      <div class="sh-sub">Privati 12% · Concierge 22% · Autenticazione inclusa · Pagamento garantito</div>
+      <div class="sh-label"></div>
+      <div class="sh-title">DAL TUO ARMADIO A CHI LO DESIDERA</div>
+      <div class="sh-sub">Da solo al 7% · Oppure affidaci tutto al 15%</div>
     </div>
   </div>
   <section class="sell-steps irisx-reveal-section">
     <div class="container">
       <div class="sl-l">Scegli il tuo percorso</div>
-      <div class="st-l">Due modi di vendere. <em>Zero compromessi.</em></div>
+      <div class="sell-paths-connector" aria-hidden="true"><span></span></div>
       <div class="sell-paths-grid">
 
         <!-- PATH A: Autonomo -->
         <div class="sell-path">
           <div class="sp-badge sp-badge--diy">Autonomo</div>
-          <div class="sp-commission">12<span>%</span></div>
+          <div class="sp-commission">7<span>%</span></div>
           <div class="sp-commission-label">commissione sul venduto</div>
           <div class="sp-title">Vendi da solo</div>
           <div class="sp-desc">Pubblichi tu, gestisci le trattative, spedisci tu. IRIS ti fornisce la vetrina, la visibilità e il pagamento protetto.</div>
@@ -2572,7 +2580,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
             <li>✦ Prezzi e trattative decidi tu</li>
             <li>✦ Pagamento protetto via IRIS</li>
             <li>✦ Etichetta spedizione prepagata</li>
-            <li>✦ Solo 12% alla vendita</li>
+            <li>✦ Solo 7% alla vendita</li>
           </ul>
           <a href="#sell-form-sec" class="sp-cta sp-cta--diy">Inizia a vendere →</a>
         </div>
@@ -2580,7 +2588,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
         <!-- PATH B: Concierge -->
         <div class="sell-path sell-path--featured">
           <div class="sp-badge sp-badge--concierge">★ Consigliato</div>
-          <div class="sp-commission sp-commission--gold">22<span>%</span></div>
+          <div class="sp-commission sp-commission--gold">15<span>%</span></div>
           <div class="sp-commission-label">commissione sul venduto</div>
           <div class="sp-title">IRIS Concierge</div>
           <div class="sp-desc">Ci spedisci il pezzo. Noi facciamo tutto il resto: foto professionali, autenticazione, annuncio curato, spedizione al compratore.</div>
@@ -2618,13 +2626,13 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           <div style="display:flex;gap:.8rem;margin-bottom:2rem">
             <label style="flex:1;border:1px solid rgba(124,58,237,.2);padding:1rem;cursor:pointer;border-radius:3px;transition:all .25s" id="lbl-diy">
               <input type="radio" name="sell-mode" id="sell-mode-diy" value="diy" checked onchange="updateFee();toggleSellMode()" style="display:none">
-              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--purple);margin-bottom:.3rem">Privati · 12%</div>
+              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--purple);margin-bottom:.3rem">Privati · 7%</div>
               <div style="font-size:.85rem;color:rgba(245,240,235,.92);font-family:'Playfair Display',serif">Vendo da solo</div>
               <div style="font-size:.7rem;color:rgba(245,240,235,.55);margin-top:.25rem">Gestisci tu le foto e la spedizione</div>
             </label>
             <label style="flex:1;border:1px solid rgba(252,158,122,.3);padding:1rem;cursor:pointer;border-radius:3px;background:rgba(252,158,122,.04);transition:all .25s" id="lbl-concierge">
               <input type="radio" name="sell-mode" id="sell-mode-concierge" value="concierge" onchange="updateFee();toggleSellMode()" style="display:none">
-              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem">★ Concierge · 22%</div>
+              <div style="font-size:.48rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem">★ Concierge · 15%</div>
               <div style="font-size:.85rem;color:rgba(245,240,235,.92);font-family:'Playfair Display',serif">Affido tutto a IRIS</div>
               <div style="font-size:.7rem;color:rgba(245,240,235,.55);margin-top:.25rem">Spediscici il pezzo, pensiamo noi</div>
             </label>
@@ -3099,10 +3107,10 @@ function sendOffer(){
 /* ═══════ SELL FORM ═══════ */
 function updateFee(){
   const price=parseFloat(document.getElementById('sf-price').value)||0;
-  // Two-tier: 12% self-listing, 22% concierge
+  // Two-tier: 7% self-listing, 15% concierge
   const isConcierge=document.getElementById('sell-mode-concierge')&&document.getElementById('sell-mode-concierge').checked;
-  const rate=isConcierge?0.22:0.12;
-  const label=isConcierge?'Concierge (22%)':'Autonomo (12%)';
+  const rate=isConcierge?0.15:0.07;
+  const label=isConcierge?'Concierge (15%)':'Autonomo (7%)';
   const comm=price*rate;const net=price-comm;
   document.getElementById('fee-p').textContent=price?`€${price.toFixed(0)}`:'€ —';
   document.getElementById('fee-c').textContent=price?`-€${comm.toFixed(0)} (${label})`:`— ${label}`;
@@ -3162,7 +3170,7 @@ const i18n={
     footer_about:'Chi siamo',footer_faq:'FAQ',footer_contact:'Contatti',footer_help:'Centro assistenza',
     footer_terms:'Termini',footer_privacy:'Privacy',footer_cookie:'Cookie',
     // Sell page
-    sell_hero_label:'Inizia a vendere su IRIS',sell_hero_title:'Vendi il tuo lusso.',sell_hero_sub:'Privati 12% · Concierge 22% · Autenticazione inclusa · Pagamento garantito',
+    sell_hero_label:'',sell_hero_title:'DAL TUO ARMADIO A CHI LO DESIDERA',sell_hero_sub:'Da solo al 7% · Oppure affidaci tutto al 15%',
     how_works:'Come funziona',four_steps:'Semplice come <em>quattro passi.</em>',
     step1:'Fotografa',step1d:'Scatta foto chiare da più angolazioni.',
     step2:'Pubblica',step2d:'Inserisci brand, condizione e prezzo. Gratis, 2 minuti.',
@@ -3206,7 +3214,7 @@ const i18n={
     footer_start_sell:'Start selling',footer_how:'How it works',footer_fees:'Fees',footer_auth:'Authentication',
     footer_about:'About us',footer_faq:'FAQ',footer_contact:'Contact',footer_help:'Help center',
     footer_terms:'Terms',footer_privacy:'Privacy',footer_cookie:'Cookies',
-    sell_hero_label:'Start selling on IRIS',sell_hero_title:'Sell your luxury.',sell_hero_sub:'Private 12% · Concierge 22% · Authentication included · Guaranteed payment',
+    sell_hero_label:'',sell_hero_title:'FROM YOUR CLOSET TO THE ONE WHO WANTS IT',sell_hero_sub:'On your own at 7% · Or let us handle everything at 15%',
     how_works:'How it works',four_steps:'As simple as <em>four steps.</em>',
     step1:'Photograph',step1d:'Take clear photos from multiple angles.',
     step2:'Publish',step2d:'Enter brand, condition and price. Free, 2 minutes.',
@@ -3274,7 +3282,10 @@ function applyLang(){
   document.querySelector('.i-s').textContent=t('luxury_mkt');
   document.querySelector('.i-tap').textContent=t('enter');
   // Sell page
-  document.querySelector('.sh-label').textContent=t('sell_hero_label');
+  const sellHeroLabel = Object.prototype.hasOwnProperty.call(i18n[curLang], 'sell_hero_label')
+    ? i18n[curLang].sell_hero_label
+    : i18n.it.sell_hero_label;
+  document.querySelector('.sh-label').textContent=sellHeroLabel||'';
   document.querySelector('.sh-title').textContent=t('sell_hero_title');
   document.querySelector('.sh-sub').textContent=t('sell_hero_sub');
   document.querySelector('.sell-submit').textContent=t('publish_btn');
@@ -3604,7 +3615,7 @@ function updateMeta(title,desc){
 /* ═══════ PWA ═══════ */
 let deferredPrompt=null;
 if('serviceWorker' in navigator && window.location.protocol !== 'file:'){
-  navigator.serviceWorker.register('./sw.js?v=20260420160500').then((registration)=>{
+  navigator.serviceWorker.register('./sw.js?v=20260420162000').then((registration)=>{
     if (registration.waiting) {
       console.info('IRIS service worker update ready.');
     }
@@ -3627,9 +3638,9 @@ function dismissPwa(){document.getElementById('pwaBanner').style.display='none';
 setTimeout(()=>renderFooters(),500);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./supabase-config.js?v=20260420160500"></script>
-<script src="./iris-i18n-config.js?v=20260420160500"></script>
-<script src="./iris-plus.js?v=20260420160500"></script>
+<script src="./supabase-config.js?v=20260420162000"></script>
+<script src="./iris-i18n-config.js?v=20260420162000"></script>
+<script src="./iris-plus.js?v=20260420162000"></script>
 <script>
 /* ═══ OFFER FLOW BRIDGE ═══ */
 if (window.__irisModernOfferFlow) {

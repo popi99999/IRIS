@@ -32,9 +32,9 @@
     ownerEmail: "irisadminojmpx0nd@deltajohnsons.com",
     supportEmail: "support@iris-fashion.it",
     emailFrom: "IRIS <noreply@iris-fashion.it>",
-    platformFeeRate: 0.12,
-    selfServeFeeRate: 0.12,
-    conciergeFeeRate: 0.22,
+    platformFeeRate: 0.07,
+    selfServeFeeRate: 0.07,
+    conciergeFeeRate: 0.15,
     shippingCost: 25,
     buyerProtectionWindowDays: 14
   };
@@ -18672,15 +18672,23 @@
     }
     const sellSub = qs(".sh-sub");
     if (sellSub) {
-      sellSub.textContent = langText(`Da solo al ${selfFee}% · Oppure affidaci tutto al ${conciergeFee}% · Pagamento garantito`, `Self-serve at ${selfFee}% · Or let us handle everything at ${conciergeFee}% · Guaranteed payout`);
+      sellSub.textContent = langText(`Da solo al ${selfFee}% · Oppure affidaci tutto al ${conciergeFee}%`, `On your own at ${selfFee}% · Or let us handle everything at ${conciergeFee}%`);
     }
     const diyCommission = qsa(".sp-commission")[0];
     if (diyCommission) {
       diyCommission.innerHTML = `${selfFee}<span>%</span>`;
     }
+    const conciergeCommission = qsa(".sp-commission")[1];
+    if (conciergeCommission) {
+      conciergeCommission.innerHTML = `${conciergeFee}<span>%</span>`;
+    }
     const diyRadio = qs("#lbl-diy > div:first-of-type");
     if (diyRadio) {
       diyRadio.textContent = `${langText("Autonomo", "Self-serve")} · ${selfFee}%`;
+    }
+    const conciergeRadio = qs("#lbl-concierge > div:first-of-type");
+    if (conciergeRadio) {
+      conciergeRadio.textContent = `★ ${langText("Concierge", "Concierge")} · ${conciergeFee}%`;
     }
     const diyFeeNote = qs(".fee-note");
     if (diyFeeNote) {

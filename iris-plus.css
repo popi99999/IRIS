@@ -8700,6 +8700,9 @@ body.irisx-luxury.irisx-white-theme .sh {
 body.irisx-luxury.irisx-white-theme .sh-label {
   color: rgba(241,50,79,.76) !important;
 }
+body.irisx-luxury.irisx-white-theme .sh-label:empty {
+  display: none !important;
+}
 body.irisx-luxury.irisx-white-theme .sh-title,
 body.irisx-luxury.irisx-white-theme .step-t,
 body.irisx-luxury.irisx-white-theme .sp-title,
@@ -8721,6 +8724,12 @@ body.irisx-luxury.irisx-white-theme .pu-s,
 body.irisx-luxury.irisx-white-theme .sp-list li,
 body.irisx-luxury.irisx-white-theme .fee-l {
   color: rgba(26,21,48,.72) !important;
+}
+body.irisx-luxury.irisx-white-theme .sell-paths-connector::before,
+body.irisx-luxury.irisx-white-theme .sell-paths-connector::after,
+body.irisx-luxury.irisx-white-theme .sell-paths-connector span::before,
+body.irisx-luxury.irisx-white-theme .sell-paths-connector span::after {
+  background: rgba(241,50,79,.18) !important;
 }
 body.irisx-luxury.irisx-white-theme .sell-steps,
 body.irisx-luxury.irisx-white-theme .sell-form {

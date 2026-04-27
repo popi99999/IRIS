@@ -735,11 +735,11 @@ body.light-mode .ac-item:hover{background:rgba(124,58,237,.06)}
 .ac-item-icon{font-size:.7rem;opacity:.5;width:20px;text-align:center}
 
 /* ═══════ STATIC PAGE MODALS ═══════ */
-.static-modal{position:fixed;inset:0;z-index:800;background:rgba(6,3,16,.95);backdrop-filter:blur(20px);display:none;overflow-y:auto;opacity:0;transition:opacity .35s}
+.static-modal{position:fixed;inset:0;z-index:2200;background:rgba(6,3,16,.95);backdrop-filter:blur(20px);display:none;overflow-y:auto;opacity:0;transition:opacity .35s}
 .static-modal.open{display:block;opacity:1}
 body.light-mode .static-modal{background:rgba(250,250,250,.97)}
 .sm-inner{max-width:720px;margin:0 auto;padding:4rem 2rem 6rem}
-.sm-close{position:fixed;top:1.5rem;right:2rem;background:none;border:1px solid rgba(167,139,250,.2);color:rgba(255,255,255,.4);width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:all .3s;z-index:801;border-radius:2px}
+.sm-close{position:fixed;top:1.5rem;right:2rem;background:none;border:1px solid rgba(167,139,250,.2);color:rgba(255,255,255,.4);width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:all .3s;z-index:2201;border-radius:2px}
 .sm-close:hover{border-color:var(--lavender);color:var(--lavender)}
 body.light-mode .sm-close{border-color:rgba(124,58,237,.15);color:rgba(26,10,53,.4)}
 body.light-mode .sm-close:hover{color:var(--purple);border-color:var(--purple)}
@@ -2105,6 +2105,21 @@ body.irisx-luxury .offer-modal{
   backdrop-filter:blur(24px);
 }
 
+body.irisx-luxury.irisx-white-theme .static-modal{
+  background:rgba(255,255,255,.98);
+  color:#111827;
+}
+
+body.irisx-luxury.irisx-white-theme .sm-title,
+body.irisx-luxury.irisx-white-theme .sm-section h3{
+  color:#1a1530;
+}
+
+body.irisx-luxury.irisx-white-theme .sm-subtitle,
+body.irisx-luxury.irisx-white-theme .sm-section p{
+  color:rgba(17,24,39,.68);
+}
+
 body.irisx-luxury .sm-inner{
   max-width:860px;
 }
@@ -2406,6 +2421,10 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           <button class="tn-mobile-menu__close" onclick="closeMobileNav()" aria-label="Chiudi">✕</button>
         </div>
         <div class="tn-mobile-menu__links">
+          <form class="tn-mobile-search" role="search" onsubmit="event.preventDefault();syncMobileSearch(document.getElementById('irisMobileSearchInput').value)">
+            <input id="irisMobileSearchInput" type="search" placeholder="Cerca brand o articolo" aria-label="Cerca prodotti" oninput="syncMobileSearchDraft(this.value)">
+            <button type="submit" aria-label="Cerca">Cerca</button>
+          </form>
           <button class="tn-mobile-link" id="tnMobileHomeBtn" onclick="closeMobileNav();showBuyView('home')">Home</button>
           <button class="tn-mobile-link" id="tnMobileShopBtn" onclick="closeMobileNav();showBuyView('shop')">Shop</button>
           <button class="tn-mobile-link" id="tnMobileAboutBtn" onclick="closeMobileNav();showBuyView('home');setTimeout(function(){var manifesto=document.getElementById('irisManifesto');if(manifesto){manifesto.scrollIntoView({behavior:'smooth',block:'start'});}},120)">Chi siamo</button>
@@ -2787,8 +2806,11 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
   <button class="sm-close" onclick="closeStatic('contact')" aria-label="Chiudi">✕</button>
   <div class="sm-inner">
     <div class="sm-title">Contattaci</div>
-    <div class="sm-subtitle">Supporto clienti IRIS</div>
-    <div class="sm-section"><h3>Email</h3><p><a href="mailto:support@iris-fashion.it">support@iris-fashion.it</a></p></div>
+    <div class="sm-subtitle">Supporto clienti IRIS per acquisti, vendite, offerte e verifiche</div>
+    <div class="sm-section"><h3>Email supporto</h3><p><a href="mailto:support@iris-fashion.it">support@iris-fashion.it</a></p><p>Per ordini, pagamenti, autenticazione articoli, resi, account e problemi tecnici.</p></div>
+    <div class="sm-section"><h3>Tempi di risposta</h3><p>Le richieste operative vengono prese in carico entro 24 ore lavorative. Le dispute su ordini e offerte vengono priorizzate e collegate al relativo ticket.</p></div>
+    <div class="sm-section"><h3>Prima di scriverci</h3><p>Indica numero ordine, email account, nome dell'articolo e una descrizione precisa del problema. Se stai segnalando un annuncio, usa anche il pulsante Segnala nella pagina prodotto.</p></div>
+    <div class="sm-section"><h3>Privacy</h3><p>Per richieste GDPR o gestione dati personali scrivi a <a href="mailto:privacy@iris-fashion.it">privacy@iris-fashion.it</a>.</p></div>
   </div>
 </div>
 <div class="static-modal" id="modal-cookie" role="dialog" aria-modal="true" aria-label="Cookie policy">

@@ -57,7 +57,7 @@ Alla fine stampa l'URL del webhook. Copialo.
 ## STEP 5 — Bucket Storage (1 minuto)
 1. Vai su: https://supabase.com/dashboard/project/xzhgyamzfthqrcaljdqv/storage/buckets
 2. Clicca **New bucket**
-3. Nome: `iris-listing-images`
+3. Nome: `listing-images`
 4. Spunta **Public bucket** → Save
 
 ---

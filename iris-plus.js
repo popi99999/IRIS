@@ -19,6 +19,20 @@
     chatModeration: "iris-chat-moderation"
   };
   const COOKIE_CONSENT_KEY = "iris-cookie-consent";
+  const ESSENTIAL_STORAGE_KEYS = new Set([
+    STORAGE_KEYS.session,
+    STORAGE_KEYS.cart,
+    STORAGE_KEYS.favorites,
+    STORAGE_KEYS.listings,
+    STORAGE_KEYS.orders,
+    STORAGE_KEYS.offers,
+    STORAGE_KEYS.notifications,
+    STORAGE_KEYS.supportTickets,
+    STORAGE_KEYS.measurementRequests,
+    STORAGE_KEYS.auditLog,
+    STORAGE_KEYS.chats,
+    STORAGE_KEYS.reviews
+  ]);
   const PLACEHOLDER_IMAGES = {
     borse: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400&h=500&fit=crop",
     scarpe: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=500&fit=crop",
@@ -1804,9 +1818,13 @@
     return getCookieConsentStatus() === "all";
   }
 
+  function canPersistStorageKey(key) {
+    return key === COOKIE_CONSENT_KEY || canPersistUserData() || ESSENTIAL_STORAGE_KEYS.has(key);
+  }
+
   function persistPreference(key, value) {
     try {
-      if (key !== COOKIE_CONSENT_KEY && !canPersistUserData()) {
+      if (!canPersistStorageKey(key)) {
         return;
       }
       localStorage.setItem(key, value);
@@ -1824,7 +1842,7 @@
   }
 
   function saveJson(key, value) {
-    if (!canPersistUserData()) {
+    if (!canPersistStorageKey(key)) {
       return;
     }
     localStorage.setItem(key, JSON.stringify(value));
@@ -5180,6 +5198,30 @@
     updateSearchSaveButton();
   }
 
+  function syncMobileSearchDraft(value) {
+    const query = String(value || "");
+    const searchInput = qs("#searchInput");
+    if (searchInput && searchInput.value !== query) {
+      searchInput.value = query;
+    }
+    filters.search = query.trim();
+    updateSearchSaveButton();
+  }
+
+  function syncMobileSearch(value) {
+    const query = String(value || "").trim();
+    const mobileSearchInput = qs("#irisMobileSearchInput");
+    if (mobileSearchInput && mobileSearchInput.value !== query) {
+      mobileSearchInput.value = query;
+    }
+    syncMobileSearchDraft(query);
+    closeMobileNav();
+    showPage("buy");
+    showBuyView("shop");
+    handleSearch(query);
+    renderAutocompleteSuggestions(query);
+  }
+
   function getMyListings() {
     if (!state.currentUser) {
       return [];
@@ -7736,9 +7778,9 @@
 
   function validateSellForm() {
     const requiredFields = ["fileIn", "sf-cat", "sf-brand", "sf-name", "sf-subcat", "sf-condition", "sf-desc", "sf-price"];
-    return requiredFields.every(function (fieldId) {
-      return validateSellField(fieldId);
-    });
+    return requiredFields.reduce(function (isValid, fieldId) {
+      return validateSellField(fieldId) && isValid;
+    }, true);
   }
 
   function focusFirstSellError() {
@@ -8030,8 +8072,61 @@
     return Boolean(product && (product.inventoryStatus || "active") === "active");
   }
 
+  function isDisplayableCatalogListing(product) {
+    if (!product || !isProductPurchasable(product)) {
+      return false;
+    }
+    const name = normalizeSearchText(product.name || "");
+    const brand = normalizeSearchText(product.brand || "");
+    const sellerName = normalizeSearchText((product.seller && product.seller.name) || "");
+    if (name.length < 2 || brand.length < 2 || Number(product.price || 0) <= 0) {
+      return false;
+    }
+    if (["test", "demo", "prova"].includes(name) || ["test", "demo", "prova"].includes(brand) || sellerName === "test") {
+      return false;
+    }
+    return true;
+  }
+
+  function getCatalogDedupeKey(product) {
+    return [
+      normalizeSearchText(product.brand || ""),
+      normalizeSearchText(product.name || ""),
+      normalizeSearchText(product.sz || ""),
+      String(Math.round(Number(product.price || 0)))
+    ].join("|");
+  }
+
+  function getCatalogPriority(product) {
+    let score = 0;
+    if (product && product.isUserListing !== true) score += 20;
+    if (Array.isArray(product && product.images) && product.images.length) score += 4;
+    if (product && product.verified) score += 3;
+    if (product && product.irisGuaranteed) score += 2;
+    if (String(product && product.desc || "").length > 40) score += 1;
+    score += Math.min(5, Math.floor(Number(product && product.date || 0) / 1000000000000));
+    return score;
+  }
+
   function getVisibleCatalogProducts() {
-    return prods.filter(isProductPurchasable);
+    const visible = [];
+    const indexByKey = new Map();
+    prods.forEach(function (product) {
+      if (!isDisplayableCatalogListing(product)) {
+        return;
+      }
+      const key = getCatalogDedupeKey(product);
+      const existingIndex = indexByKey.get(key);
+      if (existingIndex === undefined) {
+        indexByKey.set(key, visible.length);
+        visible.push(product);
+        return;
+      }
+      if (getCatalogPriority(product) > getCatalogPriority(visible[existingIndex])) {
+        visible[existingIndex] = product;
+      }
+    });
+    return visible;
   }
 
   function getProductStatusLabel(product) {
@@ -11031,6 +11126,10 @@
       if (searchInput) {
         searchInput.value = "";
       }
+      const mobileSearchInput = qs("#irisMobileSearchInput");
+      if (mobileSearchInput) {
+        mobileSearchInput.value = "";
+      }
       const brandSearch = qs(".filters .f-search");
       if (brandSearch) {
         brandSearch.value = "";
@@ -11077,6 +11176,9 @@
         filters[type] = "";
         if (type === "search" && qs("#searchInput")) {
           qs("#searchInput").value = "";
+        }
+        if (type === "search" && qs("#irisMobileSearchInput")) {
+          qs("#irisMobileSearchInput").value = "";
         }
       } else {
         const index = filters[type].indexOf(value);
@@ -12679,10 +12781,10 @@
       localeButton.style.display = "";
     }
     if (favoritesButton) {
-      favoritesButton.style.display = isAuthenticated ? "" : "none";
+      favoritesButton.style.display = "";
     }
     if (cartButton) {
-      cartButton.style.display = isAuthenticated ? "" : "none";
+      cartButton.style.display = "";
     }
     if (notifWrap) {
       notifWrap.style.display = "none";
@@ -18434,19 +18536,68 @@
     return `<div class="det-section"><div class="det-section-title">${escapeHtml(title)}</div><div class="det-fit">${rows.join("")}</div></div>`;
   }
 
-  function reportListing(productId) {
+  async function reportListing(productId) {
     const product = getListingById(productId);
     if (!product) {
       return;
     }
+    const seller = buildListingSeller(product);
+    const now = Date.now();
+    const requesterEmail = normalizeEmail((state.currentUser && state.currentUser.email) || "");
+    const ticket = normalizeSupportTicketRecord({
+      id: createId("tkt"),
+      orderId: "",
+      orderNumber: "LIST-" + String(product.id || "").slice(-6).toUpperCase(),
+      productId: product.id,
+      productTitle: `${product.brand} ${product.name}`.trim(),
+      buyerEmail: requesterEmail,
+      sellerEmail: normalizeEmail((seller && seller.email) || product.sellerEmail || ""),
+      requesterId: (state.currentUser && state.currentUser.id) || "",
+      requesterEmail: requesterEmail,
+      requesterRole: state.currentUser ? "buyer" : "guest",
+      severity: "support",
+      status: "open",
+      reason: "listing_report",
+      message: langText("Segnalazione annuncio dal dettaglio prodotto.", "Listing reported from product detail."),
+      contextSnapshot: {
+        source: "listing_report",
+        listingId: product.id,
+        listingTitle: `${product.brand} ${product.name}`.trim(),
+        sellerId: seller && seller.id ? seller.id : "",
+        sellerName: seller && seller.name ? seller.name : "",
+        price: Number(product.price || 0),
+        urlPath: window.location ? window.location.pathname : ""
+      },
+      createdAt: now,
+      updatedAt: now
+    });
+    state.supportTickets.unshift(ticket);
+    persistSupportTickets();
+    try {
+      const remoteTicket = await saveSupportTicketToSupabase(ticket);
+      state.supportTickets = state.supportTickets.map(function (candidate) {
+        return candidate.id === ticket.id ? remoteTicket : candidate;
+      });
+      persistSupportTickets();
+    } catch (error) {
+      console.warn("[IRIS] Unable to save listing report to Supabase", error);
+    }
+    enqueueEmail("support-request", PLATFORM_CONFIG.supportEmail, {
+      preview: `${ticket.orderNumber} - ${ticket.productTitle}`
+    });
     createNotification({
       audience: "admin",
       kind: "support",
       title: langText("Segnalazione annuncio", "Listing report"),
       body: `${product.brand} ${product.name}`,
-      recipientEmail: PLATFORM_CONFIG.ownerEmail
+      recipientEmail: PLATFORM_CONFIG.ownerEmail,
+      productId: product.id
     });
-    showToast(langText("Segnalazione inviata all'owner.", "Report sent to the owner."));
+    recordAuditEvent("listing_report_opened", ticket.productTitle, {
+      ticketId: ticket.id,
+      listingId: product.id
+    });
+    showToast(langText("Segnalazione ricevuta: la trovi in Assistenza.", "Report received: you can find it in Support."));
   }
 
   getDetailActionsMarkup = function (product, liked) {
@@ -18917,6 +19068,8 @@
   window.closeLocaleMenu = closeLocaleMenu;
   window.toggleMobileNav = toggleMobileNav;
   window.closeMobileNav = closeMobileNav;
+  window.syncMobileSearchDraft = syncMobileSearchDraft;
+  window.syncMobileSearch = syncMobileSearch;
   window.handleAuthButtonClick = handleAuthButtonClick;
   window.acceptCookies = acceptCookies;
   window.checkCookieConsent = checkCookieConsent;

@@ -95,7 +95,7 @@ profiles: id, full_name, avatar_url, payout_settings, seller_rating
 - Navigazione: `expo-router` con tab bar in basso (5 tab: Shop, Vendi, Chat, Notifiche, Account)
 - Auth state: Context con `supabase.auth.onAuthStateChange()`
 - Immagini: `expo-image` per performance
-- Upload foto listing: `expo-image-picker` + `supabase.storage.from('iris-listing-images').upload()`
+- Upload foto listing: `expo-image-picker` + `supabase.storage.from('listing-images').upload()`
 - Pagamenti: `WebBrowser.openBrowserAsync(checkoutUrl)` + deep link per ritorno
 - Real-time chat: `supabase.channel('chat').on('INSERT',...)`
 - Pull-to-refresh su tutte le liste

@@ -37,8 +37,12 @@ targets:
           cp "$SRCROOT/iris-plus.css" "$DEST/"
           cp "$SRCROOT/iris-plus.js" "$DEST/"
           cp "$SRCROOT/iris-i18n-config.js" "$DEST/"
+          cp "$SRCROOT/supabase-config.js" "$DEST/"
           cp "$SRCROOT/manifest.json" "$DEST/"
           cp "$SRCROOT/sw.js" "$DEST/"
+          mkdir -p "$DEST/icons" "$DEST/moderation"
+          cp -R "$SRCROOT/icons/." "$DEST/icons/"
+          cp -R "$SRCROOT/moderation/." "$DEST/moderation/"
     settings:
       base:
         TARGETED_DEVICE_FAMILY: "1,2"

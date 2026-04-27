@@ -18657,6 +18657,71 @@
     return `<div class="det-section"><div class="det-section-title">${escapeHtml(title)}</div><div class="det-fit">${rows.join("")}</div></div>`;
   }
 
+  function getConditionReportIndex(condition) {
+    const normalized = normalizeSearchText(condition);
+    if (normalized.includes("nuovo") || normalized.includes("new") || normalized.includes("eccellente") || normalized.includes("excellent")) return 4;
+    if (normalized.includes("molto") || normalized.includes("very")) return 3;
+    if (normalized.includes("buono") || normalized === "good") return 2;
+    if (normalized.includes("accettabile") || normalized.includes("fair")) return 1;
+    if (normalized.includes("restauro") || normalized.includes("revive")) return 0;
+    return 2;
+  }
+
+  function renderConditionReport(conditionLabel) {
+    const levels = [
+      langText("Da restauro", "Revive"),
+      langText("Accettabile", "Fair"),
+      langText("Buono", "Good"),
+      langText("Molto buono", "Very good"),
+      langText("Come nuovo", "Like new")
+    ];
+    const activeIndex = getConditionReportIndex(conditionLabel);
+    return `<div class="irisx-condition-report">
+      <h3>${langText("Condition report", "Condition report")}</h3>
+      <div class="irisx-condition-scale" aria-label="${escapeHtml(langText("Condizione articolo", "Item condition"))}">
+        ${levels.map(function (label, index) {
+          const stateClass = index === activeIndex ? " is-active" : index < activeIndex ? " is-past" : "";
+          return `<div class="irisx-condition-step${stateClass}"><span class="irisx-condition-marker">${index === activeIndex ? "★" : ""}</span><span>${escapeHtml(label)}</span></div>`;
+        }).join("")}
+      </div>
+      <p>${langText("Valutazione dichiarata dal seller e verificabile tramite autenticazione, foto e supporto IRIS.", "Seller-declared condition, reviewable through authentication, photos, and IRIS support.")}</p>
+    </div>`;
+  }
+
+  function renderEditorialDescription(product, conditionLabel, chips) {
+    const sizePresentation = getListingSizePresentation(product);
+    const sizeLabel = sizePresentation.displayLabel || product.sz || "";
+    const chipSummary = chips.slice(0, 4).join(", ");
+    const bullets = [
+      product.material ? langText("Materiale: ", "Material: ") + product.material : "",
+      sizeLabel ? langText("Taglia / misura: ", "Size: ") + sizeLabel : "",
+      product.dims ? langText("Dimensioni: ", "Dimensions: ") + product.dims : "",
+      conditionLabel ? langText("Condizione dichiarata: ", "Declared condition: ") + conditionLabel : "",
+      chipSummary ? langText("Dettagli inclusi: ", "Included details: ") + chipSummary : "",
+      langText("Protezione IRIS attiva su autenticità, conformità, consegna e segnalazioni documentate.", "IRIS protection applies to authenticity, conformity, delivery, and documented reports.")
+    ].filter(Boolean);
+    return `<section class="irisx-editorial-details">
+      <h2>Details</h2>
+      <div class="irisx-editorial-description">
+        <h3>Description</h3>
+        <p><button type="button" class="irisx-detail-brand-link" onclick="irisOpenBrandFromDetail(${inlineJsValue(product.brand)})">${escapeHtml(product.brand)}</button> ${escapeHtml(product.name)}. <span>${escapeHtml(product.desc)}</span></p>
+        <ul>${bullets.map(function (item) { return `<li>${escapeHtml(item)}</li>`; }).join("")}</ul>
+      </div>
+      ${renderConditionReport(conditionLabel)}
+    </section>`;
+  }
+
+  function irisOpenBrandFromDetail(brand) {
+    showPage("buy");
+    showBuyView("shop");
+    ensureExtendedFilters();
+    filters.brands = [brand];
+    initFilters();
+    render();
+  }
+
+  window.irisOpenBrandFromDetail = irisOpenBrandFromDetail;
+
   async function reportListing(productId) {
     const product = getListingById(productId);
     if (!product) {
@@ -18833,6 +18898,7 @@
     ].filter(Boolean).map(function (label) {
       return `<span class="irisx-seller-badge">${escapeHtml(label)}</span>`;
     }).join("");
+    const editorialDetailsMarkup = renderEditorialDescription(product, conditionLabel, chips);
     const soldSupportMarkup = !isProductPurchasable(product) && relatedOrder
       ? `<div class="irisx-detail-service-card irisx-detail-service-card--issue">
           <div class="det-section-title">${langText("Supporto post-vendita", "Post-sale support")}</div>
@@ -18845,13 +18911,15 @@
       : "";
     const detailView = qs("#detail-view");
     detailView.innerHTML = `<div class="irisx-detail-page view-enter">
+      <div class="irisx-detail-topline">
+        <div class="irisx-detail-breadcrumb"><button type="button" onclick="closeDetail()">${langText("Home", "Home")}</button><span>/</span><button type="button" onclick="showBuyView('shop')">${langText("Shop", "Shop")}</button><span>/</span><strong>${escapeHtml(product.brand)}</strong></div>
+        <button type="button" class="det-back" onclick="closeDetail()">${t("back_shop")}</button>
+      </div>
       <section class="det-layout det-layout--hero">
         <div class="det-imgs">${detailMediaMarkup(product)}</div>
         <div class="det-body">
           <section class="irisx-detail-hero-panel">
             <div class="irisx-detail-header">
-              <div class="irisx-detail-breadcrumb"><button type="button" onclick="closeDetail()">${langText("Home", "Home")}</button><span>/</span><button type="button" onclick="showBuyView('shop')">${langText("Shop", "Shop")}</button><span>/</span><strong>${escapeHtml(product.brand)}</strong></div>
-              <button type="button" class="det-back" onclick="closeDetail()">${t("back_shop")}</button>
               <div class="det-brand">${escapeHtml(product.brand)}</div>
               <div class="det-name">${escapeHtml(product.name)}</div>
               <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
@@ -18864,10 +18932,9 @@
       <section class="irisx-detail-lower">
         <div class="irisx-detail-lower-grid">
           <div class="irisx-detail-lower-main">
-            <div class="det-section"><div class="det-section-title">${t("details")}</div><div class="det-chips">${chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div></div>
-            <div class="det-section"><div class="det-section-title">${t("fit_dims")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(sizeDisplay)}</div></div>${sizeOriginalMarkup}${sizeStandardMarkup}<div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
+            ${editorialDetailsMarkup}
+            <div class="det-section irisx-detail-specs"><div class="det-section-title">${langText("Specifiche", "Specifications")}</div><div class="det-chips">${chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(sizeDisplay)}</div></div>${sizeOriginalMarkup}${sizeStandardMarkup}<div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
             ${renderMeasurementsSection(product)}
-            <div class="det-section"><div class="det-section-title">${t("description")}</div><div class="det-desc">${escapeHtml(product.desc)}</div></div>
           </div>
           <aside class="irisx-detail-lower-side">
             <div class="det-section"><div class="det-section-title">${langText("Servizi IRIS", "IRIS services")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Autenticazione standard", "Standard authentication")}</strong><span>${formatCurrency(15)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Autenticazione premium", "Premium authentication")}</strong><span>${formatCurrency(20)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Certificato digitale", "Digital certificate")}</strong><span>${trustMeta.certificateCode ? escapeHtml(trustMeta.certificateCode) : langText("Disponibile dopo autenticazione", "Available after authentication")}</span></div></div></div></div>

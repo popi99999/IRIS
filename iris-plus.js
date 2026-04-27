@@ -13897,27 +13897,27 @@
     },
     "refund-policy": {
       title: langText("Policy resi e rimborsi", "Refund / Return Policy"),
-      subtitle: langText("Regole placeholder per annulli, problemi post-acquisto e refund.", "Placeholder rules for cancellations, post-purchase issues, and refunds."),
+      subtitle: langText("Quando si applica il diritto di reso e quando interviene la protezione IRIS.", "When return rights apply and when IRIS protection steps in."),
       sections: [
         {
-          title: langText("Stati rimborso", "Refund states"),
+          title: langText("Venditori professionali", "Professional sellers"),
           body: langText(
-            "Gli ordini possono passare a refund requested e refunded. Il payout seller va on hold o reversed a seconda dello stato finale.",
-            "Orders can move to refund requested and refunded. Seller payout moves to on hold or reversed depending on the final state."
+            "Quando l'articolo è venduto da un seller professionale con partita IVA, il consumatore può esercitare il diritto di recesso nei termini previsti dalla normativa applicabile. Le istruzioni operative e le eventuali spese vengono mostrate nella richiesta di supporto.",
+            "When an item is sold by a professional seller with VAT registration, the consumer may exercise the statutory withdrawal right under applicable law. Operational steps and any costs are shown in the support request."
           )
         },
         {
-          title: langText("Richiesta reso", "Return request"),
+          title: langText("Venditori privati", "Private sellers"),
           body: langText(
-            "Il buyer può aprire supporto o richiesta rimborso dal dettaglio ordine. L'admin vede la richiesta nell'area disputes / support.",
-            "The buyer can open support or refund request from order detail. Admin sees the request inside the disputes / support area."
+            "Per acquisti da venditori privati non è previsto un diritto automatico di reso per semplice ripensamento. Restano attive le tutele IRIS se l'articolo non arriva, è contraffatto, non conforme alla descrizione o se emerge un tentativo di frode.",
+            "Purchases from private sellers do not include an automatic return right for change of mind. IRIS protection still applies if the item is not delivered, counterfeit, materially not as described, or if fraud is detected."
           )
         },
         {
-          title: langText("Ambito", "Scope"),
+          title: langText("Come si apre una richiesta", "How to open a request"),
           body: langText(
-            "Questa pagina definisce il flusso strutturale del prototipo; condizioni economiche, costi e tempi reali saranno confermati in produzione.",
-            "This page defines the prototype structural flow; real economics, costs, and timings will be confirmed in production."
+            "Il buyer apre un ticket dal dettaglio ordine o dal centro assistenza. IRIS mette in pausa il payout quando serve, raccoglie prove, verifica autenticazione e spedizione e comunica l'esito nel ticket.",
+            "The buyer opens a ticket from the order detail or help center. IRIS may pause payout, collect evidence, check authentication and shipment data, and communicate the outcome in the ticket."
           )
         }
       ]
@@ -13998,6 +13998,127 @@
           body: langText(
             "Gli ordini possono essere marcati in authentication e dispatched to buyer dal pannello admin con timeline coerente.",
             "Orders can be marked in authentication and dispatched to buyer from the admin panel with a coherent timeline."
+          )
+        }
+      ]
+    },
+    "secure-payments": {
+      title: langText("Pagamenti sicuri", "Secure Payments"),
+      subtitle: langText("Metodi di pagamento protetti e payout venditore controllato.", "Protected payment methods and controlled seller payout."),
+      sections: [
+        {
+          title: langText("Pagamento protetto", "Protected payment"),
+          body: langText(
+            "Carte, wallet e provider di pagamento vengono gestiti tramite infrastrutture dedicate. IRIS non mostra né conserva i dati completi della carta nell'interfaccia del marketplace.",
+            "Cards, wallets, and payment providers are handled through dedicated infrastructure. IRIS does not display or store full card data in the marketplace interface."
+          )
+        },
+        {
+          title: langText("Payout dopo controllo", "Payout after checks"),
+          body: langText(
+            "Il payout del venditore resta collegato allo stato dell'ordine: pagamento, spedizione, autenticazione, consegna e chiusura della finestra di supporto quando necessaria.",
+            "Seller payout stays tied to order state: payment, shipment, authentication, delivery, and any required support window."
+          )
+        },
+        {
+          title: langText("Metodi supportati", "Supported methods"),
+          body: langText(
+            "La piattaforma è predisposta per carte, Apple Pay, Google Pay e altri metodi compatibili con il provider pagamenti scelto in produzione.",
+            "The platform is prepared for cards, Apple Pay, Google Pay, and other methods supported by the payment provider selected for production."
+          )
+        }
+      ]
+    },
+    "iris-protection": {
+      title: langText("Protezione IRIS", "IRIS Protection"),
+      subtitle: langText("Una copertura pensata per chi compra e per chi vende.", "Coverage designed for both buyers and sellers."),
+      sections: [
+        {
+          title: langText("Per chi compra", "For buyers"),
+          body: langText(
+            "IRIS interviene su mancata consegna, articolo non conforme, possibile contraffazione, problemi di autenticazione e comportamenti sospetti. Il supporto può sospendere il pagamento al seller mentre verifica il caso.",
+            "IRIS steps in for non-delivery, materially misdescribed items, suspected counterfeits, authentication issues, and suspicious behavior. Support can pause seller payout while the case is reviewed."
+          )
+        },
+        {
+          title: langText("Per chi vende", "For sellers"),
+          body: langText(
+            "Il venditore è protetto da contestazioni infondate tramite tracking, storico ordine, prove fotografiche, messaggi e verifiche interne. I casi vengono gestiti dentro ticket tracciabili.",
+            "Sellers are protected from unfounded disputes through tracking, order history, photo evidence, messages, and internal checks. Cases are handled through traceable tickets."
+          )
+        },
+        {
+          title: langText("Autenticazione e margine di errore", "Authentication and margin of error"),
+          body: langText(
+            "L'autenticazione viene svolta con cura, ma nessun controllo può essere dichiarato infallibile al 100%. Se emerge un errore, IRIS tutela entrambe le parti secondo dati, prove e stato dell'ordine.",
+            "Authentication is performed carefully, but no review can be declared 100% infallible. If an error emerges, IRIS protects both parties based on data, evidence, and order status."
+          )
+        }
+      ]
+    },
+    "anti-fraud": {
+      title: langText("Anti-truffa", "Anti-fraud"),
+      subtitle: langText("Controlli, segnalazioni e moderazione contro comportamenti rischiosi.", "Checks, reports, and moderation against risky behavior."),
+      sections: [
+        {
+          title: langText("Segnali controllati", "Signals reviewed"),
+          body: langText(
+            "IRIS monitora annunci incoerenti, messaggi sospetti, tentativi di pagamento fuori piattaforma, dati account anomali e segnalazioni degli utenti.",
+            "IRIS monitors inconsistent listings, suspicious messages, attempts to pay outside the platform, anomalous account data, and user reports."
+          )
+        },
+        {
+          title: langText("Canali protetti", "Protected channels"),
+          body: langText(
+            "Acquisti, offerte, chat e richieste di supporto devono restare dentro IRIS. Portare pagamento o comunicazioni fuori piattaforma riduce le tutele disponibili.",
+            "Purchases, offers, chat, and support requests should remain inside IRIS. Moving payment or communication off-platform reduces available protections."
+          )
+        }
+      ]
+    },
+    "seller-guide": {
+      title: langText("Come funziona vendere", "How selling works"),
+      subtitle: langText("Dal caricamento dell'articolo al payout finale.", "From listing upload to final payout."),
+      sections: [
+        {
+          title: langText("Annuncio", "Listing"),
+          body: langText(
+            "Il seller carica foto, brand, categoria, condizioni, prezzo, taglia e dettagli. IRIS può richiedere informazioni aggiuntive quando il valore o il rischio dell'articolo lo richiede.",
+            "The seller uploads photos, brand, category, condition, price, size, and details. IRIS may request additional information when item value or risk requires it."
+          )
+        },
+        {
+          title: langText("Vendita e spedizione", "Sale and shipment"),
+          body: langText(
+            "Dopo il pagamento, il seller spedisce secondo le istruzioni ricevute. Tracking, messaggi e stato ordine restano visibili nell'area venditore.",
+            "After payment, the seller ships according to the received instructions. Tracking, messages, and order status remain visible in the seller area."
+          )
+        },
+        {
+          title: langText("Concierge", "Concierge"),
+          body: langText(
+            "Con Concierge, IRIS può aiutare con pricing, presentazione, gestione del processo e supporto operativo. La commissione viene applicata solo al venduto.",
+            "With Concierge, IRIS can support pricing, presentation, process management, and operations. The commission applies only when the item sells."
+          )
+        }
+      ]
+    },
+    "legal-business": {
+      title: langText("Business e legale", "Business and Legal"),
+      subtitle: langText("Contatti dedicati per collaborazioni, richieste legali e comunicazioni formali.", "Dedicated contacts for partnerships, legal requests, and formal communications."),
+      sections: [
+        {
+          title: langText("Collaborazioni e brand", "Partnerships and brands"),
+          body: langText(
+            "Per partnership, seller professionali, richieste stampa o collaborazioni commerciali, contatta IRIS indicando azienda, referente, sito e motivo della richiesta.",
+            "For partnerships, professional sellers, press requests, or commercial collaborations, contact IRIS with company, contact person, website, and request reason."
+          )
+        },
+        {
+          title: langText("Richieste legali", "Legal requests"),
+          body: langText(
+            "Per comunicazioni formali o legali usa i canali indicati nei Termini e includi riferimenti precisi a ordine, annuncio, account o contenuto interessato.",
+            "For formal or legal communications, use the channels indicated in the Terms and include precise references to the relevant order, listing, account, or content."
           )
         }
       ]
@@ -18769,15 +18890,64 @@
     updateMeta("IRIS - " + product.brand + " " + product.name, product.desc.substring(0, 160));
   };
 
+  function irisFooterShop(mode) {
+    showPage("buy");
+    showBuyView("shop");
+    if (mode === "recent" && typeof applyShopPreset === "function") {
+      applyShopPreset("recent", "recent");
+    }
+    if (mode === "designers" && typeof focusFilterPanel === "function") {
+      setTimeout(function () { focusFilterPanel("f-brands"); }, 80);
+    }
+  }
+
+  function irisFooterSell(mode) {
+    showPage("sell");
+    if (mode === "concierge") {
+      setTimeout(function () {
+        if (typeof openSellFormMode === "function") {
+          openSellFormMode("concierge");
+          return;
+        }
+        const concierge = qs("#concierge-form");
+        if (concierge && typeof concierge.scrollIntoView === "function") {
+          concierge.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 120);
+    }
+  }
+
+  function irisFooterHelp(section) {
+    showPage("buy");
+    showBuyView("profile");
+    setProfileArea("account", section || "help_help");
+  }
+
+  window.irisFooterShop = irisFooterShop;
+  window.irisFooterSell = irisFooterSell;
+  window.irisFooterHelp = irisFooterHelp;
+
   footerHTML = function () {
-    return `<footer class="site-footer">
-      <div class="footer-grid">
-        <div><div class="footer-brand">IRIS</div><div class="footer-desc">${langText("Il marketplace italiano per la moda di lusso. Compra e vendi pezzi firmati autenticati.", "The Italian marketplace for luxury fashion. Buy and sell authenticated designer pieces.")}</div></div>
-        <div><div class="footer-col-title">${langText("Marketplace", "Marketplace")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();showBuyView('shop')">${langText("Shop", "Shop")}</a></li><li><a href="#" onclick="event.preventDefault();showPage('sell')">${langText("Vendi", "Sell")}</a></li><li><a href="#" onclick="event.preventDefault();showBuyView('profile');setProfileArea('buyer','orders')">${langText("Area acquirente", "Buyer area")}</a></li><li><a href="#" onclick="event.preventDefault();showBuyView('profile');setProfileArea('seller','dashboard')">${langText("Area venditore", "Seller area")}</a></li></ul></div>
-        <div><div class="footer-col-title">${langText("Fiducia", "Trust")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();openStatic('trust-authentication')">${langText("Autenticazione", "Authentication")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('buyer-protection')">${langText("Protezione acquirente", "Buyer Protection")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('seller-protection')">${langText("Protezione venditore", "Seller Protection")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('community-guidelines')">${langText("Linee guida", "Community Guidelines")}</a></li></ul></div>
-        <div><div class="footer-col-title">${langText("Normative", "Policies")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();openStatic('shipping-policy')">${langText("Politica spedizioni", "Shipping Policy")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('refund-policy')">${langText("Resi e rimborsi", "Refund / Return Policy")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('prohibited-items')">${langText("Articoli vietati", "Prohibited Items")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a></li></ul></div>
+    return `<footer class="site-footer irisx-footer-redesign">
+      <div class="footer-grid irisx-footer-grid">
+        <div class="irisx-footer-brand-block">
+          <div class="footer-brand">IRIS</div>
+          <div class="footer-desc">${langText("Il marketplace italiano per la moda di lusso. Compra e vendi pezzi firmati con autenticazione e protezione IRIS.", "The Italian marketplace for luxury fashion. Buy and sell designer pieces with IRIS authentication and protection.")}</div>
+          <div class="irisx-store-badges" aria-label="${escapeHtml(langText("Scarica l'app IRIS", "Download the IRIS app"))}">
+            <a class="irisx-store-badge" href="#" onclick="event.preventDefault()"><span>${langText("Scarica su", "Download on")}</span><strong>App Store</strong></a>
+            <a class="irisx-store-badge" href="#" onclick="event.preventDefault()"><span>${langText("Disponibile su", "Get it on")}</span><strong>Google Play</strong></a>
+          </div>
+        </div>
+        <div><div class="footer-col-title">${langText("Compra", "Buy")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();irisFooterShop('shop')">Shop</a></li><li><a href="#" onclick="event.preventDefault();irisFooterShop('recent')">${langText("Nuovi arrivi", "New in")}</a></li><li><a href="#" onclick="event.preventDefault();irisFooterShop('designers')">Brand</a></li><li><a href="#" onclick="event.preventDefault();openStatic('howto')">${langText("Come funziona comprare", "How buying works")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('refund-policy')">${langText("Resi e rimborsi", "Returns and refunds")}</a></li></ul></div>
+        <div><div class="footer-col-title">${langText("Vendi", "Sell")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();irisFooterSell('start')">${langText("Vendi con IRIS", "Sell with IRIS")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('seller-guide')">${langText("Come funziona vendere", "How selling works")}</a></li><li><a href="#" onclick="event.preventDefault();irisFooterSell('concierge')">Concierge</a></li><li><a href="#" onclick="event.preventDefault();openStatic('seller-protection')">${langText("Protezione venditore", "Seller protection")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('community-guidelines')">${langText("Regole annunci", "Listing rules")}</a></li></ul></div>
+        <div><div class="footer-col-title">${langText("Fiducia", "Trust")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();openStatic('trust-authentication')">${langText("Autenticazione", "Authentication")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('secure-payments')">${langText("Pagamenti sicuri", "Secure payments")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('iris-protection')">${langText("Protezione IRIS", "IRIS protection")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('anti-fraud')">${langText("Anti-truffa", "Anti-fraud")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('prohibited-items')">${langText("Articoli vietati", "Prohibited items")}</a></li></ul></div>
+        <div><div class="footer-col-title">${langText("Assistenza", "Support")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();irisFooterHelp('help_help')">${langText("Centro assistenza", "Help center")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('contact')">${langText("Contattaci", "Contact us")}</a></li><li><a href="#" onclick="event.preventDefault();irisFooterHelp('help_contact')">${langText("Segnala problema", "Report an issue")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('legal-business')">Business</a></li><li><a href="#" onclick="event.preventDefault();openStatic('legal-business')">${langText("Legale", "Legal")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('terms')">${t("footer_terms")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('cookie')">${t("footer_cookie")}</a></li></ul></div>
       </div>
-      <div class="footer-bottom"><div class="footer-copy">© 2026 IRIS S.r.l.</div><div class="footer-legal"><a href="#" onclick="event.preventDefault();openStatic('terms')">${t("footer_terms")}</a><a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a><a href="#" onclick="event.preventDefault();openStatic('community-guidelines')">${langText("Linee guida", "Community Guidelines")}</a></div></div>
+      <div class="irisx-footer-disclaimers">
+        <p>${langText("IRIS non è affiliata, autorizzata o sponsorizzata dai brand presenti nel marketplace. I marchi citati appartengono ai rispettivi titolari e vengono usati solo per identificare gli articoli.", "IRIS is not affiliated with, authorized, or sponsored by the brands listed in the marketplace. Mentioned trademarks belong to their respective owners and are used only to identify items.")}</p>
+        <p>${langText("L'autenticazione viene svolta con cura, ma può avere margini di errore: in caso di problemi documentati, IRIS tutela acquirente e venditore attraverso ticket, verifiche e gestione del payout.", "Authentication is carried out carefully, but can have a margin of error: when documented issues arise, IRIS protects buyer and seller through tickets, checks, and payout management.")}</p>
+      </div>
+      <div class="footer-bottom"><div class="footer-copy">© 2026 IRIS S.r.l.</div><div class="footer-legal"><a href="#" onclick="event.preventDefault();openStatic('terms')">${t("footer_terms")}</a><a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a><a href="#" onclick="event.preventDefault();openStatic('cookie')">${t("footer_cookie")}</a><a href="#" onclick="event.preventDefault();openStatic('community-guidelines')">${langText("Linee guida", "Guidelines")}</a></div></div>
     </footer>`;
   };
 
@@ -18851,12 +19021,21 @@
       if (question && answer && question.textContent.indexOf("Quanto costa") > -1) {
         answer.textContent = `IRIS applica ${selfFee}% per il percorso autonomo e ${conciergeFee}% per il percorso Concierge. La pubblicazione resta gratuita.`;
       }
+      if (question && answer && question.textContent.indexOf("Posso restituire") > -1) {
+        answer.textContent = "Il diritto di recesso si applica agli acquisti da seller professionisti con partita IVA nei termini previsti dalla normativa. Per venditori privati non c'è reso automatico per ripensamento, ma resta attiva la protezione IRIS su falso, non conformità, mancata consegna o frode.";
+      }
     });
     qsa("#modal-terms .sm-section").forEach(function (section) {
       const heading = qs("h3", section);
       const paragraph = qs("p", section);
       if (heading && paragraph && heading.textContent.indexOf("Commissioni") > -1) {
         paragraph.textContent = `Il venditore paga ${selfFee}% sul percorso autonomo e ${conciergeFee}% sul servizio Concierge. La pubblicazione è gratuita.`;
+      }
+      if (heading && paragraph && heading.textContent.indexOf("Resi") > -1) {
+        paragraph.textContent = "Per acquisti da seller professionisti con partita IVA si applicano i diritti previsti dalla normativa consumatori. Per acquisti da venditori privati non è previsto reso automatico per ripensamento; restano valide le tutele IRIS in caso di articolo falso, non conforme, non consegnato o condotta fraudolenta.";
+      }
+      if (heading && paragraph && heading.textContent.indexOf("Diritto di recesso") > -1) {
+        paragraph.textContent = "Il diritto di recesso si applica quando previsto dalla normativa, in particolare negli acquisti da venditori professionali. Nei rapporti tra privati IRIS gestisce dispute e rimborsi tramite protezione piattaforma, verifiche e ticket documentati.";
       }
     });
     updateFee();

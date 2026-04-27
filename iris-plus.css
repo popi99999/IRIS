@@ -12424,3 +12424,475 @@ body.irisx-luxury.irisx-white-theme .sell-path--featured .sp-commission-label {
     padding-bottom: calc(90px + env(safe-area-inset-bottom)) !important;
   }
 }
+
+/* IRIS footer + editorial product cards */
+body.irisx-luxury #shop-view .container,
+body.irisx-luxury.irisx-white-theme #shop-view .container {
+  max-width: min(1640px, calc(100vw - 56px)) !important;
+}
+
+body.irisx-luxury #shop-view .shop-main,
+body.irisx-luxury.irisx-white-theme #shop-view .shop-main {
+  padding-left: clamp(24px, 3.6vw, 58px) !important;
+  padding-right: clamp(24px, 3.6vw, 58px) !important;
+}
+
+body.irisx-luxury #grid,
+body.irisx-luxury #favGrid,
+body.irisx-luxury .irisx-seller-listings .pgrid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: clamp(34px, 4vw, 72px) clamp(28px, 3.4vw, 58px) !important;
+  align-items: start !important;
+  width: 100% !important;
+}
+
+body.irisx-luxury #grid .pc,
+body.irisx-luxury #favGrid .pc,
+body.irisx-luxury .irisx-seller-listings .pc,
+body.irisx-luxury.irisx-white-theme #grid .pc,
+body.irisx-luxury.irisx-white-theme #favGrid .pc,
+body.irisx-luxury.irisx-white-theme .irisx-seller-listings .pc {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  padding: 0 !important;
+  color: #2d292c !important;
+}
+
+body.irisx-luxury #grid .pc:hover,
+body.irisx-luxury #favGrid .pc:hover,
+body.irisx-luxury .irisx-seller-listings .pc:hover,
+body.irisx-luxury.irisx-white-theme #grid .pc:hover,
+body.irisx-luxury.irisx-white-theme #favGrid .pc:hover,
+body.irisx-luxury.irisx-white-theme .irisx-seller-listings .pc:hover {
+  transform: translateY(-2px) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body.irisx-luxury #grid .pi,
+body.irisx-luxury #favGrid .pi,
+body.irisx-luxury .irisx-seller-listings .pi,
+body.irisx-luxury.irisx-white-theme #grid .pi,
+body.irisx-luxury.irisx-white-theme #favGrid .pi,
+body.irisx-luxury.irisx-white-theme .irisx-seller-listings .pi {
+  aspect-ratio: 1.1 / 1 !important;
+  background: #fff !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+}
+
+body.irisx-luxury #grid .pi-bg,
+body.irisx-luxury #favGrid .pi-bg,
+body.irisx-luxury .irisx-seller-listings .pi-bg,
+body.irisx-luxury.irisx-white-theme #grid .pi-bg,
+body.irisx-luxury.irisx-white-theme #favGrid .pi-bg,
+body.irisx-luxury.irisx-white-theme .irisx-seller-listings .pi-bg {
+  background: #fff !important;
+  transform: none !important;
+}
+
+body.irisx-luxury #grid .irisx-card-image,
+body.irisx-luxury #favGrid .irisx-card-image,
+body.irisx-luxury .irisx-seller-listings .irisx-card-image,
+body.irisx-luxury.irisx-white-theme #grid .irisx-card-image,
+body.irisx-luxury.irisx-white-theme #favGrid .irisx-card-image,
+body.irisx-luxury.irisx-white-theme .irisx-seller-listings .irisx-card-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  padding: clamp(8px, 1.4vw, 22px) !important;
+  filter: none !important;
+}
+
+body.irisx-luxury #grid .pc:hover .irisx-card-image,
+body.irisx-luxury #favGrid .pc:hover .irisx-card-image,
+body.irisx-luxury .irisx-seller-listings .pc:hover .irisx-card-image {
+  transform: scale(1.015) !important;
+}
+
+body.irisx-luxury #grid .pi-tags,
+body.irisx-luxury #favGrid .pi-tags,
+body.irisx-luxury .irisx-seller-listings .pi-tags {
+  display: none !important;
+}
+
+body.irisx-luxury #grid .pi-emoji,
+body.irisx-luxury #favGrid .pi-emoji,
+body.irisx-luxury .irisx-seller-listings .pi-emoji,
+body.irisx-luxury.irisx-white-theme #grid .pi-emoji,
+body.irisx-luxury.irisx-white-theme #favGrid .pi-emoji,
+body.irisx-luxury.irisx-white-theme .irisx-seller-listings .pi-emoji {
+  font-size: clamp(7.25rem, 12vw, 13rem) !important;
+  opacity: 0.72 !important;
+  filter: none !important;
+}
+
+body.irisx-luxury #grid .pinfo,
+body.irisx-luxury #favGrid .pinfo,
+body.irisx-luxury .irisx-seller-listings .pinfo,
+body.irisx-luxury.irisx-white-theme #grid .pinfo,
+body.irisx-luxury.irisx-white-theme #favGrid .pinfo,
+body.irisx-luxury.irisx-white-theme .irisx-seller-listings .pinfo {
+  padding: clamp(14px, 1.6vw, 22px) 0 0 !important;
+  background: transparent !important;
+}
+
+body.irisx-luxury #grid .p-brand,
+body.irisx-luxury #favGrid .p-brand,
+body.irisx-luxury .irisx-seller-listings .p-brand,
+body.irisx-luxury.irisx-white-theme #grid .p-brand,
+body.irisx-luxury.irisx-white-theme #favGrid .p-brand,
+body.irisx-luxury.irisx-white-theme .irisx-seller-listings .p-brand {
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif !important;
+  font-size: clamp(1.55rem, 2.05vw, 2.25rem) !important;
+  line-height: 1.02 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: #2c2929 !important;
+  opacity: 1 !important;
+  margin: 0 0 0.35rem !important;
+  white-space: normal !important;
+}
+
+body.irisx-luxury #grid .p-name,
+body.irisx-luxury #favGrid .p-name,
+body.irisx-luxury .irisx-seller-listings .p-name,
+body.irisx-luxury.irisx-white-theme #grid .p-name,
+body.irisx-luxury.irisx-white-theme #favGrid .p-name,
+body.irisx-luxury.irisx-white-theme .irisx-seller-listings .p-name {
+  font-family: 'Outfit', sans-serif !important;
+  font-size: clamp(1rem, 1.18vw, 1.22rem) !important;
+  font-weight: 300 !important;
+  line-height: 1.45 !important;
+  letter-spacing: 0 !important;
+  color: #504a4f !important;
+  opacity: 1 !important;
+  margin: 0 0 1rem !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+body.irisx-luxury #grid .p-meta,
+body.irisx-luxury #grid .p-orig,
+body.irisx-luxury #grid .p-disc,
+body.irisx-luxury #favGrid .p-meta,
+body.irisx-luxury #favGrid .p-orig,
+body.irisx-luxury #favGrid .p-disc,
+body.irisx-luxury .irisx-seller-listings .p-meta,
+body.irisx-luxury .irisx-seller-listings .p-orig,
+body.irisx-luxury .irisx-seller-listings .p-disc {
+  display: none !important;
+}
+
+body.irisx-luxury #grid .p-footer,
+body.irisx-luxury #favGrid .p-footer,
+body.irisx-luxury .irisx-seller-listings .p-footer,
+body.irisx-luxury.irisx-white-theme #grid .p-footer,
+body.irisx-luxury.irisx-white-theme #favGrid .p-footer,
+body.irisx-luxury.irisx-white-theme .irisx-seller-listings .p-footer {
+  display: block !important;
+  margin: 0 !important;
+}
+
+body.irisx-luxury #grid .p-price,
+body.irisx-luxury #favGrid .p-price,
+body.irisx-luxury .irisx-seller-listings .p-price,
+body.irisx-luxury.irisx-white-theme #grid .p-price,
+body.irisx-luxury.irisx-white-theme #favGrid .p-price,
+body.irisx-luxury.irisx-white-theme .irisx-seller-listings .p-price {
+  font-family: 'Outfit', sans-serif !important;
+  font-size: clamp(1rem, 1.08vw, 1.18rem) !important;
+  font-weight: 500 !important;
+  line-height: 1.3 !important;
+  letter-spacing: 0 !important;
+  color: #2f2b2f !important;
+  display: inline-block !important;
+}
+
+body.irisx-luxury #grid .pc-heart,
+body.irisx-luxury #favGrid .pc-heart,
+body.irisx-luxury .irisx-seller-listings .pc-heart,
+body.irisx-luxury.irisx-white-theme #grid .pc-heart,
+body.irisx-luxury.irisx-white-theme #favGrid .pc-heart,
+body.irisx-luxury.irisx-white-theme .irisx-seller-listings .pc-heart {
+  top: 12px !important;
+  right: 12px !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: rgba(255,255,255,.86) !important;
+  border: 1px solid rgba(45,41,44,.1) !important;
+  color: #3b3439 !important;
+  box-shadow: 0 10px 24px rgba(45,41,44,.08) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+body.irisx-luxury #grid .pc-heart.liked,
+body.irisx-luxury #favGrid .pc-heart.liked,
+body.irisx-luxury .irisx-seller-listings .pc-heart.liked {
+  color: #F1324F !important;
+  text-shadow: none !important;
+}
+
+body.irisx-luxury #grid .pc-trust-badge,
+body.irisx-luxury #grid .pc-vacation-badge,
+body.irisx-luxury #favGrid .pc-trust-badge,
+body.irisx-luxury #favGrid .pc-vacation-badge,
+body.irisx-luxury .irisx-seller-listings .pc-trust-badge,
+body.irisx-luxury .irisx-seller-listings .pc-vacation-badge {
+  top: 12px !important;
+  left: 12px !important;
+  right: auto !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.86) !important;
+  border: 1px solid rgba(45,41,44,.1) !important;
+  color: #564b51 !important;
+  box-shadow: none !important;
+  letter-spacing: 0.08em !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign {
+  margin-top: clamp(4rem, 8vw, 7rem) !important;
+  padding: clamp(4rem, 7vw, 6rem) 0 clamp(2.4rem, 4vw, 3.4rem) !important;
+  background: #fff6f6 !important;
+  border-top: 1px solid rgba(241,50,79,.12) !important;
+  color: #6c6470 !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign::before {
+  background: linear-gradient(90deg, transparent, rgba(241,50,79,.2), transparent) !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-grid {
+  max-width: min(1680px, calc(100vw - 96px)) !important;
+  display: grid !important;
+  grid-template-columns: minmax(260px, 1.35fr) repeat(4, minmax(132px, 1fr)) !important;
+  gap: clamp(2rem, 3.8vw, 5rem) clamp(1.8rem, 3vw, 4rem) !important;
+  align-items: start !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-brand-block {
+  max-width: 360px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-brand {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: clamp(2rem, 3vw, 3rem) !important;
+  font-style: italic !important;
+  line-height: 1 !important;
+  letter-spacing: 0.34em !important;
+  color: #ff927b !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  margin-bottom: 1.45rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-desc {
+  max-width: 31ch !important;
+  color: #746b78 !important;
+  font-size: 1rem !important;
+  line-height: 1.8 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-col-title {
+  color: #ff9aa7 !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.44em !important;
+  text-transform: uppercase !important;
+  margin: 0 0 1.5rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-links {
+  display: grid !important;
+  gap: 0.92rem !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  list-style: none !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-links li {
+  margin: 0 !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-links a,
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-legal a {
+  color: #716978 !important;
+  font-size: 0.98rem !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0 !important;
+  text-decoration: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-links a:hover,
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-legal a:hover {
+  color: #F1324F !important;
+  background: transparent !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.65rem !important;
+  margin-top: 1.6rem !important;
+  max-width: 320px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge {
+  display: grid !important;
+  gap: 0.08rem !important;
+  align-content: center !important;
+  min-height: 52px !important;
+  border-radius: 8px !important;
+  background: #181719 !important;
+  border: 1px solid rgba(24,23,25,.18) !important;
+  color: #fff !important;
+  padding: 0.62rem 0.82rem !important;
+  text-decoration: none !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge span {
+  font-size: 0.56rem !important;
+  line-height: 1 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: rgba(255,255,255,.72) !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge strong {
+  font-size: 0.95rem !important;
+  line-height: 1.05 !important;
+  color: #fff !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-disclaimers {
+  max-width: min(1680px, calc(100vw - 96px)) !important;
+  margin: clamp(3rem, 5vw, 4.6rem) auto 0 !important;
+  padding-top: 1.45rem !important;
+  border-top: 1px solid rgba(241,50,79,.12) !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 1rem 2.5rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-disclaimers p {
+  margin: 0 !important;
+  color: #817985 !important;
+  font-size: 0.78rem !important;
+  line-height: 1.65 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-bottom {
+  max-width: min(1680px, calc(100vw - 96px)) !important;
+  margin: 2.4rem auto 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 1.5rem !important;
+  border-top: 0 !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-copy,
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-legal a {
+  color: #746b78 !important;
+  font-size: 0.78rem !important;
+  letter-spacing: 0.12em !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-legal {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  gap: 1rem 1.4rem !important;
+}
+
+@media (max-width: 1180px) {
+  body.irisx-luxury #grid,
+  body.irisx-luxury #favGrid,
+  body.irisx-luxury .irisx-seller-listings .pgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-grid {
+    grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(150px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body.irisx-luxury #shop-view .container,
+  body.irisx-luxury.irisx-white-theme #shop-view .container {
+    max-width: 100% !important;
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  body.irisx-luxury #grid,
+  body.irisx-luxury #favGrid,
+  body.irisx-luxury .irisx-seller-listings .pgrid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+
+  body.irisx-luxury #grid .pi,
+  body.irisx-luxury #favGrid .pi,
+  body.irisx-luxury .irisx-seller-listings .pi {
+    aspect-ratio: 1.04 / 1 !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign {
+    padding: 3.25rem 0 calc(7rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-grid,
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-disclaimers,
+  body.irisx-luxury .site-footer.irisx-footer-redesign .footer-bottom {
+    max-width: calc(100vw - 36px) !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2.25rem !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-brand-block {
+    max-width: none !important;
+    text-align: left !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign .footer-col-title,
+  body.irisx-luxury .site-footer.irisx-footer-redesign .footer-links,
+  body.irisx-luxury .site-footer.irisx-footer-redesign .footer-links li {
+    text-align: left !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-disclaimers {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign .footer-bottom {
+    display: grid !important;
+    justify-content: stretch !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign .footer-legal {
+    justify-content: flex-start !important;
+  }
+}

@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="./icons/icon-512.png">
 <link rel="manifest" href="./manifest.json?v=20260417094815">
-<link rel="stylesheet" href="./iris-plus.css?v=20260427160000">
+<link rel="stylesheet" href="./iris-plus.css?v=20260427231500">
 <title>IRIS — Luxury Fashion Marketplace</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Il marketplace italiano per la moda di lusso.","potentialAction":{"@type":"SearchAction","target":"https://popi99999.github.io/IRIS/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Luxury Fashion Marketplace italiano"}</script>
@@ -2396,17 +2396,44 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
     </div>
 	    <div class="tn-locale-menu" id="tnLocaleMenu"></div>
 	    <div class="tn-profile-menu" id="tnProfileMenu">
+	      <div class="tn-menu-head">
+	        <div class="tn-menu-logo">IRIS</div>
+	        <div class="tn-menu-copy">Account, acquisti, vendite e supporto in un solo menu.</div>
+	      </div>
 	      <div class="tn-menu-section">
-	        <button class="tn-menu-link" id="tnMenuAccountBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','overview')" aria-label="Apri il mio account">Il mio account</button>
-	        <button class="tn-menu-link" id="tnMenuOrdersBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('buyer','orders')" aria-label="Apri i miei ordini">I miei ordini</button>
-	        <button class="tn-menu-link" id="tnMenuSalesBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('seller','dashboard')" aria-label="Apri le mie vendite">Le mie vendite</button>
+	        <button class="tn-menu-link tn-menu-link--strong" id="tnMenuAccountBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','overview')" aria-label="Visualizza il mio profilo"><span>Visualizza il mio profilo</span><em>Account</em></button>
+	        <button class="tn-menu-link" id="tnMenuSettingsBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','settings_profile')" aria-label="Apri impostazioni account"><span>Impostazioni account</span></button>
 	      </div>
 	      <div class="tn-menu-divider"></div>
 	      <div class="tn-menu-section">
-	        <button class="tn-menu-link" id="tnMenuBillingBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','settings_account')" aria-label="Apri indirizzi e pagamenti">Indirizzi e pagamenti</button>
-	        <button class="tn-menu-link" id="tnMenuSavedSearchBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','shopping_saved_searches')" aria-label="Apri ricerche salvate e alert">Ricerche salvate e alert</button>
-	        <button class="tn-menu-link" id="tnMenuSettingsBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','settings_profile')" aria-label="Apri impostazioni">Impostazioni</button>
-	        <button class="tn-menu-link" id="tnMenuSupportBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','help_contact')" aria-label="Apri assistenza"><span class="irisx-support-link-label"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 16 0"/><path d="M5.5 11.5h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1.2A1.8 1.8 0 0 1 3.5 15.7v-2.4a1.8 1.8 0 0 1 2-1.8Z"/><path d="M18.5 11.5h-1a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1.2a1.8 1.8 0 0 0 1.8-1.8v-2.4a1.8 1.8 0 0 0-2-1.8Z"/><path d="M8.5 17.5v.5a2 2 0 0 0 2 2H12"/><path d="M12 20h1.6a1.4 1.4 0 1 0 0-2.8H12"/></svg><span>Assistenza</span></span></button>
+	        <div class="tn-menu-label">Preferenze</div>
+	        <button class="tn-menu-link" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','shopping_preferences')"><span>Preferenze shopping</span></button>
+	        <button class="tn-menu-link" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','shopping_sizes')"><span>Le mie taglie</span></button>
+	      </div>
+	      <div class="tn-menu-divider"></div>
+	      <div class="tn-menu-section">
+	        <div class="tn-menu-label">Acquisto</div>
+	        <button class="tn-menu-link" id="tnMenuOrdersBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('buyer','orders')" aria-label="Apri i miei ordini"><span>Ordini</span></button>
+	        <button class="tn-menu-link" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('buyer','offers')"><span>Offerte di acquisto</span></button>
+	        <button class="tn-menu-link" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('buyer','wishlist')"><span>Preferiti</span></button>
+	        <button class="tn-menu-link" id="tnMenuSavedSearchBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','shopping_saved_searches')" aria-label="Apri ricerche salvate e alert"><span>Ricerche salvate</span></button>
+	      </div>
+	      <div class="tn-menu-divider"></div>
+	      <div class="tn-menu-section">
+	        <div class="tn-menu-label">Vendita</div>
+	        <button class="tn-menu-link" id="tnMenuSalesBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('seller','dashboard')" aria-label="Apri le mie vendite"><span>Le mie vendite</span></button>
+	        <button class="tn-menu-link" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('seller','active')"><span>Annunci</span></button>
+	        <button class="tn-menu-link" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('seller','offers')"><span>Offerte di vendita</span></button>
+	        <button class="tn-menu-link" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('seller','sold')"><span>Vendite</span></button>
+	        <button class="tn-menu-link" id="tnMenuBillingBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','settings_payment')" aria-label="Apri pagamenti e payout"><span>Ricevi il tuo pagamento</span></button>
+	        <button class="tn-menu-link" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('account','selling_vacation')"><span>Modalità vacanze</span></button>
+	      </div>
+	      <div class="tn-menu-divider"></div>
+	      <div class="tn-menu-section">
+	        <div class="tn-menu-label">Supporto</div>
+	        <button class="tn-menu-link" onclick="closeProfileMenu();openStatic('commissions-fees')"><span>Commissioni, spedizioni e FAQ</span></button>
+	        <button class="tn-menu-link" onclick="closeProfileMenu();openStatic('contact')"><span>Contattaci</span></button>
+	        <button class="tn-menu-link" id="tnMenuSupportBtn" onclick="closeProfileMenu();openStatic('report-issue')" aria-label="Segnala un problema"><span class="irisx-support-link-label"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 16 0"/><path d="M5.5 11.5h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1.2A1.8 1.8 0 0 1 3.5 15.7v-2.4a1.8 1.8 0 0 1 2-1.8Z"/><path d="M18.5 11.5h-1a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1.2a1.8 1.8 0 0 0 1.8-1.8v-2.4a1.8 1.8 0 0 0-2-1.8Z"/><path d="M8.5 17.5v.5a2 2 0 0 0 2 2H12"/><path d="M12 20h1.6a1.4 1.4 0 1 0 0-2.8H12"/></svg><span>Segnala un problema</span></span></button>
 	      </div>
 	      <div class="tn-menu-divider"></div>
 	      <div class="tn-menu-section">
@@ -3680,7 +3707,7 @@ function updateMeta(title,desc){
 /* ═══════ PWA ═══════ */
 let deferredPrompt=null;
 if('serviceWorker' in navigator && window.location.protocol !== 'file:'){
-  navigator.serviceWorker.register('./sw.js?v=20260427213000').then((registration)=>{
+  navigator.serviceWorker.register('./sw.js?v=20260427231500').then((registration)=>{
     if (registration.waiting) {
       console.info('IRIS service worker update ready.');
     }
@@ -3703,9 +3730,9 @@ function dismissPwa(){document.getElementById('pwaBanner').style.display='none';
 setTimeout(()=>renderFooters(),500);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./supabase-config.js?v=20260427213000"></script>
-<script src="./iris-i18n-config.js?v=20260427213000"></script>
-<script src="./iris-plus.js?v=20260427213000"></script>
+<script src="./supabase-config.js?v=20260427223000"></script>
+<script src="./iris-i18n-config.js?v=20260427223000"></script>
+<script src="./iris-plus.js?v=20260427231500"></script>
 <script>
 /* ═══ OFFER FLOW BRIDGE ═══ */
 if (window.__irisModernOfferFlow) {

@@ -13701,3 +13701,419 @@ body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card span {
     max-width: min(76vw, 260px) !important;
   }
 }
+
+/* Profile menu, support forms, and readable account workspace */
+body.irisx-luxury .tn-profile-menu {
+  width: min(480px, calc(100vw - 28px)) !important;
+  max-height: calc(100vh - var(--iris-nav-height) - 20px) !important;
+  overflow-y: auto !important;
+  padding: 18px !important;
+  border-radius: 6px !important;
+  z-index: 1500 !important;
+}
+
+body.irisx-luxury .tn-profile-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+body.irisx-luxury .tn-profile-menu::-webkit-scrollbar-thumb {
+  background: rgba(241, 50, 79, 0.22);
+  border-radius: 999px;
+}
+
+body.irisx-luxury .tn-menu-head {
+  display: grid;
+  gap: 7px;
+  padding: 4px 2px 14px;
+}
+
+body.irisx-luxury .tn-menu-logo {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 2.1rem;
+  line-height: 1;
+  color: #111827;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .tn-menu-copy {
+  color: #5f5663;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .tn-menu-label {
+  color: #7b7280;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0 !important;
+  padding: 4px 2px;
+}
+
+body.irisx-luxury .tn-menu-section {
+  gap: 8px !important;
+}
+
+body.irisx-luxury .tn-menu-link {
+  min-height: 46px !important;
+  gap: 14px !important;
+  padding: 11px 12px !important;
+  border-radius: 6px !important;
+  font-size: 0.95rem !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .tn-menu-link span {
+  min-width: 0;
+}
+
+body.irisx-luxury .tn-menu-link em {
+  flex: 0 0 auto;
+  font-style: normal;
+  font-size: 0.78rem;
+  color: #f1324f;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .tn-menu-link--strong {
+  background: rgba(241, 50, 79, 0.08) !important;
+  border-color: rgba(241, 50, 79, 0.2) !important;
+  color: #111827 !important;
+}
+
+body.irisx-luxury.irisx-white-theme .tn-profile-menu,
+body.irisx-luxury .tn-profile-menu {
+  background: #fff !important;
+  color: #111827 !important;
+  border-color: rgba(241, 50, 79, 0.18) !important;
+  box-shadow: 0 28px 80px rgba(17, 24, 39, 0.16) !important;
+}
+
+body.irisx-luxury.irisx-white-theme .tn-menu-divider,
+body.irisx-luxury .tn-menu-divider {
+  background: rgba(17, 24, 39, 0.1) !important;
+  margin: 13px 0 !important;
+}
+
+body.irisx-luxury.irisx-white-theme .tn-menu-link,
+body.irisx-luxury .tn-profile-menu .tn-menu-link {
+  color: #111827 !important;
+  background: #fff !important;
+  border-color: rgba(17, 24, 39, 0.08) !important;
+  font-weight: 650 !important;
+}
+
+body.irisx-luxury.irisx-white-theme .tn-menu-link:hover,
+body.irisx-luxury.irisx-white-theme .tn-menu-link:focus-visible,
+body.irisx-luxury .tn-profile-menu .tn-menu-link:hover,
+body.irisx-luxury .tn-profile-menu .tn-menu-link:focus-visible {
+  color: #f1324f !important;
+  background: rgba(241, 50, 79, 0.08) !important;
+  border-color: rgba(241, 50, 79, 0.26) !important;
+  box-shadow: none !important;
+}
+
+.irisx-policy-faq {
+  display: grid;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.irisx-policy-faq h3 {
+  margin: 0 0 4px;
+  color: #111827;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  letter-spacing: 0 !important;
+}
+
+.irisx-policy-faq-item {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid rgba(241, 50, 79, 0.18);
+  border-radius: 6px;
+  background: #fffafb;
+}
+
+.irisx-policy-faq-item strong {
+  color: #111827;
+  font-size: 1.02rem;
+  letter-spacing: 0 !important;
+}
+
+.irisx-policy-faq-item p {
+  margin: 0;
+  color: #4b4452;
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.irisx-support-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.irisx-support-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.irisx-support-form label {
+  display: grid;
+  gap: 8px;
+  color: #111827;
+  font-size: 0.95rem;
+  font-weight: 650;
+  letter-spacing: 0 !important;
+}
+
+.irisx-support-form input,
+.irisx-support-form select,
+.irisx-support-form textarea {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(17, 24, 39, 0.14);
+  border-radius: 6px;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+  font-weight: 500;
+  padding: 12px 14px;
+  outline: none;
+}
+
+.irisx-support-form textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.irisx-support-form input:focus,
+.irisx-support-form select:focus,
+.irisx-support-form textarea:focus {
+  border-color: rgba(241, 50, 79, 0.55);
+  box-shadow: 0 0 0 3px rgba(241, 50, 79, 0.1);
+}
+
+.irisx-support-form-note {
+  color: #5f5663;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+body.irisx-luxury #profile-view .container {
+  width: 100% !important;
+  max-width: none !important;
+  padding-left: max(28px, 4vw) !important;
+  padding-right: max(28px, 4vw) !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace {
+  width: 100% !important;
+  max-width: none !important;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr) !important;
+  gap: 34px !important;
+  padding: 38px 0 84px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace-sidebar {
+  min-width: 0 !important;
+  padding: 24px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace-main {
+  min-width: 0 !important;
+  min-height: 780px !important;
+  padding: 42px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace-head {
+  margin-bottom: 26px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-title {
+  color: #111827 !important;
+  font-size: 2.65rem !important;
+  line-height: 1.05 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury #profile-view .irisx-kicker,
+body.irisx-luxury #profile-view .irisx-sidebar-group-title,
+body.irisx-luxury #profile-view .irisx-nav-group-title {
+  color: #f1324f !important;
+  font-weight: 750 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury #profile-view .irisx-subtitle {
+  color: #4b4452 !important;
+  font-size: 1.05rem !important;
+  line-height: 1.55 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury.irisx-white-theme #profile-view,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-workspace-sidebar,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-workspace-main,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-workspace-card,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-inline-card,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-summary-card,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-profile-quick-card,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-policy-card {
+  background: #fff !important;
+  color: #111827 !important;
+  border-color: rgba(241, 50, 79, 0.16) !important;
+}
+
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-workspace-main,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-workspace-sidebar {
+  box-shadow: 0 26px 70px rgba(17, 24, 39, 0.07) !important;
+}
+
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-user-meta strong,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-sidebar-link strong,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-summary-card strong,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-profile-quick-card strong,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-policy-card strong,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-inline-card strong,
+body.irisx-luxury.irisx-white-theme #profile-view .irisx-section-head h3,
+body.irisx-luxury #profile-view .irisx-user-meta strong,
+body.irisx-luxury #profile-view .irisx-sidebar-link strong,
+body.irisx-luxury #profile-view .irisx-summary-card strong,
+body.irisx-luxury #profile-view .irisx-profile-quick-card strong,
+body.irisx-luxury #profile-view .irisx-policy-card strong,
+body.irisx-luxury #profile-view .irisx-inline-card strong,
+body.irisx-luxury #profile-view .irisx-section-head h3 {
+  color: #111827 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury #profile-view .irisx-user-meta span,
+body.irisx-luxury #profile-view .irisx-user-meta em,
+body.irisx-luxury #profile-view .irisx-sidebar-link small,
+body.irisx-luxury #profile-view .irisx-summary-card span,
+body.irisx-luxury #profile-view .irisx-profile-quick-card span,
+body.irisx-luxury #profile-view .irisx-policy-card span,
+body.irisx-luxury #profile-view .irisx-inline-card span,
+body.irisx-luxury #profile-view .irisx-inline-card em,
+body.irisx-luxury #profile-view .irisx-section-head span,
+body.irisx-luxury #profile-view .irisx-empty-state {
+  color: #5f5663 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury #profile-view .irisx-user-meta strong {
+  font-size: 1.05rem !important;
+}
+
+body.irisx-luxury #profile-view .irisx-sidebar-link {
+  min-height: 66px !important;
+  padding: 14px !important;
+  background: #fff !important;
+  color: #111827 !important;
+  border-color: rgba(17, 24, 39, 0.08) !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury #profile-view .irisx-sidebar-link.on,
+body.irisx-luxury #profile-view .irisx-sidebar-link:hover,
+body.irisx-luxury #profile-view .irisx-sidebar-link:focus-visible {
+  background: #fff3f5 !important;
+  border-color: rgba(241, 50, 79, 0.35) !important;
+  color: #f1324f !important;
+}
+
+body.irisx-luxury #profile-view .irisx-area-btn {
+  min-height: 52px !important;
+  background: #fff !important;
+  color: #111827 !important;
+  border-color: rgba(17, 24, 39, 0.1) !important;
+  font-weight: 750 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury #profile-view .irisx-area-btn.on,
+body.irisx-luxury #profile-view .irisx-area-btn:hover {
+  color: #f1324f !important;
+  background: #fff3f5 !important;
+  border-color: rgba(241, 50, 79, 0.34) !important;
+}
+
+body.irisx-luxury #profile-view .irisx-summary-grid--workspace,
+body.irisx-luxury #profile-view .irisx-summary-grid--main {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-profile-quick-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-policy-grid--compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  margin-bottom: 20px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-summary-card,
+body.irisx-luxury #profile-view .irisx-profile-quick-card,
+body.irisx-luxury #profile-view .irisx-policy-card,
+body.irisx-luxury #profile-view .irisx-inline-card {
+  min-height: 116px !important;
+  border-radius: 6px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-inline-card {
+  align-items: center !important;
+}
+
+@media (max-width: 1100px) {
+  body.irisx-luxury #profile-view .irisx-workspace {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.irisx-luxury #profile-view .irisx-workspace-sidebar {
+    position: static !important;
+  }
+
+  body.irisx-luxury #profile-view .irisx-policy-grid--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  body.irisx-luxury .tn-profile-menu {
+    right: 14px !important;
+    left: 14px !important;
+    width: auto !important;
+    max-height: calc(100vh - var(--iris-nav-height) - 18px) !important;
+  }
+
+  .irisx-support-form-grid,
+  body.irisx-luxury #profile-view .irisx-summary-grid--workspace,
+  body.irisx-luxury #profile-view .irisx-summary-grid--main,
+  body.irisx-luxury #profile-view .irisx-profile-quick-grid,
+  body.irisx-luxury #profile-view .irisx-policy-grid--compact {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.irisx-luxury #profile-view .container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  body.irisx-luxury #profile-view .irisx-workspace-main,
+  body.irisx-luxury #profile-view .irisx-workspace-sidebar {
+    padding: 22px !important;
+  }
+
+  body.irisx-luxury #profile-view .irisx-title {
+    font-size: 2rem !important;
+  }
+}

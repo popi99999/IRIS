@@ -7529,13 +7529,13 @@
     setNodeText("#tnShopBtn", langText("Shop", "Shop"));
     setNodeText("#tnAboutBtn", langText("Chi siamo", "About us"));
 
-    setNodeText("#tnMenuAccountBtn", langText("Il mio account", "My account"));
-    setNodeText("#tnMenuOrdersBtn", langText("I miei ordini", "My orders"));
-    setNodeText("#tnMenuSalesBtn", langText("Le mie vendite", "My sales"));
-    setNodeText("#tnMenuBillingBtn", langText("Indirizzi e pagamenti", "Addresses and payments"));
-    setNodeText("#tnMenuSavedSearchBtn", langText("Ricerche salvate e alert", "Saved searches and alerts"));
-    setNodeText("#tnMenuSettingsBtn", langText("Impostazioni", "Settings"));
-    setSupportMenuLabel(langText("Assistenza", "Assistance"));
+    setNodeText("#tnMenuAccountBtn > span", langText("Visualizza il mio profilo", "View my profile"));
+    setNodeText("#tnMenuOrdersBtn > span", langText("Ordini", "Orders"));
+    setNodeText("#tnMenuSalesBtn > span", langText("Le mie vendite", "My sales"));
+    setNodeText("#tnMenuBillingBtn > span", langText("Ricevi il tuo pagamento", "Get paid"));
+    setNodeText("#tnMenuSavedSearchBtn > span", langText("Ricerche salvate", "Saved searches"));
+    setNodeText("#tnMenuSettingsBtn > span", langText("Impostazioni account", "Account settings"));
+    setSupportMenuLabel(langText("Segnala un problema", "Report an issue"));
     setNodeText("#opsBtn", langText("Dashboard admin", "Admin dashboard"));
 
     setNodeText("#tnMobileHomeBtn", langText("Home", "Home"));
@@ -14302,6 +14302,87 @@
         }
       ]
     },
+    "commissions-fees": {
+      title: langText("Commissioni, spedizioni e FAQ", "Commissions, shipping, and FAQ"),
+      subtitle: langText("La pagina unica per capire costi, payout, spedizioni, offerte e resi prima di vendere o comprare.", "One page to understand costs, payouts, shipping, offers, and returns before buying or selling."),
+      sections: [
+        {
+          title: langText("Pubblicare è gratis", "Listing is free"),
+          body: langText(
+            "Puoi creare un annuncio senza costi iniziali. La commissione IRIS viene calcolata solo se l'articolo viene venduto e il pagamento va a buon fine.",
+            "You can create a listing with no upfront cost. The IRIS commission is charged only if the item sells and payment is successful."
+          )
+        },
+        {
+          title: langText("Commissione self-serve", "Self-serve commission"),
+          body: langText(
+            `Se gestisci l'annuncio in autonomia, IRIS trattiene il ${Math.round(PLATFORM_CONFIG.selfServeFeeRate * 100)}% sul prezzo finale dell'articolo. Il netto seller è sempre mostrato prima della pubblicazione.`,
+            `If you manage the listing yourself, IRIS keeps ${Math.round(PLATFORM_CONFIG.selfServeFeeRate * 100)}% of the final item price. The seller net is always shown before publishing.`
+          )
+        },
+        {
+          title: langText("Commissione Concierge", "Concierge commission"),
+          body: langText(
+            `Con Concierge, IRIS supporta presentazione, pricing e gestione operativa: la commissione è del ${Math.round(PLATFORM_CONFIG.conciergeFeeRate * 100)}% e si applica solo al venduto.`,
+            `With Concierge, IRIS supports presentation, pricing, and operations: the commission is ${Math.round(PLATFORM_CONFIG.conciergeFeeRate * 100)}% and applies only when sold.`
+          )
+        },
+        {
+          title: langText("Spedizioni", "Shipping"),
+          body: langText(
+            `La spedizione buyer viene mostrata prima del pagamento. Nel prototipo la quota di riferimento è ${formatCurrency(PLATFORM_CONFIG.shippingCost)}; in produzione potrà variare in base a corriere, valore, paese e assicurazione.`,
+            `Buyer shipping is shown before payment. In this prototype the reference fee is ${formatCurrency(PLATFORM_CONFIG.shippingCost)}; in production it may vary by carrier, value, country, and insurance.`
+          )
+        },
+        {
+          title: langText("Offerte e pre-autorizzazione", "Offers and pre-authorization"),
+          body: langText(
+            "Le offerte sono vincolanti quando il buyer conferma la pre-autorizzazione. Se il seller accetta, IRIS cattura il pagamento e genera l'ordine; se l'offerta scade o viene rifiutata, l'autorizzazione non viene usata.",
+            "Offers are binding when the buyer confirms pre-authorization. If the seller accepts, IRIS captures payment and creates the order; if the offer expires or is declined, the authorization is not used."
+          )
+        },
+        {
+          title: langText("Payout venditore", "Seller payout"),
+          body: langText(
+            "Il pagamento al seller resta collegato allo stato dell'ordine: pagamento ricevuto, spedizione, autenticazione, consegna e finestra di supporto. In caso di disputa o segnalazione fondata, IRIS può mettere in pausa il payout.",
+            "Seller payout is tied to order state: payment received, shipment, authentication, delivery, and support window. In a dispute or founded report, IRIS may pause payout."
+          )
+        },
+        {
+          title: langText("Resi e rimborsi", "Returns and refunds"),
+          body: langText(
+            "Per seller professionisti con partita IVA si applicano i diritti previsti dalla normativa consumatori. Per venditori privati non c'è reso automatico per ripensamento, ma restano attive le tutele IRIS su falso, non conformità, mancata consegna o frode.",
+            "For professional sellers with VAT registration, consumer law rights apply. For private sellers, there is no automatic change-of-mind return, but IRIS protection remains active for counterfeit, misdescribed, undelivered, or fraudulent cases."
+          )
+        }
+      ],
+      faqs: [
+        {
+          question: langText("Quando pago la commissione?", "When do I pay commission?"),
+          answer: langText("Solo quando l'articolo viene venduto. Non paghi per pubblicare o tenere online un annuncio.", "Only when the item sells. You do not pay to publish or keep a listing online.")
+        },
+        {
+          question: langText("La commissione si calcola anche sulla spedizione?", "Is commission charged on shipping?"),
+          answer: langText("No, la commissione IRIS viene spiegata sul prezzo dell'articolo. Le spese di spedizione e gli eventuali servizi aggiuntivi restano separati e visibili prima del pagamento.", "No, IRIS commission is explained on the item price. Shipping fees and any extra services stay separate and visible before payment.")
+        },
+        {
+          question: langText("Chi paga la spedizione?", "Who pays shipping?"),
+          answer: langText("Il buyer vede la spedizione nel riepilogo checkout. Il seller riceve istruzioni operative e tracking nel proprio spazio vendite.", "The buyer sees shipping in checkout. The seller receives operational instructions and tracking in the selling area.")
+        },
+        {
+          question: langText("Quando riceve i soldi il venditore?", "When does the seller get paid?"),
+          answer: langText("Dopo i passaggi necessari di spedizione, autenticazione, consegna e verifica. Se non ci sono problemi aperti, il payout passa allo stato pronto o pagato.", "After the required shipment, authentication, delivery, and verification steps. If no issue is open, payout moves to ready or paid.")
+        },
+        {
+          question: langText("Posso fare un reso se compro da un privato?", "Can I return an item bought from a private seller?"),
+          answer: langText("Non per semplice ripensamento. Puoi però aprire una richiesta se l'articolo è falso, non conforme alla descrizione, non arriva o c'è un comportamento sospetto.", "Not for change of mind. You can still open a request if the item is counterfeit, misdescribed, undelivered, or suspicious behavior is involved.")
+        },
+        {
+          question: langText("Cosa succede se l'autenticazione sbaglia?", "What happens if authentication is wrong?"),
+          answer: langText("IRIS apre una verifica documentata e tutela sia buyer sia seller in base a prove, stato ordine, pagamento e responsabilità del caso.", "IRIS opens a documented review and protects both buyer and seller based on evidence, order state, payment, and case responsibility.")
+        }
+      ]
+    },
     "legal-business": {
       title: langText("Business e legale", "Business and Legal"),
       subtitle: langText("Contatti dedicati per collaborazioni, richieste legali e comunicazioni formali.", "Dedicated contacts for partnerships, legal requests, and formal communications."),
@@ -16880,6 +16961,7 @@
           { id: "help_listings", label: langText("I tuoi annunci", "Listings") },
           { id: "help_verification", label: langText("Verifica identità", "Verification") },
           { id: "help_shipping", label: langText("Spedizione e protezione", "Shipping and Protection") },
+          { id: "help_commissions", label: langText("Commissioni e FAQ", "Commissions and FAQ") },
           { id: "help_accessibility", label: langText("Accessibilità", "Accessibility Statement") },
           { id: "help_contact", label: langText("Assistenza", "Contact Support") },
           { id: "help_about", label: langText("Chi siamo", "About") },
@@ -17258,6 +17340,7 @@
         <button class="irisx-policy-card" onclick="setProfileArea('account','help_listings')"><strong>${langText("Guida annunci", "Listings help")}</strong><span>${langText("Regole seller, bozze e pubblicazione.", "Seller rules, drafts, and publishing.")}</span></button>
         <button class="irisx-policy-card" onclick="setProfileArea('account','help_verification')"><strong>${langText("Verifica identità", "Verification")}</strong><span>${langText("Trust, protection e autenticazione.", "Trust, protection, and authentication.")}</span></button>
         <button class="irisx-policy-card" onclick="setProfileArea('account','help_shipping')"><strong>${langText("Spedizione e protezione", "Shipping and protection")}</strong><span>${langText("Policy, refund e tracking flow.", "Policies, refund, and tracking flow.")}</span></button>
+        <button class="irisx-policy-card" onclick="setProfileArea('account','help_commissions')"><strong>${langText("Commissioni e FAQ", "Commissions and FAQ")}</strong><span>${langText("Costi, payout, offerte e spedizioni spiegati chiaramente.", "Costs, payout, offers, and shipping explained clearly.")}</span></button>
         <button class="irisx-policy-card" onclick="setProfileArea('account','help_contact')"><strong>${langText("Contatta il supporto", "Contact support")}</strong><span>${langText("Ticket, issue reporting e support queue.", "Tickets, issue reporting, and support queue.")}</span></button>
       </div>`;
     }
@@ -17288,6 +17371,21 @@
       </div>`;
     }
 
+    if (section === "help_commissions") {
+      return `<div class="irisx-workspace-card">
+        <div class="irisx-section-head"><h3>${langText("Commissioni e FAQ", "Commissions and FAQ")}</h3><span>${langText("Costi, spedizioni, payout e offerte in un unico riferimento.", "Costs, shipping, payout, and offers in one reference.")}</span></div>
+        <div class="irisx-summary-grid">
+          <div class="irisx-summary-card"><strong>${Math.round(PLATFORM_CONFIG.selfServeFeeRate * 100)}%</strong><span>${langText("Self-serve", "Self-serve")}</span></div>
+          <div class="irisx-summary-card"><strong>${Math.round(PLATFORM_CONFIG.conciergeFeeRate * 100)}%</strong><span>Concierge</span></div>
+          <div class="irisx-summary-card"><strong>${escapeHtml(formatCurrency(PLATFORM_CONFIG.shippingCost))}</strong><span>${langText("Spedizione base", "Base shipping")}</span></div>
+        </div>
+        <div class="irisx-card-stack">
+          <div class="irisx-inline-card"><div><strong>${langText("Pagina completa", "Full page")}</strong><span>${langText("Apri la spiegazione estesa con FAQ su commissioni, spedizioni, payout, offerte e resi.", "Open the full explanation with FAQ on fees, shipping, payouts, offers, and returns.")}</span></div><button class="irisx-primary" onclick="openStatic('commissions-fees')">${langText("Apri FAQ", "Open FAQ")}</button></div>
+          <div class="irisx-inline-card"><div><strong>${langText("Hai un dubbio specifico?", "Have a specific doubt?")}</strong><span>${langText("Invia un messaggio tramite form e lo trasformiamo in ticket supporto.", "Send a form message and we turn it into a support ticket.")}</span></div><button class="irisx-secondary" onclick="openStatic('contact')">${langText("Contattaci", "Contact us")}</button></div>
+        </div>
+      </div>`;
+    }
+
     if (section === "help_accessibility") {
       return `<div class="irisx-workspace-card">
         <div class="irisx-section-head"><h3>${langText("Accessibilità", "Accessibility Statement")}</h3><span>${langText("Impegni di struttura e supporto del prototipo.", "Prototype structure and support commitments.")}</span></div>
@@ -17300,9 +17398,14 @@
 
     if (section === "help_contact") {
       return `<div class="irisx-workspace-card">
-        <div class="irisx-section-head"><h3>${langText("Assistenza", "Contact Support")}</h3><span>${langText("Ticket, dispute e issue reporting.", "Tickets, disputes, and issue reporting.")}</span></div>
+        <div class="irisx-section-head"><h3>${langText("Assistenza", "Contact Support")}</h3><span>${langText("Form, ticket, dispute e segnalazioni in un unico spazio leggibile.", "Forms, tickets, disputes, and reports in one readable space.")}</span></div>
+        <div class="irisx-policy-grid irisx-policy-grid--compact">
+          <button class="irisx-policy-card" onclick="openStatic('contact')"><strong>${langText("Contattaci", "Contact us")}</strong><span>${langText("Domande su acquisti, vendite, offerte, account o pagamenti.", "Questions about purchases, sales, offers, account, or payments.")}</span></button>
+          <button class="irisx-policy-card" onclick="openStatic('report-issue')"><strong>${langText("Segnala un problema", "Report an issue")}</strong><span>${langText("Bug, annuncio sospetto, pagamento, ordine o problema tecnico.", "Bug, suspicious listing, payment, order, or technical issue.")}</span></button>
+          <button class="irisx-policy-card" onclick="openStatic('commissions-fees')"><strong>${langText("Commissioni e FAQ", "Commissions and FAQ")}</strong><span>${langText("Costi, spedizioni, offerte, payout e resi spiegati senza ambiguità.", "Costs, shipping, offers, payout, and returns explained clearly.")}</span></button>
+        </div>
         <div class="irisx-card-stack">
-          <div class="irisx-inline-card"><div><strong>${PLATFORM_CONFIG.supportEmail}</strong><span>${langText("Inbox support proprietario / team.", "Owner / team support inbox.")}</span></div></div>
+          <div class="irisx-inline-card"><div><strong>${PLATFORM_CONFIG.supportEmail}</strong><span>${langText("Inbox support proprietario / team. I messaggi inviati dai form vengono salvati anche come ticket.", "Owner / team support inbox. Messages sent by forms are also saved as tickets.")}</span></div></div>
         </div>
         ${renderSupportTicketsMarkup(tickets)}
         ${orders.length ? `<div class="irisx-actions"><button class="irisx-primary" onclick="openSupportModal('${orders[0].id}')">${langText("Apri ticket sull'ultimo ordine", "Open ticket on latest order")}</button></div>` : ""}
@@ -17553,6 +17656,7 @@
         help_listings: langText("Bozze, attivi e pubblicazione.", "Drafts, live listings, and publishing."),
         help_verification: langText("Autenticazione e trust.", "Authentication and trust."),
         help_shipping: langText("Tracking, resi e protezione.", "Tracking, returns, and protection."),
+        help_commissions: langText("Costi, FAQ e payout.", "Costs, FAQ, and payout."),
         help_accessibility: langText("Supporto accessibilità.", "Accessibility support."),
         help_contact: langText("Apri ticket e supporto.", "Open tickets and support."),
         help_about: langText("Brand e community.", "Brand and community."),
@@ -19188,6 +19292,10 @@
   }
 
   function irisFooterHelp(section) {
+    if (!state.currentUser) {
+      openStatic(section === "help_contact" ? "contact" : "commissions-fees");
+      return;
+    }
     showPage("buy");
     showBuyView("profile");
     setProfileArea("account", section || "help_help");
@@ -19209,9 +19317,9 @@
           </div>
         </div>
         <div><div class="footer-col-title">${langText("Compra", "Buy")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();irisFooterShop('shop')">Shop</a></li><li><a href="#" onclick="event.preventDefault();irisFooterShop('recent')">${langText("Nuovi arrivi", "New in")}</a></li><li><a href="#" onclick="event.preventDefault();irisFooterShop('designers')">Brand</a></li><li><a href="#" onclick="event.preventDefault();openStatic('howto')">${langText("Come funziona comprare", "How buying works")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('refund-policy')">${langText("Resi e rimborsi", "Returns and refunds")}</a></li></ul></div>
-        <div><div class="footer-col-title">${langText("Vendi", "Sell")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();irisFooterSell('start')">${langText("Vendi con IRIS", "Sell with IRIS")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('seller-guide')">${langText("Come funziona vendere", "How selling works")}</a></li><li><a href="#" onclick="event.preventDefault();irisFooterSell('concierge')">Concierge</a></li><li><a href="#" onclick="event.preventDefault();openStatic('seller-protection')">${langText("Protezione venditore", "Seller protection")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('community-guidelines')">${langText("Regole annunci", "Listing rules")}</a></li></ul></div>
+        <div><div class="footer-col-title">${langText("Vendi", "Sell")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();irisFooterSell('start')">${langText("Vendi con IRIS", "Sell with IRIS")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('seller-guide')">${langText("Come funziona vendere", "How selling works")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('commissions-fees')">${langText("Commissioni e FAQ", "Commissions and FAQ")}</a></li><li><a href="#" onclick="event.preventDefault();irisFooterSell('concierge')">Concierge</a></li><li><a href="#" onclick="event.preventDefault();openStatic('seller-protection')">${langText("Protezione venditore", "Seller protection")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('community-guidelines')">${langText("Regole annunci", "Listing rules")}</a></li></ul></div>
         <div><div class="footer-col-title">${langText("Fiducia", "Trust")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();openStatic('trust-authentication')">${langText("Autenticazione", "Authentication")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('secure-payments')">${langText("Pagamenti sicuri", "Secure payments")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('iris-protection')">${langText("Protezione IRIS", "IRIS protection")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('anti-fraud')">${langText("Anti-truffa", "Anti-fraud")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('prohibited-items')">${langText("Articoli vietati", "Prohibited items")}</a></li></ul></div>
-        <div><div class="footer-col-title">${langText("Assistenza", "Support")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();irisFooterHelp('help_help')">${langText("Centro assistenza", "Help center")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('contact')">${langText("Contattaci", "Contact us")}</a></li><li><a href="#" onclick="event.preventDefault();irisFooterHelp('help_contact')">${langText("Segnala problema", "Report an issue")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('legal-business')">Business</a></li><li><a href="#" onclick="event.preventDefault();openStatic('legal-business')">${langText("Legale", "Legal")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('terms')">${t("footer_terms")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('cookie')">${t("footer_cookie")}</a></li></ul></div>
+        <div><div class="footer-col-title">${langText("Assistenza", "Support")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();irisFooterHelp('help_help')">${langText("Centro assistenza", "Help center")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('contact')">${langText("Contattaci", "Contact us")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('report-issue')">${langText("Segnala un problema", "Report an issue")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('commissions-fees')">${langText("Commissioni e spedizioni", "Fees and shipping")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('legal-business')">Business</a></li><li><a href="#" onclick="event.preventDefault();openStatic('legal-business')">${langText("Legale", "Legal")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('privacy')">${t("footer_privacy")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('terms')">${t("footer_terms")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('cookie')">${t("footer_cookie")}</a></li></ul></div>
       </div>
       <div class="irisx-footer-disclaimers">
         <p>${langText("IRIS non è affiliata, autorizzata o sponsorizzata dai brand presenti nel marketplace. I marchi citati appartengono ai rispettivi titolari e vengono usati solo per identificare gli articoli.", "IRIS is not affiliated with, authorized, or sponsored by the brands listed in the marketplace. Mentioned trademarks belong to their respective owners and are used only to identify items.")}</p>
@@ -19241,6 +19349,11 @@
         return;
       }
       const page = POLICY_PAGE_CONTENT[id];
+      const faqMarkup = Array.isArray(page.faqs) && page.faqs.length
+        ? `<div class="irisx-policy-faq"><h3>${langText("FAQ", "FAQ")}</h3>${page.faqs.map(function (item) {
+            return `<div class="irisx-policy-faq-item"><strong>${escapeHtml(item.question)}</strong><p>${escapeHtml(item.answer)}</p></div>`;
+          }).join("")}</div>`
+        : "";
       document.body.insertAdjacentHTML("beforeend", `<div class="static-modal" id="modal-${id}">
         <button class="sm-close" onclick="closeStatic('${id}')">✕</button>
         <div class="sm-inner">
@@ -19249,9 +19362,191 @@
           ${page.sections.map(function (section) {
             return `<div class="sm-section"><h3>${escapeHtml(section.title)}</h3><p>${escapeHtml(section.body)}</p></div>`;
           }).join("")}
+          ${faqMarkup}
         </div>
       </div>`);
     });
+  }
+
+  function getStaticSupportReasonLabel(value) {
+    const labels = {
+      general_contact: langText("Richiesta generale", "General request"),
+      buying: langText("Acquisto o ordine", "Purchase or order"),
+      selling: langText("Vendita o annuncio", "Sale or listing"),
+      offers: langText("Offerte", "Offers"),
+      payments: langText("Pagamenti o payout", "Payments or payout"),
+      business_legal: langText("Business o legale", "Business or legal"),
+      technical_issue: langText("Problema tecnico", "Technical issue"),
+      listing_report: langText("Annuncio sospetto", "Suspicious listing"),
+      payment_issue: langText("Problema pagamento", "Payment issue"),
+      order_issue: langText("Problema ordine", "Order issue"),
+      fraud_safety: langText("Frode o sicurezza", "Fraud or safety"),
+      account_issue: langText("Problema account", "Account issue")
+    };
+    return labels[value] || labels.general_contact;
+  }
+
+  function renderStaticSupportForm(mode) {
+    const isReport = mode === "report";
+    const modalId = isReport ? "report-issue" : "contact";
+    const user = state.currentUser || {};
+    const name = user.name || "";
+    const email = normalizeEmail(user.email || "");
+    const options = isReport
+      ? [
+          ["technical_issue", langText("Problema tecnico o bug", "Technical issue or bug")],
+          ["listing_report", langText("Annuncio sospetto o contenuto errato", "Suspicious listing or wrong content")],
+          ["payment_issue", langText("Pagamento, checkout o payout", "Payment, checkout, or payout")],
+          ["order_issue", langText("Ordine, spedizione o reso", "Order, shipment, or return")],
+          ["fraud_safety", langText("Frode, sicurezza o comportamento sospetto", "Fraud, safety, or suspicious behavior")],
+          ["account_issue", langText("Account o accesso", "Account or access")]
+        ]
+      : [
+          ["general_contact", langText("Richiesta generale", "General request")],
+          ["buying", langText("Comprare su IRIS", "Buying on IRIS")],
+          ["selling", langText("Vendere su IRIS", "Selling on IRIS")],
+          ["offers", langText("Offerte", "Offers")],
+          ["payments", langText("Pagamenti o payout", "Payments or payout")],
+          ["business_legal", langText("Business, legale o partnership", "Business, legal, or partnerships")]
+        ];
+
+    return `<button class="sm-close" onclick="closeStatic('${modalId}')" aria-label="${escapeHtml(langText("Chiudi", "Close"))}">✕</button>
+      <div class="sm-inner">
+        <div class="sm-title">${isReport ? langText("Segnala un problema", "Report an issue") : langText("Contattaci", "Contact us")}</div>
+        <div class="sm-subtitle">${isReport
+          ? langText("Descrivi cosa non va: il messaggio viene salvato come ticket e inoltrato al team IRIS.", "Describe what is wrong: the message is saved as a ticket and forwarded to the IRIS team.")
+          : langText("Scrivi al team IRIS per acquisti, vendite, offerte, account, pagamenti o richieste business.", "Write to the IRIS team about buying, selling, offers, account, payments, or business requests.")}</div>
+        <form class="irisx-support-form" onsubmit="submitStaticSupportForm(event,'${isReport ? "report" : "contact"}')">
+          <div class="irisx-support-form-grid">
+            <label><span>${langText("Nome", "Name")}</span><input name="name" type="text" value="${escapeHtml(name)}" placeholder="${escapeHtml(langText("Il tuo nome", "Your name"))}"></label>
+            <label><span>Email *</span><input name="email" type="email" required value="${escapeHtml(email)}" placeholder="email@example.com"></label>
+          </div>
+          <label><span>${isReport ? langText("Tipo di problema", "Issue type") : langText("Motivo del contatto", "Contact reason")} *</span><select name="topic" required>${options.map(function (option) {
+            return `<option value="${escapeHtml(option[0])}">${escapeHtml(option[1])}</option>`;
+          }).join("")}</select></label>
+          <label><span>${langText("Riferimento", "Reference")}</span><input name="reference" type="text" placeholder="${escapeHtml(langText("Numero ordine, link annuncio, username o pagina", "Order number, listing link, username, or page"))}"></label>
+          <label><span>${langText("Messaggio", "Message")} *</span><textarea name="message" required minlength="10" rows="7" placeholder="${escapeHtml(isReport ? langText("Spiega il problema in modo preciso. Se puoi, indica cosa hai cliccato o visto.", "Explain the issue precisely. If you can, mention what you clicked or saw.") : langText("Scrivi qui la tua richiesta. Più contesto ci dai, più velocemente possiamo aiutarti.", "Write your request here. The more context you give, the faster we can help."))}"></textarea></label>
+          <div class="irisx-support-form-note">${langText("Messaggio inviato tramite form. Nel prototipo viene salvato nella coda ticket e nell'outbox email.", "Message sent through the form. In this prototype it is saved in the ticket queue and email outbox.")}</div>
+          <div class="irisx-actions"><button class="irisx-primary" type="submit">${isReport ? langText("Invia segnalazione", "Send report") : langText("Invia messaggio", "Send message")}</button><button class="irisx-secondary" type="button" onclick="closeStatic('${modalId}')">${langText("Annulla", "Cancel")}</button></div>
+        </form>
+      </div>`;
+  }
+
+  function ensureStaticSupportForms() {
+    const contactModal = qs("#modal-contact");
+    if (contactModal) {
+      contactModal.innerHTML = renderStaticSupportForm("contact");
+    }
+    if (!qs("#modal-report-issue")) {
+      document.body.insertAdjacentHTML("beforeend", `<div class="static-modal" id="modal-report-issue" role="dialog" aria-modal="true" aria-label="${escapeHtml(langText("Segnala un problema", "Report an issue"))}"></div>`);
+    }
+    const reportModal = qs("#modal-report-issue");
+    if (reportModal) {
+      reportModal.innerHTML = renderStaticSupportForm("report");
+    }
+  }
+
+  async function submitStaticSupportForm(event, mode) {
+    event.preventDefault();
+    const form = event.currentTarget || event.target;
+    const data = new FormData(form);
+    const isReport = mode === "report";
+    const topic = String(data.get("topic") || (isReport ? "technical_issue" : "general_contact")).trim();
+    const reference = String(data.get("reference") || "").trim();
+    const name = String(data.get("name") || "").trim();
+    const requesterEmail = normalizeEmail(data.get("email") || (state.currentUser && state.currentUser.email) || "");
+    const rawMessage = String(data.get("message") || "").trim();
+
+    if (!requesterEmail || !rawMessage) {
+      showToast(langText("Inserisci email e messaggio.", "Enter email and message."));
+      return;
+    }
+
+    const label = getStaticSupportReasonLabel(topic);
+    const ticketNumber = (reference || ((isReport ? "REPORT-" : "CONTACT-") + Date.now().toString(36).toUpperCase())).slice(0, 80);
+    const severeTopics = ["listing_report", "payment_issue", "order_issue", "fraud_safety"];
+    const severity = isReport && severeTopics.indexOf(topic) > -1 ? "dispute" : "support";
+    const message = [
+      `${langText("Nome", "Name")}: ${name || "-"}`,
+      `${langText("Motivo", "Reason")}: ${label}`,
+      `${langText("Riferimento", "Reference")}: ${reference || "-"}`,
+      `${langText("Pagina", "Page")}: ${window.location.href}`,
+      "",
+      rawMessage
+    ].join("\n");
+
+    const ticket = normalizeSupportTicketRecord({
+      id: createId("tkt"),
+      orderId: "",
+      orderNumber: ticketNumber,
+      productId: "",
+      productTitle: label,
+      buyerEmail: requesterEmail,
+      sellerEmail: "",
+      requesterId: (state.currentUser && state.currentUser.id) || "",
+      requesterEmail: requesterEmail,
+      requesterRole: state.currentUser ? "user" : "guest",
+      severity: severity,
+      status: severity === "dispute" ? "in_review" : "open",
+      reason: topic,
+      message: message,
+      contextSnapshot: {
+        source: isReport ? "static_report_issue_form" : "static_contact_form",
+        name: name,
+        topic: topic,
+        reference: reference,
+        href: window.location.href,
+        path: window.location.pathname
+      },
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
+
+    state.supportTickets.unshift(ticket);
+    persistSupportTickets();
+    try {
+      const remoteTicket = await saveSupportTicketToSupabase(ticket);
+      state.supportTickets = state.supportTickets.map(function (candidate) {
+        return candidate.id === ticket.id ? remoteTicket : candidate;
+      });
+      persistSupportTickets();
+    } catch (error) {
+      console.warn("[IRIS] Unable to save static support ticket to Supabase", error);
+    }
+
+    enqueueEmail("support-request", PLATFORM_CONFIG.supportEmail, {
+      preview: ticket.orderNumber + " - " + label + " - " + rawMessage
+    });
+    enqueueEmail("issue-reported", requesterEmail, {
+      preview: label + " - " + rawMessage
+    });
+    createNotification({
+      audience: "admin",
+      kind: "support",
+      title: isReport ? langText("Nuova segnalazione problema", "New issue report") : langText("Nuovo messaggio da form", "New form message"),
+      body: ticket.orderNumber + " - " + label,
+      recipientEmail: PLATFORM_CONFIG.ownerEmail
+    });
+    createNotification({
+      audience: "user",
+      kind: "support",
+      title: langText("Messaggio inviato", "Message sent"),
+      body: label,
+      recipientEmail: requesterEmail
+    });
+    recordAuditEvent(isReport ? "static_issue_report_submitted" : "static_contact_form_submitted", ticket.orderNumber, {
+      ticketId: ticket.id,
+      topic: topic,
+      requesterEmail: requesterEmail
+    });
+
+    form.reset();
+    closeStatic(isReport ? "report-issue" : "contact");
+    ensureStaticSupportForms();
+    renderNotifications();
+    renderProfilePanel();
+    renderOpsView();
+    showToast(langText("Messaggio inviato tramite form. Lo trovi anche in Assistenza.", "Message sent through the form. You can also find it in Support."));
   }
 
   function syncFeeCopy() {
@@ -19329,6 +19624,7 @@
   applyLang = function () {
     previousApplyLang();
     ensurePolicyModals();
+    ensureStaticSupportForms();
     ensureSellDraftButton();
     ensureSellTaxonomyUi();
     ensureOfferSellerControls();
@@ -19473,7 +19769,7 @@
       setProfileArea("account", "help_contact");
       return;
     }
-    openStatic("faq");
+    openStatic("contact");
   };
   window.requestVerificationCode = requestVerificationCode;
   window.confirmVerificationCode = confirmVerificationCode;
@@ -19513,6 +19809,7 @@
   window.respondToOfferFromChat = respondToOfferFromChat;
   window.openChatReportModal = openChatReportModal;
   window.reportListing = reportListing;
+  window.submitStaticSupportForm = submitStaticSupportForm;
   window.toggleProfileMenu = toggleProfileMenu;
   window.closeProfileMenu = closeProfileMenu;
   window.toggleLocaleMenu = toggleLocaleMenu;
@@ -19530,6 +19827,7 @@
   ensureStructuredSkeletonState();
   ensureSellDraftButton();
   ensurePolicyModals();
+  ensureStaticSupportForms();
   ensureSellTaxonomyUi();
   ensureOfferSellerControls();
   ensureChatUiEnhancements();

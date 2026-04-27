@@ -1,11 +1,33 @@
-const CACHE_NAME = 'iris-v125';
+const CACHE_NAME = 'iris-v126';
 const APP_SHELL_URL = new URL('./index.html', self.location.href).toString();
 const MANIFEST_URL = new URL('./manifest.json', self.location.href).toString();
 const PLUS_CSS_URL = new URL('./iris-plus.css', self.location.href).toString();
 const PLUS_JS_URL = new URL('./iris-plus.js', self.location.href).toString();
 const I18N_URL = new URL('./iris-i18n-config.js', self.location.href).toString();
 const SUPABASE_CONFIG_URL = new URL('./supabase-config.js', self.location.href).toString();
-const ASSETS = [APP_SHELL_URL, MANIFEST_URL, PLUS_CSS_URL, PLUS_JS_URL, I18N_URL, SUPABASE_CONFIG_URL];
+const MEASUREMENT_GUIDE_URLS = [
+  './assets/measurements/bag-depth.png',
+  './assets/measurements/bag-height.png',
+  './assets/measurements/bag-width.png',
+  './assets/measurements/belt-width.png',
+  './assets/measurements/bottom-knee-width.png',
+  './assets/measurements/bottom-leg-opening.png',
+  './assets/measurements/bottom-total-length.png',
+  './assets/measurements/bottom-waist.png',
+  './assets/measurements/upper-chest.png',
+  './assets/measurements/upper-length.png',
+  './assets/measurements/upper-shoulders.png',
+  './assets/measurements/upper-sleeve.png',
+].map(path => new URL(path, self.location.href).toString());
+const ASSETS = [
+  APP_SHELL_URL,
+  MANIFEST_URL,
+  PLUS_CSS_URL,
+  PLUS_JS_URL,
+  I18N_URL,
+  SUPABASE_CONFIG_URL,
+  ...MEASUREMENT_GUIDE_URLS,
+];
 const CORE_ASSET_URLS = new Set(ASSETS);
 
 self.addEventListener('install', e => {

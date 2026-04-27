@@ -475,23 +475,23 @@
         en: "Perfect for tees, sweatshirts, shirts, and jackets. Enter values in cm."
       },
       fields: [
-        { id: "chest", it: "Torace", en: "Chest", placeholder: "54" },
-        { id: "length", it: "Lunghezza", en: "Length", placeholder: "70" },
-        { id: "shoulders", it: "Spalle", en: "Shoulders", placeholder: "46" },
-        { id: "sleeve", it: "Manica", en: "Sleeve", placeholder: "64" }
+        { id: "chest", it: "Torace", en: "Chest", placeholder: "54", guideId: "upper-chest" },
+        { id: "length", it: "Lunghezza", en: "Length", placeholder: "70", guideId: "upper-length" },
+        { id: "shoulders", it: "Spalle", en: "Shoulders", placeholder: "46", guideId: "upper-shoulders" },
+        { id: "sleeve", it: "Manica", en: "Sleeve", placeholder: "64", guideId: "upper-sleeve" }
       ]
     },
     bottom: {
       title: { it: "Misure pantalone", en: "Bottom measurements" },
       hint: {
-        it: "Usa cm per vita, cavallo e fondo gamba.",
-        en: "Use cm for waist, rise, inseam, and leg opening."
+        it: "Usa cm per vita, lunghezza totale, ginocchio e fondo gamba.",
+        en: "Use cm for waist, total length, knee width, and leg opening."
       },
       fields: [
-        { id: "waist", it: "Vita", en: "Waist", placeholder: "42" },
-        { id: "rise", it: "Cavallo", en: "Rise", placeholder: "31" },
-        { id: "inseam", it: "Interno gamba", en: "Inseam", placeholder: "78" },
-        { id: "leg_opening", it: "Fondo gamba", en: "Leg opening", placeholder: "18" }
+        { id: "waist", it: "Vita", en: "Waist", placeholder: "42", guideId: "bottom-waist" },
+        { id: "total_length", it: "Lunghezza totale", en: "Total length", placeholder: "108", guideId: "bottom-total-length" },
+        { id: "knee_width", it: "Ginocchio", en: "Knee width", placeholder: "24", guideId: "bottom-knee-width" },
+        { id: "leg_opening", it: "Fondo gamba", en: "Leg opening", placeholder: "18", guideId: "bottom-leg-opening" }
       ]
     },
     dress: {
@@ -526,9 +526,9 @@
         en: "Width, height, and depth are essential. Add strap drop when relevant."
       },
       fields: [
-        { id: "width", it: "Larghezza", en: "Width", placeholder: "30" },
-        { id: "height", it: "Altezza", en: "Height", placeholder: "22" },
-        { id: "depth", it: "Profondita", en: "Depth", placeholder: "16" },
+        { id: "width", it: "Larghezza", en: "Width", placeholder: "30", guideId: "bag-width" },
+        { id: "height", it: "Altezza", en: "Height", placeholder: "22", guideId: "bag-height" },
+        { id: "depth", it: "Profondita", en: "Depth", placeholder: "16", guideId: "bag-depth" },
         { id: "strap_drop", it: "Luce tracolla", en: "Strap drop", placeholder: "48" }
       ]
     },
@@ -553,7 +553,7 @@
       fields: [
         { id: "full_length", it: "Lunghezza totale", en: "Full length", placeholder: "102" },
         { id: "buckle_to_middle", it: "Fibbia a foro centrale", en: "Buckle to middle hole", placeholder: "85" },
-        { id: "width", it: "Altezza cintura", en: "Belt width", placeholder: "4" }
+        { id: "width", it: "Altezza cintura", en: "Belt width", placeholder: "4", guideId: "belt-width" }
       ]
     },
     jewelry: {
@@ -579,6 +579,105 @@
         { id: "lug_width", it: "Larghezza lug", en: "Lug width", placeholder: "20" },
         { id: "strap_length", it: "Lunghezza cinturino", en: "Strap length", placeholder: "18" }
       ]
+    }
+  };
+
+  const MEASUREMENT_GUIDES = {
+    "upper-chest": {
+      image: "./assets/measurements/upper-chest.png",
+      title: { it: "Torace", en: "Chest" },
+      copy: {
+        it: "Stendi il capo in piano e misura dritto da ascella ad ascella.",
+        en: "Lay the garment flat and measure straight from armpit to armpit."
+      }
+    },
+    "upper-length": {
+      image: "./assets/measurements/upper-length.png",
+      title: { it: "Lunghezza", en: "Length" },
+      copy: {
+        it: "Misura dal punto piu alto della spalla, vicino al collo, fino al fondo del capo.",
+        en: "Measure from the highest shoulder point near the collar straight down to the bottom hem."
+      }
+    },
+    "upper-shoulders": {
+      image: "./assets/measurements/upper-shoulders.png",
+      title: { it: "Spalle", en: "Shoulders" },
+      copy: {
+        it: "Misura il capo steso da cucitura spalla a cucitura spalla.",
+        en: "Lay the garment flat and measure from shoulder seam to shoulder seam."
+      }
+    },
+    "upper-sleeve": {
+      image: "./assets/measurements/upper-sleeve.png",
+      title: { it: "Manica", en: "Sleeve length" },
+      copy: {
+        it: "Misura dalla cucitura della spalla fino al fondo della manica.",
+        en: "Measure from the shoulder seam to the end of the sleeve hem."
+      }
+    },
+    "bag-width": {
+      image: "./assets/measurements/bag-width.png",
+      title: { it: "Larghezza borsa", en: "Bag width" },
+      copy: {
+        it: "Misura la borsa dritta nel punto piu largo.",
+        en: "Measure straight across the bag at its widest point."
+      }
+    },
+    "bag-height": {
+      image: "./assets/measurements/bag-height.png",
+      title: { it: "Altezza borsa", en: "Bag height" },
+      copy: {
+        it: "Misura dal bordo superiore del corpo borsa fino alla base. I manici non sono inclusi.",
+        en: "Measure from the top edge of the bag body to the base. Handles are not included."
+      }
+    },
+    "bag-depth": {
+      image: "./assets/measurements/bag-depth.png",
+      title: { it: "Profondita borsa", en: "Bag depth" },
+      copy: {
+        it: "Misura il pannello laterale dal bordo frontale al bordo posteriore.",
+        en: "Measure the side panel from the front edge to the back edge."
+      }
+    },
+    "belt-width": {
+      image: "./assets/measurements/belt-width.png",
+      title: { it: "Altezza cintura", en: "Belt width" },
+      copy: {
+        it: "Misura dritto l'altezza del cinturino, senza includere la fibbia.",
+        en: "Measure straight across the strap height, excluding the buckle."
+      }
+    },
+    "bottom-waist": {
+      image: "./assets/measurements/bottom-waist.png",
+      title: { it: "Vita", en: "Waist" },
+      copy: {
+        it: "Stendi il pantalone in piano e misura il girovita da bordo a bordo.",
+        en: "Lay the trousers flat and measure straight across the waistband from edge to edge."
+      }
+    },
+    "bottom-total-length": {
+      image: "./assets/measurements/bottom-total-length.png",
+      title: { it: "Lunghezza totale", en: "Total length" },
+      copy: {
+        it: "Misura dal bordo superiore della vita fino al fondo gamba.",
+        en: "Measure from the top of the waistband to the bottom hem."
+      }
+    },
+    "bottom-knee-width": {
+      image: "./assets/measurements/bottom-knee-width.png",
+      title: { it: "Ginocchio", en: "Knee width" },
+      copy: {
+        it: "Stendi il pantalone in piano e misura la larghezza della gamba all'altezza del ginocchio.",
+        en: "Lay the trousers flat and measure straight across the leg at knee level."
+      }
+    },
+    "bottom-leg-opening": {
+      image: "./assets/measurements/bottom-leg-opening.png",
+      title: { it: "Fondo gamba", en: "Leg opening" },
+      copy: {
+        it: "Misura dritto l'apertura al fondo di una singola gamba.",
+        en: "Measure straight across the bottom hem of a single pant leg."
+      }
     }
   };
 
@@ -1317,8 +1416,11 @@
     hint.textContent = getTaxonomyLabel(schema.hint);
     grid.innerHTML = schema.fields.map(function (field) {
       const value = values[field.id] || "";
+      const guideButton = getMeasurementGuide(field.guideId)
+        ? `<button type="button" class="irisx-measure-guide-trigger" onclick="openMeasurementGuide(${inlineJsValue(field.guideId)})" aria-label="${escapeHtml(langText("Come prendere questa misura", "How to take this measurement"))}">i</button>`
+        : "";
       return `<label class="irisx-measurement-field">
-        <span>${escapeHtml(getTaxonomyLabel(field))}</span>
+        <span class="irisx-measurement-label-line"><span>${escapeHtml(getTaxonomyLabel(field))}</span>${guideButton}</span>
         <input class="fi" type="text" inputmode="decimal" data-measurement-key="${escapeHtml(field.id)}" placeholder="${escapeHtml(field.placeholder || "")}" value="${escapeHtml(value)}">
       </label>`;
     }).join("");
@@ -1327,6 +1429,103 @@
   function collectSellMeasurements() {
     const values = collectVisibleMeasurements();
     return Object.keys(values).length ? values : null;
+  }
+
+  function getMeasurementGuide(guideId) {
+    return guideId && MEASUREMENT_GUIDES[guideId] ? MEASUREMENT_GUIDES[guideId] : null;
+  }
+
+  function getMeasurementGuideTitle(guide) {
+    return guide && guide.title ? getTaxonomyLabel(guide.title) : langText("Guida misura", "Measurement guide");
+  }
+
+  function getMeasurementGuideCopy(guide) {
+    return guide && guide.copy ? getTaxonomyLabel(guide.copy) : "";
+  }
+
+  function ensureMeasurementGuideModal() {
+    let modal = qs("#irisxMeasureGuideModal");
+    if (modal) {
+      return modal;
+    }
+    modal = document.createElement("div");
+    modal.id = "irisxMeasureGuideModal";
+    modal.className = "irisx-measure-guide-modal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.innerHTML = `<div class="irisx-measure-guide-backdrop" onclick="closeMeasurementGuide()"></div>
+      <div class="irisx-measure-guide-dialog" role="document">
+        <button type="button" class="irisx-measure-guide-close" onclick="closeMeasurementGuide()" aria-label="${escapeHtml(langText("Chiudi guida misura", "Close measurement guide"))}">×</button>
+        <div class="irisx-measure-guide-body" id="irisxMeasureGuideBody"></div>
+      </div>`;
+    document.body.appendChild(modal);
+    return modal;
+  }
+
+  function openMeasurementGuide(guideId) {
+    const guide = getMeasurementGuide(guideId);
+    if (!guide) {
+      return;
+    }
+    const modal = ensureMeasurementGuideModal();
+    const body = qs("#irisxMeasureGuideBody", modal);
+    const title = getMeasurementGuideTitle(guide);
+    const copy = getMeasurementGuideCopy(guide);
+    modal.setAttribute("aria-label", title);
+    body.innerHTML = `<div class="irisx-measure-guide-art">
+        <img src="${escapeHtml(guide.image)}" alt="${escapeHtml(title)}" loading="lazy">
+      </div>
+      <div class="irisx-measure-guide-content">
+        <div class="irisx-kicker">${langText("Guida misure IRIS", "IRIS measurement guide")}</div>
+        <h3 class="irisx-measure-guide-title">${escapeHtml(title)}</h3>
+        <p class="irisx-measure-guide-copy">${escapeHtml(copy)}</p>
+        <span>${langText("Le misure vengono inserite dal seller in centimetri e servono a ridurre dubbi prima dell'acquisto.", "Measurements are entered by the seller in centimetres to reduce uncertainty before purchase.")}</span>
+      </div>`;
+    modal.classList.add("open");
+    document.body.classList.add("irisx-modal-open");
+  }
+
+  function closeMeasurementGuide() {
+    const modal = qs("#irisxMeasureGuideModal");
+    if (modal) {
+      modal.classList.remove("open");
+    }
+    document.body.classList.remove("irisx-modal-open");
+  }
+
+  function parseMeasurementNumber(value) {
+    const match = String(value || "").replace(",", ".").match(/-?\d+(?:\.\d+)?/);
+    return match ? Number(match[0]) : NaN;
+  }
+
+  function formatMeasurementNumber(value, unit) {
+    const numeric = parseMeasurementNumber(value);
+    if (!Number.isFinite(numeric)) {
+      return unit === "cm" ? String(value || "") : "—";
+    }
+    const converted = unit === "in" ? numeric / 2.54 : numeric;
+    const rounded = Math.round(converted * 10) / 10;
+    const display = Number.isInteger(rounded) ? String(rounded) : String(rounded).replace(".", ",");
+    return `${display} ${unit}`;
+  }
+
+  function renderMeasurementGuideRow(field, rawValue) {
+    const guide = getMeasurementGuide(field.guideId);
+    const label = escapeHtml(langText(field.it, field.en));
+    const cm = formatMeasurementNumber(rawValue, "cm");
+    const inches = formatMeasurementNumber(rawValue, "in");
+    if (guide) {
+      return `<button type="button" class="irisx-measure-row irisx-measure-row--interactive" onclick="openMeasurementGuide(${inlineJsValue(field.guideId)})">
+        <span class="irisx-measure-row-label"><span>${label}</span><span class="irisx-measure-info" aria-hidden="true">i</span></span>
+        <span>${escapeHtml(inches)}</span>
+        <span>${escapeHtml(cm)}</span>
+      </button>`;
+    }
+    return `<div class="irisx-measure-row">
+      <span class="irisx-measure-row-label"><span>${label}</span></span>
+      <span>${escapeHtml(inches)}</span>
+      <span>${escapeHtml(cm)}</span>
+    </div>`;
   }
 
   function getMeasurementFieldDefinition(fieldId, categoryKey, subcategoryKey) {
@@ -18632,7 +18831,7 @@
         return val !== undefined && val !== null && String(val).trim() !== "";
       })
       .map(function (field) {
-        return `<div class="det-fit-item"><div class="det-fit-label">${escapeHtml(langText(field.it, field.en))}</div><div class="det-fit-value">${escapeHtml(String(listing.measurements[field.id]))} cm</div></div>`;
+        return renderMeasurementGuideRow(field, listing.measurements[field.id]);
       });
     const title = schema.title ? langText(schema.title.it, schema.title.en) : langText("Misure", "Measurements");
     if (!rows.length) {
@@ -18654,7 +18853,11 @@
         </div>
       </div>`;
     }
-    return `<div class="det-section"><div class="det-section-title">${escapeHtml(title)}</div><div class="det-fit">${rows.join("")}</div></div>`;
+    return `<div class="det-section det-measurements-section irisx-detail-measurements">
+      <div class="det-section-title">${escapeHtml(title)}</div>
+      <p class="det-measurements-copy">${langText("Misure inserite dal seller con articolo in mano. Tocca una riga per vedere come viene presa.", "Measurements entered by the seller with the item in hand. Tap a row to see how it is taken.")}</p>
+      <div class="irisx-measure-table" aria-label="${escapeHtml(title)}">${rows.join("")}</div>
+    </div>`;
   }
 
   function getConditionReportIndex(condition) {
@@ -18681,7 +18884,7 @@
       <div class="irisx-condition-scale" aria-label="${escapeHtml(langText("Condizione articolo", "Item condition"))}">
         ${levels.map(function (label, index) {
           const stateClass = index === activeIndex ? " is-active" : index < activeIndex ? " is-past" : "";
-          return `<div class="irisx-condition-step${stateClass}"><span class="irisx-condition-marker">${index === activeIndex ? "★" : ""}</span><span>${escapeHtml(label)}</span></div>`;
+          return `<div class="irisx-condition-step${stateClass}"><span class="irisx-condition-marker">${index === activeIndex ? "◆" : ""}</span><span>${escapeHtml(label)}</span></div>`;
         }).join("")}
       </div>
       <p>${langText("Valutazione dichiarata dal seller e verificabile tramite autenticazione, foto e supporto IRIS.", "Seller-declared condition, reviewable through authentication, photos, and IRIS support.")}</p>
@@ -19245,6 +19448,8 @@
   window.showSellerTab = showSellerTab;
   window.stepDetailImage = stepDetailImage;
   window.requestMeasurementsForListing = requestMeasurementsForListing;
+  window.openMeasurementGuide = openMeasurementGuide;
+  window.closeMeasurementGuide = closeMeasurementGuide;
   window.setAdminSection = setAdminSection;
   window.setChatScope = setChatScope;
   window.openMessagingInbox = openMessagingInbox;

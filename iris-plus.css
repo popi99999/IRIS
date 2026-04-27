@@ -12816,7 +12816,7 @@ body.irisx-luxury .site-footer.irisx-footer-redesign .footer-legal a {
   letter-spacing: 0.12em !important;
 }
 
-body.irisx-luxury .site-footer.irisx-footer-redesign .footer-legal {
+  body.irisx-luxury .site-footer.irisx-footer-redesign .footer-legal {
   display: flex !important;
   flex-wrap: wrap !important;
   justify-content: flex-end !important;
@@ -12892,8 +12892,229 @@ body.irisx-luxury .site-footer.irisx-footer-redesign .footer-legal {
     justify-content: stretch !important;
   }
 
-  body.irisx-luxury .site-footer.irisx-footer-redesign .footer-legal {
+body.irisx-luxury .site-footer.irisx-footer-redesign .footer-legal {
     justify-content: flex-start !important;
+  }
+}
+
+/* IRIS measurement guides */
+body.irisx-modal-open {
+  overflow: hidden;
+}
+
+.irisx-measurement-label-line {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+
+.irisx-measure-guide-trigger,
+.irisx-measure-info {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(241,50,79,.32);
+  background: #fff;
+  color: #F1324F;
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.72rem;
+  line-height: 1;
+  font-weight: 800;
+  font-family: 'Outfit', sans-serif;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.irisx-measure-guide-trigger {
+  cursor: pointer;
+}
+
+.irisx-detail-measurements {
+  gap: 0.85rem !important;
+}
+
+.irisx-measure-table {
+  display: grid;
+  border: 1px solid rgba(18,24,39,.12);
+  background: #fff;
+}
+
+.irisx-measure-row {
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(88px, auto) minmax(96px, auto);
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid rgba(18,24,39,.12);
+  background: #fff;
+  color: #111827;
+  text-align: left;
+  font: inherit;
+}
+
+.irisx-measure-row:first-child {
+  border-top: 0;
+}
+
+.irisx-measure-row--interactive {
+  cursor: pointer;
+}
+
+.irisx-measure-row--interactive:hover {
+  background: #fff8f9;
+}
+
+.irisx-measure-row > span {
+  min-height: 58px;
+  padding: 0 1.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  border-left: 1px solid rgba(18,24,39,.12);
+  font-size: clamp(0.96rem, 1.15vw, 1.14rem);
+  line-height: 1.2;
+  color: #111827;
+}
+
+.irisx-measure-row > span:first-child {
+  justify-content: flex-start;
+  border-left: 0;
+}
+
+.irisx-measure-row-label {
+  gap: 0.65rem;
+  font-weight: 600;
+}
+
+.irisx-measure-guide-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10020;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(18px, 4vw, 44px);
+}
+
+.irisx-measure-guide-modal.open {
+  display: flex;
+}
+
+.irisx-measure-guide-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 8, 12, .46);
+  backdrop-filter: blur(10px);
+}
+
+.irisx-measure-guide-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(920px, 100%);
+  max-height: min(760px, calc(100vh - 36px));
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(241,50,79,.16);
+  box-shadow: 0 28px 90px rgba(20, 10, 16, .24);
+}
+
+.irisx-measure-guide-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(241,50,79,.2);
+  background: rgba(255,255,255,.92);
+  color: #F1324F;
+  display: grid;
+  place-items: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.irisx-measure-guide-body {
+  display: grid;
+  grid-template-columns: minmax(260px, .92fr) minmax(0, 1fr);
+  min-height: 520px;
+}
+
+.irisx-measure-guide-art {
+  overflow: hidden;
+  background: #fb5d5f;
+}
+
+.irisx-measure-guide-art img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.irisx-measure-guide-content {
+  display: grid;
+  align-content: center;
+  gap: 1rem;
+  padding: clamp(2rem, 4vw, 4rem);
+}
+
+.irisx-measure-guide-content h3 {
+  margin: 0;
+  color: #111827;
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-size: clamp(3rem, 5vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.irisx-measure-guide-content p {
+  margin: 0;
+  color: #3e3b40;
+  font-size: clamp(1.05rem, 1.4vw, 1.32rem);
+  line-height: 1.55;
+}
+
+.irisx-measure-guide-content span {
+  color: #817985;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+  .irisx-measure-guide-dialog {
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+  }
+
+  .irisx-measure-guide-body {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .irisx-measure-guide-art {
+    height: 360px;
+  }
+
+  .irisx-measure-guide-content {
+    padding: 1.35rem;
+  }
+
+  .irisx-measure-row {
+    grid-template-columns: minmax(0, 1fr) minmax(72px, auto) minmax(82px, auto);
+  }
+
+  .irisx-measure-row > span {
+    min-height: 54px;
+    padding: 0 0.7rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -13248,7 +13469,7 @@ body.irisx-luxury.irisx-white-theme .irisx-condition-scale::before {
   left: 8.5% !important;
   right: 8.5% !important;
   height: 3px !important;
-  background: #d8d9db !important;
+  background: #111827 !important;
 }
 
 body.irisx-luxury .irisx-condition-step,
@@ -13266,23 +13487,27 @@ body.irisx-luxury.irisx-white-theme .irisx-condition-step {
 
 body.irisx-luxury .irisx-condition-marker,
 body.irisx-luxury.irisx-white-theme .irisx-condition-marker {
-  width: 26px !important;
-  height: 26px !important;
+  width: 14px !important;
+  height: 14px !important;
   border-radius: 999px !important;
   display: grid !important;
   place-items: center !important;
-  background: #dadbdd !important;
-  color: #082942 !important;
-  font-size: 1.55rem !important;
+  background: #111827 !important;
+  border: 0 !important;
+  color: transparent !important;
+  font-size: 0 !important;
   line-height: 1 !important;
 }
 
 body.irisx-luxury .irisx-condition-step.is-active .irisx-condition-marker,
 body.irisx-luxury.irisx-white-theme .irisx-condition-step.is-active .irisx-condition-marker {
-  width: 36px !important;
-  height: 36px !important;
-  margin-top: -5px !important;
+  width: 34px !important;
+  height: 34px !important;
+  margin-top: -6px !important;
   background: transparent !important;
+  border: 0 !important;
+  color: #F1324F !important;
+  font-size: 1.55rem !important;
 }
 
 body.irisx-luxury .irisx-condition-step.is-active,
@@ -13448,9 +13673,9 @@ body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card span {
 
   body.irisx-luxury .irisx-condition-marker,
   body.irisx-luxury.irisx-white-theme .irisx-condition-marker {
-    width: 20px !important;
-    height: 20px !important;
-    font-size: 1.15rem !important;
+    width: 12px !important;
+    height: 12px !important;
+    font-size: 0 !important;
   }
 
   body.irisx-luxury .irisx-condition-step.is-active .irisx-condition-marker,

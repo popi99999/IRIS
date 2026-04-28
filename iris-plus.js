@@ -735,9 +735,40 @@
 
   let activeDialogState = null;
 
+  function normalizeFavoriteId(id) {
+    if (id === null || typeof id === "undefined") {
+      return "";
+    }
+    return String(id).trim();
+  }
+
+  function normalizeFavoriteCollection(collection) {
+    const values = collection instanceof Set ? Array.from(collection) : Array.isArray(collection) ? collection : [];
+    return values.map(normalizeFavoriteId).filter(Boolean);
+  }
+
+  function hasFavoriteProduct(id) {
+    const key = normalizeFavoriteId(id);
+    if (!key || !favorites) {
+      return false;
+    }
+    if (favorites.has(key)) {
+      return true;
+    }
+    const numericKey = Number(key);
+    return Number.isFinite(numericKey) && favorites.has(numericKey);
+  }
+
+  function persistFavorites() {
+    favorites = new Set(normalizeFavoriteCollection(favorites));
+    saveJson(STORAGE_KEYS.favorites, Array.from(favorites));
+    updateFavBadge();
+  }
+
   const existingFavorites = loadJson(STORAGE_KEYS.favorites, []);
   if (existingFavorites.length) {
-    favorites = new Set(existingFavorites);
+    favorites = new Set(normalizeFavoriteCollection(existingFavorites));
+    saveJson(STORAGE_KEYS.favorites, Array.from(favorites));
   }
 
   // Purge any hardcoded test sessions and stored plaintext passwords
@@ -3440,9 +3471,9 @@
       return;
     }
     const remoteFavorites = await fetchSupabaseFavorites();
-    const localFavoriteIds = Array.from(favorites || new Set()).map(String);
+    const localFavoriteIds = normalizeFavoriteCollection(favorites);
     const mergedFavorites = Array.from(new Set(remoteFavorites.concat(localFavoriteIds)));
-    favorites = new Set(mergedFavorites);
+    favorites = new Set(normalizeFavoriteCollection(mergedFavorites));
     saveJson(STORAGE_KEYS.favorites, Array.from(favorites));
     const remoteIds = new Set(remoteFavorites.map(String));
     const localOnly = localFavoriteIds.filter(function (productId) { return !remoteIds.has(String(productId)); });
@@ -7289,7 +7320,7 @@
           name: product && product.name,
           price: product && product.price,
           image: product && Array.isArray(product.images) ? (product.images[0] || "") : "",
-          favorite: favorites.has(product && product.id)
+          favorite: hasFavoriteProduct(product && product.id)
         };
       })
     });
@@ -7550,6 +7581,63 @@
     return state.viewSyncToken;
   }
 
+  function getActiveIrisViewForBack() {
+    if (qs("#page-sell.active")) {
+      return "sell";
+    }
+    if (qs("#detail-view.active")) {
+      return "detail";
+    }
+    return ["home", "shop", "fav", "chat", "profile", "seller", "ops"].find(function (view) {
+      const node = qs("#" + view + "-view");
+      return node && node.classList.contains("active");
+    }) || "home";
+  }
+
+  function ensureIrisBackButton() {
+    if (qs("#tnBackBtn")) {
+      return qs("#tnBackBtn");
+    }
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<button class="tn-btn irisx-global-back" id="tnBackBtn" type="button" onclick="irisNavigateBack()" aria-label="${escapeHtml(langText("Torna indietro", "Go back"))}">←</button>`
+    );
+    return qs("#tnBackBtn");
+  }
+
+  function updateIrisBackButton(view) {
+    const button = ensureIrisBackButton();
+    const activeView = view || getActiveIrisViewForBack();
+    const shouldShow = activeView && activeView !== "home";
+    if (!button) {
+      return;
+    }
+    button.classList.toggle("is-visible", Boolean(shouldShow));
+    button.setAttribute("aria-hidden", shouldShow ? "false" : "true");
+    button.setAttribute("aria-label", langText("Torna alla schermata precedente", "Return to the previous screen"));
+  }
+
+  function irisNavigateBack() {
+    const activeView = getActiveIrisViewForBack();
+    if (activeView === "detail") {
+      closeDetail();
+      return;
+    }
+    if (activeView === "sell") {
+      const returnView = state.irisReturnView && state.irisReturnView !== "sell" ? state.irisReturnView : (state.lastNonDetailView || "shop");
+      showPage("buy");
+      showBuyView(returnView === "detail" ? "shop" : returnView);
+      return;
+    }
+    if (activeView === "home") {
+      return;
+    }
+    const returnView = state.irisPreviousView && state.irisPreviousView !== activeView ? state.irisPreviousView : (activeView === "shop" ? "home" : "shop");
+    showBuyView(returnView === "detail" || returnView === "sell" ? "shop" : returnView);
+  }
+
+  window.irisNavigateBack = irisNavigateBack;
+
   function syncTopnavChrome(view) {
     const topnav = qs("#topnav");
     const mobileTrigger = qs("#tnMobileToggle");
@@ -7575,6 +7663,7 @@
       mobileTrigger.setAttribute("aria-expanded", qs("#tnMobileMenu") && qs("#tnMobileMenu").classList.contains("open") ? "true" : "false");
     }
     syncMobileAppShell(activeView);
+    updateIrisBackButton(activeView);
   }
 
   function closeMobileFilters() {
@@ -7871,11 +7960,14 @@
       closeMobileFilters();
 
       if (type === "sell") {
+        const returnView = getActiveIrisViewForBack();
+        state.irisReturnView = returnView && returnView !== "sell" ? returnView : (state.lastNonDetailView || "shop");
         buyPage.classList.remove("active");
         sellPage.classList.add("active");
         topnav.classList.remove("show");
         sellTopbar.classList.add("show");
         syncMobileAppShell("sell");
+        updateIrisBackButton("sell");
         window.scrollTo(0, 0);
         return;
       }
@@ -7885,6 +7977,7 @@
       topnav.classList.add("show");
       sellTopbar.classList.remove("show");
       syncMobileAppShell("home");
+      updateIrisBackButton("home");
       showBuyView("home");
     };
 
@@ -11173,7 +11266,8 @@
       }
       const backButton = qs("#tnBackBtn");
       if (backButton) {
-        backButton.textContent = t("home");
+        backButton.textContent = "←";
+        backButton.setAttribute("aria-label", langText("Torna indietro", "Go back"));
       }
       const authBadge = qs("#authBadge");
       if (authBadge) {
@@ -11949,13 +12043,58 @@
     };
     window.toggleFilterChip = toggleFilterChip;
 
-    const originalToggleFav = toggleFav;
+    function syncFavoriteButtonVisual(button, liked) {
+      if (!button) {
+        return;
+      }
+      button.classList.toggle("liked", liked);
+      button.classList.toggle("det-icon-active", liked);
+      button.setAttribute("aria-pressed", liked ? "true" : "false");
+      const icon = button.querySelector(".det-fav__icon") || button.querySelector("span:first-child");
+      const label = button.querySelector(".det-fav__label") || button.querySelector("span:last-child");
+      if (icon) {
+        icon.textContent = liked ? "♥" : "♡";
+      }
+      if (label && button.classList.contains("det-fav")) {
+        label.textContent = liked ? t("saved_fav") : t("add_fav");
+      }
+      if (!icon && !label && button.classList.contains("pc-heart")) {
+        button.textContent = liked ? "♥" : "♡";
+      }
+      const svg = button.querySelector("svg");
+      if (svg) {
+        svg.setAttribute("fill", liked ? "currentColor" : "none");
+      }
+      if (button.classList.contains("det-fav") && !label) {
+        button.textContent = liked ? "♥ " + t("saved_fav") : "♡ " + t("add_fav");
+      }
+      button.setAttribute("title", liked ? t("saved_fav") : t("add_fav"));
+    }
+
     toggleFav = function (id, button) {
-      originalToggleFav(id, button);
-      saveJson(STORAGE_KEYS.favorites, [...favorites]);
+      const key = normalizeFavoriteId(id);
+      if (!key) {
+        return;
+      }
+      const liked = !hasFavoriteProduct(key);
+      if (liked) {
+        favorites.add(key);
+      } else {
+        favorites.delete(key);
+      }
+      persistFavorites();
+      syncFavoriteButtonVisual(button, liked);
       if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
-        saveFavoriteToSupabase(id, favorites.has(id)).catch(function (error) {
+        saveFavoriteToSupabase(key, liked).catch(function (error) {
           console.warn("[IRIS] Unable to sync favorite to Supabase", error);
+        });
+      }
+      if (qs("#fav-view.active")) {
+        renderFavorites();
+      }
+      if (state.activeDetailListingId && sameEntityId(state.activeDetailListingId, key)) {
+        qsa("#detail-view .det-fav, #detail-view .det-icon-btn").forEach(function (favoriteButton) {
+          syncFavoriteButtonVisual(favoriteButton, liked);
         });
       }
       renderProfilePanel();
@@ -12041,6 +12180,10 @@
 
     showBuyView = function (view) {
       const targetView = view || "home";
+      const currentView = getActiveIrisViewForBack();
+      if (currentView && currentView !== "detail" && currentView !== "sell" && currentView !== targetView) {
+        state.irisPreviousView = currentView;
+      }
       const viewToken = bumpViewSyncToken();
       const ids = ["home-view", "shop-view", "detail-view", "fav-view", "chat-view", "profile-view", "seller-view", "ops-view"];
 
@@ -12210,7 +12353,7 @@
     };
 
     renderFavorites = function () {
-      const items = prods.filter((product) => favorites.has(product.id));
+      const items = prods.filter((product) => hasFavoriteProduct(product.id));
       qs("#favCountText").textContent =
         items.length + " " + (items.length === 1 ? t("cart_items").replace(/s$/, "") : t("items_saved"));
 
@@ -12268,7 +12411,7 @@
 
       state.activeDetailImage = 0;
       const discount = Math.round((1 - product.price / product.orig) * 100);
-      const liked = favorites.has(product.id);
+      const liked = hasFavoriteProduct(product.id);
       const fitLabel = getFacetLabel("fits", product.fit === "—" ? "—" : product.fit);
       const colorLabel = getFacetLabel("colors", product.color);
       const conditionLabel = getFacetLabel("conds", product.cond);
@@ -12400,8 +12543,10 @@
     };
 
     closeDetail = function () {
+      const returnView = state.detailReturnView || state.lastNonDetailView || "shop";
       state.activeDetailListingId = null;
-      showBuyView(state.lastNonDetailView || "home");
+      state.detailReturnView = null;
+      showBuyView(returnView === "detail" || returnView === "sell" ? "shop" : returnView);
     };
 
     window.addToCart = addToCart;
@@ -12501,7 +12646,7 @@
 
   function productCardMarkup(product) {
     const discount = getListingDiscount(product);
-    const liked = favorites.has(product.id);
+    const liked = hasFavoriteProduct(product.id);
     const productIdExpr = inlineJsValue(product.id);
     const seller = buildListingSeller(product);
     const trustMeta = getListingTrustMeta(product);
@@ -14371,7 +14516,7 @@
     }
 
     const favoritesItems = prods.filter(function (product) {
-      return favorites.has(product.id);
+      return hasFavoriteProduct(product.id);
     });
 
     if (!state.currentUser) {
@@ -18681,7 +18826,7 @@
     }
 
     const favoritesItems = prods.filter(function (product) {
-      return favorites.has(product.id) && isProductPurchasable(product);
+      return hasFavoriteProduct(product.id) && isProductPurchasable(product);
     });
 
     if (!state.currentUser) {
@@ -20071,6 +20216,10 @@
       return;
     }
 
+    const returnView = getActiveIrisViewForBack();
+    if (returnView && returnView !== "detail" && returnView !== "sell") {
+      state.detailReturnView = returnView;
+    }
     bumpViewSyncToken();
     closeProfileMenu();
     closeMobileNav();
@@ -20084,7 +20233,7 @@
     state.activeDetailImage = 0;
     state.activeDetailListingId = product.id;
     const discount = getListingDiscount(product);
-    const liked = favorites.has(product.id);
+    const liked = hasFavoriteProduct(product.id);
     const conditionLabel = getFacetLabel("conds", product.cond);
     const originalPrice = getListingOriginalPrice(product);
     const viewerOwnsListing = isCurrentUserListingOwner(product);
@@ -20230,8 +20379,8 @@
           <div class="footer-brand">IRIS</div>
           <div class="footer-desc">${langText("Il marketplace italiano per la moda di lusso. Compra e vendi pezzi firmati con autenticazione e protezione IRIS.", "The Italian marketplace for luxury fashion. Buy and sell designer pieces with IRIS authentication and protection.")}</div>
           <div class="irisx-store-badges" aria-label="${escapeHtml(langText("Scarica l'app IRIS", "Download the IRIS app"))}">
-            <a class="irisx-store-badge irisx-store-badge--apple" href="#" onclick="event.preventDefault()" aria-label="${escapeHtml(langText("Scarica su App Store", "Download on the App Store"))}"><span class="irisx-store-icon" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path d="M21.4 3.2c.1 1.6-.5 3.1-1.7 4.3-1.2 1.2-2.6 1.9-4.1 1.8-.2-1.5.5-3 1.6-4.1 1.1-1.2 2.8-2 4.2-2zM26.6 23.5c-.7 1.6-1 2.3-1.9 3.7-1.2 1.8-2.8 4-4.9 4-1.8 0-2.3-1.2-4.8-1.1-2.5 0-3 1.1-4.8 1.1-2.1 0-3.7-2-4.9-3.8-3.4-5.2-3.7-11.2-1.6-14.4 1.5-2.3 3.8-3.6 6-3.6 2.2 0 3.6 1.2 5.4 1.2 1.7 0 2.8-1.2 5.3-1.2 1.9 0 3.9 1 5.3 2.8-4.6 2.5-3.8 9 .9 11.3z"/></svg></span><span class="irisx-store-text"><span>${langText("Scarica su", "Download on")}</span><strong>App Store</strong></span></a>
             <a class="irisx-store-badge irisx-store-badge--google" href="#" onclick="event.preventDefault()" aria-label="${escapeHtml(langText("Disponibile su Google Play", "Get it on Google Play"))}"><span class="irisx-store-icon" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path class="gp-a" d="M5 3.8v24.4l13-12.2z"/><path class="gp-b" d="M18 16 22.1 12 7.1 3.5z"/><path class="gp-c" d="M18 16 7.1 28.5 22.1 20z"/><path class="gp-d" d="M22.1 12 28 15.3c.6.4.6 1 0 1.4L22.1 20 18 16z"/></svg></span><span class="irisx-store-text"><span>${langText("Disponibile su", "Get it on")}</span><strong>Google Play</strong></span></a>
+            <a class="irisx-store-badge irisx-store-badge--apple" href="#" onclick="event.preventDefault()" aria-label="${escapeHtml(langText("Scarica su App Store", "Download on the App Store"))}"><span class="irisx-store-icon" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path d="M21.4 3.2c.1 1.6-.5 3.1-1.7 4.3-1.2 1.2-2.6 1.9-4.1 1.8-.2-1.5.5-3 1.6-4.1 1.1-1.2 2.8-2 4.2-2zM26.6 23.5c-.7 1.6-1 2.3-1.9 3.7-1.2 1.8-2.8 4-4.9 4-1.8 0-2.3-1.2-4.8-1.1-2.5 0-3 1.1-4.8 1.1-2.1 0-3.7-2-4.9-3.8-3.4-5.2-3.7-11.2-1.6-14.4 1.5-2.3 3.8-3.6 6-3.6 2.2 0 3.6 1.2 5.4 1.2 1.7 0 2.8-1.2 5.3-1.2 1.9 0 3.9 1 5.3 2.8-4.6 2.5-3.8 9 .9 11.3z"/></svg></span><span class="irisx-store-text"><span>${langText("Scarica su", "Download on")}</span><strong>App Store</strong></span></a>
           </div>
           <div class="irisx-footer-payments" aria-label="${escapeHtml(langText("Metodi di pagamento sicuri", "Secure payment methods"))}">
             <div class="irisx-footer-payments-title">${langText("Pagamenti sicuri", "Secure payments")}</div>

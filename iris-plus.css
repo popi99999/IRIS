@@ -17489,3 +17489,183 @@ body.irisx-luxury.irisx-white-theme .irisx-measurement-bot-card small {
     text-align: left !important;
   }
 }
+
+/* Navigation, favorites, app badges and offer polish */
+body.irisx-luxury #tnBackBtn.irisx-global-back,
+body.irisx-luxury.irisx-white-theme #tnBackBtn.irisx-global-back {
+  position: fixed !important;
+  top: calc(var(--iris-nav-height, 64px) + var(--iris-nav-sub-height, 42px) + 12px) !important;
+  left: max(16px, env(safe-area-inset-left)) !important;
+  z-index: 1225 !important;
+  width: 44px !important;
+  height: 44px !important;
+  display: none !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(241, 50, 79, 0.22) !important;
+  background: rgba(255, 250, 250, 0.94) !important;
+  color: #111827 !important;
+  box-shadow: 0 16px 36px rgba(31, 12, 24, 0.1) !important;
+  backdrop-filter: blur(16px) !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+}
+
+body.irisx-luxury #tnBackBtn.irisx-global-back.is-visible,
+body.irisx-luxury.irisx-white-theme #tnBackBtn.irisx-global-back.is-visible {
+  display: grid !important;
+}
+
+body.irisx-luxury #tnBackBtn.irisx-global-back:hover,
+body.irisx-luxury.irisx-white-theme #tnBackBtn.irisx-global-back:hover {
+  border-color: rgba(241, 50, 79, 0.38) !important;
+  color: #f1324f !important;
+  transform: translateY(-1px) !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badges {
+  grid-template-columns: repeat(2, minmax(168px, 1fr)) !important;
+  gap: 0.82rem !important;
+  max-width: 430px !important;
+  align-items: center !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge {
+  min-height: 70px !important;
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  align-items: center !important;
+  align-content: center !important;
+  gap: 0.9rem !important;
+  padding: 0.78rem 1rem !important;
+  border-radius: 14px !important;
+  border: 2px solid rgba(255, 255, 255, 0.42) !important;
+  background: #070707 !important;
+  color: #fff !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.55), 0 12px 28px rgba(17, 8, 14, 0.12) !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-icon {
+  width: 42px !important;
+  height: 42px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon svg,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-icon svg {
+  width: 42px !important;
+  height: 42px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text span,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text span {
+  color: rgba(255, 255, 255, 0.84) !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.08em !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text strong,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text strong {
+  color: #fff !important;
+  font-size: clamp(1.35rem, 1.7vw, 1.72rem) !important;
+  line-height: 0.95 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .offer-shell--amount .offer-amount-primary,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-amount-primary {
+  justify-content: center !important;
+  padding: clamp(1.35rem, 2.8vw, 2.1rem) !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, #ffffff 0%, #fff8f9 100%) !important;
+  box-shadow: inset 0 0 0 1px rgba(241, 50, 79, 0.1) !important;
+}
+
+body.irisx-luxury .offer-shell--amount .offer-amount-label,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-amount-label {
+  max-width: 16rem !important;
+  font-size: clamp(1.65rem, 2.7vw, 2.55rem) !important;
+  line-height: 1.04 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .offer-shell--amount .offer-amount-shell,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-amount-shell {
+  grid-template-columns: 48px minmax(190px, 260px) 48px !important;
+  max-width: 404px !important;
+  gap: 0.55rem !important;
+  padding: 0.48rem !important;
+  border: 1px solid rgba(241, 50, 79, 0.16) !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  box-shadow: 0 20px 44px rgba(31, 12, 24, 0.08) !important;
+}
+
+body.irisx-luxury .offer-shell--amount .offer-stepper,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-stepper {
+  width: 48px !important;
+  height: 48px !important;
+  border: 1px solid rgba(17, 24, 39, 0.12) !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+}
+
+body.irisx-luxury .offer-shell--amount .offer-stepper:hover,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-stepper:hover {
+  border-color: rgba(241, 50, 79, 0.34) !important;
+  background: #fff2f4 !important;
+  color: #f1324f !important;
+}
+
+body.irisx-luxury .offer-shell--amount .offer-amount-field,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-amount-field {
+  min-height: 56px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  padding: 0 0.8rem !important;
+  background: #fffafa !important;
+}
+
+body.irisx-luxury .offer-shell--amount .offer-amount-currency,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-amount-currency {
+  font-size: clamp(1.45rem, 3vw, 2.05rem) !important;
+}
+
+body.irisx-luxury .offer-shell--amount .offer-input,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-input {
+  width: 104px !important;
+  flex-basis: 104px !important;
+  font-size: clamp(2rem, 4.6vw, 2.85rem) !important;
+  text-align: left !important;
+}
+
+body.irisx-luxury .offer-shell--amount .offer-amount-aside,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-amount-aside {
+  border-radius: 14px !important;
+}
+
+@media (max-width: 680px) {
+  body.irisx-luxury #tnBackBtn.irisx-global-back,
+  body.irisx-luxury.irisx-white-theme #tnBackBtn.irisx-global-back {
+    top: calc(var(--iris-mobile-header-height, 72px) + 10px) !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+  body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badges {
+    grid-template-columns: 1fr !important;
+    max-width: 240px !important;
+  }
+
+  body.irisx-luxury .offer-shell--amount .offer-amount-shell,
+  body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-amount-shell {
+    grid-template-columns: 42px minmax(0, 1fr) 42px !important;
+    max-width: 100% !important;
+  }
+}

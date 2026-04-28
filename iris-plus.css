@@ -16487,3 +16487,367 @@ body.irisx-luxury.irisx-white-theme .irisx-photo-guide {
     display: none !important;
   }
 }
+
+/* Shop filters and brand search refresh */
+body.irisx-luxury #shop-view .shop-layout {
+  grid-template-columns: minmax(0, 1fr) !important;
+  width: min(1780px, calc(100vw - 64px)) !important;
+  margin: 0 auto !important;
+}
+
+body.irisx-luxury #shop-view #filtersPanel,
+body.irisx-luxury #shop-view .mob-filter-btn {
+  display: none !important;
+}
+
+body.irisx-luxury #shop-view .shop-main,
+body.irisx-luxury.irisx-white-theme #shop-view .shop-main {
+  width: 100% !important;
+  max-width: none !important;
+  gap: 18px !important;
+  padding-top: 18px !important;
+}
+
+body.irisx-luxury .irisx-shop-discovery-deck,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-deck {
+  border-radius: 8px !important;
+  padding: 22px 24px !important;
+  gap: 18px !important;
+  border-color: rgba(241, 50, 79, 0.14) !important;
+  background: linear-gradient(180deg, #fff, #fff7f8) !important;
+  box-shadow: 0 18px 42px rgba(31, 12, 24, 0.05) !important;
+}
+
+body.irisx-luxury .irisx-shop-discovery-head,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-head {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 420px) !important;
+  align-items: center !important;
+}
+
+body.irisx-luxury .irisx-shop-discovery-title,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-title {
+  max-width: 820px !important;
+  color: #111827 !important;
+  font-size: clamp(1.45rem, 1.9vw, 2.15rem) !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .irisx-shop-discovery-summary,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-summary {
+  border-radius: 8px !important;
+  color: #4d4656 !important;
+  background: #fffafa !important;
+  border-color: rgba(241, 50, 79, 0.14) !important;
+  box-shadow: none !important;
+  font-size: 0.95rem !important;
+}
+
+body.irisx-luxury .irisx-shop-discovery-kicker,
+body.irisx-luxury .irisx-shop-discovery-eyebrow,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-kicker,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-eyebrow {
+  color: #6f6875 !important;
+  letter-spacing: 0.08em !important;
+}
+
+body.irisx-luxury .irisx-shop-browse-row,
+body.irisx-luxury .irisx-fdrop-bar,
+body.irisx-luxury.irisx-white-theme .irisx-shop-browse-row,
+body.irisx-luxury.irisx-white-theme .irisx-fdrop-bar {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(142px, max-content)) !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+body.irisx-luxury .irisx-shop-discovery-deck .irisx-shop-browse-link,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-deck .irisx-shop-browse-link {
+  min-height: 44px !important;
+  border-radius: 8px !important;
+  padding: 0 16px !important;
+  color: #111827 !important;
+  background: #fff !important;
+  border-color: rgba(241, 50, 79, 0.14) !important;
+  box-shadow: none !important;
+  letter-spacing: 0.04em !important;
+}
+
+body.irisx-luxury .irisx-shop-discovery-deck .irisx-shop-browse-link:hover,
+body.irisx-luxury .irisx-shop-discovery-deck .irisx-shop-browse-link.is-active,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-deck .irisx-shop-browse-link:hover,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-deck .irisx-shop-browse-link.is-active {
+  background: #fff1f3 !important;
+  color: #e62546 !important;
+  border-color: rgba(241, 50, 79, 0.32) !important;
+}
+
+body.irisx-luxury .irisx-fdrop {
+  position: relative !important;
+  display: block !important;
+}
+
+body.irisx-luxury .irisx-fdrop summary::-webkit-details-marker {
+  display: none !important;
+}
+
+body.irisx-luxury .irisx-shop-discovery-deck .irisx-fdrop__btn,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-deck .irisx-fdrop__btn {
+  min-height: 48px !important;
+  min-width: 142px !important;
+  border-radius: 8px !important;
+  padding: 0 15px !important;
+  color: #111827 !important;
+  background: #fff !important;
+  border-color: rgba(241, 50, 79, 0.16) !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .irisx-shop-discovery-deck .irisx-fdrop__btn strong,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-deck .irisx-fdrop__btn strong {
+  max-width: 128px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  color: #e62546 !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+}
+
+body.irisx-luxury .irisx-shop-discovery-deck .irisx-fdrop[open] .irisx-fdrop__btn,
+body.irisx-luxury .irisx-shop-discovery-deck .irisx-fdrop__btn:hover,
+body.irisx-luxury .irisx-shop-discovery-deck .irisx-fdrop__btn.is-active,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-deck .irisx-fdrop[open] .irisx-fdrop__btn,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-deck .irisx-fdrop__btn:hover,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-deck .irisx-fdrop__btn.is-active {
+  background: #fff1f3 !important;
+  color: #e62546 !important;
+  border-color: rgba(241, 50, 79, 0.34) !important;
+}
+
+body.irisx-luxury .irisx-fdrop[open] .irisx-fdrop__arrow {
+  transform: rotate(180deg) !important;
+}
+
+body.irisx-luxury .irisx-shop-discovery-deck .irisx-fdrop__panel,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-deck .irisx-fdrop__panel {
+  display: none !important;
+  top: calc(100% + 8px) !important;
+  min-width: 280px !important;
+  max-width: min(360px, calc(100vw - 48px)) !important;
+  max-height: 360px !important;
+  overflow-y: auto !important;
+  border-radius: 8px !important;
+  padding: 8px !important;
+  background: #fff !important;
+  border-color: rgba(241, 50, 79, 0.16) !important;
+  box-shadow: 0 18px 42px rgba(31, 12, 24, 0.13) !important;
+}
+
+body.irisx-luxury .irisx-shop-discovery-deck .irisx-fdrop[open] .irisx-fdrop__panel,
+body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-deck .irisx-fdrop[open] .irisx-fdrop__panel {
+  display: block !important;
+}
+
+body.irisx-luxury .irisx-fdrop__item,
+body.irisx-luxury.irisx-white-theme .irisx-fdrop__item {
+  width: 100% !important;
+  min-height: 42px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #111827 !important;
+  display: grid !important;
+  grid-template-columns: 18px auto minmax(0, 1fr) auto !important;
+  gap: 8px !important;
+  align-items: center !important;
+  font-size: 0.92rem !important;
+  text-align: left !important;
+}
+
+body.irisx-luxury .irisx-fdrop__item:hover,
+body.irisx-luxury .irisx-fdrop__item.on,
+body.irisx-luxury.irisx-white-theme .irisx-fdrop__item:hover,
+body.irisx-luxury.irisx-white-theme .irisx-fdrop__item.on {
+  background: #fff1f3 !important;
+  color: #e62546 !important;
+}
+
+body.irisx-luxury .irisx-fdrop__check,
+body.irisx-luxury.irisx-white-theme .irisx-fdrop__check {
+  color: #e62546 !important;
+}
+
+body.irisx-luxury .irisx-fdrop__swatch {
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(17, 24, 39, 0.14) !important;
+}
+
+body.irisx-luxury .irisx-fdrop__count {
+  color: #807684 !important;
+  font-size: 0.78rem !important;
+}
+
+body.irisx-luxury .irisx-fdrop__group {
+  display: grid !important;
+  gap: 4px !important;
+  padding: 6px 0 !important;
+}
+
+body.irisx-luxury .irisx-fdrop__group > span {
+  padding: 4px 10px !important;
+  color: #807684 !important;
+  font-size: 0.76rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+}
+
+body.irisx-luxury .irisx-fdrop__panel--price {
+  display: none !important;
+  gap: 10px !important;
+}
+
+body.irisx-luxury .irisx-fdrop[open] .irisx-fdrop__panel--price {
+  display: grid !important;
+}
+
+body.irisx-luxury .irisx-fdrop__panel--price label {
+  display: grid !important;
+  gap: 6px !important;
+  color: #5f5663 !important;
+  font-size: 0.78rem !important;
+}
+
+body.irisx-luxury .irisx-fdrop__panel--price input {
+  min-height: 42px !important;
+  border: 1px solid rgba(241, 50, 79, 0.16) !important;
+  border-radius: 8px !important;
+  padding: 0 12px !important;
+  color: #111827 !important;
+  background: #fffafa !important;
+  font: inherit !important;
+}
+
+body.irisx-luxury .irisx-fdrop__actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+}
+
+body.irisx-luxury .irisx-fdrop__actions button {
+  min-height: 38px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(241, 50, 79, 0.18) !important;
+  background: #fff1f3 !important;
+  color: #e62546 !important;
+  font-weight: 700 !important;
+}
+
+body.irisx-luxury .irisx-brand-context,
+body.irisx-luxury.irisx-white-theme .irisx-brand-context {
+  display: grid !important;
+  grid-template-columns: 86px minmax(220px, 320px) minmax(320px, 1fr) auto !important;
+  gap: 22px !important;
+  align-items: center !important;
+  padding: 24px !important;
+  border: 1px solid rgba(17, 24, 39, 0.08) !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  box-shadow: 0 18px 42px rgba(31, 12, 24, 0.04) !important;
+}
+
+body.irisx-luxury .irisx-brand-context__mark {
+  width: 72px !important;
+  height: 72px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(17, 24, 39, 0.1) !important;
+  border-radius: 50% !important;
+  color: #111827 !important;
+  background: #fffafa !important;
+  font-family: Georgia, serif !important;
+  font-size: 1.55rem !important;
+}
+
+body.irisx-luxury .irisx-brand-context__title {
+  color: #111827 !important;
+  font-size: clamp(2rem, 3vw, 3.4rem) !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .irisx-brand-context__count,
+body.irisx-luxury .irisx-brand-context__meta button {
+  margin-top: 8px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #111827 !important;
+  text-decoration: underline !important;
+  font-size: 0.98rem !important;
+}
+
+body.irisx-luxury .irisx-brand-context p {
+  margin: 0 !important;
+  color: #3f3945 !important;
+  font-size: 1rem !important;
+  line-height: 1.55 !important;
+}
+
+body.irisx-luxury .irisx-brand-context__meta {
+  display: grid !important;
+  gap: 8px !important;
+  justify-items: end !important;
+  color: #807684 !important;
+  font-size: 0.9rem !important;
+}
+
+body.irisx-luxury .ac-entry-monogram {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(241, 50, 79, 0.18) !important;
+  background: #fff1f3 !important;
+  color: #e62546 !important;
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+}
+
+body.irisx-luxury .ac-entry--brand .ac-entry-main {
+  gap: 10px !important;
+}
+
+@media (max-width: 900px) {
+  body.irisx-luxury #shop-view .shop-layout {
+    width: calc(100vw - 24px) !important;
+  }
+
+  body.irisx-luxury .irisx-shop-discovery-head,
+  body.irisx-luxury.irisx-white-theme .irisx-shop-discovery-head,
+  body.irisx-luxury .irisx-brand-context,
+  body.irisx-luxury.irisx-white-theme .irisx-brand-context {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.irisx-luxury .irisx-shop-browse-row,
+  body.irisx-luxury .irisx-fdrop-bar {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  body.irisx-luxury .irisx-fdrop__btn {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  body.irisx-luxury .irisx-brand-context__meta {
+    justify-items: start !important;
+  }
+}

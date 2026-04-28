@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="./icons/icon-512.png">
 <link rel="manifest" href="./manifest.json?v=20260417094815">
-<link rel="stylesheet" href="./iris-plus.css?v=20260428170500">
+<link rel="stylesheet" href="./iris-plus.css?v=20260428184500">
 <title>IRIS — Luxury Fashion Marketplace</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Il marketplace italiano per la moda di lusso.","potentialAction":{"@type":"SearchAction","target":"https://popi99999.github.io/IRIS/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Luxury Fashion Marketplace italiano"}</script>
@@ -3743,7 +3743,7 @@ function updateMeta(title,desc){
 /* ═══════ PWA ═══════ */
 let deferredPrompt=null;
 if('serviceWorker' in navigator && window.location.protocol !== 'file:'){
-  navigator.serviceWorker.register('./sw.js?v=20260428170500').then((registration)=>{
+  navigator.serviceWorker.register('./sw.js?v=20260428184500').then((registration)=>{
     if (registration.waiting) {
       console.info('IRIS service worker update ready.');
     }
@@ -3768,7 +3768,7 @@ setTimeout(()=>renderFooters(),500);
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js?v=20260427223000"></script>
 <script src="./iris-i18n-config.js?v=20260427223000"></script>
-<script src="./iris-plus.js?v=20260428170500"></script>
+<script src="./iris-plus.js?v=20260428184500"></script>
 <script>
 /* ═══ OFFER FLOW BRIDGE ═══ */
 if (window.__irisModernOfferFlow) {

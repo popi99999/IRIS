@@ -4886,6 +4886,94 @@
     });
   }
 
+  function fuzzySearchMatch(value, query) {
+    const normalizedValue = normalizeSearchText(value);
+    const normalizedQuery = normalizeSearchText(query);
+    if (!normalizedValue || !normalizedQuery) {
+      return false;
+    }
+    if (normalizedValue.includes(normalizedQuery)) {
+      return true;
+    }
+    const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
+    const valueTokens = normalizedValue.split(/\s+/).filter(Boolean);
+    if (!queryTokens.length || !valueTokens.length) {
+      return false;
+    }
+
+    function editDistanceWithin(left, right, limit) {
+      if (Math.abs(left.length - right.length) > limit) {
+        return false;
+      }
+      const row = Array.from({ length: right.length + 1 }, function (_, index) { return index; });
+      for (let i = 1; i <= left.length; i += 1) {
+        let diagonal = row[0];
+        row[0] = i;
+        let rowMin = row[0];
+        for (let j = 1; j <= right.length; j += 1) {
+          const temp = row[j];
+          row[j] = Math.min(
+            row[j] + 1,
+            row[j - 1] + 1,
+            diagonal + (left[i - 1] === right[j - 1] ? 0 : 1)
+          );
+          diagonal = temp;
+          rowMin = Math.min(rowMin, row[j]);
+        }
+        if (rowMin > limit) {
+          return false;
+        }
+      }
+      return row[right.length] <= limit;
+    }
+
+    return queryTokens.every(function (queryToken) {
+      return valueTokens.some(function (valueToken) {
+        const limit = queryToken.length > 5 ? 2 : 1;
+        return valueToken.includes(queryToken) || queryToken.includes(valueToken) || editDistanceWithin(queryToken, valueToken, limit);
+      });
+    });
+  }
+
+  function getBrandMonogram(brand) {
+    const words = String(brand || "")
+      .replace(/&/g, " ")
+      .split(/\s+/)
+      .filter(Boolean);
+    if (!words.length) {
+      return "IR";
+    }
+    if (words.length === 1) {
+      return words[0].slice(0, 2).toUpperCase();
+    }
+    return words.slice(0, 2).map(function (word) { return word[0]; }).join("").toUpperCase();
+  }
+
+  function getBrandContextCopy(brand) {
+    const copy = {
+      "Louis Vuitton": langText(
+        "Borse, accessori e travel piece Louis Vuitton selezionati su IRIS, con attenzione a materiali, condizioni e autenticazione.",
+        "Louis Vuitton bags, accessories and travel pieces selected on IRIS, with attention to materials, condition and authentication."
+      ),
+      "Gucci": langText(
+        "Archivio Gucci tra borse, cinture, sneakers e abbigliamento, filtrabile per categoria, taglia e stato dell'articolo.",
+        "A Gucci archive across bags, belts, sneakers and clothing, filterable by category, size and item condition."
+      ),
+      "Hermès": langText(
+        "Selezione Hermès curata per borse e accessori di lusso, con focus su pelle, misure e dettagli inclusi.",
+        "A curated Hermès selection for luxury bags and accessories, focused on leather, measurements and included details."
+      ),
+      "Chanel": langText(
+        "Borse e accessori Chanel organizzati per modello, materiale e condizioni dichiarate dal seller.",
+        "Chanel bags and accessories organized by model, material and seller-declared condition."
+      )
+    };
+    return copy[brand] || langText(
+      "Esplora gli articoli disponibili per questo designer e combina brand, categoria, condizione e prezzo per restringere la ricerca.",
+      "Explore available items from this designer and combine brand, category, condition and price to narrow the search."
+    );
+  }
+
   function getQuerySuggestionPhrases(query, products, brands, categories) {
     const rawQuery = String(query || "").trim();
     const phrases = [];
@@ -4901,21 +4989,11 @@
       phrases.push(trimmed);
     }
 
+    addPhrase(rawQuery);
+
     brands.slice(0, 3).forEach(function (brand) {
       addPhrase(brand);
-      getBrandCategorySuggestions(brand, 2).forEach(addPhrase);
     });
-
-    if (!brands.length) {
-      addPhrase(rawQuery);
-    }
-
-    if (!brands.length) {
-      const fallbackBrands = (products.length ? getAutocompleteBrandCounts(products) : getAutocompleteBrandCounts(getVisibleCatalogProducts())).slice(0, 4);
-      fallbackBrands.forEach(function (entry) {
-        addPhrase(rawQuery + " " + entry.brand);
-      });
-    }
 
     categories.slice(0, 2).forEach(function (category) {
       addPhrase(getFacetLabel("cats", category));
@@ -5171,7 +5249,7 @@
     if (type === "brand") {
       resetMarketplaceFiltersForAutocomplete();
       filters.brands = [value];
-      filters.search = "";
+      filters.search = value;
       registerRecentSearch(value);
       const input = document.getElementById("searchInput");
       if (input) {
@@ -5283,10 +5361,10 @@
       return getProductSearchIndex(product).includes(normalized);
     }).slice(0, 5);
     const brands = getAvailableBrands().filter(function (brand) {
-      return normalizeSearchText(brand).includes(normalized);
+      return fuzzySearchMatch(brand, normalized);
     }).slice(0, 5);
     const categories = getAvailableCategories().filter(function (category) {
-      return normalizeSearchText(category + " " + getFacetLabel("cats", category)).includes(normalized);
+      return fuzzySearchMatch(category + " " + getFacetLabel("cats", category), normalized);
     }).slice(0, 4);
 
     const suggestionMarkup = getQuerySuggestionPhrases(query, products, brands, categories)
@@ -5306,7 +5384,7 @@
 
     const fallbackBrandEntries = getAutocompleteBrandCounts(products).length
       ? getAutocompleteBrandCounts(products).slice(0, 5)
-      : getAutocompleteBrandCounts(getVisibleCatalogProducts()).slice(0, 5);
+      : [];
     const brandMarkup = (brands.length ? brands.map(function (brand) {
       const count = getVisibleCatalogProducts().filter(function (product) {
         return normalizeSearchText(product.brand) === normalizeSearchText(brand);
@@ -5317,7 +5395,8 @@
         brand,
         count ? langText(count + " articoli", count + " items") : langText("Brand", "Brand"),
         {
-          classes: ["ac-entry--brand"]
+          classes: ["ac-entry--brand"],
+          iconMarkup: `<span class="ac-entry-monogram">${escapeHtml(getBrandMonogram(brand))}</span>`
         }
       );
     }) : fallbackBrandEntries.map(function (entry) {
@@ -5327,7 +5406,8 @@
         entry.brand,
         langText(entry.count + " articoli", entry.count + " items"),
         {
-          classes: ["ac-entry--brand"]
+          classes: ["ac-entry--brand"],
+          iconMarkup: `<span class="ac-entry-monogram">${escapeHtml(getBrandMonogram(entry.brand))}</span>`
         }
       );
     })).join("");
@@ -11291,7 +11371,8 @@
         return;
       }
       if (kind === "designers") {
-        focusFilterPanel("f-brands");
+        renderHorizontalFilterRail();
+        setTimeout(function () { openShopFilterDropdown("brands"); }, 0);
         return;
       }
       if (kind === "genders") {
@@ -11306,6 +11387,159 @@
 
     window.focusFilterPanel = focusFilterPanel;
     window.applyShopPreset = applyShopPreset;
+
+    function getActiveShopFilterCount() {
+      ensureExtendedFilters();
+      const searchDuplicatesBrand = filters.brands.some(function (brand) {
+        return normalizeSearchText(brand) === normalizeSearchText(filters.search);
+      });
+      return filters.genders.length +
+        filters.cats.length +
+        filters.brands.length +
+        filters.conds.length +
+        filters.materials.length +
+        filters.trust.length +
+        filters.fits.length +
+        filters.colors.length +
+        (filters.size ? 1 : 0) +
+        (filters.pmin ? 1 : 0) +
+        (filters.pmax ? 1 : 0) +
+        (filters.search && !searchDuplicatesBrand ? 1 : 0);
+    }
+
+    function syncMarketplaceSearchInputs(value) {
+      const query = String(value || "");
+      const searchInput = qs("#searchInput");
+      const mobileSearchInput = qs("#irisMobileSearchInput");
+      if (searchInput && searchInput.value !== query) {
+        searchInput.value = query;
+      }
+      if (mobileSearchInput && mobileSearchInput.value !== query) {
+        mobileSearchInput.value = query;
+      }
+    }
+
+    function openShopFilterDropdown(filterKey) {
+      qsa(".irisx-fdrop[open]").forEach(function (dropdown) {
+        dropdown.open = false;
+      });
+      const target = qs('.irisx-fdrop[data-filter="' + filterKey + '"]');
+      if (target) {
+        target.open = true;
+        const summary = target.querySelector("summary");
+        if (summary && typeof summary.focus === "function") {
+          summary.focus();
+        }
+      }
+    }
+
+    function toggleShopDropdownFilter(type, value) {
+      ensureExtendedFilters();
+      if (!Array.isArray(filters[type])) {
+        return;
+      }
+
+      if (type === "brands") {
+        const isOnlySelected = filters.brands.length === 1 && filters.brands[0] === value;
+        filters.brands = isOnlySelected ? [] : [value];
+        filters.search = isOnlySelected ? "" : value;
+        syncMarketplaceSearchInputs(filters.search);
+      } else if (type === "genders" || type === "cats") {
+        const isOnlySelected = filters[type].length === 1 && filters[type][0] === value;
+        filters[type] = isOnlySelected ? [] : [value];
+      } else {
+        const index = filters[type].indexOf(value);
+        if (index > -1) {
+          filters[type].splice(index, 1);
+        } else {
+          filters[type].push(value);
+        }
+      }
+
+      initFilters();
+      render();
+    }
+
+    function applyShopPriceFilter() {
+      ensureExtendedFilters();
+      const minInput = qs("#irisxFilterMin") || qs("#f-pmin");
+      const maxInput = qs("#irisxFilterMax") || qs("#f-pmax");
+      filters.pmin = minInput ? minInput.value.trim() : "";
+      filters.pmax = maxInput ? maxInput.value.trim() : "";
+      const legacyMin = qs("#f-pmin");
+      const legacyMax = qs("#f-pmax");
+      if (legacyMin) {
+        legacyMin.value = filters.pmin;
+      }
+      if (legacyMax) {
+        legacyMax.value = filters.pmax;
+      }
+      initFilters();
+      render();
+    }
+
+    function clearShopPriceFilter() {
+      filters.pmin = "";
+      filters.pmax = "";
+      const minInput = qs("#irisxFilterMin") || qs("#f-pmin");
+      const maxInput = qs("#irisxFilterMax") || qs("#f-pmax");
+      if (minInput) {
+        minInput.value = "";
+      }
+      if (maxInput) {
+        maxInput.value = "";
+      }
+      applyShopPriceFilter();
+    }
+
+    function renderShopBrandContext(items) {
+      const shopMain = qs("#shop-view .shop-main");
+      const shopBar = qs("#shop-view .shop-bar");
+      if (!shopMain || !shopBar) {
+        return;
+      }
+      let host = qs("#irisxShopBrandContext");
+      if (!host) {
+        host = document.createElement("div");
+        host.id = "irisxShopBrandContext";
+        shopMain.insertBefore(host, shopBar);
+      }
+
+      const brand = filters.brands.length === 1 ? filters.brands[0] : "";
+      if (!brand) {
+        host.innerHTML = "";
+        host.hidden = true;
+        return;
+      }
+
+      const totalCount = getVisibleCatalogProducts().filter(function (product) {
+        return normalizeSearchText(product.brand) === normalizeSearchText(brand);
+      }).length;
+      const visibleCount = (items || []).filter(function (product) {
+        return normalizeSearchText(product.brand) === normalizeSearchText(brand);
+      }).length;
+      const totalLabel = totalCount === 1 ? langText("annuncio", "listing") : langText("annunci", "listings");
+      const visibleLabel = visibleCount === 1 ? langText("visibile ora", "visible now") : langText("visibili ora", "visible now");
+
+      host.hidden = false;
+      host.innerHTML = `<section class="irisx-brand-context" aria-label="${escapeHtml(langText("Designer selezionato", "Selected designer"))}">
+        <div class="irisx-brand-context__mark">${escapeHtml(getBrandMonogram(brand))}</div>
+        <div class="irisx-brand-context__main">
+          <div class="irisx-brand-context__title">${escapeHtml(brand)}</div>
+          <button type="button" class="irisx-brand-context__count" onclick="toggleShopDropdownFilter('brands', ${inlineJsValue(brand)})">${escapeHtml(totalCount + " " + totalLabel)}</button>
+        </div>
+        <p>${escapeHtml(getBrandContextCopy(brand))}</p>
+        <div class="irisx-brand-context__meta">
+          <span>${escapeHtml(visibleCount + " " + visibleLabel)}</span>
+          <button type="button" onclick="openShopFilterDropdown('brands')">${escapeHtml(langText("Cambia designer", "Change designer"))}</button>
+        </div>
+      </section>`;
+    }
+
+    window.openShopFilterDropdown = openShopFilterDropdown;
+    window.toggleShopDropdownFilter = toggleShopDropdownFilter;
+    window.applyShopPriceFilter = applyShopPriceFilter;
+    window.clearShopPriceFilter = clearShopPriceFilter;
 
     function renderHorizontalFilterRail() {
       ensureExtendedFilters();
@@ -11328,22 +11562,109 @@
           return `<button class="irisx-shop-browse-link${item.active ? " is-active" : ""}" type="button" onclick="applyShopPreset('${escapeHtml(item.kind)}','${escapeHtml(item.value)}')">${escapeHtml(item.label)}</button>`;
         })
         .join("");
-      // Build hover dropdown filter bar
-      function buildFdrop(label, items, filterKey, labelFn) {
+
+      function getDropdownMeta(filterKey, labelFn) {
+        if (filterKey === "price") {
+          if (filters.pmin && filters.pmax) {
+            return formatLocalCurrencyValue(filters.pmin) + " - " + formatLocalCurrencyValue(filters.pmax);
+          }
+          if (filters.pmin) {
+            return langText("Da", "From") + " " + formatLocalCurrencyValue(filters.pmin);
+          }
+          if (filters.pmax) {
+            return langText("Fino a", "Up to") + " " + formatLocalCurrencyValue(filters.pmax);
+          }
+          return "";
+        }
+        if (filterKey === "size") {
+          return filters.size ? resolveSizeFilterLabel(filters.size) : "";
+        }
+        const values = Array.isArray(filters[filterKey]) ? filters[filterKey] : [];
+        if (!values.length) {
+          return "";
+        }
+        if (values.length === 1) {
+          return labelFn ? labelFn(values[0]) : values[0];
+        }
+        return values.length + " " + langText("selezioni", "selected");
+      }
+
+      function buildFdrop(label, items, filterKey, labelFn, options) {
+        const config = options || {};
         const hasActive = Array.isArray(filters[filterKey]) && filters[filterKey].length > 0;
+        const meta = getDropdownMeta(filterKey, labelFn);
         const opts = items.length > 0
           ? items.map(function (v) {
               const isOn = Array.isArray(filters[filterKey]) && filters[filterKey].includes(v);
               const display = labelFn ? labelFn(v) : v;
-              return `<div class="irisx-fdrop__item${isOn ? ' on' : ''}" onclick="toggleOpt(this,'${filterKey}','${escapeHtml(v)}')" onmousedown="event.preventDefault()"><span class="irisx-fdrop__check">✓</span>${escapeHtml(display)}</div>`;
+              const swatch = config.swatches ? `<span class="irisx-fdrop__swatch" style="background:${escapeHtml(getColorSwatch(v))}"></span>` : "";
+              const count = config.counts ? `<span class="irisx-fdrop__count">${escapeHtml(String(config.counts(v)))}</span>` : "";
+              return `<button type="button" class="irisx-fdrop__item${isOn ? ' on' : ''}" onclick="toggleShopDropdownFilter('${escapeHtml(filterKey)}', ${inlineJsValue(v)})"><span class="irisx-fdrop__check">✓</span>${swatch}<span>${escapeHtml(display)}</span>${count}</button>`;
             }).join("")
           : `<div class="irisx-fdrop__empty">${escapeHtml(langText("Nessuna opzione", "No options"))}</div>`;
-        return `<div class="irisx-fdrop"><button class="irisx-fdrop__btn${hasActive ? ' is-active' : ''}" type="button">${escapeHtml(label)}<span class="irisx-fdrop__arrow">▾</span></button><div class="irisx-fdrop__panel">${opts}</div></div>`;
+        return `<details class="irisx-fdrop" data-filter="${escapeHtml(filterKey)}">
+          <summary class="irisx-fdrop__btn${hasActive ? ' is-active' : ''}">
+            <span>${escapeHtml(label)}</span>
+            ${meta ? `<strong>${escapeHtml(meta)}</strong>` : ""}
+            <span class="irisx-fdrop__arrow">▾</span>
+          </summary>
+          <div class="irisx-fdrop__panel">${opts}</div>
+        </details>`;
       }
-      const brandDrop = buildFdrop(langText("Designer", "Designer"), getAvailableBrands(), "brands", null);
+
+      function buildSizeDrop() {
+        const candidateProducts = getVisibleCatalogProducts().filter(function (product) {
+          return matchesCatalogFilters(product, { ignoreSize: true });
+        });
+        const groups = collectCatalogSizeFilterOptions(candidateProducts);
+        const content = groups.length ? groups.map(function (group) {
+          const optionsMarkup = group.options.map(function (option) {
+            return `<button type="button" class="irisx-fdrop__item${filters.size === option.key ? " on" : ""}" onclick="toggleSizeFilter(${inlineJsValue(option.key)})"><span class="irisx-fdrop__check">✓</span><span>${escapeHtml(option.label)}</span></button>`;
+          }).join("");
+          return `<div class="irisx-fdrop__group"><span>${escapeHtml(group.label)}</span>${optionsMarkup}</div>`;
+        }).join("") : `<div class="irisx-fdrop__empty">${escapeHtml(langText("Scegli prima categoria o prodotto per vedere taglie precise.", "Choose a category or item first to see precise sizes."))}</div>`;
+        const meta = getDropdownMeta("size");
+        return `<details class="irisx-fdrop" data-filter="size">
+          <summary class="irisx-fdrop__btn${filters.size ? " is-active" : ""}">
+            <span>${escapeHtml(langText("Taglia", "Size"))}</span>
+            ${meta ? `<strong>${escapeHtml(meta)}</strong>` : ""}
+            <span class="irisx-fdrop__arrow">▾</span>
+          </summary>
+          <div class="irisx-fdrop__panel irisx-fdrop__panel--sizes">${content}</div>
+        </details>`;
+      }
+
+      function buildPriceDrop() {
+        const meta = getDropdownMeta("price");
+        return `<details class="irisx-fdrop" data-filter="price">
+          <summary class="irisx-fdrop__btn${meta ? " is-active" : ""}">
+            <span>${escapeHtml(langText("Prezzo", "Price"))}</span>
+            ${meta ? `<strong>${escapeHtml(meta)}</strong>` : ""}
+            <span class="irisx-fdrop__arrow">▾</span>
+          </summary>
+          <div class="irisx-fdrop__panel irisx-fdrop__panel--price">
+            <label>${escapeHtml(langText("Min", "Min"))}<input id="irisxFilterMin" type="number" value="${escapeHtml(filters.pmin || "")}" placeholder="0"></label>
+            <label>${escapeHtml(langText("Max", "Max"))}<input id="irisxFilterMax" type="number" value="${escapeHtml(filters.pmax || "")}" placeholder="5000"></label>
+            <div class="irisx-fdrop__actions">
+              <button type="button" onclick="applyShopPriceFilter()">${escapeHtml(langText("Applica", "Apply"))}</button>
+              <button type="button" onclick="clearShopPriceFilter()">${escapeHtml(langText("Pulisci", "Clear"))}</button>
+            </div>
+          </div>
+        </details>`;
+      }
+      const brandCounts = getAutocompleteBrandCounts(getVisibleCatalogProducts()).reduce(function (accumulator, entry) {
+        accumulator[entry.brand] = entry.count;
+        return accumulator;
+      }, {});
+      const brandDrop = buildFdrop(langText("Designer", "Designer"), getAvailableBrands(), "brands", null, {
+        counts: function (brand) { return brandCounts[brand] || 0; }
+      });
       const condDrop = buildFdrop(langText("Condizione", "Condition"), getAvailableConditions(), "conds", function (v) { return getFacetLabel("conds", v); });
       const catDrop = buildFdrop(langText("Categoria", "Category"), getAvailableCategories(), "cats", function (v) { return getFacetLabel("cats", v); });
       const genderDrop = buildFdrop(langText("Genere", "Gender"), ["Women", "Men", "Unisex"], "genders", function (v) { return v === "Women" ? langText("Donna", "Women") : v === "Men" ? langText("Uomo", "Men") : "Unisex"; });
+      const colorDrop = buildFdrop(langText("Colore", "Color"), getAvailableColors(), "colors", function (v) { return getFacetLabel("colors", v); }, { swatches: true });
+      const sizeDrop = buildSizeDrop();
+      const priceDrop = buildPriceDrop();
       const trustChips = getTrustFilterOptions().map(function (option) {
         return `<button class="irisx-filter-chip irisx-filter-chip--trust${filters.trust.includes(option.id) ? " is-active" : ""}" onclick="toggleFilterChip('trust', '${escapeHtml(option.id)}')">${escapeHtml(option.label)}</button>`;
       }).join("");
@@ -11353,6 +11674,7 @@
         "Designer, categoria, genere e fiducia IRIS in un unico rail più ordinato.",
         "Designer, category, gender and IRIS trust in one tighter rail."
       );
+      const activeCount = getActiveShopFilterCount();
       host.innerHTML = `<div class="irisx-shop-browse irisx-shop-discovery-deck">
         <div class="irisx-shop-discovery-head">
           <div class="irisx-shop-discovery-intro">
@@ -11367,15 +11689,15 @@
         </div>
         <div class="irisx-shop-discovery-section irisx-shop-discovery-section--filters">
           <span class="irisx-shop-discovery-eyebrow">${escapeHtml(langText("Affina la ricerca", "Refine the search"))}</span>
-          <div class="irisx-fdrop-bar">${brandDrop}${condDrop}${catDrop}${genderDrop}</div>
+          <div class="irisx-fdrop-bar">${brandDrop}${catDrop}${genderDrop}${sizeDrop}${condDrop}${colorDrop}${priceDrop}</div>
         </div>
         <div class="irisx-shop-discovery-section irisx-shop-discovery-section--meta" id="irisxShopMetaRow">
           <div class="irisx-filter-group irisx-filter-group--trust">
             <span class="irisx-shop-discovery-eyebrow">${escapeHtml(langText("Fiducia IRIS", "IRIS trust"))}</span>
             <div class="irisx-filter-chip-row">${trustChips}</div>
           </div>
-          <div class="irisx-shop-selection is-empty" id="irisxShopSelection">
-            <span class="irisx-shop-discovery-eyebrow">${escapeHtml(langText("Selezione attiva", "Active selection"))}</span>
+          <div class="irisx-shop-selection${activeCount ? "" : " is-empty"}" id="irisxShopSelection">
+            <span class="irisx-shop-discovery-eyebrow">${escapeHtml(activeCount ? langText("Selezione attiva", "Active selection") : langText("Nessun filtro attivo", "No active filters"))}</span>
             <div class="active-filters irisx-active-filter-row" id="activeFilterChips"></div>
           </div>
         </div>
@@ -11507,6 +11829,10 @@
         const index = filters[type].indexOf(value);
         if (index > -1) {
           filters[type].splice(index, 1);
+        }
+        if (type === "brands" && normalizeSearchText(filters.search) === normalizeSearchText(value)) {
+          filters.search = "";
+          syncMarketplaceSearchInputs("");
         }
       }
       initFilters();
@@ -11754,7 +12080,10 @@
       if (filters.size) chips.push({ label: t("size") + ": " + resolveSizeFilterLabel(filters.size), type: "size", value: filters.size });
       if (filters.pmin) chips.push({ label: t("price_min") + ": " + formatLocalCurrencyValue(filters.pmin), type: "pmin", value: filters.pmin });
       if (filters.pmax) chips.push({ label: t("price_max") + ": " + formatLocalCurrencyValue(filters.pmax), type: "pmax", value: filters.pmax });
-      if (filters.search) chips.push({ label: t("search_short") + ": " + filters.search, type: "search", value: filters.search });
+      const searchDuplicatesBrand = filters.brands.some(function (brand) {
+        return normalizeSearchText(brand) === normalizeSearchText(filters.search);
+      });
+      if (filters.search && !searchDuplicatesBrand) chips.push({ label: t("search_short") + ": " + filters.search, type: "search", value: filters.search });
 
       if (activeFilters) {
         activeFilters.innerHTML = chips
@@ -11779,6 +12108,7 @@
         metaRow.classList.toggle("has-selection", chips.length > 0);
       }
 
+      renderShopBrandContext(items);
       grid.innerHTML = items.map((product) => productCardMarkup(product)).join("");
       enhanceInteractiveSurfaces(grid);
       renderHomeView();

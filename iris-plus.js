@@ -78,6 +78,7 @@
   const HOME_COPY = window.IRIS_HOME_COPY || {};
   const FACET_TRANSLATIONS = window.IRIS_FACET_TRANSLATIONS || {};
   const I18N_PACKS = window.IRIS_I18N_PACKS || {};
+  const SELL_MAX_PHOTOS = 15;
   let supabaseClient = null;
   let supabaseBridgeInitialized = false;
   let supabaseListingsInitialized = false;
@@ -10749,24 +10750,34 @@
           </div>
           ${productSummary}
           <div class="offer-step-panel offer-step-panel--center offer-step-panel--amount">
-            <div class="offer-panel-kicker">${langText("Offerta vincolante", "Binding offer")}</div>
-            <div class="offer-amount-label">${langText("Quanto vuoi offrire?", "How much do you want to offer?")}</div>
-            <div class="offer-amount-shell">
-              <button class="offer-stepper" type="button" onclick="bumpOfferAmount(-${offerStepIncrement})" aria-label="${escapeHtml(langText("Riduci importo", "Decrease amount"))}">−</button>
-              <div class="offer-amount-field${amountValidation.errorMessage ? " is-error" : ""}">
-                <span class="offer-amount-currency">${escapeHtml(getOfferCurrencySymbol())}</span>
-                <input class="offer-input${state.offerError ? " offer-input--error" : ""}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${escapeHtml(String(Math.round(convertBaseEurAmount(Number(product.minimumOfferAmount || 0)) || 0)))}" id="offerInput" value="${escapeHtml(amountValue)}" oninput="sanitizeOfferAmountInput(this)" onkeydown="handleOfferAmountKeydown(event)">
+            <div class="offer-amount-layout">
+              <div class="offer-amount-primary">
+                <div class="offer-panel-kicker">${langText("Offerta vincolante", "Binding offer")}</div>
+                <div class="offer-amount-label">${langText("Quanto vuoi offrire?", "How much do you want to offer?")}</div>
+                <div class="offer-amount-shell">
+                  <button class="offer-stepper" type="button" onclick="bumpOfferAmount(-${offerStepIncrement})" aria-label="${escapeHtml(langText("Riduci importo", "Decrease amount"))}">−</button>
+                  <div class="offer-amount-field${amountValidation.errorMessage ? " is-error" : ""}">
+                    <span class="offer-amount-currency">${escapeHtml(getOfferCurrencySymbol())}</span>
+                    <input class="offer-input${state.offerError ? " offer-input--error" : ""}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${escapeHtml(String(Math.round(convertBaseEurAmount(Number(product.minimumOfferAmount || 0)) || 0)))}" id="offerInput" value="${escapeHtml(amountValue)}" oninput="sanitizeOfferAmountInput(this)" onkeydown="handleOfferAmountKeydown(event)">
+                  </div>
+                  <button class="offer-stepper" type="button" onclick="bumpOfferAmount(${offerStepIncrement})" aria-label="${escapeHtml(langText("Aumenta importo", "Increase amount"))}">+</button>
+                </div>
+                <div class="offer-inline-error${amountValidation.errorMessage ? " is-visible" : ""}" id="offerAmountError">${escapeHtml(amountValidation.errorMessage || "")}</div>
+                ${amountValidation.minimumText ? `<div class="offer-minimum-chip">${escapeHtml(amountValidation.minimumText)}</div>` : ""}
+                ${statusBox}
               </div>
-              <button class="offer-stepper" type="button" onclick="bumpOfferAmount(${offerStepIncrement})" aria-label="${escapeHtml(langText("Aumenta importo", "Increase amount"))}">+</button>
-            </div>
-            <div class="offer-inline-error${amountValidation.errorMessage ? " is-visible" : ""}" id="offerAmountError">${escapeHtml(amountValidation.errorMessage || "")}</div>
-            ${amountValidation.minimumText ? `<div class="offer-minimum-chip">${escapeHtml(amountValidation.minimumText)}</div>` : ""}
-            ${statusBox}
-            <div class="offer-inline-note">${escapeHtml(langText("Il seller ha 24 ore per rispondere. Autorizziamo solo il totale necessario e completiamo l'addebito solo se accetta.", "The seller has 24 hours to respond. We only authorize what is needed and complete the charge only if accepted."))}</div>
-            <div class="offer-inline-meta">${escapeHtml(langText("Prezzo attuale", "Current price"))}: ${escapeHtml(formatCurrency(product.price))} · ${escapeHtml(langText("Step suggerito", "Suggested step"))}: ${escapeHtml(formatCurrency(convertLocalAmountToBase(offerStepIncrement)))}</div>
-            <div class="offer-stage-actions">
-              <button class="offer-send" id="offerContinueButton" ${amountValidation.canContinue ? "" : "disabled"} onclick="sendOffer()">${langText("Continua", "Continue")}</button>
-              <button class="offer-cancel" onclick="closeOffer()">${t("cancel")}</button>
+              <aside class="offer-amount-aside">
+                <div class="offer-preauth-card">
+                  <strong>${langText("Pre-autorizzazione sicura", "Secure pre-authorization")}</strong>
+                  <span>${escapeHtml(langText("Il seller accetta offerte vincolanti con pre-autorizzazione pagamento.", "The seller accepts binding offers with payment pre-authorization."))}</span>
+                  <span>${escapeHtml(langText("Non addebitiamo subito: il pagamento viene completato solo se il seller accetta entro 24 ore.", "We do not charge immediately: payment is completed only if the seller accepts within 24 hours."))}</span>
+                </div>
+                <div class="offer-inline-meta">${escapeHtml(langText("Prezzo attuale", "Current price"))}: ${escapeHtml(formatCurrency(product.price))}<br>${escapeHtml(langText("Step suggerito", "Suggested step"))}: ${escapeHtml(formatCurrency(convertLocalAmountToBase(offerStepIncrement)))}</div>
+                <div class="offer-stage-actions">
+                  <button class="offer-send" id="offerContinueButton" ${amountValidation.canContinue ? "" : "disabled"} onclick="sendOffer()">${langText("Continua", "Continue")}</button>
+                  <button class="offer-cancel" onclick="closeOffer()">${t("cancel")}</button>
+                </div>
+              </aside>
             </div>
           </div>
         </div>
@@ -13516,7 +13527,13 @@
       return;
     }
 
-    const selected = files.slice(0, 8);
+    const selected = files.slice(0, SELL_MAX_PHOTOS);
+    if (files.length > SELL_MAX_PHOTOS) {
+      showToast(langText(
+        "Puoi caricare al massimo 15 foto per annuncio. Ho preso le prime 15.",
+        "You can upload up to 15 photos per listing. I kept the first 15."
+      ));
+    }
     const processed = [];
     for (const file of selected) {
       if (!file.type.startsWith("image/")) {
@@ -19509,7 +19526,7 @@
     const favoriteIcon = liked ? "♥" : "♡";
     const minimumOfferLine = product.minimumOfferAmount !== null && product.minimumOfferAmount !== undefined
       ? `${langText("Offerta minima", "Minimum offer")}: ${formatCurrency(product.minimumOfferAmount)}`
-      : langText("Il seller accetta offerte vincolanti con pre-autorizzazione pagamento.", "The seller accepts binding offers with payment pre-authorization.");
+      : langText("Offerte attive su questo annuncio.", "Offers are active on this listing.");
     if (!isProductPurchasable(product)) {
       return `<div class="irisx-sold-state-card">
         <div class="irisx-kicker">${langText("Articolo venduto", "Item sold")}</div>
@@ -19541,9 +19558,6 @@
       secondaryPrimaryButtons.push(`<button class="det-offer" onclick="openOffer(${productIdExpr})">${t("make_offer")}</button>`);
     }
     secondaryPrimaryButtons.push(`<button class="irisx-secondary" onclick="addToCart(${productIdExpr})">${t("add_to_cart")}</button>`);
-    const offerNote = product.offersEnabled
-      ? minimumOfferLine
-      : langText("Questo seller ha disattivato le offerte su questo articolo.", "This seller has disabled offers on this listing.");
     return `<div class="irisx-detail-action-stack">
       <button class="det-buy" onclick="buyNow(${productIdExpr})">${t("buy_now")} · ${formatCurrency(product.price)}</button>
       <div class="irisx-detail-secondary-actions">
@@ -19553,8 +19567,6 @@
         <button class="det-fav irisx-detail-fav-pill" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button>
         <button class="irisx-secondary" onclick="openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>
       </div>
-      <div class="irisx-note irisx-note--offer">${offerNote}</div>
-      <button class="irisx-link-btn irisx-link-btn--quiet" onclick="reportListing(${productIdExpr})">${langText("Segnala annuncio", "Report listing")}</button>
     </div>`;
   };
 
@@ -19592,6 +19604,12 @@
     const sellerCardClick = viewerOwnsListing
       ? `showBuyView('profile');setProfileArea('seller','active')`
       : `showSeller('${escapeHtml(seller.id)}')`;
+    const sellerProfileAction = viewerOwnsListing
+      ? `<button class="irisx-secondary" onclick="event.stopPropagation();showBuyView('profile');setProfileArea('seller','active')">${langText("Area vendite", "Seller area")}</button>`
+      : `<button class="irisx-secondary" onclick="event.stopPropagation();showSeller('${escapeHtml(seller.id)}')">${langText("Vedi profilo", "View profile")}</button>`;
+    const sellerReportAction = !viewerOwnsListing
+      ? `<button class="irisx-link-btn irisx-link-btn--quiet" onclick="event.stopPropagation();reportListing(${productIdExpr})">${langText("Segnala annuncio", "Report listing")}</button>`
+      : "";
     const sellerTrustBadges = [
       isVerifiedSellerProfile(seller) ? langText("Seller verificato", "Verified seller") : "",
       `${seller.sales} ${t("sales")}`,
@@ -19629,7 +19647,20 @@
               <div class="det-prices"><span class="det-price">${formatCurrency(product.price)}</span><span class="det-orig">${formatCurrency(originalPrice)}</span>${discount ? `<span class="det-save">-${discount}%</span>` : ""}</div>
             </div>
             ${getDetailActionsMarkup(product, liked)}
-            <div class="det-section det-section--seller"><div class="det-section-title">${viewerOwnsListing ? langText("Gestione annuncio", "Listing management") : t("seller")}</div><div class="seller-card seller-card--elevated" onclick="${sellerCardClick}"><div class="seller-av">${escapeHtml(seller.avatar)}</div><div class="seller-info"><div class="seller-name">${escapeHtml(seller.name)}</div><div class="seller-meta">${escapeHtml(seller.city)} · ${escapeHtml(langText("Risposta premium IRIS", "Premium IRIS support"))}</div><div class="irisx-seller-badges">${sellerTrustBadges}</div></div>${sellerPrimaryAction}</div>${!viewerOwnsListing ? `<button class="irisx-link-btn irisx-link-btn--quiet" onclick="event.stopPropagation();reportListing(${productIdExpr})">${langText("Segnala annuncio", "Report listing")}</button>` : ""}</div>
+            <div class="det-section det-section--seller">
+              <div class="det-section-title">${viewerOwnsListing ? langText("Gestione annuncio", "Listing management") : t("seller")}</div>
+              <div class="seller-card seller-card--elevated seller-card--profile" onclick="${sellerCardClick}">
+                <div class="seller-av">${escapeHtml(seller.avatar)}</div>
+                <div class="seller-info">
+                  <div class="irisx-seller-kicker">${langText("Profilo venditore", "Seller profile")}</div>
+                  <div class="seller-name">${escapeHtml(seller.name)}</div>
+                  <div class="seller-meta">${escapeHtml(seller.city)} · ${escapeHtml(langText("Risposta premium IRIS", "Premium IRIS support"))}</div>
+                  <div class="irisx-seller-badges">${sellerTrustBadges}</div>
+                </div>
+                ${sellerPrimaryAction}
+              </div>
+              <div class="irisx-seller-actions">${sellerProfileAction}${sellerReportAction}</div>
+            </div>
           </section>
         </div>
       </section>

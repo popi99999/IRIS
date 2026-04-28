@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="./icons/icon-512.png">
 <link rel="manifest" href="./manifest.json?v=20260417094815">
-<link rel="stylesheet" href="./iris-plus.css?v=20260428145500">
+<link rel="stylesheet" href="./iris-plus.css?v=20260428170500">
 <title>IRIS — Luxury Fashion Marketplace</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Il marketplace italiano per la moda di lusso.","potentialAction":{"@type":"SearchAction","target":"https://popi99999.github.io/IRIS/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Luxury Fashion Marketplace italiano"}</script>
@@ -2714,8 +2714,22 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           <div class="form-sub" id="form-main-sub">Compila i dettagli. Tutti i campi * sono obbligatori.</div>
           <div class="photo-upload" onclick="document.getElementById('fileIn').click()">
             <div class="pu-icon">📷</div>
-            <div class="pu-t">Aggiungi fino a 8 foto</div>
+            <div class="pu-t">Aggiungi fino a 15 foto</div>
             <div class="pu-s">JPG o PNG · Max 10MB · La prima sarà la copertina</div>
+          </div>
+          <div class="irisx-photo-guide" aria-label="Guida foto annuncio">
+            <div class="irisx-photo-guide-head">
+              <span>Guida foto</span>
+              <strong>Cosa fotografare</strong>
+            </div>
+            <div class="irisx-photo-guide-grid">
+              <span>Frontale intero</span>
+              <span>Retro</span>
+              <span>Etichetta e taglia</span>
+              <span>Logo, seriale o hardware</span>
+              <span>Interno, suola o fodera</span>
+              <span>Difetti e segni d'uso</span>
+            </div>
           </div>
           <input type="file" id="fileIn" multiple accept="image/*" style="display:none" required>
           <div class="form-fields">
@@ -3250,7 +3264,7 @@ function toggleSellMode(){
     if(lblConc){lblConc.style.borderColor='rgba(252,158,122,.3)';lblConc.style.background='rgba(252,158,122,.04)';}
     title.textContent='Pubblica il tuo articolo';
     sub.textContent='Compila i dettagli. Tutti i campi * sono obbligatori.';
-    if(photoBox){photoBox.querySelector('.pu-t').textContent='Aggiungi fino a 8 foto';photoBox.querySelector('.pu-s').textContent='JPG o PNG · Max 10MB · La prima sarà la copertina';}
+    if(photoBox){photoBox.querySelector('.pu-t').textContent='Aggiungi fino a 15 foto';photoBox.querySelector('.pu-s').textContent='JPG o PNG · Max 10MB · La prima sarà la copertina';}
   }
 }
 
@@ -3291,7 +3305,7 @@ const i18n={
     step3:'Spedisci',step3d:'Etichetta prepagata, noi gestiamo l\'autenticazione.',
     step4:'Incassa',step4d:'Bonifico entro 48h dalla conferma. Zero sorprese.',
     publish_title:'Pubblica il tuo articolo',publish_sub:'Compila i dettagli. Tutti i campi * sono obbligatori.',
-    add_photos:'Aggiungi fino a 8 foto',photo_info:'JPG o PNG · Max 10MB · La prima sarà la copertina',
+    add_photos:'Aggiungi fino a 15 foto',photo_info:'JPG o PNG · Max 10MB · La prima sarà la copertina',
     your_earnings:'💜 Il tuo guadagno',commission:'Commissione',net_earning:'Guadagno netto',fee_note:'La commissione si paga solo al venduto.',
     included:'✦ Incluso',free_auth:'Autenticazione gratuita',verified_experts:'Verificato da esperti.',
     free_ship:'Spedizione inclusa',prepaid_label:'Etichetta prepagata.',
@@ -3335,7 +3349,7 @@ const i18n={
     step3:'Ship',step3d:'Prepaid label, we handle authentication.',
     step4:'Get paid',step4d:'Bank transfer within 48h. No surprises.',
     publish_title:'Publish your item',publish_sub:'Fill in the details. All * fields are required.',
-    add_photos:'Add up to 8 photos',photo_info:'JPG or PNG · Max 10MB · First photo is the cover',
+    add_photos:'Add up to 15 photos',photo_info:'JPG or PNG · Max 10MB · First photo is the cover',
     your_earnings:'💜 Your earnings',commission:'Commission',net_earning:'Net earnings',fee_note:'Commission is only charged on sale.',
     included:'✦ Included',free_auth:'Free authentication',verified_experts:'Verified by experts.',
     free_ship:'Free shipping',prepaid_label:'Prepaid label.',
@@ -3729,7 +3743,7 @@ function updateMeta(title,desc){
 /* ═══════ PWA ═══════ */
 let deferredPrompt=null;
 if('serviceWorker' in navigator && window.location.protocol !== 'file:'){
-  navigator.serviceWorker.register('./sw.js?v=20260428145500').then((registration)=>{
+  navigator.serviceWorker.register('./sw.js?v=20260428170500').then((registration)=>{
     if (registration.waiting) {
       console.info('IRIS service worker update ready.');
     }
@@ -3754,7 +3768,7 @@ setTimeout(()=>renderFooters(),500);
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js?v=20260427223000"></script>
 <script src="./iris-i18n-config.js?v=20260427223000"></script>
-<script src="./iris-plus.js?v=20260428145500"></script>
+<script src="./iris-plus.js?v=20260428170500"></script>
 <script>
 /* ═══ OFFER FLOW BRIDGE ═══ */
 if (window.__irisModernOfferFlow) {

@@ -12546,6 +12546,242 @@ body.irisx-luxury.irisx-white-theme .irisx-photo-guide-grid span {
   line-height: 1.35 !important;
 }
 
+/* Footer payments, sell form breathing room, and smoother product-detail transition */
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payments,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payments {
+  margin-top: 1.25rem !important;
+  padding-top: 1.1rem !important;
+  border-top: 1px solid rgba(241, 50, 79, 0.12) !important;
+  max-width: 360px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payments-title,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payments-title {
+  margin-bottom: 0.7rem !important;
+  color: #ff9aa7 !important;
+  font-size: 0.62rem !important;
+  font-weight: 750 !important;
+  letter-spacing: 0.24em !important;
+  text-transform: uppercase !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payment-grid,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payment-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.48rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-pay-chip,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-pay-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 30px !important;
+  padding: 0.38rem 0.62rem !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(24, 23, 25, 0.12) !important;
+  background: #ffffff !important;
+  color: #181719 !important;
+  box-shadow: 0 8px 18px rgba(24, 23, 25, 0.035) !important;
+  font-size: 0.68rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-pay-chip--paypal { color: #003087 !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-pay-chip--apple { color: #111111 !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-pay-chip--google { color: #1a73e8 !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-pay-chip--klarna { background: #ffb3c7 !important; color: #111111 !important; border-color: rgba(17, 17, 17, 0.08) !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-pay-chip--satispay { color: #e31c23 !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-pay-chip--wechat { color: #08a742 !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-pay-chip--visa { color: #1434cb !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-pay-chip--mastercard { color: #eb001b !important; }
+
+body.irisx-luxury #sell-form-sec,
+body.irisx-luxury.irisx-white-theme #sell-form-sec,
+body.irisx-luxury .sell-form,
+body.irisx-luxury.irisx-white-theme .sell-form {
+  padding-top: clamp(2.4rem, 4vw, 4.4rem) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 247, 248, 0.58), rgba(255, 255, 255, 0.96)),
+    #ffffff !important;
+}
+
+body.irisx-luxury #sellForm,
+body.irisx-luxury.irisx-white-theme #sellForm {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 390px) !important;
+  gap: clamp(2rem, 4.4vw, 5.5rem) !important;
+  align-items: start !important;
+}
+
+body.irisx-luxury #sellForm > div:first-child,
+body.irisx-luxury.irisx-white-theme #sellForm > div:first-child {
+  min-width: 0 !important;
+  padding: clamp(1.35rem, 2.6vw, 2.35rem) !important;
+  border: 1px solid rgba(241, 50, 79, 0.12) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 28px 80px rgba(27, 17, 24, 0.045) !important;
+  border-radius: 12px !important;
+}
+
+body.irisx-luxury #sellForm .form-title,
+body.irisx-luxury.irisx-white-theme #sellForm .form-title {
+  margin-bottom: 0.55rem !important;
+  color: #121827 !important;
+  font-size: clamp(1.8rem, 3vw, 2.65rem) !important;
+  line-height: 1.05 !important;
+}
+
+body.irisx-luxury #sellForm .form-sub,
+body.irisx-luxury.irisx-white-theme #sellForm .form-sub {
+  max-width: 62ch !important;
+  margin-bottom: 1.55rem !important;
+  color: #5f5968 !important;
+  font-size: 0.98rem !important;
+  line-height: 1.55 !important;
+}
+
+body.irisx-luxury #sellForm .photo-upload,
+body.irisx-luxury.irisx-white-theme #sellForm .photo-upload {
+  display: grid !important;
+  place-items: center !important;
+  min-height: clamp(220px, 24vw, 330px) !important;
+  margin-bottom: 1rem !important;
+  border: 1px solid rgba(241, 50, 79, 0.18) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #ffffff, #fffafb) !important;
+}
+
+body.irisx-luxury #sellForm .irisx-photo-guide,
+body.irisx-luxury.irisx-white-theme #sellForm .irisx-photo-guide {
+  margin: 0 0 1.7rem !important;
+  border-radius: 12px !important;
+}
+
+body.irisx-luxury #sellForm .form-fields,
+body.irisx-luxury.irisx-white-theme #sellForm .form-fields {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: clamp(1.05rem, 1.8vw, 1.65rem) clamp(0.95rem, 1.7vw, 1.45rem) !important;
+}
+
+body.irisx-luxury #sellForm .form-fields > .fr,
+body.irisx-luxury.irisx-white-theme #sellForm .form-fields > .fr {
+  display: contents !important;
+}
+
+body.irisx-luxury #sellForm .form-fields .fg,
+body.irisx-luxury.irisx-white-theme #sellForm .form-fields .fg {
+  min-width: 0 !important;
+  gap: 0.55rem !important;
+}
+
+body.irisx-luxury #sellForm .form-fields .fg:has(#sf-name),
+body.irisx-luxury #sellForm .form-fields .fg:has(#sf-condition),
+body.irisx-luxury #sellForm .form-fields .fg:has(#sf-desc),
+body.irisx-luxury #sellForm .form-fields .fg:has(#sf-defects),
+body.irisx-luxury #sellForm .form-fields .irisx-note,
+body.irisx-luxury #sellForm .form-fields .irisx-measurement-block,
+body.irisx-luxury.irisx-white-theme #sellForm .form-fields .fg:has(#sf-name),
+body.irisx-luxury.irisx-white-theme #sellForm .form-fields .fg:has(#sf-condition),
+body.irisx-luxury.irisx-white-theme #sellForm .form-fields .fg:has(#sf-desc),
+body.irisx-luxury.irisx-white-theme #sellForm .form-fields .fg:has(#sf-defects),
+body.irisx-luxury.irisx-white-theme #sellForm .form-fields .irisx-note,
+body.irisx-luxury.irisx-white-theme #sellForm .form-fields .irisx-measurement-block {
+  grid-column: 1 / -1 !important;
+}
+
+body.irisx-luxury #sellForm .fl,
+body.irisx-luxury.irisx-white-theme #sellForm .fl {
+  color: #121827 !important;
+  font-size: 0.62rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.26em !important;
+}
+
+body.irisx-luxury #sellForm .fi,
+body.irisx-luxury #sellForm .fsel,
+body.irisx-luxury #sellForm .fta,
+body.irisx-luxury.irisx-white-theme #sellForm .fi,
+body.irisx-luxury.irisx-white-theme #sellForm .fsel,
+body.irisx-luxury.irisx-white-theme #sellForm .fta {
+  min-height: 58px !important;
+  border-radius: 10px !important;
+  border-color: rgba(241, 50, 79, 0.15) !important;
+  color: #171425 !important;
+  font-size: 0.98rem !important;
+  background-color: #ffffff !important;
+}
+
+body.irisx-luxury #sellForm .sell-side,
+body.irisx-luxury.irisx-white-theme #sellForm .sell-side {
+  top: 24px !important;
+  gap: 1.2rem !important;
+}
+
+body.irisx-luxury #sellForm .sell-submit,
+body.irisx-luxury.irisx-white-theme #sellForm .sell-submit {
+  min-height: 58px !important;
+  margin-top: 0 !important;
+  border-radius: 10px !important;
+}
+
+@media (min-width: 901px) {
+  body.irisx-luxury .det-layout--hero,
+  body.irisx-luxury.irisx-white-theme .det-layout--hero {
+    margin-bottom: 0 !important;
+    min-height: auto !important;
+    grid-template-columns: minmax(420px, 0.95fr) minmax(360px, 500px) !important;
+    gap: clamp(28px, 4vw, 58px) !important;
+  }
+
+  body.irisx-luxury .det-imgs,
+  body.irisx-luxury.irisx-white-theme .det-imgs {
+    min-height: clamp(430px, 52vh, 600px) !important;
+    top: 14px !important;
+    align-items: start !important;
+    justify-content: center !important;
+  }
+
+  body.irisx-luxury .irisx-detail-stage,
+  body.irisx-luxury.irisx-white-theme .irisx-detail-stage {
+    height: clamp(430px, 52vh, 600px) !important;
+    min-height: clamp(430px, 52vh, 600px) !important;
+    max-height: clamp(430px, 52vh, 600px) !important;
+    width: min(100%, max(420px, calc(clamp(430px, 52vh, 600px) * var(--iris-detail-stage-ratio, 0.82) + 4px))) !important;
+  }
+
+  body.irisx-luxury .irisx-detail-lower,
+  body.irisx-luxury.irisx-white-theme .irisx-detail-lower {
+    margin-top: clamp(24px, 3vw, 42px) !important;
+    padding-top: clamp(28px, 4vw, 52px) !important;
+    border-top: 1px solid rgba(17, 24, 39, 0.08) !important;
+  }
+
+  body.irisx-luxury .irisx-editorial-details,
+  body.irisx-luxury.irisx-white-theme .irisx-editorial-details {
+    padding-top: 0 !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body.irisx-luxury #sellForm,
+  body.irisx-luxury.irisx-white-theme #sellForm,
+  body.irisx-luxury #sellForm .form-fields,
+  body.irisx-luxury.irisx-white-theme #sellForm .form-fields {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.irisx-luxury #sellForm > div:first-child,
+  body.irisx-luxury.irisx-white-theme #sellForm > div:first-child {
+    padding: 1rem !important;
+    border-radius: 10px !important;
+  }
+}
+
 @media (max-width: 760px) {
   body.irisx-luxury .offer-modal.open,
   body.irisx-luxury.irisx-white-theme .offer-modal.open {

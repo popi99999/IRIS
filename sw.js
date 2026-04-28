@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iris-v137';
+const CACHE_NAME = 'iris-v140';
 const APP_SHELL_URL = new URL('./index.html', self.location.href).toString();
 const MANIFEST_URL = new URL('./manifest.json', self.location.href).toString();
 const PLUS_CSS_URL = new URL('./iris-plus.css', self.location.href).toString();
@@ -29,6 +29,7 @@ const ASSETS = [
   ...MEASUREMENT_GUIDE_URLS,
 ];
 const CORE_ASSET_URLS = new Set(ASSETS);
+const CORE_ASSET_PATHS = new Set(ASSETS.map(url => new URL(url).pathname));
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
@@ -52,12 +53,13 @@ self.addEventListener('fetch', e => {
   }
 
   const isSameOrigin = e.request.url.startsWith(self.location.origin);
-  const isCoreAsset = CORE_ASSET_URLS.has(e.request.url);
+  const requestUrl = new URL(e.request.url);
+  const isCoreAsset = CORE_ASSET_URLS.has(e.request.url) || (isSameOrigin && CORE_ASSET_PATHS.has(requestUrl.pathname));
   const isNavigation = e.request.mode === 'navigate';
 
   if (isNavigation || isCoreAsset) {
     e.respondWith(
-      fetch(e.request)
+      fetch(new Request(e.request, { cache: 'reload' }))
         .then(res => {
           if (res.ok && isSameOrigin) {
             const clone = res.clone();

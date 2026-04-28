@@ -18302,20 +18302,48 @@
         return `<div class="irisx-inline-card"><div><strong>${escapeHtml(brand)}</strong><span>${byBrand[brand]} ${langText("annunci", "listings")}</span></div></div>`;
       }).join("")}</div>`;
     }
-    return `<div class="irisx-summary-grid">
-      <div class="irisx-summary-card"><strong>${published.length}</strong><span>${langText("Annunci attivi", "Active listings")}</span></div>
-      <div class="irisx-summary-card"><strong>${drafts.length}</strong><span>${langText("Bozze", "Drafts")}</span></div>
-      <div class="irisx-summary-card"><strong>${sellerOrders.filter(function (order) { return ["paid", "awaiting_shipment"].includes(order.status); }).length}</strong><span>${langText("Coda spedizioni", "Shipping queue")}</span></div>
-      <div class="irisx-summary-card"><strong>${sellerOrders.filter(function (order) { return order.payment.payoutStatus === "ready"; }).length}</strong><span>${langText("Payout pronti", "Payout ready")}</span></div>
-      <div class="irisx-summary-card"><strong>${sellingConversations.length}</strong><span>${langText("Chat vendita", "Selling chats")}</span></div>
-    </div>
-    <div class="irisx-card-stack">
-      <div class="irisx-inline-card"><div><strong>${langText("Annunci attivi", "Active listings")}</strong><span>${langText("Catalogo live seller.", "Seller live catalog.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('active')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Bozze", "Draft listings")}</strong><span>${langText("Bozze pronte da completare.", "Drafts ready to complete.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('drafts')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Offerte ricevute", "Offers received")}</strong><span>${sellerOffers.length} ${langText("offerte", "offers")}</span></div><button class="irisx-secondary" onclick="setSellerSection('offers')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Inbox vendita", "Selling inbox")}</strong><span>${sellingConversations.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("selling")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="setSellerSection('messages')">${langText("Apri", "Open")}</button></div>
-      <div class="irisx-inline-card"><div><strong>${langText("Coda spedizioni", "Shipping queue")}</strong><span>${langText("Ordini da processare.", "Orders to process.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('shipping')">${langText("Apri", "Open")}</button></div>
-      ${sellerOrders[0] ? `<div class="irisx-workspace-card irisx-workspace-card--flush"><div class="irisx-section-head"><h3>${langText("Ultima vendita", "Latest sale")}</h3><span>${langText("Stato, tracking e percorso articolo subito visibili.", "Status, tracking, and item journey immediately visible.")}</span></div>${renderSellerSaleCard(sellerOrders[0], "compact")}</div>` : ""}
+    const shippingQueue = sellerOrders.filter(function (order) {
+      return ["paid", "awaiting_shipment"].includes(order.status);
+    });
+    const payoutReady = sellerOrders.filter(function (order) {
+      return order.payment && order.payment.payoutStatus === "ready";
+    });
+    const offerSummary = sellerOffers.length
+      ? `${sellerOffers.length} ${langText("offerte da valutare.", "offers to review.")}`
+      : langText("Nessuna offerta in attesa.", "No pending offers.");
+    const shippingSummary = shippingQueue.length
+      ? `${shippingQueue.length} ${langText("vendite da preparare.", "sales to prepare.")}`
+      : langText("Nessuna spedizione urgente.", "No urgent shipment.");
+    const payoutSummary = payoutReady.length
+      ? `${payoutReady.length} ${langText("pagamenti pronti.", "payouts ready.")}`
+      : langText("Pagamenti in ordine.", "Payouts in order.");
+    return `<div class="irisx-overview-shell">
+      <div class="irisx-overview-grid">
+        <section class="irisx-workspace-card">
+          <div class="irisx-section-head">
+            <h3>${langText("Gestione annunci", "Listing management")}</h3>
+            <span>${langText("Pubblica, completa e controlla i prodotti live.", "Publish, complete, and check live products.")}</span>
+          </div>
+          <div class="irisx-card-stack">
+            <div class="irisx-inline-card"><div><strong>${langText("Annunci attivi", "Active listings")}</strong><span>${published.length ? langText("Catalogo live da controllare.", "Live catalog to review.") : langText("Nessun annuncio live: pubblica il primo articolo.", "No live listing: publish your first item.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('active')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Bozze", "Draft listings")}</strong><span>${drafts.length ? langText("Completa le bozze salvate.", "Complete saved drafts.") : langText("Nessuna bozza da completare.", "No draft to complete.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('drafts')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Nuovo annuncio", "New listing")}</strong><span>${langText("Carica foto, dettagli, misure e prezzo.", "Upload photos, details, measurements, and price.")}</span></div><button class="irisx-primary" onclick="showPage('sell')">${langText("Vendi", "Sell")}</button></div>
+          </div>
+        </section>
+        <section class="irisx-workspace-card">
+          <div class="irisx-section-head">
+            <h3>${langText("Operatività vendita", "Sales operations")}</h3>
+            <span>${langText("Offerte, chat, spedizioni e pagamenti nello stesso flusso.", "Offers, chats, shipping, and payouts in the same flow.")}</span>
+          </div>
+          <div class="irisx-card-stack">
+            <div class="irisx-inline-card"><div><strong>${langText("Offerte ricevute", "Offers received")}</strong><span>${offerSummary}</span></div><button class="irisx-secondary" onclick="setSellerSection('offers')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Chat vendo", "Selling chat")}</strong><span>${sellingConversations.length ? `${sellingConversations.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("selling")} ${langText("non lette", "unread")}` : langText("Nessuna chat aperta.", "No open chat.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('messages')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Spedizioni", "Shipping")}</strong><span>${shippingSummary}</span></div><button class="irisx-secondary" onclick="setSellerSection('shipping')">${langText("Apri", "Open")}</button></div>
+            <div class="irisx-inline-card"><div><strong>${langText("Pagamenti", "Payouts")}</strong><span>${payoutSummary}</span></div><button class="irisx-secondary" onclick="setSellerSection('payouts')">${langText("Apri", "Open")}</button></div>
+          </div>
+        </section>
+      </div>
+      ${sellerOrders[0] ? `<div class="irisx-workspace-card irisx-workspace-card--flush"><div class="irisx-section-head"><h3>${langText("Ultima vendita", "Latest sale")}</h3><span>${langText("Stato, tracking e percorso articolo subito visibili.", "Status, tracking, and item journey immediately visible.")}</span></div>${renderSellerSaleCard(sellerOrders[0], "compact")}</div>` : `<div class="irisx-workspace-card"><div class="irisx-section-head"><h3>${langText("Quando arriva una vendita", "When a sale arrives")}</h3><span>${langText("Qui vedrai tracking, autenticazione, consegna e pagamento previsto.", "Here you will see tracking, authentication, delivery, and expected payout.")}</span></div><div class="irisx-empty-state">${langText("Nessuna vendita ancora. Quando venderai un articolo, il percorso apparirà qui senza dover cercare in altre pagine.", "No sale yet. Once you sell an item, its journey will appear here without hunting through other pages.")}</div></div>`}
     </div>`;
   }
 
@@ -18553,16 +18581,25 @@
   }
 
   function shouldRenderProfileQuickActions(area, activeSection) {
-    if (area === "account") {
-      return activeSection === "overview";
-    }
-    if (area === "buyer") {
-      return activeSection === "orders";
-    }
-    if (area === "seller") {
-      return activeSection === "dashboard";
-    }
     return false;
+  }
+
+  function getProfileActiveSectionCopy(area, activeSection, context) {
+    const groups = getProfileSidebarGroups(area, context);
+    for (let groupIndex = 0; groupIndex < groups.length; groupIndex += 1) {
+      const group = groups[groupIndex];
+      const entry = group.entries.find(function (item) {
+        return item.id === activeSection;
+      });
+      if (entry) {
+        return {
+          groupTitle: group.title,
+          label: entry.label,
+          description: entry.description || ""
+        };
+      }
+    }
+    return null;
   }
 
   renderBuyerOrdersMarkup = function (orders) {
@@ -18670,9 +18707,8 @@
     const sellingThreads = getChatThreadsForScope("selling");
     const unreadNotifications = getVisibleNotifications().filter(function (notification) { return notification.unread; }).length;
     const area = state.profileArea || "account";
-    const activeSection = area === "account" ? resolveAccountSectionId(state.profileSection) : area === "buyer" ? state.buyerSection : state.sellerSection;
+    const activeSection = area === "account" ? resolveAccountSectionId(state.profileSection) : area === "buyer" ? (state.buyerSection || "orders") : (state.sellerSection || "dashboard");
     const areaCopy = getProfileAreaCopy(area);
-    const showQuickActions = shouldRenderProfileQuickActions(area, activeSection);
     const profileContext = {
       user: user,
       listings: listings,
@@ -18684,6 +18720,7 @@
       sellingThreads: sellingThreads,
       unreadNotifications: unreadNotifications
     };
+    const activeCopy = getProfileActiveSectionCopy(area, activeSection, profileContext);
 
     let content = "";
     if (area === "account") {
@@ -18693,27 +18730,6 @@
     } else {
       content = renderSellerArea(listings, sellerOrders);
     }
-
-    const summaryCards = area === "buyer"
-      ? [
-          { value: orders.length, label: langText("Ordini", "Orders") },
-          { value: getBuyerOffers().length, label: langText("Offerte", "Offers") },
-          { value: getChatScopeUnreadCount("buying"), label: langText("Chat non lette", "Unread chats") },
-          { value: favoritesItems.length, label: langText("Preferiti", "Wishlist") }
-        ]
-      : area === "seller"
-        ? [
-            { value: listings.filter(function (listing) { return listing.listingStatus === "published" && listing.inventoryStatus === "active"; }).length, label: langText("Attivi", "Live") },
-            { value: getSellerOffers().length, label: langText("Offerte", "Offers") },
-            { value: sellerOrders.filter(function (order) { return ["paid", "awaiting_shipment"].includes(order.status); }).length, label: langText("Spedizioni", "Shipping") },
-            { value: getChatScopeUnreadCount("selling"), label: langText("Chat non lette", "Unread chats") }
-          ]
-        : [
-            { value: orders.length, label: langText("Ordini", "Orders") },
-            { value: listings.length, label: langText("Annunci", "Listings") },
-            { value: favoritesItems.length, label: langText("Preferiti", "Wishlist") },
-            { value: unreadNotifications, label: langText("Notifiche", "Notifications") }
-          ];
 
     container.innerHTML = `<div class="irisx-workspace">
       <aside class="irisx-workspace-sidebar">
@@ -18741,11 +18757,12 @@
             <div class="irisx-title">${escapeHtml(areaCopy.title)}</div>
             <div class="irisx-subtitle">${escapeHtml(areaCopy.subtitle)}</div>
           </div>
+          ${activeCopy ? `<div class="irisx-workspace-current">
+            <span>${escapeHtml(activeCopy.groupTitle)}</span>
+            <strong>${escapeHtml(activeCopy.label)}</strong>
+            ${activeCopy.description ? `<em>${escapeHtml(activeCopy.description)}</em>` : ""}
+          </div>` : ""}
         </div>
-        <div class="irisx-summary-grid irisx-summary-grid--main irisx-summary-grid--workspace">${summaryCards.map(function (card) {
-          return `<div class="irisx-summary-card"><strong>${escapeHtml(String(card.value))}</strong><span>${escapeHtml(card.label)}</span></div>`;
-        }).join("")}</div>
-        ${showQuickActions ? renderProfileQuickActions(area, profileContext) : ""}
         <div class="irisx-workspace-content">${content}</div>
       </div>
     </div>`;

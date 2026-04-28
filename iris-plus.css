@@ -15059,6 +15059,221 @@ body.irisx-luxury #profile-view .irisx-workspace-card--flush {
   padding: 18px !important;
 }
 
+/* Profile workspace: area sections on the left, content without repeated counters */
+body.irisx-luxury #profile-view .container {
+  padding-top: 14px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace {
+  align-items: start !important;
+  grid-template-columns: minmax(300px, 382px) minmax(0, 1fr) !important;
+  gap: 28px !important;
+  padding: 18px 0 64px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace-sidebar {
+  align-content: start !important;
+  gap: 18px !important;
+  padding: 26px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-user-card {
+  align-items: center !important;
+  padding-bottom: 22px !important;
+  border-bottom-color: rgba(17, 24, 39, 0.08) !important;
+}
+
+body.irisx-luxury #profile-view .irisx-area-nav {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+  margin: 0 !important;
+}
+
+body.irisx-luxury #profile-view .irisx-area-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  min-height: 66px !important;
+  padding: 0 18px !important;
+  border-radius: 0 !important;
+  text-align: left !important;
+}
+
+body.irisx-luxury #profile-view .irisx-sidebar-menu {
+  margin: 2px 0 0 !important;
+  gap: 22px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-sidebar-group {
+  gap: 10px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-sidebar-group + .irisx-sidebar-group {
+  padding-top: 18px !important;
+  border-top: 1px solid rgba(17, 24, 39, 0.08) !important;
+}
+
+body.irisx-luxury #profile-view .irisx-sidebar-group-title {
+  color: #7a7280 !important;
+  font-size: 0.72rem !important;
+  font-weight: 760 !important;
+  letter-spacing: 0.14em !important;
+  padding-left: 2px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-sidebar-group-list {
+  gap: 8px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-sidebar-link {
+  min-height: 54px !important;
+  padding: 12px 14px !important;
+  border-radius: 0 !important;
+}
+
+body.irisx-luxury #profile-view .irisx-sidebar-link__main {
+  gap: 2px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-sidebar-link em {
+  min-width: 26px !important;
+  height: 26px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  border-radius: 999px !important;
+  background: #fff3f5 !important;
+  color: #f1324f !important;
+  border-color: rgba(241, 50, 79, 0.24) !important;
+  font-weight: 760 !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace-main {
+  align-content: start !important;
+  gap: 22px !important;
+  min-height: 0 !important;
+  padding: clamp(28px, 3vw, 38px) !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace-head {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 360px) !important;
+  align-items: end !important;
+  gap: 24px !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 22px !important;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08) !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace-current {
+  display: grid !important;
+  gap: 5px !important;
+  justify-self: end !important;
+  width: min(100%, 360px) !important;
+  padding: 14px 16px !important;
+  border: 1px solid rgba(241, 50, 79, 0.14) !important;
+  background: #fff7f8 !important;
+  color: #111827 !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace-current span {
+  color: #f1324f !important;
+  font-size: 0.68rem !important;
+  font-weight: 760 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace-current strong {
+  color: #111827 !important;
+  font-size: 1rem !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace-current em {
+  color: #5f5663 !important;
+  font-size: 0.86rem !important;
+  font-style: normal !important;
+  line-height: 1.45 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury #profile-view .irisx-summary-grid--workspace,
+body.irisx-luxury #profile-view .irisx-profile-quick-grid {
+  display: none !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace-content {
+  margin-top: 0 !important;
+  gap: 22px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-workspace-card {
+  padding: clamp(22px, 2.6vw, 34px) !important;
+}
+
+body.irisx-luxury #profile-view .irisx-overview-grid {
+  grid-template-columns: repeat(2, minmax(280px, 1fr)) !important;
+  gap: 22px !important;
+}
+
+body.irisx-luxury #profile-view .irisx-empty-state {
+  min-height: 190px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 28px !important;
+  text-align: center !important;
+}
+
+@media (max-width: 1100px) {
+  body.irisx-luxury #profile-view .irisx-workspace {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  body.irisx-luxury #profile-view .irisx-workspace-sidebar {
+    position: static !important;
+  }
+
+  body.irisx-luxury #profile-view .irisx-workspace-head {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.irisx-luxury #profile-view .irisx-workspace-current {
+    justify-self: start !important;
+  }
+}
+
+@media (max-width: 720px) {
+  body.irisx-luxury #profile-view .container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-top: 10px !important;
+  }
+
+  body.irisx-luxury #profile-view .irisx-workspace {
+    padding: 10px 0 44px !important;
+  }
+
+  body.irisx-luxury #profile-view .irisx-workspace-main,
+  body.irisx-luxury #profile-view .irisx-workspace-sidebar {
+    padding: 20px !important;
+  }
+
+  body.irisx-luxury #profile-view .irisx-area-btn {
+    min-height: 58px !important;
+  }
+
+  body.irisx-luxury #profile-view .irisx-title {
+    font-size: 2rem !important;
+  }
+
+  body.irisx-luxury #profile-view .irisx-overview-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 @media (max-width: 980px) {
   body.irisx-luxury .offer-shell--amount .offer-step-panel--amount,
   body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-step-panel--amount {

@@ -10534,7 +10534,7 @@
 
       if (state.offerStep === "authorization") {
       box.innerHTML = `
-        <div class="offer-shell">
+        <div class="offer-shell offer-shell--amount">
           <div class="offer-shell__header">
             <button class="offer-shell__icon offer-shell__icon--back" onclick="backOfferStep()" aria-label="${escapeHtml(langText("Indietro", "Back"))}">←</button>
             <div class="offer-step-indicator">${escapeHtml(stepLabel)}</div>
@@ -10628,7 +10628,7 @@
       }
 
       box.innerHTML = `
-        <div class="offer-shell">
+        <div class="offer-shell offer-shell--amount">
           <div class="offer-shell__header">
             <div class="offer-shell__spacer"></div>
             <div class="offer-step-indicator">${escapeHtml(stepLabel)}</div>
@@ -15747,7 +15747,7 @@
     }
     if (scope === "seller") {
       actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('detail')" : "openOrderDetail('" + order.id + "','seller')"}">${langText("Dettaglio", "Detail")}</button>`);
-      actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('tracking')" : "openOrderDetail('" + order.id + "','seller')"}">${langText("Tracking", "Tracking")}</button>`);
+      actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('tracking')" : "openOrderDetail('" + order.id + "','seller');setOrderModalTab('tracking')"}">${langText("Tracking", "Tracking")}</button>`);
       if (order.status === "paid") {
         actions.push(`<button class="irisx-secondary" onclick="prepareOrderShipment('${order.id}')">${langText("Pronto da spedire", "Ready to ship")}</button>`);
       }
@@ -15758,7 +15758,7 @@
       return actions;
     }
     actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('detail')" : "openOrderDetail('" + order.id + "','admin')"}">${langText("Dettaglio", "Detail")}</button>`);
-    actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('tracking')" : "openOrderDetail('" + order.id + "','admin')"}">${langText("Tracking", "Tracking")}</button>`);
+    actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('tracking')" : "openOrderDetail('" + order.id + "','admin');setOrderModalTab('tracking')"}">${langText("Tracking", "Tracking")}</button>`);
     if (order.status === "paid") {
       actions.push(`<button class="irisx-secondary" onclick="prepareOrderShipment('${order.id}')">${langText("Queue shipping", "Queue shipping")}</button>`);
     }
@@ -16051,7 +16051,7 @@
           <div class="irisx-order-items">
             <div>${langText("Totale", "Total")}: ${escapeHtml(formatCurrency(order.total))}</div>
             <div>${langText("Fee piattaforma", "Platform fee")}: ${escapeHtml(formatCurrency(order.payment.platformFee || 0))}</div>
-            <div>${langText("Payout status", "Payout status")}: ${escapeHtml(order.payment.payoutStatus || "pending")}</div>
+            <div>${langText("Payout status", "Payout status")}: ${escapeHtml(getSellerPayoutStatusLabel(order))}</div>
             <div>${langText("Ricevuta", "Receipt")}: ${escapeHtml(order.payment.receiptNumber || "—")}</div>
           </div>
         </div>
@@ -16066,6 +16066,10 @@
           <button class="irisx-secondary" onclick="openSupportModal('${order.id}', { role: '${supportRole}', issueType: 'order_problem' })">${langText("Supporto", "Support")}</button>
           <button class="irisx-secondary" onclick="openSupportModal('${order.id}', { role: '${supportRole}', issueSeverity: 'dispute', issueType: 'item_not_as_described' })">${langText("Apri disputa", "Open dispute")}</button>
         </div>
+      </div>
+      <div class="irisx-order-panel irisx-order-panel--journey">
+        <div class="irisx-order-panel-title">${langText("Percorso articolo", "Item journey")}</div>
+        ${renderOrderJourneyPath(order)}
       </div>
       ${renderOrderTimeline(order)}
       ${scope === "buyer" ? renderOrderRelistBlock(order, "full") : ""}
@@ -16096,6 +16100,10 @@
           <div class="irisx-order-panel-title">${langText("Timeline", "Timeline")}</div>
           ${renderOrderTimeline(order) || `<div class="irisx-empty-state">${langText("Timeline vuota.", "Timeline empty.")}</div>`}
         </div>
+      </div>
+      <div class="irisx-order-panel irisx-order-panel--journey">
+        <div class="irisx-order-panel-title">${langText("Percorso articolo", "Item journey")}</div>
+        ${renderOrderJourneyPath(order)}
       </div>
       <div class="irisx-actions">${getOrderLifecycleActions(order, scope || "buyer", surface).join("")}</div>
     </div>`;
@@ -17498,6 +17506,158 @@
     return renderBuyerOrdersMarkup(orders);
   }
 
+  function getSellerItemsForOrder(order) {
+    const currentEmail = normalizeEmail(state.currentUser && state.currentUser.email);
+    return (order && Array.isArray(order.items) ? order.items : []).filter(function (item) {
+      return normalizeEmail(item.sellerEmail) === currentEmail;
+    });
+  }
+
+  function getSellerOrderGross(order) {
+    return getSellerItemsForOrder(order).reduce(function (sum, item) {
+      return sum + Number(item.price || 0) * Number(item.qty || 1);
+    }, 0);
+  }
+
+  function getSellerOrderNet(order) {
+    const gross = getSellerOrderGross(order);
+    if (!gross) {
+      return 0;
+    }
+    const subtotal = Number(order && order.subtotal || 0);
+    const orderFee = Number(order && order.payment && order.payment.platformFee || 0);
+    const proportionalFee = subtotal > 0 ? orderFee * (gross / subtotal) : getPlatformFee(gross);
+    return Math.max(0, gross - proportionalFee);
+  }
+
+  function getSellerPayoutDate(order) {
+    const base = Number(order && order.payment && order.payment.capturedAt) || Number(order && order.createdAt) || Date.now();
+    const isClosed = order && ["delivered", "completed"].includes(order.status);
+    const offsetDays = isClosed ? 2 : 14;
+    return base + offsetDays * 24 * 60 * 60 * 1000;
+  }
+
+  function getSellerPayoutStatusLabel(order) {
+    const status = order && order.payment && order.payment.payoutStatus ? order.payment.payoutStatus : "";
+    const labels = {
+      pending_shipment: langText("Dopo spedizione", "After shipment"),
+      pending_authentication: langText("Dopo autenticazione", "After authentication"),
+      scheduled: langText("Programmato", "Scheduled"),
+      processing: langText("In elaborazione", "Processing"),
+      paid: langText("Pagato", "Paid"),
+      blocked: langText("Da verificare", "Needs review")
+    };
+    return labels[status] || langText("In attesa", "Pending");
+  }
+
+  function getSellerOrderPrimaryItem(order) {
+    return getSellerItemsForOrder(order)[0] || (order && order.items && order.items[0]) || null;
+  }
+
+  function getSellerSaleMediaMarkup(item) {
+    const listing = item ? getListingById(item.productId) : null;
+    const image = listing ? getListingImageSources(listing)[0] : "";
+    const alt = item ? `${item.brand || ""} ${item.name || ""}`.trim() : langText("Articolo venduto", "Sold item");
+    if (image) {
+      return `<img src="${escapeHtml(image)}" alt="${escapeHtml(alt)}">`;
+    }
+    return `<span>${escapeHtml((listing && listing.emoji) || "🛍️")}</span>`;
+  }
+
+  function getOrderJourneySteps(order) {
+    const status = order && order.status ? order.status : "paid";
+    const rank = {
+      pending: 0,
+      paid: 1,
+      awaiting_shipment: 2,
+      shipped: 3,
+      in_authentication: 4,
+      dispatched_to_buyer: 5,
+      delivered: 6,
+      completed: 7,
+      refunded: 7,
+      cancelled: 7
+    };
+    const currentRank = rank[status] === undefined ? 1 : rank[status];
+    return [
+      { key: "paid", rank: 1, label: langText("Vendita confermata", "Sale confirmed"), detail: formatDateTime(order.createdAt) },
+      { key: "awaiting_shipment", rank: 2, label: langText("Da preparare", "Prepare item"), detail: order.shipping && order.shipping.labelStatus === "generated" ? langText("Label pronta", "Label ready") : langText("Label e imballaggio", "Label and packaging") },
+      { key: "shipped", rank: 3, label: langText("Spedito a IRIS", "Shipped to IRIS"), detail: order.shipping && order.shipping.trackingNumber ? order.shipping.trackingNumber : langText("Tracking in arrivo", "Tracking pending") },
+      { key: "in_authentication", rank: 4, label: langText("Autenticazione", "Authentication"), detail: langText("Controllo qualità", "Quality check") },
+      { key: "dispatched_to_buyer", rank: 5, label: langText("Verso il buyer", "To buyer"), detail: order.shipping && order.shipping.carrier ? order.shipping.carrier : langText("Corriere", "Carrier") },
+      { key: "delivered", rank: 6, label: langText("Consegnato", "Delivered"), detail: order.shipping && order.shipping.deliveredAt ? formatDateTime(order.shipping.deliveredAt) : langText("In attesa", "Pending") },
+      { key: "payout", rank: 7, label: langText("Payout", "Payout"), detail: getSellerPayoutStatusLabel(order) }
+    ].map(function (step) {
+      return Object.assign({}, step, {
+        state: currentRank > step.rank ? "done" : currentRank === step.rank ? "active" : "pending"
+      });
+    });
+  }
+
+  function renderOrderJourneyPath(order) {
+    if (!order) {
+      return "";
+    }
+    return `<div class="irisx-sale-path" aria-label="${escapeHtml(langText("Percorso articolo", "Item journey"))}">
+      ${getOrderJourneySteps(order).map(function (step) {
+        return `<div class="irisx-sale-step is-${step.state}">
+          <span class="irisx-sale-step__dot"></span>
+          <strong>${escapeHtml(step.label)}</strong>
+          <em>${escapeHtml(step.detail || "")}</em>
+        </div>`;
+      }).join("")}
+    </div>`;
+  }
+
+  function renderSellerSaleCard(order, surface) {
+    const sellerItems = getSellerItemsForOrder(order);
+    const primaryItem = getSellerOrderPrimaryItem(order);
+    const gross = getSellerOrderGross(order);
+    const net = getSellerOrderNet(order);
+    const statusLabel = getOrderStatusLabel(order);
+    const trackingText = order.shipping && order.shipping.trackingNumber
+      ? `${order.shipping.carrier || langText("Corriere", "Carrier")} · ${order.shipping.trackingNumber}`
+      : langText("Tracking da inserire appena consegni il pacco al corriere.", "Add tracking as soon as you hand the parcel to the carrier.");
+    const itemsLabel = sellerItems.map(function (item) {
+      return `${item.brand} ${item.name}`;
+    }).join(", ");
+    const compact = surface === "compact";
+    return `<article class="irisx-sale-card${compact ? " irisx-sale-card--compact" : ""}">
+      <div class="irisx-sale-card__media">${getSellerSaleMediaMarkup(primaryItem)}</div>
+      <div class="irisx-sale-card__body">
+        <div class="irisx-sale-card__top">
+          <div>
+            <span class="irisx-sale-card__eyebrow">${escapeHtml(langText("Vendita del", "Sold on"))} ${escapeHtml(formatDateTime(order.createdAt))}</span>
+            <strong>${escapeHtml(itemsLabel || langText("Articolo venduto", "Sold item"))}</strong>
+            <em>${escapeHtml(langText("Rif.", "Ref."))} ${escapeHtml(order.number)} · ${escapeHtml(langText("Buyer", "Buyer"))}: ${escapeHtml(order.buyerName || order.buyerEmail)}</em>
+          </div>
+          <span class="irisx-sale-status">${escapeHtml(statusLabel)}</span>
+        </div>
+        <div class="irisx-sale-metrics">
+          <div><span>${escapeHtml(langText("Venduto a", "Sold for"))}</span><strong>${escapeHtml(formatCurrency(gross))}</strong></div>
+          <div><span>${escapeHtml(langText("Netto stimato", "Estimated net"))}</span><strong>${escapeHtml(formatCurrency(net))}</strong></div>
+          <div><span>${escapeHtml(langText("Pagamento previsto", "Expected payout"))}</span><strong>${escapeHtml(formatDateTime(getSellerPayoutDate(order)))}</strong></div>
+          <div><span>${escapeHtml(langText("Tracking", "Tracking"))}</span><strong>${escapeHtml(trackingText)}</strong></div>
+        </div>
+        ${renderOrderJourneyPath(order)}
+        <div class="irisx-sale-actions">
+          <button class="irisx-primary" onclick="openOrderDetail('${order.id}','seller')">${langText("Apri vendita", "Open sale")}</button>
+          <button class="irisx-secondary" onclick="openOrderDetail('${order.id}','seller');setOrderModalTab('tracking')">${langText("Percorso e tracking", "Journey and tracking")}</button>
+          ${["paid", "awaiting_shipment"].includes(order.status) ? `<button class="irisx-secondary" onclick="openShipmentModal('${order.id}')">${langText("Inserisci tracking", "Add tracking")}</button>` : ""}
+        </div>
+      </div>
+    </article>`;
+  }
+
+  function renderSellerSalesListMarkup(orders, emptyLabel, surface) {
+    if (!orders.length) {
+      return `<div class="irisx-empty-state">${escapeHtml(emptyLabel || langText("Nessuna vendita ancora.", "No sales yet."))}</div>`;
+    }
+    return `<div class="irisx-sale-list">${orders.map(function (order) {
+      return renderSellerSaleCard(order, surface);
+    }).join("")}</div>`;
+  }
+
   function renderSellerArea(listings, sellerOrders) {
     const section = state.sellerSection || "dashboard";
     const published = listings.filter(function (listing) { return listing.listingStatus === "published" && listing.inventoryStatus === "active"; });
@@ -17522,9 +17682,11 @@
       }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessuna bozza salvata.", "No saved drafts.")}</div>`;
     }
     if (section === "sold") {
-      return sold.length ? `<div class="irisx-card-stack">${sold.map(function (listing) {
-        return `<div class="irisx-inline-card"><div><strong>${escapeHtml(listing.brand)} ${escapeHtml(listing.name)}</strong><span>${escapeHtml(formatDateTime(listing.soldAt || listing.date))}</span></div>${listing.orderId ? `<button class="irisx-secondary" onclick="openOrderDetail('${listing.orderId}','seller')">${langText("Ordine", "Order")}</button>` : ""}</div>`;
-      }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun articolo venduto.", "No sold items.")}</div>`;
+      const soldOrderIds = new Set(sold.map(function (listing) { return listing.orderId; }).filter(Boolean).map(String));
+      const soldOrders = sellerOrders.filter(function (order) {
+        return soldOrderIds.has(String(order.id)) || ["paid", "awaiting_shipment", "shipped", "in_authentication", "dispatched_to_buyer", "delivered", "completed"].includes(order.status);
+      });
+      return renderSellerSalesListMarkup(soldOrders, langText("Nessun articolo venduto.", "No sold items."));
     }
     if (section === "offers") {
       return renderOffersMarkup(sellerOffers, "seller");
@@ -17533,7 +17695,10 @@
       return renderMessagingWorkspaceCard("selling");
     }
     if (section === "shipping") {
-      return renderSellerOrdersMarkup(sellerOrders);
+      const shippingOrders = sellerOrders.filter(function (order) {
+        return !["completed", "cancelled", "refunded"].includes(order.status);
+      });
+      return renderSellerSalesListMarkup(shippingOrders, langText("Nessun ordine da spedire o seguire.", "No order to ship or track."));
     }
     if (section === "payouts") {
       return sellerOrders.length ? `<div class="irisx-card-stack">${sellerOrders.map(function (order) {
@@ -17547,7 +17712,7 @@
       const history = sellerOrders.filter(function (order) {
         return ["completed", "delivered", "refunded", "cancelled"].includes(order.status);
       });
-      return renderSellerOrdersMarkup(history);
+      return renderSellerSalesListMarkup(history, langText("Nessuno storico vendite ancora.", "No sales history yet."), "compact");
     }
     if (section === "stats") {
       const byBrand = {};
@@ -17577,6 +17742,7 @@
       <div class="irisx-inline-card"><div><strong>${langText("Offerte ricevute", "Offers received")}</strong><span>${sellerOffers.length} ${langText("offerte", "offers")}</span></div><button class="irisx-secondary" onclick="setSellerSection('offers')">${langText("Apri", "Open")}</button></div>
       <div class="irisx-inline-card"><div><strong>${langText("Inbox vendita", "Selling inbox")}</strong><span>${sellingConversations.length} ${langText("conversazioni", "conversations")} · ${getChatScopeUnreadCount("selling")} ${langText("non lette", "unread")}</span></div><button class="irisx-secondary" onclick="setSellerSection('messages')">${langText("Apri", "Open")}</button></div>
       <div class="irisx-inline-card"><div><strong>${langText("Coda spedizioni", "Shipping queue")}</strong><span>${langText("Ordini da processare.", "Orders to process.")}</span></div><button class="irisx-secondary" onclick="setSellerSection('shipping')">${langText("Apri", "Open")}</button></div>
+      ${sellerOrders[0] ? `<div class="irisx-workspace-card irisx-workspace-card--flush"><div class="irisx-section-head"><h3>${langText("Ultima vendita", "Latest sale")}</h3><span>${langText("Stato, tracking e percorso articolo subito visibili.", "Status, tracking, and item journey immediately visible.")}</span></div>${renderSellerSaleCard(sellerOrders[0], "compact")}</div>` : ""}
     </div>`;
   }
 
@@ -19796,6 +19962,7 @@
   window.renderOrderDetailModal = renderOrderDetailModal;
   window.openOrderDetail = openOrderDetail;
   window.closeOrderDetail = closeOrderDetail;
+  window.setOrderModalTab = setOrderModalTab;
   window.openCheckout = openCheckout;
   window.closeCheckout = closeCheckout;
   window.renderCheckoutModal = renderCheckoutModal;

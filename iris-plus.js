@@ -1443,6 +1443,11 @@
     return guide && guide.copy ? getTaxonomyLabel(guide.copy) : "";
   }
 
+  function getMeasurementGuideVisualImage(guide) {
+    const image = guide && guide.image ? String(guide.image) : "";
+    return image ? image.replace("assets/measurements/", "assets/measurements/clean/") : "";
+  }
+
   function ensureMeasurementGuideModal() {
     let modal = qs("#irisxMeasureGuideModal");
     if (modal) {
@@ -1471,10 +1476,12 @@
     const body = qs("#irisxMeasureGuideBody", modal);
     const title = getMeasurementGuideTitle(guide);
     const copy = getMeasurementGuideCopy(guide);
+    const visualImage = getMeasurementGuideVisualImage(guide);
     modal.setAttribute("aria-label", title);
     body.innerHTML = `<div class="irisx-measure-guide-art" data-guide-id="${escapeHtml(guideId)}">
+        <div class="irisx-measure-guide-brand" aria-hidden="true">IRIS</div>
         <div class="irisx-measure-guide-art-frame">
-          <img src="${escapeHtml(guide.image)}" alt="${escapeHtml(title)}" loading="lazy">
+          <img src="${escapeHtml(visualImage)}" alt="${escapeHtml(title)}" loading="lazy">
         </div>
       </div>
       <div class="irisx-measure-guide-content">

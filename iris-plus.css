@@ -15700,3 +15700,91 @@ body.irisx-luxury.irisx-white-theme .irisx-detail-lower-grid:has(> .irisx-detail
     max-width: 210px !important;
   }
 }
+
+/* Measurement guide cleanup: clean brand text and uncropped object illustrations */
+body.irisx-luxury .irisx-measure-guide-dialog,
+body.irisx-luxury.irisx-white-theme .irisx-measure-guide-dialog {
+  width: min(900px, calc(100vw - 34px)) !important;
+  max-height: min(700px, calc(100svh - 36px)) !important;
+  border-radius: 10px !important;
+}
+
+body.irisx-luxury .irisx-measure-guide-body,
+body.irisx-luxury.irisx-white-theme .irisx-measure-guide-body {
+  grid-template-columns: minmax(310px, 0.95fr) minmax(0, 1fr) !important;
+  min-height: min(560px, calc(100svh - 72px)) !important;
+}
+
+body.irisx-luxury .irisx-measure-guide-art,
+body.irisx-luxury.irisx-white-theme .irisx-measure-guide-art {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  gap: 1.1rem !important;
+  align-items: center !important;
+  justify-items: center !important;
+  padding: clamp(1.35rem, 3vw, 2.1rem) !important;
+  background: #fb5d5f !important;
+  overflow: hidden !important;
+}
+
+body.irisx-luxury .irisx-measure-guide-brand,
+body.irisx-luxury.irisx-white-theme .irisx-measure-guide-brand {
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif !important;
+  font-size: clamp(2.1rem, 4vw, 3rem) !important;
+  font-weight: 600 !important;
+  line-height: 0.9 !important;
+  letter-spacing: 0.03em !important;
+  color: rgba(255, 246, 239, 0.95) !important;
+  text-transform: lowercase !important;
+  -webkit-font-smoothing: antialiased !important;
+}
+
+body.irisx-luxury .irisx-measure-guide-art-frame,
+body.irisx-luxury.irisx-white-theme .irisx-measure-guide-art-frame {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: visible !important;
+}
+
+body.irisx-luxury .irisx-measure-guide-art img,
+body.irisx-luxury.irisx-white-theme .irisx-measure-guide-art img,
+body.irisx-luxury .irisx-measure-guide-art[data-guide-id^="bottom"] img,
+body.irisx-luxury.irisx-white-theme .irisx-measure-guide-art[data-guide-id^="bottom"] img,
+body.irisx-luxury .irisx-measure-guide-art[data-guide-id^="upper"] img,
+body.irisx-luxury.irisx-white-theme .irisx-measure-guide-art[data-guide-id^="upper"] img {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  display: block !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+body.irisx-luxury .irisx-measure-guide-art[data-guide-id^="bag"] img,
+body.irisx-luxury.irisx-white-theme .irisx-measure-guide-art[data-guide-id^="bag"] img {
+  max-width: min(100%, 390px) !important;
+}
+
+body.irisx-luxury .irisx-measure-guide-art[data-guide-id="belt-width"] img,
+body.irisx-luxury.irisx-white-theme .irisx-measure-guide-art[data-guide-id="belt-width"] img {
+  max-width: min(100%, 430px) !important;
+}
+
+@media (max-width: 760px) {
+  body.irisx-luxury .irisx-measure-guide-body,
+  body.irisx-luxury.irisx-white-theme .irisx-measure-guide-body {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+  }
+
+  body.irisx-luxury .irisx-measure-guide-art,
+  body.irisx-luxury.irisx-white-theme .irisx-measure-guide-art {
+    min-height: 360px !important;
+  }
+}

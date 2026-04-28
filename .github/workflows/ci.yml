@@ -41,7 +41,6 @@ jobs:
         run: node scripts/smoke-commerce.mjs
 
       - name: Authenticated commerce smoke
-        if: ${{ secrets.SMOKE_EMAIL != '' && secrets.SMOKE_PASSWORD != '' && secrets.SMOKE_LISTING_ID != '' && secrets.SUPABASE_ANON_KEY != '' }}
         env:
           SMOKE_EMAIL: ${{ secrets.SMOKE_EMAIL }}
           SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
@@ -50,4 +49,9 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           PUBLIC_SITE_URL: https://popi99999.github.io/IRIS/
           SUPABASE_FUNCTIONS_BASE_URL: https://xzhgyamzfthqrcaljdqv.supabase.co/functions/v1
-        run: node scripts/smoke-commerce.mjs
+        run: |
+          if [ -z "$SMOKE_EMAIL" ] || [ -z "$SMOKE_PASSWORD" ] || [ -z "$SMOKE_LISTING_ID" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Skipping authenticated commerce smoke: required smoke-test secrets are not configured."
+            exit 0
+          fi
+          node scripts/smoke-commerce.mjs

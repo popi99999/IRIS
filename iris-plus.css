@@ -15398,3 +15398,305 @@ body.irisx-luxury.irisx-white-theme .irisx-recommendation-card .p-price {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* IRIS sell-form refinement: color swatches, cleaner side cards, updated condition taxonomy */
+body.irisx-luxury.irisx-white-theme #sellForm .irisx-color-field,
+body.irisx-luxury #sellForm .irisx-color-field {
+  gap: 0.8rem !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .irisx-color-picker,
+body.irisx-luxury #sellForm .irisx-color-picker {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 0.56rem !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .irisx-color-option,
+body.irisx-luxury #sellForm .irisx-color-option {
+  appearance: none !important;
+  min-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  border: 1px solid rgba(241, 50, 79, 0.17) !important;
+  background: #fff !important;
+  color: #171425 !important;
+  padding: 0.58rem 0.7rem !important;
+  border-radius: 7px !important;
+  font-size: 0.82rem !important;
+  font-weight: 650 !important;
+  letter-spacing: 0 !important;
+  cursor: pointer !important;
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .irisx-color-option:hover,
+body.irisx-luxury #sellForm .irisx-color-option:hover {
+  border-color: rgba(241, 50, 79, 0.42) !important;
+  transform: translateY(-1px) !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .irisx-color-option.is-selected,
+body.irisx-luxury #sellForm .irisx-color-option.is-selected {
+  border-color: #f1324f !important;
+  box-shadow: 0 0 0 2px rgba(241, 50, 79, 0.12) !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .irisx-color-swatch,
+body.irisx-luxury #sellForm .irisx-color-swatch {
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 999px !important;
+  flex: 0 0 auto !important;
+  background: var(--swatch) !important;
+  border: 1px solid rgba(17, 24, 39, 0.14) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.28) !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .cond-grid,
+body.irisx-luxury #sellForm .cond-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 0.72rem !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .cond-btn,
+body.irisx-luxury #sellForm .cond-btn {
+  min-height: 54px !important;
+  border-radius: 7px !important;
+  color: #171425 !important;
+  background: #ffffff !important;
+  border-color: rgba(241, 50, 79, 0.18) !important;
+  font-size: 0.92rem !important;
+  font-weight: 650 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .cond-btn.sel,
+body.irisx-luxury #sellForm .cond-btn.sel {
+  border-color: #f1324f !important;
+  color: #111827 !important;
+  background: #fff7f8 !important;
+  box-shadow: 0 0 0 2px rgba(241, 50, 79, 0.11) !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .irisx-condition-defects[hidden],
+body.irisx-luxury #sellForm .irisx-condition-defects[hidden] {
+  display: none !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .irisx-condition-defects.is-visible,
+body.irisx-luxury #sellForm .irisx-condition-defects.is-visible {
+  display: grid !important;
+  border: 1px solid rgba(241, 50, 79, 0.18) !important;
+  background: #fff9fa !important;
+  padding: 1rem !important;
+  border-radius: 8px !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .irisx-condition-defects .fta,
+body.irisx-luxury #sellForm .irisx-condition-defects .fta {
+  min-height: 118px !important;
+  background: #ffffff !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .sell-side,
+body.irisx-luxury #sellForm .sell-side {
+  display: grid !important;
+  gap: 1rem !important;
+  align-content: start !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .side-card,
+body.irisx-luxury #sellForm .side-card {
+  margin: 0 !important;
+  padding: clamp(1.15rem, 1.7vw, 1.55rem) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(17, 24, 39, 0.1) !important;
+  background: #ffffff !important;
+  box-shadow: 0 16px 38px rgba(17, 24, 39, 0.055) !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .sc-kicker,
+body.irisx-luxury #sellForm .sc-kicker {
+  margin-bottom: 0.45rem !important;
+  color: #f1324f !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.28em !important;
+  text-transform: uppercase !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .sc-t,
+body.irisx-luxury #sellForm .sc-t {
+  margin: 0 0 1.05rem !important;
+  color: #171425 !important;
+  font-family: inherit !important;
+  font-size: 1.18rem !important;
+  font-weight: 760 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .fee-row,
+body.irisx-luxury #sellForm .fee-row {
+  padding: 0.72rem 0 !important;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08) !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .fee-row span,
+body.irisx-luxury #sellForm .fee-row span {
+  color: #171425 !important;
+  font-size: 0.95rem !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .fee-total .fee-v,
+body.irisx-luxury #sellForm .fee-total .fee-v {
+  color: #f1324f !important;
+  font-weight: 800 !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .fee-note,
+body.irisx-luxury #sellForm .fee-note {
+  margin-top: 0.85rem !important;
+  color: #655d69 !important;
+  font-size: 0.82rem !important;
+  line-height: 1.45 !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .auth-badge,
+body.irisx-luxury #sellForm .auth-badge {
+  display: grid !important;
+  grid-template-columns: 34px minmax(0, 1fr) !important;
+  gap: 0.75rem !important;
+  align-items: center !important;
+  padding: 0.78rem 0 !important;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08) !important;
+  border-top: 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .auth-badge:last-child,
+body.irisx-luxury #sellForm .auth-badge:last-child {
+  border-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .ab-icon,
+body.irisx-luxury #sellForm .ab-icon {
+  width: 34px !important;
+  height: 34px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 8px !important;
+  background: #fff2f4 !important;
+  border: 1px solid rgba(241, 50, 79, 0.18) !important;
+  color: #f1324f !important;
+  font-size: 0.9rem !important;
+  font-weight: 850 !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .ab-text,
+body.irisx-luxury #sellForm .ab-text {
+  color: #635b68 !important;
+  font-size: 0.83rem !important;
+  line-height: 1.35 !important;
+}
+
+body.irisx-luxury.irisx-white-theme #sellForm .ab-text strong,
+body.irisx-luxury #sellForm .ab-text strong {
+  display: block !important;
+  color: #171425 !important;
+  font-size: 0.94rem !important;
+  line-height: 1.25 !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge {
+  min-height: 56px !important;
+  grid-template-columns: 28px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 0.72rem !important;
+  border-radius: 10px !important;
+  padding: 0.55rem 0.9rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon {
+  display: grid !important;
+  place-items: center !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon svg {
+  width: 28px !important;
+  height: 28px !important;
+  display: block !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge--apple svg {
+  fill: #ffffff !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge--google .gp-a { fill: #00a173 !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge--google .gp-b { fill: #33a7ff !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge--google .gp-c { fill: #ffc247 !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge--google .gp-d { fill: #ff4d4d !important; }
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-text {
+  display: grid !important;
+  gap: 0.08rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text span {
+  font-size: 0.56rem !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text strong {
+  font-size: 1rem !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .det-auth--compact,
+body.irisx-luxury.irisx-white-theme .det-auth--compact {
+  display: none !important;
+}
+
+body.irisx-luxury .irisx-detail-lower-side:empty,
+body.irisx-luxury.irisx-white-theme .irisx-detail-lower-side:empty {
+  display: none !important;
+}
+
+body.irisx-luxury .irisx-detail-lower-grid:has(> .irisx-detail-lower-side:empty),
+body.irisx-luxury.irisx-white-theme .irisx-detail-lower-grid:has(> .irisx-detail-lower-side:empty) {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+@media (max-width: 1180px) {
+  body.irisx-luxury.irisx-white-theme #sellForm .cond-grid,
+  body.irisx-luxury #sellForm .cond-grid,
+  body.irisx-luxury.irisx-white-theme #sellForm .irisx-color-picker,
+  body.irisx-luxury #sellForm .irisx-color-picker {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 680px) {
+  body.irisx-luxury.irisx-white-theme #sellForm .cond-grid,
+  body.irisx-luxury #sellForm .cond-grid,
+  body.irisx-luxury.irisx-white-theme #sellForm .irisx-color-picker,
+  body.irisx-luxury #sellForm .irisx-color-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges {
+    grid-template-columns: 1fr !important;
+    max-width: 210px !important;
+  }
+}

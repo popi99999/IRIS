@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="./icons/icon-512.png">
 <link rel="manifest" href="./manifest.json?v=20260417094815">
-<link rel="stylesheet" href="./iris-plus.css?v=20260428122000">
+<link rel="stylesheet" href="./iris-plus.css?v=20260428142000">
 <title>IRIS — Luxury Fashion Marketplace</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Il marketplace italiano per la moda di lusso.","potentialAction":{"@type":"SearchAction","target":"https://popi99999.github.io/IRIS/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"IRIS","url":"https://popi99999.github.io/IRIS/","description":"Luxury Fashion Marketplace italiano"}</script>
@@ -2732,7 +2732,24 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
               <div class="fg" id="irisxSizeOriginalGroup"><label class="fl" id="sf-size-original-label" for="sf-size-original">Taglia etichetta originale</label><input class="fi" id="sf-size-original" placeholder="es. 2, US 9, 30"></div>
             </div>
             <div class="fr">
-              <div class="fg"><label class="fl" for="sf-color">Colore</label><input class="fi" id="sf-color" placeholder="es. Nero"></div>
+              <div class="fg irisx-color-field">
+                <label class="fl" for="sf-color">Colore</label>
+                <input class="fi" id="sf-color" placeholder="es. Nero" autocomplete="off">
+                <div class="irisx-color-picker" role="listbox" aria-label="Scegli colore">
+                  <button type="button" class="irisx-color-option" data-color-value="Nero" onclick="selectSellColor(this, 'Nero')"><span class="irisx-color-swatch" style="--swatch:#111111"></span><span>Nero</span></button>
+                  <button type="button" class="irisx-color-option" data-color-value="Marrone" onclick="selectSellColor(this, 'Marrone')"><span class="irisx-color-swatch" style="--swatch:#6B4226"></span><span>Marrone</span></button>
+                  <button type="button" class="irisx-color-option" data-color-value="Beige" onclick="selectSellColor(this, 'Beige')"><span class="irisx-color-swatch" style="--swatch:#D9C3A3"></span><span>Beige</span></button>
+                  <button type="button" class="irisx-color-option" data-color-value="Bianco" onclick="selectSellColor(this, 'Bianco')"><span class="irisx-color-swatch" style="--swatch:#F8F6F1"></span><span>Bianco</span></button>
+                  <button type="button" class="irisx-color-option" data-color-value="Grigio" onclick="selectSellColor(this, 'Grigio')"><span class="irisx-color-swatch" style="--swatch:#9CA3AF"></span><span>Grigio</span></button>
+                  <button type="button" class="irisx-color-option" data-color-value="Rosa" onclick="selectSellColor(this, 'Rosa')"><span class="irisx-color-swatch" style="--swatch:#F8A6C8"></span><span>Rosa</span></button>
+                  <button type="button" class="irisx-color-option" data-color-value="Rosso" onclick="selectSellColor(this, 'Rosso')"><span class="irisx-color-swatch" style="--swatch:#D92D20"></span><span>Rosso</span></button>
+                  <button type="button" class="irisx-color-option" data-color-value="Blu" onclick="selectSellColor(this, 'Blu')"><span class="irisx-color-swatch" style="--swatch:#1D4ED8"></span><span>Blu</span></button>
+                  <button type="button" class="irisx-color-option" data-color-value="Verde" onclick="selectSellColor(this, 'Verde')"><span class="irisx-color-swatch" style="--swatch:#047857"></span><span>Verde</span></button>
+                  <button type="button" class="irisx-color-option" data-color-value="Giallo" onclick="selectSellColor(this, 'Giallo')"><span class="irisx-color-swatch" style="--swatch:#F2C94C"></span><span>Giallo</span></button>
+                  <button type="button" class="irisx-color-option" data-color-value="Oro" onclick="selectSellColor(this, 'Oro')"><span class="irisx-color-swatch" style="--swatch:#C8A24A"></span><span>Oro</span></button>
+                  <button type="button" class="irisx-color-option" data-color-value="Argento" onclick="selectSellColor(this, 'Argento')"><span class="irisx-color-swatch" style="--swatch:#C9CDD2"></span><span>Argento</span></button>
+                </div>
+              </div>
               <div class="fg" id="irisxFitGroup"><label class="fl" for="sf-fit">Vestibilità</label><select class="fsel" id="sf-fit"><option>Regular</option><option>Slim</option><option>Oversize</option></select></div>
             </div>
             <div class="fr">
@@ -2744,14 +2761,19 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
               <div class="irisx-note" id="irisxMeasurementsHint">Inserisci le misure seller piu importanti. Le immagini guida le aggiungeremo dopo.</div>
               <div class="irisx-measurement-grid" id="irisxMeasurementsFields"></div>
             </div>
-            <div class="fg"><label class="fl" for="sf-condition">Condizione *</label><input type="hidden" id="sf-condition" required><div class="cond-grid" role="group" aria-label="Condizione"><button type="button" class="cond-btn" onclick="selCond(this)">Nuovo con tag</button><button type="button" class="cond-btn" onclick="selCond(this)">Nuovo senza tag</button><button type="button" class="cond-btn" onclick="selCond(this)">Eccellente</button><button type="button" class="cond-btn" onclick="selCond(this)">Molto buono</button><button type="button" class="cond-btn" onclick="selCond(this)">Buono</button><button type="button" class="cond-btn" onclick="selCond(this)">Accettabile</button><button type="button" class="cond-btn" onclick="selCond(this)">Da restauro</button></div></div>
+            <div class="fg"><label class="fl" for="sf-condition">Condizione *</label><input type="hidden" id="sf-condition" required><div class="cond-grid" role="group" aria-label="Condizione"><button type="button" class="cond-btn" onclick="selCond(this)">Nuovo con tag</button><button type="button" class="cond-btn" onclick="selCond(this)">Nuovo senza tag</button><button type="button" class="cond-btn" onclick="selCond(this)">Ottimo</button><button type="button" class="cond-btn" onclick="selCond(this)">Buono</button><button type="button" class="cond-btn" onclick="selCond(this)">Accettabile</button></div></div>
+            <div class="fg irisx-condition-defects" id="irisxConditionDefectsGroup" hidden>
+              <label class="fl" for="sf-defects">Difetti / segni da dichiarare *</label>
+              <textarea class="fta" id="sf-defects" placeholder="Es. piccoli graffi sull'hardware, angoli consumati, macchia interna..." minlength="8"></textarea>
+              <div class="irisx-note">Obbligatorio se la condizione è Buono o Accettabile. Scrivi in modo preciso cosa deve aspettarsi l'acquirente.</div>
+            </div>
             <div class="fg"><label class="fl" for="sf-desc">Descrizione *</label><textarea class="fta" id="sf-desc" placeholder="Materiale, colore, hardware, segni di usura, cosa è incluso..." required minlength="10"></textarea></div>
             <div class="fg"><label class="fl" for="sf-price">Il tuo prezzo (€) *</label><input class="fi" type="number" id="sf-price" placeholder="es. 450" oninput="updateFee()" required min="1" step="0.01"></div>
           </div>
         </div>
         <div class="sell-side">
-          <div class="side-card"><div class="sc-t">💜 Il tuo guadagno</div><div class="fee-row"><span class="fee-l">Prezzo</span><span class="fee-v" id="fee-p">€ —</span></div><div class="fee-row"><span class="fee-l">Commissione</span><span class="fee-v" id="fee-c">— %</span></div><div class="fee-row fee-total"><span class="fee-l">Guadagno netto</span><span class="fee-v" id="fee-n">€ —</span></div><div class="fee-note">La commissione si paga solo al venduto.</div></div>
-          <div class="side-card"><div class="sc-t">✦ Incluso</div><div class="auth-badge"><div class="ab-icon">🔍</div><div class="ab-text"><strong>Autenticazione gratuita</strong>Verificato da esperti.</div></div><div class="auth-badge"><div class="ab-icon">🚚</div><div class="ab-text"><strong>Spedizione inclusa</strong>Etichetta prepagata.</div></div><div class="auth-badge"><div class="ab-icon">💳</div><div class="ab-text"><strong>Pagamento garantito</strong>Bonifico in 48h.</div></div></div>
+          <div class="side-card side-card--earnings"><div class="sc-kicker">Stima vendita</div><div class="sc-t">Il tuo guadagno</div><div class="fee-row"><span class="fee-l">Prezzo</span><span class="fee-v" id="fee-p">€ —</span></div><div class="fee-row"><span class="fee-l">Commissione</span><span class="fee-v" id="fee-c">— %</span></div><div class="fee-row fee-total"><span class="fee-l">Guadagno netto</span><span class="fee-v" id="fee-n">€ —</span></div><div class="fee-note">Commissione 7% self-serve / 15% concierge. Si paga solo al venduto.</div></div>
+          <div class="side-card side-card--included"><div class="sc-kicker">Compreso</div><div class="sc-t">Servizi IRIS</div><div class="auth-badge"><div class="ab-icon" aria-hidden="true">✓</div><div class="ab-text"><strong>Autenticazione</strong>Controllo esperto prima della consegna.</div></div><div class="auth-badge"><div class="ab-icon" aria-hidden="true">✓</div><div class="ab-text"><strong>Spedizione tracciata</strong>Etichetta e percorso ordine gestiti da IRIS.</div></div><div class="auth-badge"><div class="ab-icon" aria-hidden="true">✓</div><div class="ab-text"><strong>Pagamento protetto</strong>Payout solo quando la vendita è chiusa.</div></div></div>
           <button class="sell-submit" id="sf-submit" type="submit">Pubblica il tuo articolo</button>
         </div>
       </form>
@@ -2893,17 +2915,17 @@ const sellers=[
 ];
 
 const prods=[
-  {id:1,name:'Birkin 30 Togo Gold',brand:'Hermès',cat:'Borse',sz:'30cm',cond:'Eccellente',fit:'—',dims:'30 × 22 × 16 cm',price:9800,orig:14000,color:'Beige',material:'Pelle Togo',measurements:{width:'30',height:'22',depth:'16'},emoji:'👜',desc:'Birkin 30 in pelle Togo Gold con hardware Palladium. Con scatola, dust bag, Clochette e lucchetto originali. Usata pochissime volte, condizioni praticamente perfette.',chips:['Togo','Palladium HW','Con Box','Clochette'],seller:sellers[0],date:Date.now()-86400000},
-  {id:2,name:'Speedy 25 Monogram',brand:'Louis Vuitton',cat:'Borse',sz:'25cm',cond:'Molto buono',fit:'—',dims:'25 × 19 × 15 cm',price:780,orig:1280,color:'Marrone',material:'Canvas Monogram',measurements:{width:'25',height:'19',depth:'15'},emoji:'👛',desc:'Speedy 25 Monogram Canvas, zip funzionante, include lucchetto e chiavi. Patina naturale uniforme, nessun difetto strutturale.',chips:['Monogram','Zip','Lucchetto'],seller:sellers[1],date:Date.now()-172800000},
-  {id:3,name:'Classic Flap Medium Caviar',brand:'Chanel',cat:'Borse',sz:'Medium',cond:'Eccellente',fit:'—',dims:'25.5 × 16 × 7.5 cm',price:6200,orig:8900,color:'Nero',material:'Pelle Caviar',measurements:{width:'25.5',height:'16',depth:'7.5'},emoji:'💼',desc:'Classic Double Flap Caviar nera con hardware dorato 24k. Serie autenticata. Usata 2-3 volte per eventi, condizioni pari al nuovo.',chips:['Caviar','Gold HW','Double Flap','Autenticata'],seller:sellers[2],date:Date.now()-259200000},
+  {id:1,name:'Birkin 30 Togo Gold',brand:'Hermès',cat:'Borse',sz:'30cm',cond:'Ottimo',fit:'—',dims:'30 × 22 × 16 cm',price:9800,orig:14000,color:'Beige',material:'Pelle Togo',measurements:{width:'30',height:'22',depth:'16'},emoji:'👜',desc:'Birkin 30 in pelle Togo Gold con hardware Palladium. Con scatola, dust bag, Clochette e lucchetto originali. Usata pochissime volte, condizioni praticamente perfette.',chips:['Togo','Palladium HW','Con Box','Clochette'],seller:sellers[0],date:Date.now()-86400000},
+  {id:2,name:'Speedy 25 Monogram',brand:'Louis Vuitton',cat:'Borse',sz:'25cm',cond:'Ottimo',fit:'—',dims:'25 × 19 × 15 cm',price:780,orig:1280,color:'Marrone',material:'Canvas Monogram',measurements:{width:'25',height:'19',depth:'15'},emoji:'👛',desc:'Speedy 25 Monogram Canvas, zip funzionante, include lucchetto e chiavi. Patina naturale uniforme, nessun difetto strutturale.',chips:['Monogram','Zip','Lucchetto'],seller:sellers[1],date:Date.now()-172800000},
+  {id:3,name:'Classic Flap Medium Caviar',brand:'Chanel',cat:'Borse',sz:'Medium',cond:'Ottimo',fit:'—',dims:'25.5 × 16 × 7.5 cm',price:6200,orig:8900,color:'Nero',material:'Pelle Caviar',measurements:{width:'25.5',height:'16',depth:'7.5'},emoji:'💼',desc:'Classic Double Flap Caviar nera con hardware dorato 24k. Serie autenticata. Usata 2-3 volte per eventi, condizioni pari al nuovo.',chips:['Caviar','Gold HW','Double Flap','Autenticata'],seller:sellers[2],date:Date.now()-259200000},
   {id:4,name:'GG Marmont Belt',brand:'Gucci',cat:'Accessori',sz:'85cm',cond:'Nuovo',fit:'—',dims:'2.5 cm larghezza',price:280,orig:450,color:'Nero',material:'Pelle Matelassé',measurements:{full_length:'102',buckle_to_middle:'85',width:'2.5'},emoji:'🎀',desc:'Cintura GG Marmont matelassé nera con fibbia GG dorata. Mai indossata, cartellino ed etichetta originali, sacchetto antipolvere incluso.',chips:['Matelassé','Gold GG','Con tag'],seller:sellers[3],date:Date.now()-345600000},
   {id:5,name:'Triple S White/Grey',brand:'Balenciaga',cat:'Scarpe',sz:'42',cond:'Buono',fit:'Oversize',dims:'Calza grande, si consiglia ½ taglia in meno',price:380,orig:750,color:'Bianco',material:'Mesh + Pelle',emoji:'👟',desc:'Triple S bianco/grigio taglia 42. Suola ottimo stato, normale usura mesh. Include scatola originale e extra laces.',chips:['Triple S','EU 42','Originali','Con box'],seller:sellers[0],date:Date.now()-432000000},
-  {id:6,name:'Saffiano Tote Large',brand:'Prada',cat:'Borse',sz:'Large',cond:'Molto buono',fit:'—',dims:'35 × 26 × 14 cm',price:1100,orig:1950,color:'Nero',material:'Pelle Saffiano',measurements:{width:'35',height:'26',depth:'14'},emoji:'🛍️',desc:'Tote Saffiano nera Large con triangolo Prada argento. Strutturata, perfetta per quotidiano e lavoro. Tracolla rimovibile inclusa.',chips:['Saffiano','Silver HW','Tracolla'],seller:sellers[1],date:Date.now()-518400000},
-  {id:7,name:'Wool Overcoat',brand:'Valentino',cat:'Abbigliamento',sz:'50 IT',cond:'Eccellente',fit:'—',dims:'Spalle 46cm · Petto 108cm · Lunghezza 105cm',price:950,orig:2200,color:'Nero',material:'Lana Vergine',measurements:{shoulders:'46',chest:'54',length:'105',sleeve:'64'},emoji:'🧥',desc:'Cappotto lungo in lana vergine nera, fodera in seta con logo. Chiusura 3 bottoni, tasche a filetto. Perfetto per la stagione fredda.',chips:['Lana Vergine','IT 50','Fodera Seta'],seller:sellers[2],date:Date.now()-600000000},
+  {id:6,name:'Saffiano Tote Large',brand:'Prada',cat:'Borse',sz:'Large',cond:'Ottimo',fit:'—',dims:'35 × 26 × 14 cm',price:1100,orig:1950,color:'Nero',material:'Pelle Saffiano',measurements:{width:'35',height:'26',depth:'14'},emoji:'🛍️',desc:'Tote Saffiano nera Large con triangolo Prada argento. Strutturata, perfetta per quotidiano e lavoro. Tracolla rimovibile inclusa.',chips:['Saffiano','Silver HW','Tracolla'],seller:sellers[1],date:Date.now()-518400000},
+  {id:7,name:'Wool Overcoat',brand:'Valentino',cat:'Abbigliamento',sz:'50 IT',cond:'Ottimo',fit:'—',dims:'Spalle 46cm · Petto 108cm · Lunghezza 105cm',price:950,orig:2200,color:'Nero',material:'Lana Vergine',measurements:{shoulders:'46',chest:'54',length:'105',sleeve:'64'},emoji:'🧥',desc:'Cappotto lungo in lana vergine nera, fodera in seta con logo. Chiusura 3 bottoni, tasche a filetto. Perfetto per la stagione fredda.',chips:['Lana Vergine','IT 50','Fodera Seta'],seller:sellers[2],date:Date.now()-600000000},
   {id:8,name:'B Pouch Clutch',brand:'Bottega Veneta',cat:'Borse',sz:'Medium',cond:'Nuovo',fit:'—',dims:'32 × 14.5 cm',price:1650,orig:2500,color:'Verde',material:'Pelle Nappa Intrecciato',emoji:'👝',desc:'B Pouch in nappa Intrecciato verde "Parakeet". Mai usata, con scatola, dust bag e certificato. Edizione stagionale difficile da trovare.',chips:['Intrecciato','Nappa','Con box','Limited'],seller:sellers[3],date:Date.now()-680000000},
   {id:9,name:'Ace Sneakers Bees',brand:'Gucci',cat:'Scarpe',sz:'43',cond:'Buono',fit:'—',dims:'Calzata vera alla taglia',price:320,orig:620,color:'Bianco',material:'Pelle Vitello',emoji:'👟',desc:'Ace bianche con ricamo api dorate. Taglia 43, qualche segno sulla suola e minima piega sulla pelle. Molto portabili, stile iconico.',chips:['Ace','EU 43','Bee Motif'],seller:sellers[0],date:Date.now()-750000000},
-  {id:10,name:'Monogram Hoodie',brand:'Off-White',cat:'Abbigliamento',sz:'L',cond:'Molto buono',fit:'Oversize',dims:'Spalle 52cm · Petto 120cm · Lunghezza 72cm',price:290,orig:580,color:'Nero',material:'Cotone 100%',measurements:{shoulders:'52',chest:'60',length:'72',sleeve:'66'},emoji:'🧷',desc:'Felpa hoodie con cappuccio, logo monogram all-over tono su tono. Fit oversize vero, taglia L veste come XL. Lavata poche volte.',chips:['Oversize','100% Cotone','Logo'],seller:sellers[1],date:Date.now()-830000000},
-  {id:11,name:'Santos de Cartier Watch',brand:'Cartier',cat:'Orologi',sz:'Medium',cond:'Eccellente',fit:'—',dims:'35.1 mm cassa · 7.9 mm spessore',price:5400,orig:7500,color:'Argento',material:'Acciaio Inox',emoji:'⌚',desc:'Santos de Cartier Medium in acciaio, quadrante argento, cinturino acciaio con sgancio rapido. Garanzia e box originali inclusi. Revisionato.',chips:['Acciaio','Con garanzia','Con box','Revisionato'],seller:sellers[2],date:Date.now()-900000000},
+  {id:10,name:'Monogram Hoodie',brand:'Off-White',cat:'Abbigliamento',sz:'L',cond:'Ottimo',fit:'Oversize',dims:'Spalle 52cm · Petto 120cm · Lunghezza 72cm',price:290,orig:580,color:'Nero',material:'Cotone 100%',measurements:{shoulders:'52',chest:'60',length:'72',sleeve:'66'},emoji:'🧷',desc:'Felpa hoodie con cappuccio, logo monogram all-over tono su tono. Fit oversize vero, taglia L veste come XL. Lavata poche volte.',chips:['Oversize','100% Cotone','Logo'],seller:sellers[1],date:Date.now()-830000000},
+  {id:11,name:'Santos de Cartier Watch',brand:'Cartier',cat:'Orologi',sz:'Medium',cond:'Ottimo',fit:'—',dims:'35.1 mm cassa · 7.9 mm spessore',price:5400,orig:7500,color:'Argento',material:'Acciaio Inox',emoji:'⌚',desc:'Santos de Cartier Medium in acciaio, quadrante argento, cinturino acciaio con sgancio rapido. Garanzia e box originali inclusi. Revisionato.',chips:['Acciaio','Con garanzia','Con box','Revisionato'],seller:sellers[2],date:Date.now()-900000000},
   {id:12,name:'Serpenti Forever Crossbody',brand:'Bvlgari',cat:'Borse',sz:'Small',cond:'Nuovo',fit:'—',dims:'20 × 14 × 5 cm',price:1800,orig:2700,color:'Rosa',material:'Pelle Karung',emoji:'🐍',desc:'Serpenti Forever crossbody in pelle Karung rosa con chiusura testa serpente in ottone palladio. Mai usata, con scatola e certificato.',chips:['Karung','Serpenti','Palladio HW','Con box'],seller:sellers[3],date:Date.now()-950000000},
 ];
 
@@ -2924,7 +2946,7 @@ let curChat=null;
 
 const allBrands=[...new Set(prods.map(p=>p.brand))].sort();
 const allCats=[...new Set(prods.map(p=>p.cat))].sort();
-const allConds=['Nuovo con tag','Nuovo senza tag','Eccellente','Molto buono','Buono','Accettabile','Da restauro'];
+const allConds=['Nuovo con tag','Nuovo senza tag','Ottimo','Buono','Accettabile'];
 const allFits=['Slim','Regular','Oversize'];
 const colorMap={Nero:'#111',Bianco:'#f5f5f5',Marrone:'#8B4513',Beige:'#D2B48C',Verde:'#2E8B57',Rosa:'#DB7093',Grigio:'#808080',Argento:'#C0C0C0',Blu:'#2255AA',Rosso:'#CC3333'};
 const allColors=Object.keys(colorMap);
@@ -3707,7 +3729,7 @@ function updateMeta(title,desc){
 /* ═══════ PWA ═══════ */
 let deferredPrompt=null;
 if('serviceWorker' in navigator && window.location.protocol !== 'file:'){
-  navigator.serviceWorker.register('./sw.js?v=20260428122000').then((registration)=>{
+  navigator.serviceWorker.register('./sw.js?v=20260428142000').then((registration)=>{
     if (registration.waiting) {
       console.info('IRIS service worker update ready.');
     }
@@ -3732,7 +3754,7 @@ setTimeout(()=>renderFooters(),500);
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js?v=20260427223000"></script>
 <script src="./iris-i18n-config.js?v=20260427223000"></script>
-<script src="./iris-plus.js?v=20260428122000"></script>
+<script src="./iris-plus.js?v=20260428142000"></script>
 <script>
 /* ═══ OFFER FLOW BRIDGE ═══ */
 if (window.__irisModernOfferFlow) {

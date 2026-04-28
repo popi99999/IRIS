@@ -2643,6 +2643,13 @@
 
   function buildSupabaseListingPayload(listing) {
     const normalized = normalizeListingRecord(listing);
+    const conditionNotes = normalized.conditionNotes || (normalized.measurements && normalized.measurements._conditionNotes) || "";
+    const measurementsPayload = Object.assign({}, normalized.measurements || {});
+    if (conditionNotes) {
+      measurementsPayload._conditionNotes = conditionNotes;
+    } else {
+      delete measurementsPayload._conditionNotes;
+    }
     return {
       id: String(normalized.id),
       owner_id: normalizeSupabaseUuid(state.currentUser && state.currentUser.id),
@@ -2661,7 +2668,7 @@
       condition_label: normalized.cond || "",
       fit: normalized.fit || "",
       dimensions: normalized.dims || "",
-      measurements: normalized.measurements || {},
+      measurements: measurementsPayload,
       price: Number(normalized.price || 0),
       original_price: Number(normalized.orig || normalized.compareAt || 0),
       color: normalized.color || "",
@@ -2719,6 +2726,7 @@
       fit: row.fit || "",
       dims: row.dimensions || "",
       measurements: row.measurements || {},
+      conditionNotes: (row.measurements && row.measurements._conditionNotes) || "",
       price: Number(row.price || 0),
       orig: Number(row.original_price || 0),
       compareAt: Number(row.original_price || 0),
@@ -4427,6 +4435,12 @@
   }
 
   function getFacetLabel(type, value) {
+    if (type === "conds") {
+      const normalizedCondition = normalizeSellConditionLabel(value);
+      if (normalizedCondition) {
+        return normalizedCondition;
+      }
+    }
     const scoped = FACET_TRANSLATIONS[type] || {};
     const direct = scoped[value];
     if (direct && direct[curLang]) {
@@ -4473,7 +4487,7 @@
   }
 
   function getAvailableConditions() {
-    return [...new Set(getVisibleCatalogProducts().map((product) => product.cond))];
+    return [...new Set(getVisibleCatalogProducts().map((product) => normalizeSellConditionLabel(product.cond)).filter(Boolean))];
   }
 
   function getAvailableFits() {
@@ -6185,6 +6199,7 @@
     const measurements = listing && listing.measurements && typeof listing.measurements === "object"
       ? listing.measurements
       : null;
+    const conditionNotes = (listing && listing.conditionNotes) || (measurements && measurements._conditionNotes) || "";
     const trustMeta = getListingTrustMeta(listing);
     const gender = inferListingGender(listing);
 
@@ -6226,7 +6241,8 @@
         relistSourceReceiptNumber: "",
         relistSourcePurchasedAt: null,
         relistSourceCertified: false,
-        relistSourcePlatform: ""
+        relistSourcePlatform: "",
+        conditionNotes: conditionNotes
       },
       listing,
       {
@@ -6253,6 +6269,7 @@
         irisGuaranteed: listing && listing.irisGuaranteed !== undefined ? Boolean(listing.irisGuaranteed) : trustMeta.guaranteed,
         certificateCode: (listing && listing.certificateCode) || trustMeta.certificateCode,
         authenticatedAt: (listing && listing.authenticatedAt) || trustMeta.authenticatedAt,
+        conditionNotes: conditionNotes,
         measurements: measurements,
         image: getListingImageSources(listing)[0] || "",
         images: getListingImageSources(listing),
@@ -7926,6 +7943,75 @@
     }
   }
 
+  function normalizeSellConditionLabel(value) {
+    const raw = String(value || "").trim();
+    const normalized = normalizeSearchText(raw);
+    if (!normalized) {
+      return "";
+    }
+    if (normalized.includes("eccellente") || normalized.includes("excellent") || normalized.includes("molto buono") || normalized.includes("very good") || normalized.includes("ottimo")) {
+      return langText("Ottimo", "Excellent");
+    }
+    if (normalized.includes("nuovo con") || normalized.includes("new with")) {
+      return langText("Nuovo con tag", "New with tag");
+    }
+    if (normalized.includes("nuovo senza") || normalized.includes("new without")) {
+      return langText("Nuovo senza tag", "New without tag");
+    }
+    if (normalized.includes("restauro") || normalized.includes("revive") || normalized.includes("accettabile") || normalized.includes("fair")) {
+      return langText("Accettabile", "Acceptable");
+    }
+    if (normalized.includes("buono") || normalized.includes("good")) {
+      return langText("Buono", "Good");
+    }
+    return raw;
+  }
+
+  function conditionRequiresDefects(value) {
+    const normalized = normalizeSearchText(normalizeSellConditionLabel(value));
+    return normalized.includes("buono") || normalized.includes("good") || normalized.includes("accettabile") || normalized.includes("acceptable") || normalized.includes("fair");
+  }
+
+  function syncSellConditionDefects() {
+    const conditionField = qs("#sf-condition");
+    const group = qs("#irisxConditionDefectsGroup");
+    const defectsField = qs("#sf-defects");
+    if (!group || !defectsField) {
+      return;
+    }
+    const required = conditionRequiresDefects(conditionField ? conditionField.value : "");
+    group.hidden = !required;
+    group.classList.toggle("is-visible", required);
+    defectsField.toggleAttribute("required", required);
+    if (!required) {
+      defectsField.value = "";
+      clearSellFieldError(defectsField);
+      defectsField.removeAttribute("aria-invalid");
+    }
+  }
+
+  function syncSellColorPicker(value) {
+    const field = qs("#sf-color");
+    const selected = normalizeSearchText(value || (field ? field.value : ""));
+    qsa(".irisx-color-option").forEach(function (button) {
+      const buttonValue = normalizeSearchText(button.dataset.colorValue || button.textContent);
+      const isSelected = Boolean(selected && buttonValue === selected);
+      button.classList.toggle("is-selected", isSelected);
+      button.setAttribute("aria-selected", isSelected ? "true" : "false");
+    });
+  }
+
+  window.selectSellColor = function (button, value) {
+    const field = qs("#sf-color");
+    const color = value || (button ? button.dataset.colorValue || button.textContent.trim() : "");
+    if (field) {
+      field.value = color;
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      validateSellField(field);
+    }
+    syncSellColorPicker(color);
+  };
+
   function validateSellField(fieldOrId) {
     const field = typeof fieldOrId === "string" ? qs("#" + fieldOrId) : fieldOrId;
     if (!field) {
@@ -7961,6 +8047,13 @@
           message = langText("Seleziona la condizione.", "Select the condition.");
         }
         break;
+      case "sf-defects":
+        if (conditionRequiresDefects(qs("#sf-condition") ? qs("#sf-condition").value : "") && !value) {
+          message = langText("Dichiara i difetti o i segni presenti sull'articolo.", "Declare the flaws or visible signs on the item.");
+        } else if (conditionRequiresDefects(qs("#sf-condition") ? qs("#sf-condition").value : "") && value.length < 8) {
+          message = langText("Descrivi i difetti con almeno 8 caratteri.", "Describe flaws with at least 8 characters.");
+        }
+        break;
       default:
         if (field.hasAttribute("required") && !value) {
           message = langText("Campo obbligatorio.", "Required field.");
@@ -7979,9 +8072,10 @@
 
   function validateSellForm() {
     const requiredFields = ["fileIn", "sf-cat", "sf-brand", "sf-name", "sf-subcat", "sf-condition", "sf-desc", "sf-price"];
-    return requiredFields.reduce(function (isValid, fieldId) {
+    const baseValid = requiredFields.reduce(function (isValid, fieldId) {
       return validateSellField(fieldId) && isValid;
     }, true);
+    return validateSellField("sf-defects") && baseValid;
   }
 
   function focusFirstSellError() {
@@ -8017,14 +8111,22 @@
       });
       field.addEventListener("change", function () {
         validateSellField(field);
+        if (field.id === "sf-color") {
+          syncSellColorPicker(field.value);
+        }
       });
       field.addEventListener("input", function () {
+        if (field.id === "sf-color") {
+          syncSellColorPicker(field.value);
+        }
         const errorNode = ensureSellFieldErrorNode(field);
         if (errorNode && errorNode.textContent) {
           validateSellField(field);
         }
       });
     });
+    syncSellColorPicker();
+    syncSellConditionDefects();
 
     form.addEventListener("submit", function (event) {
       event.preventDefault();
@@ -8051,9 +8153,11 @@
     }
     const hiddenField = qs("#sf-condition");
     if (hiddenField) {
-      hiddenField.value = button ? button.textContent.trim() : "";
+      hiddenField.value = button ? normalizeSellConditionLabel(button.textContent.trim()) : "";
       validateSellField(hiddenField);
     }
+    syncSellConditionDefects();
+    validateSellField("sf-defects");
   };
 
   function bindStaticEnhancements() {
@@ -11063,7 +11167,7 @@
 
       if (filters.cats.length && !filters.cats.includes(normalizedCategory)) return false;
       if (filters.brands.length && !filters.brands.includes(product.brand)) return false;
-      if (filters.conds.length && !filters.conds.includes(product.cond)) return false;
+      if (filters.conds.length && !filters.conds.includes(normalizeSellConditionLabel(product.cond))) return false;
       if (filters.fits.length && !filters.fits.includes(product.fit)) return false;
       if (filters.colors.length && !filters.colors.includes(product.color)) return false;
       if (filters.genders.length && !filters.genders.includes(gender)) return false;
@@ -13491,14 +13595,21 @@
     const material = readSellField("#sf-material");
     const dimensions = readSellField("#sf-dims");
     const description = readSellField("#sf-desc");
+    const conditionNotes = readSellField("#sf-defects");
     const price = Number(readSellField("#sf-price"));
     const selectedCondition = qs(".cond-btn.sel");
-    const condition = selectedCondition ? selectedCondition.textContent.trim() : "";
+    const condition = selectedCondition ? normalizeSellConditionLabel(selectedCondition.textContent.trim()) : "";
     const offerPolicy = getListingOfferPolicyFromForm();
     const offerValidation = validateListingOfferPolicy(offerPolicy, price);
 
     if (!brand || !name || !condition || !description || !price || !state.sellPhotos.length) {
       updateSellStatus(t("publish_error"), true);
+      return;
+    }
+    if (conditionRequiresDefects(condition) && !conditionNotes) {
+      updateSellStatus(langText("Dichiara i difetti prima di pubblicare.", "Declare flaws before publishing."), true);
+      validateSellField("sf-defects");
+      focusFirstSellError();
       return;
     }
     if (!taxonomy.ok) {
@@ -13580,6 +13691,7 @@
       orig: Math.round(price * 1.35),
       color: color || (curLang === "it" ? "Non indicato" : "Not specified"),
       material: material || (curLang === "it" ? "Non indicato" : "Not specified"),
+      conditionNotes: conditionNotes,
       emoji: existingListing && existingListing.emoji ? existingListing.emoji : taxonomy.emoji,
       desc: description,
       chips: [condition, material || "Material", taxonomy.categoryLabel, taxonomy.subcategoryLabel, taxonomy.typeLabel].filter(Boolean),
@@ -13653,6 +13765,8 @@
       conditionField.value = "";
       clearSellFieldError(conditionField);
     }
+    syncSellColorPicker("");
+    syncSellConditionDefects();
     qsa("#sellForm .field-error", form).forEach(function (node) {
       node.textContent = "";
     });
@@ -15892,7 +16006,7 @@
         sz: (sourceListing && sourceListing.sz) || langText("Taglia unica", "One size"),
         sizeOriginal: (sourceListing && sourceListing.sizeOriginal) || "",
         sizeSchema: sizeSchema,
-        cond: (sourceListing && sourceListing.cond) || langText("Ottime condizioni", "Very good"),
+        cond: normalizeSellConditionLabel((sourceListing && sourceListing.cond) || "Ottimo"),
         fit: (sourceListing && sourceListing.fit) || "—",
         dims: (sourceListing && sourceListing.dims) || "",
         measurements: sourceListing && sourceListing.measurements ? sourceListing.measurements : {},
@@ -16649,7 +16763,7 @@
       sz: taxonomy.ok ? taxonomy.sizeValue : "one_size",
       sizeOriginal: taxonomy.ok ? taxonomy.sizeOriginal : "",
       sizeSchema: taxonomy.ok ? taxonomy.sizeMode : "one_size",
-      cond: qsa(".cond-btn.sel").map(function (button) { return button.textContent.trim(); })[0] || langText("Da definire", "To define"),
+      cond: normalizeSellConditionLabel(qsa(".cond-btn.sel").map(function (button) { return button.textContent.trim(); })[0]) || langText("Da definire", "To define"),
       fit: taxonomy.ok ? taxonomy.fit : "—",
       dims: readSellField("#sf-dims") || "",
       measurements: measurements,
@@ -16657,6 +16771,7 @@
       orig: Math.round(Number(readSellField("#sf-price") || 0) * 1.35),
       color: readSellField("#sf-color") || "",
       material: readSellField("#sf-material") || "",
+      conditionNotes: readSellField("#sf-defects") || "",
       emoji: taxonomy.ok ? taxonomy.emoji : "👜",
       desc: readSellField("#sf-desc") || "",
       chips: [taxonomy.ok ? taxonomy.categoryLabel : "", taxonomy.ok ? taxonomy.subcategoryLabel : "", brand].filter(Boolean),
@@ -16763,6 +16878,7 @@
       "#sf-fit": listing.fit,
       "#sf-material": listing.material,
       "#sf-dims": listing.dims,
+      "#sf-defects": listing.conditionNotes || listing.defects || "",
       "#sf-desc": listing.desc,
       "#sf-price": listing.price
     };
@@ -16781,9 +16897,16 @@
       size: qs("#sf-size") ? qs("#sf-size").value : "",
       measurements: listing.measurements || {}
     });
+    const normalizedCondition = normalizeSellConditionLabel(listing.cond);
+    const conditionField = qs("#sf-condition");
+    if (conditionField) {
+      conditionField.value = normalizedCondition;
+    }
     qsa(".cond-btn").forEach(function (button) {
-      button.classList.toggle("sel", button.textContent.trim() === listing.cond);
+      button.classList.toggle("sel", normalizeSellConditionLabel(button.textContent.trim()) === normalizedCondition);
     });
+    syncSellColorPicker();
+    syncSellConditionDefects();
     state.sellPhotos = Array.isArray(listing.images)
       ? listing.images.map(function (src, index) {
           const meta = Array.isArray(listing.imageMeta) ? listing.imageMeta[index] || {} : {};
@@ -19134,21 +19257,21 @@
 
   function getConditionReportIndex(condition) {
     const normalized = normalizeSearchText(condition);
-    if (normalized.includes("nuovo") || normalized.includes("new") || normalized.includes("eccellente") || normalized.includes("excellent")) return 4;
-    if (normalized.includes("molto") || normalized.includes("very")) return 3;
-    if (normalized.includes("buono") || normalized === "good") return 2;
-    if (normalized.includes("accettabile") || normalized.includes("fair")) return 1;
-    if (normalized.includes("restauro") || normalized.includes("revive")) return 0;
+    if (normalized.includes("nuovo con") || normalized.includes("new with")) return 4;
+    if (normalized.includes("nuovo senza") || normalized.includes("new without") || normalized === "new") return 3;
+    if (normalized.includes("ottimo") || normalized.includes("eccellente") || normalized.includes("excellent") || normalized.includes("molto") || normalized.includes("very")) return 2;
+    if (normalized.includes("buono") || normalized === "good") return 1;
+    if (normalized.includes("accettabile") || normalized.includes("fair") || normalized.includes("restauro") || normalized.includes("revive")) return 0;
     return 2;
   }
 
   function renderConditionReport(conditionLabel) {
     const levels = [
-      langText("Da restauro", "Revive"),
       langText("Accettabile", "Fair"),
       langText("Buono", "Good"),
-      langText("Molto buono", "Very good"),
-      langText("Come nuovo", "Like new")
+      langText("Ottimo", "Excellent"),
+      langText("Nuovo senza tag", "New without tag"),
+      langText("Nuovo con tag", "New with tag")
     ];
     const activeIndex = getConditionReportIndex(conditionLabel);
     return `<div class="irisx-condition-report">
@@ -19168,6 +19291,7 @@
     const chipSummary = chips.slice(0, 4).join(", ");
     const bullets = [
       chipSummary ? langText("Dettagli inclusi: ", "Included details: ") + chipSummary : "",
+      product.conditionNotes ? langText("Difetti dichiarati: ", "Declared flaws: ") + product.conditionNotes : "",
       langText("Protezione IRIS attiva su autenticità, conformità, consegna e segnalazioni documentate.", "IRIS protection applies to authenticity, conformity, delivery, and documented reports.")
     ].filter(Boolean);
     return `<section class="irisx-editorial-details">
@@ -19479,6 +19603,9 @@
           </div>
         </div>`
       : "";
+    const lowerSideMarkup = soldSupportMarkup
+      ? `<aside class="irisx-detail-lower-side">${soldSupportMarkup}</aside>`
+      : "";
     const detailView = qs("#detail-view");
     detailView.innerHTML = `<div class="irisx-detail-page view-enter">
       <div class="irisx-detail-topline">
@@ -19505,10 +19632,7 @@
             ${editorialDetailsMarkup}
             ${renderMeasurementsSection(product)}
           </div>
-          <aside class="irisx-detail-lower-side">
-            <div class="det-auth det-auth--compact"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Protezione Acquirente", "Buyer Protection")}</button></li></ul></div>
-            ${soldSupportMarkup}
-          </aside>
+          ${lowerSideMarkup}
         </div>
         ${renderDetailRecommendations(product)}
       </section>
@@ -19573,8 +19697,8 @@
           <div class="footer-brand">IRIS</div>
           <div class="footer-desc">${langText("Il marketplace italiano per la moda di lusso. Compra e vendi pezzi firmati con autenticazione e protezione IRIS.", "The Italian marketplace for luxury fashion. Buy and sell designer pieces with IRIS authentication and protection.")}</div>
           <div class="irisx-store-badges" aria-label="${escapeHtml(langText("Scarica l'app IRIS", "Download the IRIS app"))}">
-            <a class="irisx-store-badge" href="#" onclick="event.preventDefault()"><span>${langText("Scarica su", "Download on")}</span><strong>App Store</strong></a>
-            <a class="irisx-store-badge" href="#" onclick="event.preventDefault()"><span>${langText("Disponibile su", "Get it on")}</span><strong>Google Play</strong></a>
+            <a class="irisx-store-badge irisx-store-badge--apple" href="#" onclick="event.preventDefault()" aria-label="${escapeHtml(langText("Scarica su App Store", "Download on the App Store"))}"><span class="irisx-store-icon" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path d="M21.4 3.2c.1 1.6-.5 3.1-1.7 4.3-1.2 1.2-2.6 1.9-4.1 1.8-.2-1.5.5-3 1.6-4.1 1.1-1.2 2.8-2 4.2-2zM26.6 23.5c-.7 1.6-1 2.3-1.9 3.7-1.2 1.8-2.8 4-4.9 4-1.8 0-2.3-1.2-4.8-1.1-2.5 0-3 1.1-4.8 1.1-2.1 0-3.7-2-4.9-3.8-3.4-5.2-3.7-11.2-1.6-14.4 1.5-2.3 3.8-3.6 6-3.6 2.2 0 3.6 1.2 5.4 1.2 1.7 0 2.8-1.2 5.3-1.2 1.9 0 3.9 1 5.3 2.8-4.6 2.5-3.8 9 .9 11.3z"/></svg></span><span class="irisx-store-text"><span>${langText("Scarica su", "Download on")}</span><strong>App Store</strong></span></a>
+            <a class="irisx-store-badge irisx-store-badge--google" href="#" onclick="event.preventDefault()" aria-label="${escapeHtml(langText("Disponibile su Google Play", "Get it on Google Play"))}"><span class="irisx-store-icon" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path class="gp-a" d="M5 3.8v24.4l13-12.2z"/><path class="gp-b" d="M18 16 22.1 12 7.1 3.5z"/><path class="gp-c" d="M18 16 7.1 28.5 22.1 20z"/><path class="gp-d" d="M22.1 12 28 15.3c.6.4.6 1 0 1.4L22.1 20 18 16z"/></svg></span><span class="irisx-store-text"><span>${langText("Disponibile su", "Get it on")}</span><strong>Google Play</strong></span></a>
           </div>
         </div>
         <div><div class="footer-col-title">${langText("Compra", "Buy")}</div><ul class="footer-links"><li><a href="#" onclick="event.preventDefault();irisFooterShop('shop')">Shop</a></li><li><a href="#" onclick="event.preventDefault();irisFooterShop('recent')">${langText("Nuovi arrivi", "New in")}</a></li><li><a href="#" onclick="event.preventDefault();irisFooterShop('designers')">Brand</a></li><li><a href="#" onclick="event.preventDefault();openStatic('howto')">${langText("Come funziona comprare", "How buying works")}</a></li><li><a href="#" onclick="event.preventDefault();openStatic('refund-policy')">${langText("Resi e rimborsi", "Returns and refunds")}</a></li></ul></div>

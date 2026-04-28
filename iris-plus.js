@@ -1472,8 +1472,10 @@
     const title = getMeasurementGuideTitle(guide);
     const copy = getMeasurementGuideCopy(guide);
     modal.setAttribute("aria-label", title);
-    body.innerHTML = `<div class="irisx-measure-guide-art">
-        <img src="${escapeHtml(guide.image)}" alt="${escapeHtml(title)}" loading="lazy">
+    body.innerHTML = `<div class="irisx-measure-guide-art" data-guide-id="${escapeHtml(guideId)}">
+        <div class="irisx-measure-guide-art-frame">
+          <img src="${escapeHtml(guide.image)}" alt="${escapeHtml(title)}" loading="lazy">
+        </div>
       </div>
       <div class="irisx-measure-guide-content">
         <div class="irisx-kicker">${langText("Guida misure IRIS", "IRIS measurement guide")}</div>
@@ -19150,11 +19152,12 @@
     ];
     const activeIndex = getConditionReportIndex(conditionLabel);
     return `<div class="irisx-condition-report">
-      <h3>${langText("Condition report", "Condition report")}</h3>
+      <h3>${langText("Condizione", "Condition")}</h3>
       <div class="irisx-condition-scale" aria-label="${escapeHtml(langText("Condizione articolo", "Item condition"))}">
         ${levels.map(function (label, index) {
           const stateClass = index === activeIndex ? " is-active" : index < activeIndex ? " is-past" : "";
-          return `<div class="irisx-condition-step${stateClass}"><span class="irisx-condition-marker">${index === activeIndex ? "◆" : ""}</span><span>${escapeHtml(label)}</span></div>`;
+          const activeAttr = index === activeIndex ? ` aria-current="true"` : "";
+          return `<div class="irisx-condition-step${stateClass}"${activeAttr}><span class="irisx-condition-marker" aria-hidden="true"></span><span>${escapeHtml(label)}</span></div>`;
         }).join("")}
       </div>
       <p>${langText("Valutazione dichiarata dal seller e verificabile tramite autenticazione, foto e supporto IRIS.", "Seller-declared condition, reviewable through authentication, photos, and IRIS support.")}</p>
@@ -19162,26 +19165,132 @@
   }
 
   function renderEditorialDescription(product, conditionLabel, chips) {
-    const sizePresentation = getListingSizePresentation(product);
-    const sizeLabel = sizePresentation.displayLabel || product.sz || "";
     const chipSummary = chips.slice(0, 4).join(", ");
     const bullets = [
-      product.material ? langText("Materiale: ", "Material: ") + product.material : "",
-      sizeLabel ? langText("Taglia / misura: ", "Size: ") + sizeLabel : "",
-      product.dims ? langText("Dimensioni: ", "Dimensions: ") + product.dims : "",
-      conditionLabel ? langText("Condizione dichiarata: ", "Declared condition: ") + conditionLabel : "",
       chipSummary ? langText("Dettagli inclusi: ", "Included details: ") + chipSummary : "",
       langText("Protezione IRIS attiva su autenticità, conformità, consegna e segnalazioni documentate.", "IRIS protection applies to authenticity, conformity, delivery, and documented reports.")
     ].filter(Boolean);
     return `<section class="irisx-editorial-details">
-      <h2>Details</h2>
+      <h2>${langText("Dettagli", "Details")}</h2>
       <div class="irisx-editorial-description">
-        <h3>Description</h3>
+        <h3>${langText("Descrizione", "Description")}</h3>
         <p><button type="button" class="irisx-detail-brand-link" onclick="irisOpenBrandFromDetail(${inlineJsValue(product.brand)})">${escapeHtml(product.brand)}</button> ${escapeHtml(product.name)}. <span>${escapeHtml(product.desc)}</span></p>
         <ul>${bullets.map(function (item) { return `<li>${escapeHtml(item)}</li>`; }).join("")}</ul>
       </div>
       ${renderConditionReport(conditionLabel)}
     </section>`;
+  }
+
+  function getDetailRecommendationReason(product, candidate, rank) {
+    const sameCategory = candidate.cat === product.cat;
+    const sameBrand = candidate.brand === product.brand;
+    const productColor = normalizeSearchText(product.color || "");
+    const candidateColor = normalizeSearchText(candidate.color || "");
+    const isBag = normalizeSearchText(product.cat || "").includes("bors") || normalizeSearchText(product.cat || "").includes("bag");
+    const candidateIsClothing = normalizeSearchText(candidate.cat || "").includes("abbigliamento") || normalizeSearchText(candidate.cat || "").includes("clothing");
+    const candidateIsShoes = normalizeSearchText(candidate.cat || "").includes("scarpe") || normalizeSearchText(candidate.cat || "").includes("shoe");
+    if (sameBrand && sameCategory) {
+      return langText("Stessa maison, stesso universo", "Same maison, same universe");
+    }
+    if (sameCategory) {
+      return isBag
+        ? langText("Borsa simile per proporzione e uso", "Similar bag by shape and use")
+        : langText("Articolo simile per stile e categoria", "Similar item by style and category");
+    }
+    if (isBag && candidateIsClothing) {
+      return langText("Da abbinare: cappotto neutro", "Pair with: neutral coat");
+    }
+    if (isBag && candidateIsShoes) {
+      return langText("Da abbinare: scarpa pulita", "Pair with: clean shoe");
+    }
+    if (productColor && candidateColor && productColor === candidateColor) {
+      return langText("Tono colore coordinato", "Coordinated color tone");
+    }
+    return rank === 0
+      ? langText("Alternativa vicina per stile", "Close style alternative")
+      : langText("Completa bene il look", "Completes the look");
+  }
+
+  function getDetailRecommendations(product) {
+    const seen = new Set();
+    const productCategory = normalizeSearchText(product.cat || "");
+    const productColor = normalizeSearchText(product.color || "");
+    const productMaterial = normalizeSearchText(product.material || "");
+    const isBag = productCategory.includes("bors") || productCategory.includes("bag");
+    return prods
+      .filter(function (candidate) {
+        if (sameEntityId(candidate.id, product.id) || !isProductPurchasable(candidate)) {
+          return false;
+        }
+        const key = normalizeSearchText([candidate.brand, candidate.name, candidate.cat].join(" "));
+        if (seen.has(key)) {
+          return false;
+        }
+        seen.add(key);
+        return true;
+      })
+      .map(function (candidate) {
+        const candidateCategory = normalizeSearchText(candidate.cat || "");
+        const candidateColor = normalizeSearchText(candidate.color || "");
+        const candidateMaterial = normalizeSearchText(candidate.material || "");
+        const candidateChips = getListingChips(candidate).map(normalizeSearchText);
+        const productChips = getListingChips(product).map(normalizeSearchText);
+        let score = 0;
+        if (candidate.brand === product.brand) score += 34;
+        if (candidate.cat === product.cat) score += 30;
+        if (productColor && candidateColor === productColor) score += 16;
+        if (productMaterial && candidateMaterial.includes(productMaterial.split(" ")[0])) score += 8;
+        productChips.forEach(function (chip) {
+          if (chip && candidateChips.includes(chip)) score += 5;
+        });
+        const price = Number(product.price || 0);
+        const candidatePrice = Number(candidate.price || 0);
+        if (price && candidatePrice) {
+          const distance = Math.abs(candidatePrice - price) / Math.max(price, candidatePrice);
+          if (distance < 0.35) score += 12;
+          else if (distance < 0.65) score += 6;
+        }
+        if (isBag && candidateCategory.includes("abbigliamento")) score += 26;
+        if (isBag && candidateCategory.includes("scarpe")) score += 14;
+        if (!isBag && candidateCategory.includes("bors")) score += 24;
+        return { product: candidate, score: score };
+      })
+      .filter(function (entry) { return entry.score > 0; })
+      .sort(function (a, b) { return b.score - a.score || Number(b.product.date || 0) - Number(a.product.date || 0); })
+      .slice(0, 4)
+      .map(function (entry, index) {
+        return {
+          product: entry.product,
+          reason: getDetailRecommendationReason(product, entry.product, index)
+        };
+      });
+  }
+
+  function renderDetailRecommendations(product) {
+    const recommendations = getDetailRecommendations(product);
+    if (!recommendations.length) {
+      return "";
+    }
+    return `<div class="det-similar det-similar--curated">
+      <div class="det-similar-head">
+        <div>
+          <span>${langText("Selezione IRIS", "IRIS selection")}</span>
+          <strong>${langText("Consigliati per questo articolo", "Recommended for this item")}</strong>
+        </div>
+      </div>
+      <div class="det-similar-grid">${recommendations.map(function (entry) {
+        const item = entry.product;
+        return `<article class="pc irisx-recommendation-card" onclick="showDetail(${inlineJsValue(item.id)})">
+          ${productVisualMarkup(item, true)}
+          <div class="pinfo">
+            <div class="irisx-recommendation-reason">${escapeHtml(entry.reason)}</div>
+            <div class="p-brand">${escapeHtml(item.brand)}</div>
+            <div class="p-name">${escapeHtml(item.name)}</div>
+            <div class="p-price">${formatCurrency(item.price)}</div>
+          </div>
+        </article>`;
+      }).join("")}</div>
+    </div>`;
   }
 
   function irisOpenBrandFromDetail(brand) {
@@ -19338,22 +19447,11 @@
     state.activeDetailListingId = product.id;
     const discount = getListingDiscount(product);
     const liked = favorites.has(product.id);
-    const fitLabel = getFacetLabel("fits", product.fit === "—" ? "—" : product.fit);
-    const colorLabel = getFacetLabel("colors", product.color);
     const conditionLabel = getFacetLabel("conds", product.cond);
     const originalPrice = getListingOriginalPrice(product);
-    const sizePresentation = getListingSizePresentation(product);
-    const sizeDisplay = sizePresentation.displayLabel;
-    const sizeOriginalMarkup = sizePresentation.originalValue
-      ? `<div class="det-fit-item"><div class="det-fit-label">${langText("Taglia originale", "Original size")}</div><div class="det-fit-value">${escapeHtml(sizePresentation.originalValue)}</div></div>`
-      : "";
-    const sizeStandardMarkup = sizePresentation.standardEquivalent
-      ? `<div class="det-fit-item"><div class="det-fit-label">${langText("Fit standard", "Standard fit")}</div><div class="det-fit-value">${escapeHtml(sizePresentation.standardEquivalent)}</div></div>`
-      : "";
     const viewerOwnsListing = isCurrentUserListingOwner(product);
     const chips = getListingChips(product);
     const seller = buildListingSeller(product);
-    const trustMeta = getListingTrustMeta(product);
     const relatedOrder = getRelevantOrderForListing(product);
     const sellerIdExpr = inlineJsValue(seller.id);
     const productIdExpr = inlineJsValue(product.id);
@@ -19363,7 +19461,6 @@
     const sellerCardClick = viewerOwnsListing
       ? `showBuyView('profile');setProfileArea('seller','active')`
       : `showSeller('${escapeHtml(seller.id)}')`;
-    const similar = prods.filter(function (item) { return !sameEntityId(item.id, product.id) && (item.brand === product.brand || item.cat === product.cat); }).slice(0, 4);
     const sellerTrustBadges = [
       isVerifiedSellerProfile(seller) ? langText("Seller verificato", "Verified seller") : "",
       `${seller.sales} ${t("sales")}`,
@@ -19406,16 +19503,14 @@
         <div class="irisx-detail-lower-grid">
           <div class="irisx-detail-lower-main">
             ${editorialDetailsMarkup}
-            <div class="det-section irisx-detail-specs"><div class="det-section-title">${langText("Specifiche", "Specifications")}</div><div class="det-chips">${chips.map(function (chip) { return `<span class="det-chip">${escapeHtml(chip)}</span>`; }).join("")}</div><div class="det-fit"><div class="det-fit-item"><div class="det-fit-label">${t("size")}</div><div class="det-fit-value">${escapeHtml(sizeDisplay)}</div></div>${sizeOriginalMarkup}${sizeStandardMarkup}<div class="det-fit-item"><div class="det-fit-label">${t("fit_label")}</div><div class="det-fit-value">${escapeHtml(product.fit === "—" ? t("not_available") : fitLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("color")}</div><div class="det-fit-value">${escapeHtml(colorLabel)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("dimensions")}</div><div class="det-fit-value">${escapeHtml(product.dims)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("material")}</div><div class="det-fit-value">${escapeHtml(product.material)}</div></div><div class="det-fit-item"><div class="det-fit-label">${t("condition")}</div><div class="det-fit-value">${escapeHtml(conditionLabel)}</div></div></div></div>
             ${renderMeasurementsSection(product)}
           </div>
           <aside class="irisx-detail-lower-side">
-            <div class="det-section"><div class="det-section-title">${langText("Servizi IRIS", "IRIS services")}</div><div class="irisx-trust-grid"><div class="irisx-inline-card"><div><strong>${langText("Autenticazione standard", "Standard authentication")}</strong><span>${formatCurrency(15)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Autenticazione premium", "Premium authentication")}</strong><span>${formatCurrency(20)}</span></div></div><div class="irisx-inline-card"><div><strong>${langText("Certificato digitale", "Digital certificate")}</strong><span>${trustMeta.certificateCode ? escapeHtml(trustMeta.certificateCode) : langText("Disponibile dopo autenticazione", "Available after authentication")}</span></div></div></div></div>
-            <div class="det-auth"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li>${t("auth_4")}</li><li>${langText("Seller verification, assistenza veloce e concierge selling pronti a supporto del venduto.", "Seller verification, fast support, and concierge selling ready to support each order.")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Protezione Acquirente", "Buyer Protection")}</button></li></ul></div>
+            <div class="det-auth det-auth--compact"><div class="det-auth-t">${t("guarantee")}</div><ul><li>${t("auth_1")}</li><li>${t("auth_2")}</li><li>${t("auth_3")}</li><li><button class="irisx-link-btn" onclick="openStatic('buyer-protection')">${langText("Protezione Acquirente", "Buyer Protection")}</button></li></ul></div>
             ${soldSupportMarkup}
           </aside>
         </div>
-        ${similar.length ? `<div class="det-similar"><div class="det-similar-title">${t("similar")}</div><div class="det-similar-grid">${similar.map(function (item) { return `<div class="pc" onclick="showDetail(${inlineJsValue(item.id)})" style="min-width:160px">${productVisualMarkup(item, true)}<div class="pinfo" style="padding:.8rem"><div class="p-brand">${escapeHtml(item.brand)}</div><div class="p-name" style="font-size:.78rem">${escapeHtml(item.name)}</div><div class="p-price" style="font-size:.78rem;margin-top:.3rem">${formatCurrency(item.price)}</div></div></div>`; }).join("")}</div></div>` : ""}
+        ${renderDetailRecommendations(product)}
       </section>
     </div>`;
     qs("#shop-view").style.display = "none";

@@ -14783,3 +14783,618 @@ body.irisx-luxury #profile-view .irisx-workspace-card--flush {
     grid-template-columns: 1fr;
   }
 }
+
+/* Product detail refinement: calmer scale, cleaner measurement guides, curated recommendations */
+body.irisx-luxury #detail-view,
+body.irisx-luxury.irisx-white-theme #detail-view {
+  background: #ffffff !important;
+  padding-top: 0 !important;
+}
+
+body.irisx-luxury .irisx-detail-page,
+body.irisx-luxury.irisx-white-theme .irisx-detail-page {
+  max-width: min(1460px, calc(100vw - 64px)) !important;
+  padding: 16px 0 66px !important;
+  gap: 30px !important;
+  color: #111827 !important;
+}
+
+body.irisx-luxury .irisx-detail-topline,
+body.irisx-luxury.irisx-white-theme .irisx-detail-topline {
+  margin-bottom: 2px !important;
+}
+
+body.irisx-luxury .det-layout--hero,
+body.irisx-luxury.irisx-white-theme .det-layout--hero {
+  grid-template-columns: minmax(0, 0.98fr) minmax(360px, 500px) !important;
+  gap: clamp(24px, 3.2vw, 46px) !important;
+  align-items: start !important;
+}
+
+body.irisx-luxury .det-imgs,
+body.irisx-luxury.irisx-white-theme .det-imgs {
+  min-height: clamp(420px, 61vh, 620px) !important;
+  align-items: center !important;
+}
+
+body.irisx-luxury .irisx-detail-stage,
+body.irisx-luxury.irisx-white-theme .irisx-detail-stage {
+  min-height: clamp(420px, 61vh, 640px) !important;
+  aspect-ratio: 4 / 5 !important;
+  padding: clamp(18px, 3vw, 38px) !important;
+}
+
+body.irisx-luxury .det-img-main,
+body.irisx-luxury.irisx-white-theme .det-img-main {
+  font-size: clamp(7.2rem, 13vw, 12.5rem) !important;
+  transform: none !important;
+}
+
+body.irisx-luxury .irisx-detail-hero-panel,
+body.irisx-luxury.irisx-white-theme .irisx-detail-hero-panel {
+  gap: 16px !important;
+  padding-top: 0 !important;
+}
+
+body.irisx-luxury .det-brand,
+body.irisx-luxury.irisx-white-theme .det-brand {
+  color: #111827 !important;
+  font-size: clamp(2.75rem, 4.35vw, 4.45rem) !important;
+  line-height: 0.95 !important;
+  letter-spacing: 0 !important;
+  margin: 0 0 0.55rem !important;
+  font-weight: 500 !important;
+}
+
+body.irisx-luxury .det-name,
+body.irisx-luxury.irisx-white-theme .det-name {
+  color: #4f4852 !important;
+  max-width: 31ch !important;
+  font-size: clamp(1rem, 1.25vw, 1.28rem) !important;
+  line-height: 1.32 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .det-prices,
+body.irisx-luxury.irisx-white-theme .det-prices {
+  margin-top: clamp(18px, 2.2vw, 30px) !important;
+  gap: 14px !important;
+  align-items: baseline !important;
+}
+
+body.irisx-luxury .det-price,
+body.irisx-luxury.irisx-white-theme .det-price {
+  color: #111827 !important;
+  font-size: clamp(1.75rem, 2.35vw, 2.45rem) !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  font-weight: 760 !important;
+}
+
+body.irisx-luxury .det-orig,
+body.irisx-luxury.irisx-white-theme .det-orig {
+  color: #7a747e !important;
+  font-size: clamp(0.92rem, 1vw, 1.04rem) !important;
+}
+
+body.irisx-luxury .det-save,
+body.irisx-luxury.irisx-white-theme .det-save {
+  padding: 9px 12px !important;
+  font-size: 0.68rem !important;
+}
+
+body.irisx-luxury .irisx-detail-action-stack,
+body.irisx-luxury.irisx-white-theme .irisx-detail-action-stack {
+  gap: 12px !important;
+  margin-top: clamp(20px, 2.2vw, 32px) !important;
+}
+
+body.irisx-luxury .det-buy,
+body.irisx-luxury.irisx-white-theme .det-buy,
+body.irisx-luxury .det-offer,
+body.irisx-luxury.irisx-white-theme .det-offer,
+body.irisx-luxury .irisx-detail-fav-pill,
+body.irisx-luxury.irisx-white-theme .irisx-detail-fav-pill,
+body.irisx-luxury .irisx-detail-action-stack .irisx-secondary,
+body.irisx-luxury.irisx-white-theme .irisx-detail-action-stack .irisx-secondary {
+  min-height: 54px !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.16em !important;
+}
+
+body.irisx-luxury .det-buy,
+body.irisx-luxury.irisx-white-theme .det-buy {
+  min-height: 58px !important;
+}
+
+body.irisx-luxury .irisx-detail-secondary-actions,
+body.irisx-luxury.irisx-white-theme .irisx-detail-secondary-actions,
+body.irisx-luxury .irisx-detail-utility-actions,
+body.irisx-luxury.irisx-white-theme .irisx-detail-utility-actions {
+  gap: 12px !important;
+}
+
+body.irisx-luxury .irisx-note--offer,
+body.irisx-luxury.irisx-white-theme .irisx-note--offer {
+  color: #5f5663 !important;
+  opacity: 1 !important;
+  text-align: center !important;
+  font-size: 0.82rem !important;
+  line-height: 1.45 !important;
+}
+
+body.irisx-luxury .irisx-link-btn--quiet,
+body.irisx-luxury.irisx-white-theme .irisx-link-btn--quiet {
+  color: #f1324f !important;
+  opacity: 0.78 !important;
+}
+
+body.irisx-luxury .det-section--seller,
+body.irisx-luxury.irisx-white-theme .det-section--seller {
+  gap: 12px !important;
+  margin-top: 2px !important;
+}
+
+body.irisx-luxury .det-section-title,
+body.irisx-luxury.irisx-white-theme .det-section-title {
+  color: #111827 !important;
+  opacity: 0.74 !important;
+  letter-spacing: 0.18em !important;
+}
+
+body.irisx-luxury .seller-card--elevated,
+body.irisx-luxury.irisx-white-theme .seller-card--elevated {
+  background: #ffffff !important;
+  border-color: rgba(17, 24, 39, 0.11) !important;
+  box-shadow: 0 18px 44px rgba(17, 24, 39, 0.052) !important;
+  padding: 18px !important;
+  align-items: center !important;
+}
+
+body.irisx-luxury .seller-name,
+body.irisx-luxury.irisx-white-theme .seller-name {
+  color: #111827 !important;
+  font-size: 1rem !important;
+}
+
+body.irisx-luxury .seller-meta,
+body.irisx-luxury.irisx-white-theme .seller-meta {
+  color: #5f5663 !important;
+  opacity: 1 !important;
+}
+
+body.irisx-luxury .irisx-seller-badges,
+body.irisx-luxury.irisx-white-theme .irisx-seller-badges {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin-top: 8px !important;
+}
+
+body.irisx-luxury .irisx-seller-badge,
+body.irisx-luxury.irisx-white-theme .irisx-seller-badge {
+  background: #fff7f8 !important;
+  border: 1px solid rgba(241, 50, 79, 0.14) !important;
+  color: #4f4852 !important;
+  font-size: 0.57rem !important;
+  letter-spacing: 0.12em !important;
+  padding: 5px 7px !important;
+}
+
+body.irisx-luxury .seller-chat,
+body.irisx-luxury.irisx-white-theme .seller-chat {
+  color: #f1324f !important;
+  border-color: rgba(241, 50, 79, 0.28) !important;
+}
+
+body.irisx-luxury .irisx-detail-lower,
+body.irisx-luxury.irisx-white-theme .irisx-detail-lower {
+  margin-top: 28px !important;
+}
+
+body.irisx-luxury .irisx-detail-lower-grid,
+body.irisx-luxury.irisx-white-theme .irisx-detail-lower-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px) !important;
+  gap: clamp(28px, 4vw, 58px) !important;
+  align-items: start !important;
+}
+
+body.irisx-luxury .irisx-editorial-details,
+body.irisx-luxury.irisx-white-theme .irisx-editorial-details {
+  padding: 30px 0 0 !important;
+  gap: 2rem !important;
+}
+
+body.irisx-luxury .irisx-editorial-details h2,
+body.irisx-luxury.irisx-white-theme .irisx-editorial-details h2 {
+  color: #05080f !important;
+  font-size: clamp(1.85rem, 2.8vw, 2.9rem) !important;
+  line-height: 1.05 !important;
+}
+
+body.irisx-luxury .irisx-editorial-description h3,
+body.irisx-luxury.irisx-white-theme .irisx-editorial-description h3 {
+  color: #111827 !important;
+  font-size: clamp(1rem, 1.18vw, 1.18rem) !important;
+}
+
+body.irisx-luxury .irisx-editorial-description p,
+body.irisx-luxury.irisx-white-theme .irisx-editorial-description p,
+body.irisx-luxury .irisx-editorial-description ul,
+body.irisx-luxury.irisx-white-theme .irisx-editorial-description ul {
+  max-width: 68ch !important;
+  color: #424047 !important;
+  font-size: clamp(1rem, 1.12vw, 1.16rem) !important;
+  line-height: 1.55 !important;
+}
+
+body.irisx-luxury .irisx-editorial-description li,
+body.irisx-luxury.irisx-white-theme .irisx-editorial-description li {
+  margin-bottom: 0.48rem !important;
+}
+
+body.irisx-luxury .irisx-detail-brand-link,
+body.irisx-luxury.irisx-white-theme .irisx-detail-brand-link {
+  color: #111827 !important;
+  text-decoration-color: rgba(241, 50, 79, 0.28) !important;
+}
+
+body.irisx-luxury .irisx-detail-specs,
+body.irisx-luxury.irisx-white-theme .irisx-detail-specs {
+  display: none !important;
+}
+
+body.irisx-luxury .irisx-condition-report,
+body.irisx-luxury.irisx-white-theme .irisx-condition-report {
+  max-width: 780px !important;
+  padding: 22px 0 4px !important;
+  gap: 1.05rem !important;
+}
+
+body.irisx-luxury .irisx-condition-report h3,
+body.irisx-luxury.irisx-white-theme .irisx-condition-report h3 {
+  color: #05080f !important;
+  font-size: clamp(1.2rem, 1.55vw, 1.62rem) !important;
+  line-height: 1.1 !important;
+}
+
+body.irisx-luxury .irisx-condition-scale,
+body.irisx-luxury.irisx-white-theme .irisx-condition-scale {
+  align-items: start !important;
+  padding: 0.25rem 0 0.1rem !important;
+}
+
+body.irisx-luxury .irisx-condition-scale::before,
+body.irisx-luxury.irisx-white-theme .irisx-condition-scale::before {
+  top: 10px !important;
+  height: 3px !important;
+  background: #111827 !important;
+}
+
+body.irisx-luxury .irisx-condition-step,
+body.irisx-luxury.irisx-white-theme .irisx-condition-step {
+  gap: 0.55rem !important;
+  color: #777177 !important;
+  font-size: clamp(0.74rem, 0.95vw, 0.92rem) !important;
+  line-height: 1.2 !important;
+}
+
+body.irisx-luxury .irisx-condition-marker,
+body.irisx-luxury.irisx-white-theme .irisx-condition-marker {
+  width: 15px !important;
+  height: 15px !important;
+  border-radius: 999px !important;
+  background: #111827 !important;
+  color: transparent !important;
+  transform: none !important;
+  box-shadow: 0 0 0 5px #ffffff !important;
+}
+
+body.irisx-luxury .irisx-condition-step.is-active .irisx-condition-marker,
+body.irisx-luxury.irisx-white-theme .irisx-condition-step.is-active .irisx-condition-marker {
+  width: 17px !important;
+  height: 17px !important;
+  border-radius: 5px !important;
+  background: #f1324f !important;
+  transform: rotate(45deg) !important;
+}
+
+body.irisx-luxury .irisx-condition-step.is-active,
+body.irisx-luxury.irisx-white-theme .irisx-condition-step.is-active {
+  color: #111827 !important;
+  font-weight: 620 !important;
+}
+
+body.irisx-luxury .irisx-condition-report p,
+body.irisx-luxury.irisx-white-theme .irisx-condition-report p {
+  color: #5f5663 !important;
+  font-size: 0.86rem !important;
+  line-height: 1.5 !important;
+  max-width: 62ch !important;
+}
+
+body.irisx-luxury .det-measurements-section,
+body.irisx-luxury.irisx-white-theme .det-measurements-section {
+  margin-top: 10px !important;
+}
+
+body.irisx-luxury .det-measurements-copy,
+body.irisx-luxury.irisx-white-theme .det-measurements-copy {
+  color: #5f5663 !important;
+  font-size: 0.94rem !important;
+  max-width: 52ch !important;
+}
+
+body.irisx-luxury .irisx-measure-table,
+body.irisx-luxury.irisx-white-theme .irisx-measure-table {
+  border-color: rgba(17, 24, 39, 0.12) !important;
+  box-shadow: none !important;
+}
+
+body.irisx-luxury .irisx-measure-row,
+body.irisx-luxury.irisx-white-theme .irisx-measure-row {
+  color: #111827 !important;
+}
+
+body.irisx-luxury .det-auth--compact,
+body.irisx-luxury.irisx-white-theme .det-auth--compact {
+  background: #ffffff !important;
+  border-color: rgba(17, 24, 39, 0.1) !important;
+  box-shadow: 0 16px 40px rgba(17, 24, 39, 0.05) !important;
+  padding: 18px 20px !important;
+}
+
+body.irisx-luxury .det-auth--compact .det-auth-t,
+body.irisx-luxury.irisx-white-theme .det-auth--compact .det-auth-t {
+  color: #111827 !important;
+  opacity: 0.72 !important;
+}
+
+body.irisx-luxury .det-auth--compact li,
+body.irisx-luxury.irisx-white-theme .det-auth--compact li {
+  color: #4f4852 !important;
+  font-size: 0.86rem !important;
+  line-height: 1.45 !important;
+}
+
+.irisx-measure-guide-dialog {
+  width: min(840px, calc(100vw - 34px)) !important;
+  max-height: min(680px, calc(100svh - 36px)) !important;
+}
+
+.irisx-measure-guide-body {
+  grid-template-columns: minmax(250px, 0.88fr) minmax(0, 0.98fr) !important;
+  min-height: min(500px, calc(100svh - 72px)) !important;
+}
+
+.irisx-measure-guide-art {
+  background: #fb5d5f !important;
+  overflow: hidden !important;
+  display: grid !important;
+  place-items: stretch !important;
+}
+
+.irisx-measure-guide-art-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.irisx-measure-guide-art img {
+  width: 100% !important;
+  height: 190% !important;
+  object-fit: cover !important;
+  object-position: center top !important;
+  display: block !important;
+  filter: saturate(1.02) contrast(1.02) !important;
+}
+
+.irisx-measure-guide-art[data-guide-id^="bottom"] img,
+.irisx-measure-guide-art[data-guide-id^="upper"] img {
+  height: 176% !important;
+}
+
+.irisx-measure-guide-content {
+  background: #ffffff !important;
+  padding: clamp(1.45rem, 3.2vw, 3rem) !important;
+  align-content: center !important;
+}
+
+.irisx-measure-guide-content h3 {
+  color: #111827 !important;
+  font-size: clamp(2.1rem, 3.45vw, 3.55rem) !important;
+  line-height: 0.95 !important;
+}
+
+.irisx-measure-guide-content p {
+  color: #3f3a42 !important;
+  font-size: clamp(0.98rem, 1.14vw, 1.14rem) !important;
+  line-height: 1.55 !important;
+}
+
+.irisx-measure-guide-content span {
+  color: #6b6470 !important;
+  font-size: 0.86rem !important;
+  line-height: 1.45 !important;
+}
+
+.det-similar--curated,
+body.irisx-luxury .det-similar--curated,
+body.irisx-luxury.irisx-white-theme .det-similar--curated {
+  margin-top: 42px !important;
+  padding-top: 28px !important;
+  border-top: 1px solid rgba(17, 24, 39, 0.08) !important;
+}
+
+.det-similar--curated .det-similar-head {
+  display: flex !important;
+  align-items: end !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  margin-bottom: 18px !important;
+}
+
+.det-similar--curated .det-similar-head span {
+  display: block !important;
+  color: #f1324f !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 8px !important;
+}
+
+.det-similar--curated .det-similar-head strong {
+  display: block !important;
+  color: #111827 !important;
+  font-family: "Cormorant Garamond", Georgia, serif !important;
+  font-size: clamp(2rem, 3vw, 3rem) !important;
+  line-height: 1 !important;
+  font-weight: 520 !important;
+}
+
+body.irisx-luxury .det-similar--curated .det-similar-grid,
+body.irisx-luxury.irisx-white-theme .det-similar--curated .det-similar-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+  overflow: visible !important;
+}
+
+body.irisx-luxury .irisx-recommendation-card,
+body.irisx-luxury.irisx-white-theme .irisx-recommendation-card {
+  min-width: 0 !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(241, 50, 79, 0.14) !important;
+  box-shadow: 0 18px 44px rgba(17, 24, 39, 0.045) !important;
+  cursor: pointer !important;
+}
+
+body.irisx-luxury .irisx-recommendation-card .pi,
+body.irisx-luxury.irisx-white-theme .irisx-recommendation-card .pi {
+  aspect-ratio: 4 / 5 !important;
+  min-height: 0 !important;
+  background: linear-gradient(180deg, #fff8f9 0%, #ffffff 100%) !important;
+}
+
+body.irisx-luxury .irisx-recommendation-card .pinfo,
+body.irisx-luxury.irisx-white-theme .irisx-recommendation-card .pinfo {
+  padding: 16px 18px 20px !important;
+}
+
+body.irisx-luxury .irisx-recommendation-card .p-brand,
+body.irisx-luxury.irisx-white-theme .irisx-recommendation-card .p-brand {
+  color: #f1324f !important;
+  font-size: 0.66rem !important;
+  letter-spacing: 0.16em !important;
+}
+
+body.irisx-luxury .irisx-recommendation-card .p-name,
+body.irisx-luxury.irisx-white-theme .irisx-recommendation-card .p-name {
+  color: #111827 !important;
+  font-size: 1rem !important;
+  line-height: 1.25 !important;
+  margin-top: 10px !important;
+}
+
+body.irisx-luxury .irisx-recommendation-card .p-price,
+body.irisx-luxury.irisx-white-theme .irisx-recommendation-card .p-price {
+  color: #111827 !important;
+  font-size: 0.92rem !important;
+  margin-top: 18px !important;
+}
+
+.irisx-recommendation-reason {
+  color: #5f5663 !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.12em !important;
+  line-height: 1.35 !important;
+  text-transform: uppercase !important;
+  margin-bottom: 12px !important;
+}
+
+@media (max-width: 1180px) {
+  body.irisx-luxury .det-layout--hero,
+  body.irisx-luxury.irisx-white-theme .det-layout--hero,
+  body.irisx-luxury .irisx-detail-lower-grid,
+  body.irisx-luxury.irisx-white-theme .irisx-detail-lower-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.irisx-luxury .irisx-detail-lower-side,
+  body.irisx-luxury.irisx-white-theme .irisx-detail-lower-side {
+    max-width: 620px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body.irisx-luxury .irisx-detail-page,
+  body.irisx-luxury.irisx-white-theme .irisx-detail-page {
+    max-width: calc(100vw - 28px) !important;
+    padding-bottom: 44px !important;
+  }
+
+  body.irisx-luxury .det-brand,
+  body.irisx-luxury.irisx-white-theme .det-brand {
+    font-size: clamp(2.45rem, 14vw, 4.4rem) !important;
+  }
+
+  body.irisx-luxury .det-name,
+  body.irisx-luxury.irisx-white-theme .det-name {
+    font-size: 1.05rem !important;
+  }
+
+  body.irisx-luxury .det-img-main,
+  body.irisx-luxury.irisx-white-theme .det-img-main {
+    font-size: clamp(5.6rem, 28vw, 9rem) !important;
+  }
+
+  body.irisx-luxury .irisx-detail-stage,
+  body.irisx-luxury.irisx-white-theme .irisx-detail-stage {
+    min-height: 340px !important;
+  }
+
+  .irisx-measure-guide-body {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+  }
+
+  .irisx-measure-guide-art {
+    min-height: 280px !important;
+  }
+
+  .irisx-measure-guide-art img,
+  .irisx-measure-guide-art[data-guide-id^="bottom"] img,
+  .irisx-measure-guide-art[data-guide-id^="upper"] img {
+    height: 190% !important;
+  }
+
+  body.irisx-luxury .det-similar--curated .det-similar-grid,
+  body.irisx-luxury.irisx-white-theme .det-similar--curated .det-similar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  body.irisx-luxury .irisx-detail-secondary-actions,
+  body.irisx-luxury.irisx-white-theme .irisx-detail-secondary-actions,
+  body.irisx-luxury .irisx-detail-utility-actions,
+  body.irisx-luxury.irisx-white-theme .irisx-detail-utility-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.irisx-luxury .irisx-condition-scale,
+  body.irisx-luxury.irisx-white-theme .irisx-condition-scale {
+    min-width: 560px !important;
+  }
+
+  body.irisx-luxury .irisx-condition-report,
+  body.irisx-luxury.irisx-white-theme .irisx-condition-report {
+    overflow-x: auto !important;
+  }
+
+  body.irisx-luxury .det-similar--curated .det-similar-grid,
+  body.irisx-luxury.irisx-white-theme .det-similar--curated .det-similar-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

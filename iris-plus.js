@@ -10,6 +10,7 @@
     offers: "iris-offers",
     favorites: "iris-favorites",
     notifications: "iris-notifications",
+    measurementNotificationReads: "iris-measurement-notification-reads",
     emailOutbox: "iris-email-outbox",
     supportTickets: "iris-support-tickets",
     measurementRequests: "iris-measurement-requests",
@@ -27,6 +28,7 @@
     STORAGE_KEYS.orders,
     STORAGE_KEYS.offers,
     STORAGE_KEYS.notifications,
+    STORAGE_KEYS.measurementNotificationReads,
     STORAGE_KEYS.supportTickets,
     STORAGE_KEYS.measurementRequests,
     STORAGE_KEYS.auditLog,
@@ -696,6 +698,7 @@
     orders: loadJson(STORAGE_KEYS.orders, []),
     offers: loadJson(STORAGE_KEYS.offers, []),
     notifications: loadJson(STORAGE_KEYS.notifications, []),
+    measurementNotificationReads: loadJson(STORAGE_KEYS.measurementNotificationReads, []),
     emailOutbox: loadJson(STORAGE_KEYS.emailOutbox, []),
     supportTickets: loadJson(STORAGE_KEYS.supportTickets, []),
     measurementRequests: loadJson(STORAGE_KEYS.measurementRequests, []),
@@ -3808,6 +3811,7 @@
         console.warn("[IRIS] Unable to backfill local measurement requests to Supabase", error);
       });
     }
+    renderNotifications();
     renderProfilePanel();
     if (state.activeDetailListingId && typeof showDetail === "function") {
       showDetail(state.activeDetailListingId);
@@ -8373,12 +8377,22 @@
   }
 
   function persistMeasurementRequests() {
+    state.measurementRequests = Array.isArray(state.measurementRequests)
+      ? state.measurementRequests.map(normalizeMeasurementRequestRecord)
+      : [];
     saveJson(STORAGE_KEYS.measurementRequests, state.measurementRequests);
     if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       syncMeasurementRequestsToSupabase().catch(function (error) {
         console.warn("[IRIS] Unable to sync measurement requests to Supabase", error);
       });
     }
+  }
+
+  function persistMeasurementNotificationReads() {
+    state.measurementNotificationReads = Array.isArray(state.measurementNotificationReads)
+      ? Array.from(new Set(state.measurementNotificationReads.map(String).filter(Boolean)))
+      : [];
+    saveJson(STORAGE_KEYS.measurementNotificationReads, state.measurementNotificationReads);
   }
 
   function persistAuditLog() {
@@ -8619,20 +8633,100 @@
     return notification;
   }
 
-  function getVisibleNotifications() {
-    if (isCurrentUserAdmin()) {
-      return state.notifications.filter(function (notification) {
-        return notification.audience === "admin" || notification.recipientEmail === normalizeEmail(state.currentUser.email);
+  function getMeasurementRequestNotificationId(request) {
+    return "msr-ntf-" + String(request && request.id ? request.id : "");
+  }
+
+  function isMeasurementRequestNotificationRead(request) {
+    const id = getMeasurementRequestNotificationId(request);
+    return Array.isArray(state.measurementNotificationReads) && state.measurementNotificationReads.indexOf(id) >= 0;
+  }
+
+  function markMeasurementRequestNotificationRead(id) {
+    if (!id) {
+      return;
+    }
+    state.measurementNotificationReads = Array.isArray(state.measurementNotificationReads) ? state.measurementNotificationReads : [];
+    if (state.measurementNotificationReads.indexOf(String(id)) < 0) {
+      state.measurementNotificationReads.push(String(id));
+      persistMeasurementNotificationReads();
+    }
+  }
+
+  function getOpenMeasurementRequestsForListing(listingId) {
+    if (!listingId) {
+      return [];
+    }
+    return (Array.isArray(state.measurementRequests) ? state.measurementRequests : [])
+      .map(normalizeMeasurementRequestRecord)
+      .filter(function (request) {
+        return String(request.listingId) === String(listingId) && (request.status || "open") !== "closed";
+      })
+      .sort(function (left, right) { return Number(right.createdAt || 0) - Number(left.createdAt || 0); });
+  }
+
+  function getSellerMeasurementRequestNotifications() {
+    if (!state.currentUser) {
+      return [];
+    }
+    const currentEmail = normalizeEmail(state.currentUser.email);
+    if (!currentEmail) {
+      return [];
+    }
+    return (Array.isArray(state.measurementRequests) ? state.measurementRequests : [])
+      .map(normalizeMeasurementRequestRecord)
+      .filter(function (request) {
+        return normalizeEmail(request.sellerEmail) === currentEmail && (request.status || "open") !== "closed";
+      })
+      .map(function (request) {
+        const listing = getListingById(request.listingId);
+        const productLabel = listing ? `${listing.brand} ${listing.name}` : langText("un annuncio", "a listing");
+        const requester = request.requesterName || request.requesterEmail || langText("Un buyer", "A buyer");
+        const id = getMeasurementRequestNotificationId(request);
+        return {
+          id: id,
+          kind: "measurement_request",
+          title: langText("Misure richieste dal buyer", "Buyer requested measurements"),
+          body: `${requester} · ${productLabel}`,
+          recipientEmail: currentEmail,
+          audience: "user",
+          unread: !isMeasurementRequestNotificationRead(request),
+          productId: request.listingId,
+          scope: "seller",
+          synthetic: true,
+          createdAt: request.createdAt || Date.now()
+        };
       });
+  }
+
+  function mergeVisibleNotifications(notifications) {
+    const byId = new Map();
+    notifications.forEach(function (notification) {
+      if (!notification || !notification.id || byId.has(String(notification.id))) {
+        return;
+      }
+      byId.set(String(notification.id), notification);
+    });
+    return Array.from(byId.values()).sort(function (left, right) {
+      return Number(right.createdAt || 0) - Number(left.createdAt || 0);
+    });
+  }
+
+  function getVisibleNotifications() {
+    const measurementNotifications = getSellerMeasurementRequestNotifications();
+    if (isCurrentUserAdmin()) {
+      return mergeVisibleNotifications(state.notifications.filter(function (notification) {
+        return notification.audience === "admin" || notification.recipientEmail === normalizeEmail(state.currentUser.email);
+      }).concat(measurementNotifications));
     }
 
     if (!state.currentUser) {
       return [];
     }
 
-    return state.notifications.filter(function (notification) {
+    return mergeVisibleNotifications(state.notifications.filter(function (notification) {
       return notification.recipientEmail === normalizeEmail(state.currentUser.email);
-    });
+    }).concat(measurementNotifications));
   }
 
   function getUserByEmail(email) {
@@ -18790,6 +18884,7 @@
 
   readNotif = function (id, stay) {
     let target = null;
+    const visibleBefore = getVisibleNotifications();
     state.notifications = state.notifications.map(function (notification) {
       if (notification.id !== id) {
         return notification;
@@ -18797,10 +18892,29 @@
       target = notification;
       return Object.assign({}, notification, { unread: false });
     });
+    if (!target) {
+      target = visibleBefore.find(function (notification) { return String(notification.id) === String(id); }) || null;
+    }
+    if (target && target.synthetic && target.kind === "measurement_request") {
+      markMeasurementRequestNotificationRead(target.id);
+    }
     persistNotifications();
     renderNotifications();
+    renderProfilePanel();
     if (stay) {
       return;
+    }
+    if (target && target.kind === "measurement_request") {
+      const listing = getListingById(target.productId);
+      const editableListing = state.listings.find(function (candidate) { return String(candidate.id) === String(target.productId); }) || null;
+      if (target.scope === "seller" && editableListing && canCurrentUserManageListing(editableListing)) {
+        loadDraftIntoSellForm(target.productId);
+        return;
+      }
+      if (target.productId) {
+        showDetail(target.productId);
+        return;
+      }
     }
     if (target && target.kind === "message") {
       openMessagingInbox((target && target.scope) || "buying", target && target.conversationId);
@@ -18815,8 +18929,14 @@
   };
 
   markAllRead = function () {
+    const visibleBefore = getVisibleNotifications();
+    visibleBefore.forEach(function (notification) {
+      if (notification.synthetic && notification.kind === "measurement_request") {
+        markMeasurementRequestNotificationRead(notification.id);
+      }
+    });
     state.notifications = state.notifications.map(function (notification) {
-      const isVisible = getVisibleNotifications().some(function (visible) { return visible.id === notification.id; });
+      const isVisible = visibleBefore.some(function (visible) { return visible.id === notification.id; });
       return isVisible ? Object.assign({}, notification, { unread: false }) : notification;
     });
     persistNotifications();
@@ -19463,6 +19583,8 @@
       if (!listing || (listing.measurements && Object.keys(listing.measurements || {}).length)) {
         return;
       }
+      const seller = buildListingSeller(listing);
+      const sellerEmail = normalizeEmail(listing.ownerEmail || (listing.seller && listing.seller.email) || seller.email || "");
       const existing = getMeasurementRequestRecord(listingId);
       if (existing) {
         showToast(langText("Richiesta misure già inviata.", "Measurements request already sent."));
@@ -19471,33 +19593,34 @@
       const request = {
         id: createId("msr"),
         listingId: listing.id,
+        requesterId: state.currentUser.id || "",
         requesterEmail: normalizeEmail(state.currentUser.email),
         requesterName: state.currentUser.name || langText("Cliente IRIS", "IRIS customer"),
-        sellerEmail: normalizeEmail((listing.ownerEmail || (listing.seller && listing.seller.email) || "")),
+        sellerEmail: sellerEmail,
         status: "open",
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        updatedAt: Date.now()
       };
       state.measurementRequests.unshift(request);
       persistMeasurementRequests();
       createNotification({
         audience: "user",
-        kind: "support",
-        title: langText("Richiesta misure ricevuta", "Measurements request received"),
-        body: `${listing.brand} ${listing.name}`,
-        recipientEmail: request.requesterEmail
-      });
-      createNotification({
-        audience: "user",
-        kind: "support",
-        title: langText("Un buyer ha chiesto le misure", "A buyer requested measurements"),
-        body: `${listing.brand} ${listing.name}`,
-        recipientEmail: request.sellerEmail
+        kind: "measurement_request",
+        title: langText("Richiesta misure inviata", "Measurements request sent"),
+        body: langText(
+          `Ti avvisiamo appena ${seller.name} le aggiunge.`,
+          `We will notify you as soon as ${seller.name} adds them.`
+        ),
+        recipientEmail: request.requesterEmail,
+        productId: listing.id,
+        scope: "buyer"
       });
       if (qs("#detail-view.active")) {
         showDetail(listing.id);
       }
+      renderNotifications();
       renderProfilePanel();
-      showToast(langText("Richiesta misure inviata al seller.", "Measurements request sent to the seller."));
+      showToast(langText("Richiesta misure inviata. Ti avvisiamo appena vengono aggiunte.", "Measurements request sent. We will notify you as soon as they are added."));
     });
   }
 
@@ -19574,6 +19697,7 @@
     }
     const hasMeasurements = listing && listing.measurements && typeof listing.measurements === "object";
     const request = getMeasurementRequestRecord(listing && listing.id);
+    const listingRequests = getOpenMeasurementRequestsForListing(listing && listing.id);
     const rows = schema.fields
       .filter(function (field) {
         const val = hasMeasurements ? listing.measurements[field.id] : "";
@@ -19585,20 +19709,44 @@
     const title = schema.title ? langText(schema.title.it, schema.title.en) : langText("Misure", "Measurements");
     if (!rows.length) {
       const ownListing = isCurrentUserListingOwner(listing);
+      const requestCount = listingRequests.length;
+      const botMessage = request ? `<div class="irisx-measurement-bot-card">
+        <div class="irisx-measurement-bot-card__head"><strong>IRIS</strong><span>BOT</span></div>
+        <p>${langText("Richiesta misure inviata.", "Measurements requested.")}</p>
+        <p>${langText("Ti avviseremo appena il seller le aggiunge.", "You will be notified as soon as the seller adds them.")}</p>
+        <small>${langText("Messaggio visibile solo a te. Non rispondere a questa notifica.", "This message is only visible to you. Do not reply to this notification.")}</small>
+      </div>` : "";
       return `<div class="det-section det-section--measurement-request">
         <div class="det-section-title">${escapeHtml(title)}</div>
-        <div class="irisx-measurement-request-card">
-          <div>
-            <strong>${langText("Misure non ancora disponibili", "Measurements not available yet")}</strong>
+        <div class="irisx-measurement-request-card${request ? " is-requested" : ""}${ownListing ? " is-owner" : ""}">
+          <div class="irisx-measurement-request-card__copy">
+            <span class="irisx-measurement-request-card__eyebrow">${ownListing ? langText("Annuncio da completare", "Listing to complete") : langText("Misure su richiesta", "Measurements on request")}</span>
+            <strong>${ownListing
+              ? langText("Aggiungi le misure quando puoi", "Add measurements when you can")
+              : request
+              ? langText("Richiesta presa in carico", "Request received")
+              : langText("Vuoi più precisione prima di comprare?", "Want more precision before buying?")}</strong>
             <span>${ownListing
-              ? langText("Aggiungi misure precise per aumentare fiducia, conversione e qualità dell'annuncio.", "Add precise measurements to improve trust, conversion, and listing quality.")
-              : langText("Possiamo chiedere al seller misure precise del capo o dell'accessorio.", "We can ask the seller for precise garment or accessory measurements.")}</span>
+              ? (requestCount
+                ? langText(`${requestCount} buyer ${requestCount === 1 ? "ha" : "hanno"} chiesto misure più precise. Inseriscile in centimetri per rendere l'annuncio più affidabile.`, `${requestCount} buyer${requestCount === 1 ? "" : "s"} requested more precise measurements. Add them in centimetres to make the listing more trustworthy.`)
+                : langText("Le misure non sono obbligatorie, ma aiutano chi compra a decidere senza dubbi.", "Measurements are not mandatory, but they help buyers decide with confidence."))
+              : request
+              ? langText("La richiesta è stata inviata al seller. La scheda si aggiornerà appena le misure saranno pubblicate.", "The request has been sent to the seller. This section will update as soon as measurements are published.")
+              : langText("Puoi chiedere al seller le misure principali. Non blocca l'acquisto e ti mandiamo una notifica quando vengono aggiunte.", "You can ask the seller for the key measurements. It does not block purchase and we notify you when they are added.")}</span>
+            ${!ownListing && !request ? `<div class="irisx-measurement-request-card__steps" aria-hidden="true">
+              <span>1 · ${langText("Richiedi", "Request")}</span>
+              <span>2 · ${langText("Il seller aggiorna", "Seller updates")}</span>
+              <span>3 · ${langText("Ricevi notifica", "Get notified")}</span>
+            </div>` : ""}
+            ${botMessage}
           </div>
-          ${ownListing
-            ? `<button class="irisx-secondary irisx-secondary--wide" onclick="loadDraftIntoSellForm(${inlineJsValue(listing.id)})">${langText("Aggiungi misure", "Add measurements")}</button>`
-            : request
-            ? `<div class="irisx-measurement-request-status">${langText("Richiesta inviata", "Request sent")} · ${escapeHtml(formatRelativeTime(request.createdAt))}</div>`
-            : `<button class="irisx-secondary irisx-secondary--wide" onclick="requestMeasurementsForListing(${inlineJsValue(listing.id)})">${langText("Richiedi misure", "Request measurements")}</button>`}
+          <div class="irisx-measurement-request-card__actions">
+            ${ownListing
+              ? `<button class="irisx-secondary irisx-secondary--wide" onclick="loadDraftIntoSellForm(${inlineJsValue(listing.id)})">${langText("Inserisci misure", "Add measurements")}</button>`
+              : request
+              ? `<div class="irisx-measurement-request-status"><strong>${langText("Inviata", "Sent")}</strong><span>${escapeHtml(formatRelativeTime(request.createdAt))}</span></div>`
+              : `<button class="irisx-secondary irisx-secondary--wide" onclick="requestMeasurementsForListing(${inlineJsValue(listing.id)})">${langText("Richiedi misure", "Request measurements")}</button>`}
+          </div>
         </div>
       </div>`;
     }

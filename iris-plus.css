@@ -16851,3 +16851,190 @@ body.irisx-luxury .ac-entry--brand .ac-entry-main {
     justify-items: start !important;
   }
 }
+
+body.irisx-luxury .det-section--measurement-request,
+body.irisx-luxury.irisx-white-theme .det-section--measurement-request {
+  max-width: 100% !important;
+}
+
+body.irisx-luxury .irisx-measurement-request-card,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, auto) !important;
+  gap: clamp(18px, 3vw, 34px) !important;
+  align-items: center !important;
+  padding: clamp(22px, 3vw, 34px) !important;
+  border: 1px solid rgba(17, 24, 39, 0.1) !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(135deg, rgba(255, 246, 247, 0.95), rgba(255, 255, 255, 0.96) 54%),
+    #ffffff !important;
+  box-shadow: 0 22px 52px rgba(31, 12, 24, 0.055) !important;
+}
+
+body.irisx-luxury .irisx-measurement-request-card__copy,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card__copy {
+  display: grid !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+}
+
+body.irisx-luxury .irisx-measurement-request-card__eyebrow,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card__eyebrow {
+  color: #f1324f !important;
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.16em !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+}
+
+body.irisx-luxury .irisx-measurement-request-card strong,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card strong {
+  color: #111827 !important;
+  font-size: clamp(1.18rem, 1.65vw, 1.6rem) !important;
+  line-height: 1.15 !important;
+}
+
+body.irisx-luxury .irisx-measurement-request-card span,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card span {
+  color: #5f5663 !important;
+  font-size: 0.98rem !important;
+  line-height: 1.58 !important;
+}
+
+body.irisx-luxury .irisx-measurement-request-card__steps,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card__steps {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  margin-top: 4px !important;
+}
+
+body.irisx-luxury .irisx-measurement-request-card__steps span,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card__steps span {
+  min-height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 10px !important;
+  border: 1px solid rgba(241, 50, 79, 0.14) !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  color: #3f3945 !important;
+  font-size: 0.78rem !important;
+  font-weight: 650 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .irisx-measurement-request-card__actions,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card__actions {
+  display: grid !important;
+  justify-items: end !important;
+  gap: 10px !important;
+}
+
+body.irisx-luxury .irisx-measurement-request-card__actions .irisx-secondary,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card__actions .irisx-secondary {
+  min-width: min(260px, 100%) !important;
+  min-height: 52px !important;
+  border-color: rgba(241, 50, 79, 0.28) !important;
+  background: #ffffff !important;
+  color: #f1324f !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.12em !important;
+}
+
+body.irisx-luxury .irisx-measurement-request-card__actions .irisx-secondary:hover,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card__actions .irisx-secondary:hover {
+  background: #f1324f !important;
+  color: #ffffff !important;
+}
+
+body.irisx-luxury .irisx-measurement-request-status,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-request-status {
+  min-width: min(260px, 100%) !important;
+  padding: 14px 16px !important;
+  border: 1px solid rgba(17, 24, 39, 0.1) !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #5f5663 !important;
+  display: grid !important;
+  gap: 4px !important;
+  text-align: right !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .irisx-measurement-request-status strong,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-request-status strong {
+  color: #111827 !important;
+  font-size: 1rem !important;
+}
+
+body.irisx-luxury .irisx-measurement-bot-card,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-bot-card {
+  display: grid !important;
+  gap: 7px !important;
+  margin-top: 6px !important;
+  padding: 14px 0 0 16px !important;
+  border-left: 3px solid rgba(241, 50, 79, 0.38) !important;
+}
+
+body.irisx-luxury .irisx-measurement-bot-card__head,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-bot-card__head {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+body.irisx-luxury .irisx-measurement-bot-card__head strong,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-bot-card__head strong {
+  color: #f1324f !important;
+  font-family: inherit !important;
+  font-size: 0.94rem !important;
+  font-weight: 850 !important;
+}
+
+body.irisx-luxury .irisx-measurement-bot-card__head span,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-bot-card__head span {
+  min-height: 22px !important;
+  padding: 0 7px !important;
+  border-radius: 5px !important;
+  background: #111827 !important;
+  color: #ffffff !important;
+  font-size: 0.68rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+}
+
+body.irisx-luxury .irisx-measurement-bot-card p,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-bot-card p,
+body.irisx-luxury .irisx-measurement-bot-card small,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-bot-card small {
+  margin: 0 !important;
+  color: #4f4852 !important;
+  font-size: 0.9rem !important;
+  line-height: 1.5 !important;
+}
+
+body.irisx-luxury .irisx-measurement-bot-card small,
+body.irisx-luxury.irisx-white-theme .irisx-measurement-bot-card small {
+  color: #807684 !important;
+}
+
+@media (max-width: 800px) {
+  body.irisx-luxury .irisx-measurement-request-card,
+  body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.irisx-luxury .irisx-measurement-request-card__actions,
+  body.irisx-luxury.irisx-white-theme .irisx-measurement-request-card__actions {
+    justify-items: stretch !important;
+  }
+
+  body.irisx-luxury .irisx-measurement-request-status,
+  body.irisx-luxury.irisx-white-theme .irisx-measurement-request-status {
+    text-align: left !important;
+  }
+}

@@ -17,6 +17,7 @@
     auditLog: "iris-audit-log",
     chats: "iris-chats",
     reviews: "iris-reviews",
+    sellerBlocks: "iris-seller-blocks",
     chatModeration: "iris-chat-moderation"
   };
   const COOKIE_CONSENT_KEY = "iris-cookie-consent";
@@ -33,7 +34,8 @@
     STORAGE_KEYS.measurementRequests,
     STORAGE_KEYS.auditLog,
     STORAGE_KEYS.chats,
-    STORAGE_KEYS.reviews
+    STORAGE_KEYS.reviews,
+    STORAGE_KEYS.sellerBlocks
   ]);
   const PLACEHOLDER_IMAGES = {
     borse: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400&h=500&fit=crop",
@@ -705,6 +707,7 @@
     auditLog: loadJson(STORAGE_KEYS.auditLog, []),
     chatModeration: loadJson(STORAGE_KEYS.chatModeration, null),
     reviews: loadJson(STORAGE_KEYS.reviews, []),
+    sellerBlocks: loadJson(STORAGE_KEYS.sellerBlocks, []),
     pendingAction: null,
     authMode: "login",
     authReturnView: "home",
@@ -4329,6 +4332,7 @@
     state.notifications = [];
     state.supportTickets = [];
     state.measurementRequests = [];
+    state.sellerBlocks = [];
     if (Array.isArray(chats)) {
       chats.splice(0, chats.length);
     }
@@ -4342,6 +4346,7 @@
     saveJson(STORAGE_KEYS.measurementRequests, state.measurementRequests);
     saveJson(STORAGE_KEYS.chats, Array.isArray(chats) ? chats : []);
     saveJson(STORAGE_KEYS.favorites, []);
+    saveJson(STORAGE_KEYS.sellerBlocks, state.sellerBlocks);
     syncSessionUi();
     updateCartBadge();
     updateFavBadge();
@@ -4589,6 +4594,37 @@
     return [...new Set(
       getVisibleCatalogProducts()
         .map(function (product) { return String(product.material || "").trim(); })
+        .filter(Boolean)
+    )].sort();
+  }
+
+  function getListingModelFilterValue(product) {
+    return String(
+      (product && (product.model || product.modelName || product.line || product.name)) || ""
+    ).trim();
+  }
+
+  function getListingOriginFilterValue(product) {
+    const seller = buildListingSeller(product);
+    return String(
+      (product && (product.shipFromCity || product.origin || product.city)) ||
+      (seller && (seller.city || seller.country)) ||
+      ""
+    ).trim();
+  }
+
+  function getAvailableModels() {
+    return [...new Set(
+      getVisibleCatalogProducts()
+        .map(getListingModelFilterValue)
+        .filter(Boolean)
+    )].sort();
+  }
+
+  function getAvailableOrigins() {
+    return [...new Set(
+      getVisibleCatalogProducts()
+        .map(getListingOriginFilterValue)
         .filter(Boolean)
     )].sort();
   }
@@ -5117,8 +5153,10 @@
       genders: (filters.genders || []).slice().sort(),
       cats: (filters.cats || []).slice().sort(),
       brands: (filters.brands || []).slice().sort(),
+      models: (filters.models || []).slice().sort(),
       conds: (filters.conds || []).slice().sort(),
       materials: (filters.materials || []).slice().sort(),
+      origins: (filters.origins || []).slice().sort(),
       trust: (filters.trust || []).slice().sort(),
       fits: (filters.fits || []).slice().sort(),
       colors: (filters.colors || []).slice().sort(),
@@ -5135,8 +5173,10 @@
       snapshot.genders.length ||
       snapshot.cats.length ||
       snapshot.brands.length ||
+      snapshot.models.length ||
       snapshot.conds.length ||
       snapshot.materials.length ||
+      snapshot.origins.length ||
       snapshot.trust.length ||
       snapshot.fits.length ||
       snapshot.colors.length ||
@@ -5162,9 +5202,11 @@
       }).join(", "));
     }
     pushValues(snapshot.brands);
+    pushValues(snapshot.models);
     pushValues(snapshot.cats, function (value) { return getFacetLabel("cats", value); });
     pushValues(snapshot.conds, function (value) { return getFacetLabel("conds", value); });
     pushValues(snapshot.materials);
+    pushValues(snapshot.origins);
     pushValues(snapshot.genders, function (value) { return getFilterTokenLabel("genders", value); });
     pushValues(snapshot.trust, function (value) { return getFilterTokenLabel("trust", value); });
     if (snapshot.size) {
@@ -5274,11 +5316,13 @@
     filters = {
       cats: [],
       brands: [],
+      models: [],
       conds: [],
       fits: [],
       colors: [],
       genders: [],
       materials: [],
+      origins: [],
       trust: [],
       size: "",
       pmin: "",
@@ -11435,11 +11479,13 @@
       filters = Object.assign({
         cats: [],
         brands: [],
+        models: [],
         conds: [],
         fits: [],
         colors: [],
         genders: [],
         materials: [],
+        origins: [],
         trust: [],
         size: "",
         pmin: "",
@@ -11463,6 +11509,9 @@
       if (kind === "materials") {
         return value;
       }
+      if (kind === "models" || kind === "origins") {
+        return value;
+      }
       if (kind === "size") {
         return resolveSizeFilterLabel(value);
       }
@@ -11484,15 +11533,19 @@
       const trustMeta = getListingTrustMeta(product);
       const gender = inferListingGender(product);
       const material = String(product.material || "").trim();
+      const model = getListingModelFilterValue(product);
+      const origin = getListingOriginFilterValue(product);
       const sizePresentation = getListingSizePresentation(product);
 
       if (filters.cats.length && !filters.cats.includes(normalizedCategory)) return false;
       if (filters.brands.length && !filters.brands.includes(product.brand)) return false;
+      if (filters.models.length && !filters.models.includes(model)) return false;
       if (filters.conds.length && !filters.conds.includes(normalizeSellConditionLabel(product.cond))) return false;
       if (filters.fits.length && !filters.fits.includes(product.fit)) return false;
       if (filters.colors.length && !filters.colors.includes(product.color)) return false;
       if (filters.genders.length && !filters.genders.includes(gender)) return false;
       if (filters.materials.length && !filters.materials.includes(material)) return false;
+      if (filters.origins.length && !filters.origins.includes(origin)) return false;
       if (filters.trust.includes("verified") && !trustMeta.verified) return false;
       if (filters.trust.includes("authenticated") && !trustMeta.authenticated) return false;
       if (filters.trust.includes("guaranteed") && !trustMeta.guaranteed) return false;
@@ -11585,6 +11638,19 @@
       });
     }
 
+    setSort = function (sortKey, trigger) {
+      curSort = sortKey || "recent";
+      qsa(".sort-btn, .irisx-sortdrop__item").forEach(function (button) {
+        button.classList.remove("on");
+        button.classList.toggle("is-active", button.getAttribute("data-sort") === curSort);
+      });
+      if (trigger) {
+        trigger.classList.add("on", "is-active");
+      }
+      render();
+    };
+    window.setSort = setSort;
+
     function applyShopPreset(kind, value) {
       ensureExtendedFilters();
       if (kind === "recent") {
@@ -11596,6 +11662,12 @@
       if (kind === "designers") {
         renderHorizontalFilterRail();
         setTimeout(function () { openShopFilterDropdown("brands"); }, 0);
+        return;
+      }
+      if (kind === "sale") {
+        curSort = "discount";
+        syncSortButtons();
+        render();
         return;
       }
       if (kind === "genders") {
@@ -11619,8 +11691,10 @@
       return filters.genders.length +
         filters.cats.length +
         filters.brands.length +
+        filters.models.length +
         filters.conds.length +
         filters.materials.length +
+        filters.origins.length +
         filters.trust.length +
         filters.fits.length +
         filters.colors.length +
@@ -11775,12 +11849,18 @@
         { kind: "designers", value: "designers", label: langText("Designers", "Designers"), active: filters.brands.length > 0 },
         { kind: "genders", value: "Women", label: langText("Donna", "Women"), active: filters.genders.includes("Women") },
         { kind: "genders", value: "Men", label: langText("Uomo", "Men"), active: filters.genders.includes("Men") },
+        { kind: "cats", value: "Vintage", label: "Vintage", active: filters.cats.includes("Vintage") },
         { kind: "cats", value: "Borse", label: langText("Borse", "Bags"), active: filters.cats.includes("Borse") },
         { kind: "cats", value: "Scarpe", label: langText("Scarpe", "Shoes"), active: filters.cats.includes("Scarpe") },
         { kind: "cats", value: "Orologi", label: langText("Orologi", "Watches"), active: filters.cats.includes("Orologi") },
-        { kind: "cats", value: "Accessori", label: langText("Accessori", "Accessories"), active: filters.cats.includes("Accessori") }
+        { kind: "cats", value: "Accessori", label: langText("Accessori", "Accessories"), active: filters.cats.includes("Accessori") },
+        { kind: "sale", value: "discount", label: langText("Offerte", "Offers"), active: curSort === "discount" }
       ];
+      const availableCategorySet = new Set(getAvailableCategories());
       const browseMarkup = browseItems
+        .filter(function (item) {
+          return item.kind !== "cats" || availableCategorySet.has(item.value);
+        })
         .map(function (item) {
           return `<button class="irisx-shop-browse-link${item.active ? " is-active" : ""}" type="button" onclick="applyShopPreset('${escapeHtml(item.kind)}','${escapeHtml(item.value)}')">${escapeHtml(item.label)}</button>`;
         })
@@ -11835,6 +11915,27 @@
         </details>`;
       }
 
+      function buildSortDrop() {
+        const options = [
+          { id: "recent", label: langText("Recenti", "Recent") },
+          { id: "price_asc", label: langText("Prezzo crescente", "Price low to high") },
+          { id: "price_desc", label: langText("Prezzo decrescente", "Price high to low") },
+          { id: "discount", label: langText("Sconto", "Discount") }
+        ];
+        const current = options.find(function (option) { return option.id === curSort; }) || options[0];
+        const items = options.map(function (option) {
+          return `<button type="button" data-sort="${escapeHtml(option.id)}" class="irisx-fdrop__item irisx-sortdrop__item${option.id === curSort ? " on is-active" : ""}" onclick="setSort(${inlineJsValue(option.id)}, this)"><span class="irisx-fdrop__check">✓</span><span>${escapeHtml(option.label)}</span></button>`;
+        }).join("");
+        return `<details class="irisx-fdrop irisx-fdrop--sort" data-filter="sort">
+          <summary class="irisx-fdrop__btn is-active">
+            <span>${escapeHtml(langText("Ordina per", "Sort by"))}</span>
+            <strong>${escapeHtml(current.label)}</strong>
+            <span class="irisx-fdrop__arrow">▾</span>
+          </summary>
+          <div class="irisx-fdrop__panel">${items}</div>
+        </details>`;
+      }
+
       function buildSizeDrop() {
         const candidateProducts = getVisibleCatalogProducts().filter(function (product) {
           return matchesCatalogFilters(product, { ignoreSize: true });
@@ -11882,47 +11983,21 @@
       const brandDrop = buildFdrop(langText("Designer", "Designer"), getAvailableBrands(), "brands", null, {
         counts: function (brand) { return brandCounts[brand] || 0; }
       });
-      const condDrop = buildFdrop(langText("Condizione", "Condition"), getAvailableConditions(), "conds", function (v) { return getFacetLabel("conds", v); });
+      const sortDrop = buildSortDrop();
       const catDrop = buildFdrop(langText("Categoria", "Category"), getAvailableCategories(), "cats", function (v) { return getFacetLabel("cats", v); });
-      const genderDrop = buildFdrop(langText("Genere", "Gender"), ["Women", "Men", "Unisex"], "genders", function (v) { return v === "Women" ? langText("Donna", "Women") : v === "Men" ? langText("Uomo", "Men") : "Unisex"; });
-      const colorDrop = buildFdrop(langText("Colore", "Color"), getAvailableColors(), "colors", function (v) { return getFacetLabel("colors", v); }, { swatches: true });
+      const modelDrop = buildFdrop(langText("Modelli", "Models"), getAvailableModels(), "models");
+      const condDrop = buildFdrop(langText("Condizione", "Condition"), getAvailableConditions(), "conds", function (v) { return getFacetLabel("conds", v); });
       const sizeDrop = buildSizeDrop();
+      const colorDrop = buildFdrop(langText("Colore", "Color"), getAvailableColors(), "colors", function (v) { return getFacetLabel("colors", v); }, { swatches: true });
+      const materialDrop = buildFdrop(langText("Materiali", "Materials"), getAvailableMaterials(), "materials");
+      const originDrop = buildFdrop(langText("Provenienza", "Origin"), getAvailableOrigins(), "origins");
       const priceDrop = buildPriceDrop();
-      const trustChips = getTrustFilterOptions().map(function (option) {
-        return `<button class="irisx-filter-chip irisx-filter-chip--trust${filters.trust.includes(option.id) ? " is-active" : ""}" onclick="toggleFilterChip('trust', '${escapeHtml(option.id)}')">${escapeHtml(option.label)}</button>`;
-      }).join("");
-      const discoveryKicker = langText("Shop edit", "Shop edit");
-      const discoveryTitle = langText("Esplora l'archivio con filtri più precisi", "Explore the archive with sharper filters");
-      const discoverySummary = langText(
-        "Designer, categoria, genere e fiducia IRIS in un unico rail più ordinato.",
-        "Designer, category, gender and IRIS trust in one tighter rail."
-      );
       const activeCount = getActiveShopFilterCount();
-      host.innerHTML = `<div class="irisx-shop-browse irisx-shop-discovery-deck">
-        <div class="irisx-shop-discovery-head">
-          <div class="irisx-shop-discovery-intro">
-            <span class="irisx-shop-discovery-kicker">${escapeHtml(discoveryKicker)}</span>
-            <div class="irisx-shop-discovery-title">${escapeHtml(discoveryTitle)}</div>
-          </div>
-          <div class="irisx-shop-discovery-summary">${escapeHtml(discoverySummary)}</div>
-        </div>
-        <div class="irisx-shop-discovery-section irisx-shop-discovery-section--browse">
-          <span class="irisx-shop-discovery-eyebrow">${escapeHtml(langText("Scorciatoie curatoriali", "Curated shortcuts"))}</span>
-          <div class="irisx-shop-browse-row">${browseMarkup}</div>
-        </div>
-        <div class="irisx-shop-discovery-section irisx-shop-discovery-section--filters">
-          <span class="irisx-shop-discovery-eyebrow">${escapeHtml(langText("Affina la ricerca", "Refine the search"))}</span>
-          <div class="irisx-fdrop-bar">${brandDrop}${catDrop}${genderDrop}${sizeDrop}${condDrop}${colorDrop}${priceDrop}</div>
-        </div>
-        <div class="irisx-shop-discovery-section irisx-shop-discovery-section--meta" id="irisxShopMetaRow">
-          <div class="irisx-filter-group irisx-filter-group--trust">
-            <span class="irisx-shop-discovery-eyebrow">${escapeHtml(langText("Fiducia IRIS", "IRIS trust"))}</span>
-            <div class="irisx-filter-chip-row">${trustChips}</div>
-          </div>
-          <div class="irisx-shop-selection${activeCount ? "" : " is-empty"}" id="irisxShopSelection">
-            <span class="irisx-shop-discovery-eyebrow">${escapeHtml(activeCount ? langText("Selezione attiva", "Active selection") : langText("Nessun filtro attivo", "No active filters"))}</span>
-            <div class="active-filters irisx-active-filter-row" id="activeFilterChips"></div>
-          </div>
+      host.innerHTML = `<div class="irisx-shop-browse irisx-shop-discovery-deck irisx-shop-discovery-deck--compact">
+        <nav class="irisx-shop-nav-row" aria-label="${escapeHtml(langText("Scorciatoie shop", "Shop shortcuts"))}">${browseMarkup}</nav>
+        <div class="irisx-fdrop-bar irisx-fdrop-bar--compact">${sortDrop}${brandDrop}${catDrop}${modelDrop}${condDrop}${sizeDrop}${colorDrop}${materialDrop}${originDrop}${priceDrop}</div>
+        <div class="irisx-shop-selection${activeCount ? "" : " is-empty"}" id="irisxShopSelection" aria-live="polite">
+          <div class="active-filters irisx-active-filter-row" id="activeFilterChips"></div>
         </div>
       </div>`;
     }
@@ -11989,7 +12064,7 @@
     };
 
     clearFilters = function () {
-      filters = { cats: [], brands: [], conds: [], fits: [], colors: [], genders: [], materials: [], trust: [], size: "", pmin: "", pmax: "", search: "" };
+      filters = { cats: [], brands: [], models: [], conds: [], fits: [], colors: [], genders: [], materials: [], origins: [], trust: [], size: "", pmin: "", pmax: "", search: "" };
       const searchInput = qs("#searchInput");
       if (searchInput) {
         searchInput.value = "";
@@ -12344,8 +12419,10 @@
       filters.genders.forEach((value) => chips.push({ label: getFilterTokenLabel("genders", value), type: "genders", value: value }));
       filters.cats.forEach((value) => chips.push({ label: getFacetLabel("cats", value), type: "cats", value: value }));
       filters.brands.forEach((value) => chips.push({ label: value, type: "brands", value: value }));
+      filters.models.forEach((value) => chips.push({ label: value, type: "models", value: value }));
       filters.conds.forEach((value) => chips.push({ label: getFacetLabel("conds", value), type: "conds", value: value }));
       filters.materials.forEach((value) => chips.push({ label: value, type: "materials", value: value }));
+      filters.origins.forEach((value) => chips.push({ label: value, type: "origins", value: value }));
       filters.trust.forEach((value) => chips.push({ label: getFilterTokenLabel("trust", value), type: "trust", value: value }));
       filters.fits.forEach((value) => chips.push({ label: getFacetLabel("fits", value), type: "fits", value: value }));
       filters.colors.forEach((value) => chips.push({ label: getFacetLabel("colors", value), type: "colors", value: value }));
@@ -12607,18 +12684,17 @@
   function productVisualMarkup(product, compact) {
     const imageSources = getListingImageSources(product);
     const primaryImage = imageSources[0] || "";
-    const conditionLabel = getFacetLabel("conds", product.cond);
-    const fitLabel = getFacetLabel("fits", product.fit);
     const soldTag = !isProductPurchasable(product) ? "<span class=\"pi-tag sold\">" + escapeHtml(getProductStatusLabel(product)) + "</span>" : "";
+    const statusTags = !compact && soldTag ? "<div class=\"pi-tags pi-tags--status\">" + soldTag + "</div>" : "";
     const media = primaryImage
       ? "<div class=\"pi\"><div class=\"pi-bg irisx-media\"><img class=\"irisx-card-image\" src=\"" +
         primaryImage +
         "\" loading=\"lazy\" alt=\"" +
         escapeHtml(product.brand + " - " + product.name) +
         "\" onerror=\"this.style.display='none';this.parentNode.classList.remove('irisx-media');this.parentNode.innerHTML='<div class=&quot;pi-emoji&quot;>" + escapeHtml(product.emoji || "👜") + "</div>'\"></div>" +
-        (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(conditionLabel) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(fitLabel) + "</span>" : "") + soldTag + "</div>") +
+        statusTags +
         "</div>"
-      : "<div class=\"pi\"><div class=\"pi-bg\"><div class=\"pi-emoji\">" + escapeHtml(product.emoji || "👜") + "</div></div>" + (compact ? "" : "<div class=\"pi-tags\"><span class=\"pi-tag avail\">" + escapeHtml(conditionLabel) + "</span>" + (product.fit !== "—" ? "<span class=\"pi-tag fit\">" + escapeHtml(fitLabel) + "</span>" : "") + soldTag + "</div>") + "</div>";
+      : "<div class=\"pi\"><div class=\"pi-bg\"><div class=\"pi-emoji\">" + escapeHtml(product.emoji || "👜") + "</div></div>" + statusTags + "</div>";
     return media;
   }
 
@@ -15310,6 +15386,81 @@
     return match ? normalizeChatThread(match) : null;
   }
 
+  function getConversationSellerIdentity(conversation) {
+    const product = conversation && (conversation.product || getListingById(conversation.listingId || conversation.productId));
+    const seller = (product && buildListingSeller(product)) || (conversation && conversation.seller) || {};
+    const scope = conversation ? getChatConversationScope(conversation) : "buying";
+    if (scope === "selling") {
+      const buyerEmail = normalizeEmail((conversation && (conversation.buyerEmail || (conversation.buyer && conversation.buyer.email))) || "");
+      const buyerId = String((conversation && (conversation.buyerId || (conversation.buyer && conversation.buyer.id))) || buyerEmail || "");
+      const buyerName = String((conversation && (conversation.buyerName || (conversation.buyer && conversation.buyer.name) || (conversation.with && conversation.with.name))) || langText("buyer", "buyer"));
+      return {
+        key: buyerEmail ? "email:" + buyerEmail : (buyerId ? "id:" + buyerId : ""),
+        name: buyerName
+      };
+    }
+    const email = normalizeEmail(
+      (conversation && conversation.sellerEmail) ||
+      (seller && seller.email) ||
+      (product && (product.ownerEmail || (product.seller && product.seller.email))) ||
+      ""
+    );
+    const id = String(
+      (conversation && conversation.sellerId) ||
+      (seller && seller.id) ||
+      (conversation && conversation.with && conversation.with.id) ||
+      email ||
+      ""
+    );
+    const name = String(
+      (conversation && conversation.sellerName) ||
+      (seller && seller.name) ||
+      (conversation && conversation.with && conversation.with.name) ||
+      langText("venditore", "seller")
+    );
+    return {
+      key: email ? "email:" + email : (id ? "id:" + id : ""),
+      name: name
+    };
+  }
+
+  function persistSellerBlocks() {
+    state.sellerBlocks = Array.isArray(state.sellerBlocks) ? state.sellerBlocks : [];
+    saveJson(STORAGE_KEYS.sellerBlocks, state.sellerBlocks);
+  }
+
+  function isConversationSellerBlocked(conversation) {
+    const identity = getConversationSellerIdentity(conversation);
+    return Boolean(identity.key && Array.isArray(state.sellerBlocks) && state.sellerBlocks.indexOf(identity.key) > -1);
+  }
+
+  function toggleSellerBlockFromChat(conversationId) {
+    const conversation = getChatConversationById(conversationId);
+    if (!conversation) {
+      showToast(langText("Conversazione non disponibile.", "Conversation not available."));
+      return;
+    }
+    const identity = getConversationSellerIdentity(conversation);
+    if (!identity.key) {
+      showToast(langText("Venditore non identificabile.", "Seller cannot be identified."));
+      return;
+    }
+    state.sellerBlocks = Array.isArray(state.sellerBlocks) ? state.sellerBlocks : [];
+    const index = state.sellerBlocks.indexOf(identity.key);
+    const blocked = index === -1;
+    if (blocked) {
+      state.sellerBlocks.push(identity.key);
+    } else {
+      state.sellerBlocks.splice(index, 1);
+    }
+    persistSellerBlocks();
+    showToast(blocked
+      ? langText("Venditore bloccato.", "Seller blocked.")
+      : langText("Venditore sbloccato.", "Seller unblocked.")
+    );
+    renderChats();
+  }
+
   function getOffersForConversation(conversation) {
     if (!conversation) {
       return [];
@@ -15356,7 +15507,9 @@
     const input = qs("#chatInput");
     const sendButton = qs(".cm-send");
     const moderationState = normalizeChatModerationState(state.chatModeration);
-    const blocked = moderationState.isSuspended;
+    const activeConversation = curChat ? getChatConversationById(curChat) : null;
+    const sellerBlocked = activeConversation ? isConversationSellerBlocked(activeConversation) : false;
+    const blocked = moderationState.isSuspended || sellerBlocked;
     if (sendButton) {
       if (!sendButton.dataset.defaultLabel) {
         sendButton.dataset.defaultLabel = sendButton.textContent || langText("Invia", "Send");
@@ -15370,22 +15523,26 @@
     if (input) {
       input.disabled = blocked || state.chatSendPending;
       input.setAttribute("aria-disabled", input.disabled ? "true" : "false");
-      input.placeholder = blocked
+      input.placeholder = moderationState.isSuspended
         ? langText("Chat sospesa dal team sicurezza IRIS", "Chat suspended by IRIS trust & safety")
+        : sellerBlocked
+          ? langText("Venditore bloccato", "Seller blocked")
         : langText("Scrivi un messaggio...", "Write a message...");
     }
     if (!note) {
       return;
     }
     note.classList.toggle("is-blocked", blocked);
-    note.textContent = blocked
+    note.textContent = moderationState.isSuspended
       ? langText(
         "Chat sospesa: non puoi piu inviare messaggi. Puoi ancora acquistare e vendere su IRIS, ma non puoi piu usare la chat.",
         "Chat suspended: you can no longer send messages. You can still buy and sell on IRIS, but you can no longer use chat."
       )
+      : sellerBlocked
+        ? langText("Venditore bloccato. Sbloccalo per riaprire la conversazione.", "Seller blocked. Unblock to reopen this conversation.")
       : langText(
-        "Solo testo, offerte IRIS e segnalazioni assistite. Emoji, contatti esterni, piattaforme esterne e pagamenti esterni vengono bloccati prima dell'invio.",
-        "Text only, IRIS offers and assisted reports. Emoji, external contacts, external platforms, and off-platform payments are blocked before sending."
+        "Scrivi qui. Offerte e segnalazioni restano protette da IRIS.",
+        "Write here. Offers and reports stay protected by IRIS."
       );
   }
 
@@ -15414,7 +15571,6 @@
         <strong>${escapeHtml(product.brand)}</strong>
         <span>${escapeHtml(product.name)}</span>
         <em>${escapeHtml(formatCurrency(product.price || 0))}</em>
-        <small class="irisx-chat-role-line"><span class="irisx-chat-role-badge">${escapeHtml(getChatRoleBadgeLabel(conversation))}</span><span>${escapeHtml(getChatRoleContext(conversation))}</span></small>
       </span>
     </button>`;
   }
@@ -15433,6 +15589,7 @@
     const scope = getChatConversationScope(conversation);
     const product = conversation.product || getListingById(conversation.listingId || conversation.productId);
     const currentOffer = getCurrentOfferForConversation(conversation);
+    const sellerBlocked = isConversationSellerBlocked(conversation);
     const canMakeOffer = Boolean(
       product &&
       scope === "buying" &&
@@ -15444,27 +15601,16 @@
       : product
         ? `<button class="irisx-secondary irisx-chat-action-btn" onclick="showDetail(${inlineJsValue(product.id)})">${langText("Apri articolo", "Open listing")}</button>`
         : "";
+    const reportLabel = scope === "selling" ? langText("Segnala buyer", "Report buyer") : langText("Segnala venditore", "Report seller");
     actionBar.innerHTML = `
-      <div class="irisx-chat-action-copy">
-        <strong>${escapeHtml(scope === "selling" ? langText("Gestisci buyer e offerta", "Manage buyer and offer") : langText("Parla col seller in modo sicuro", "Chat safely with the seller"))}</strong>
-        <span>${escapeHtml(scope === "selling"
-          ? langText("Messaggi, offerte ricevute e segnalazioni passano tutte da IRIS.", "Messages, received offers, and reports all stay inside IRIS.")
-          : langText("Usa solo messaggi testuali. Offerte e segnalazioni restano tracciate dentro IRIS.", "Use text-only messages. Offers and reports stay tracked inside IRIS."))}</span>
-      </div>
-      <div class="irisx-chat-action-buttons">
+      <div class="irisx-chat-action-buttons" aria-label="${escapeHtml(langText("Azioni conversazione", "Conversation actions"))}">
         ${primaryAction}
-        <button class="irisx-secondary irisx-chat-action-btn" onclick="openChatReportModal('${escapeHtml(conversation.id)}')">${langText("Segnala a assistenza", "Report to support")}</button>
+        <button class="irisx-secondary irisx-chat-action-btn" onclick="openChatReportModal('${escapeHtml(conversation.id)}')">${reportLabel}</button>
+        <button class="irisx-secondary irisx-chat-action-btn irisx-chat-action-btn--danger${sellerBlocked ? " is-active" : ""}" onclick="toggleSellerBlockFromChat('${escapeHtml(conversation.id)}')">${sellerBlocked ? langText("Sblocca", "Unblock") : langText("Blocca", "Block")}</button>
       </div>
     `;
     if (!currentOffer) {
-      offerZone.innerHTML = product && canMakeOffer
-        ? `<div class="irisx-chat-offer-card irisx-chat-offer-card--empty">
-            <div class="irisx-chat-offer-copy">
-              <strong>${escapeHtml(langText("Nessuna offerta inviata ancora", "No offer sent yet"))}</strong>
-              <span>${escapeHtml(langText("Se il prezzo non ti convince, puoi inviare un'offerta vincolante direttamente da questa chat.", "If the price does not work for you, you can send a binding offer directly from this chat."))}</span>
-            </div>
-          </div>`
-        : "";
+      offerZone.innerHTML = "";
       return;
     }
     const offerStatus = getOfferStatusLabel(currentOffer);
@@ -19214,7 +19360,6 @@
         <div class="cl-info">
           <div class="cl-name">${escapeHtml(counterpartyName || langText("Conversation", "Conversation"))}</div>
           <div class="cl-last">${escapeHtml(lastMessage.text)}</div>
-          <div class="irisx-chat-role-line"><span class="irisx-chat-role-badge">${escapeHtml(getChatRoleBadgeLabel(thread))}</span><span>${escapeHtml(getChatRoleContext(thread))}</span></div>
           <div class="irisx-chat-listing">${escapeHtml(thread.product ? thread.product.brand + " · " + thread.product.name : langText("Linked listing", "Linked listing"))}</div>
         </div>
         <div class="cl-time">${escapeHtml(lastMessage.time || "")}${thread.unreadCount ? `<span class="irisx-chat-unread">${thread.unreadCount}</span>` : ""}</div>
@@ -19258,7 +19403,7 @@
       productLabel.textContent = conversation.product ? `${conversation.product.brand} · ${conversation.product.name}` : langText("Linked listing", "Linked listing");
     }
     if (roleMeta) {
-      roleMeta.textContent = getChatRoleContext(conversation);
+      roleMeta.textContent = "";
     }
     if (preview) {
       preview.innerHTML = getChatProductPreviewMarkup(conversation);
@@ -19302,6 +19447,11 @@
       return;
     }
     const conversation = normalizeChatThread(chats[conversationIndex]);
+    if (isConversationSellerBlocked(conversation)) {
+      showToast(langText("Venditore bloccato: sbloccalo per inviare messaggi.", "Seller blocked: unblock to send messages."));
+      renderChatComposerNote();
+      return;
+    }
     const messageText = input.value.trim();
     state.chatSendPending = true;
     renderChatComposerNote();
@@ -19387,6 +19537,7 @@
   window.backToChats = backToChats;
   window.sendChat = sendChat;
   window.closeChatModerationModal = closeChatModerationModal;
+  window.toggleSellerBlockFromChat = toggleSellerBlockFromChat;
   window.__irisModernChatFlow = {
     render: renderChats,
     openById: openChatById,

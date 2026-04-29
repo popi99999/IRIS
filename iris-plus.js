@@ -759,6 +759,42 @@
     return Number.isFinite(numericKey) && favorites.has(numericKey);
   }
 
+  function getFavoriteProductItems(options) {
+    const catalog = typeof prods !== "undefined" && Array.isArray(prods) ? prods : [];
+    const requirePurchasable = Boolean(options && options.requirePurchasable);
+    const seen = new Set();
+    return catalog.filter(function (product) {
+      if (!product) {
+        return false;
+      }
+      const key = normalizeFavoriteId(product.id);
+      if (!key || seen.has(key) || !hasFavoriteProduct(key)) {
+        return false;
+      }
+      if (requirePurchasable && typeof isProductPurchasable === "function" && !isProductPurchasable(product)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  }
+
+  window.updateFavBadge = function updateFavBadgeOverride() {
+    const count = getFavoriteProductItems().length;
+    [document.getElementById("fav-badge"), document.getElementById("fav-top-badge")]
+      .filter(Boolean)
+      .forEach(function (badge) {
+        if (count > 0) {
+          badge.style.display = "flex";
+          badge.textContent = String(count);
+        } else {
+          badge.style.display = "none";
+          badge.textContent = "0";
+        }
+      });
+  };
+  updateFavBadge = window.updateFavBadge;
+
   function persistFavorites() {
     favorites = new Set(normalizeFavoriteCollection(favorites));
     saveJson(STORAGE_KEYS.favorites, Array.from(favorites));
@@ -12352,7 +12388,7 @@
     };
 
     renderFavorites = function () {
-      const items = prods.filter((product) => hasFavoriteProduct(product.id));
+      const items = getFavoriteProductItems();
       qs("#favCountText").textContent =
         items.length + " " + (items.length === 1 ? t("cart_items").replace(/s$/, "") : t("items_saved"));
 
@@ -18824,9 +18860,7 @@
       return;
     }
 
-    const favoritesItems = prods.filter(function (product) {
-      return hasFavoriteProduct(product.id) && isProductPurchasable(product);
-    });
+    const favoritesItems = getFavoriteProductItems({ requirePurchasable: true });
 
     if (!state.currentUser) {
       container.innerHTML = `<div class="irisx-guest-shell">
@@ -20384,14 +20418,14 @@
           <div class="irisx-footer-payments" aria-label="${escapeHtml(langText("Metodi di pagamento sicuri", "Secure payment methods"))}">
             <div class="irisx-footer-payments-title">${langText("Pagamenti sicuri", "Secure payments")}</div>
             <div class="irisx-footer-payment-grid">
-              <span class="irisx-pay-chip irisx-pay-chip--paypal">PayPal</span>
-              <span class="irisx-pay-chip irisx-pay-chip--apple">Apple Pay</span>
-              <span class="irisx-pay-chip irisx-pay-chip--google">Google Pay</span>
-              <span class="irisx-pay-chip irisx-pay-chip--klarna">Klarna</span>
-              <span class="irisx-pay-chip irisx-pay-chip--satispay">Satispay</span>
-              <span class="irisx-pay-chip irisx-pay-chip--wechat">WeChat Pay</span>
-              <span class="irisx-pay-chip irisx-pay-chip--visa">Visa</span>
-              <span class="irisx-pay-chip irisx-pay-chip--mastercard">Mastercard</span>
+              <span class="irisx-payment-logo irisx-payment-logo--paypal" aria-label="PayPal"><strong>PayPal</strong></span>
+              <span class="irisx-payment-logo irisx-payment-logo--apple-pay" aria-label="Apple Pay"><svg viewBox="0 0 32 32" focusable="false" aria-hidden="true"><path d="M21.4 3.2c.1 1.6-.5 3.1-1.7 4.3-1.2 1.2-2.6 1.9-4.1 1.8-.2-1.5.5-3 1.6-4.1 1.1-1.2 2.8-2 4.2-2zM26.6 23.5c-.7 1.6-1 2.3-1.9 3.7-1.2 1.8-2.8 4-4.9 4-1.8 0-2.3-1.2-4.8-1.1-2.5 0-3 1.1-4.8 1.1-2.1 0-3.7-2-4.9-3.8-3.4-5.2-3.7-11.2-1.6-14.4 1.5-2.3 3.8-3.6 6-3.6 2.2 0 3.6 1.2 5.4 1.2 1.7 0 2.8-1.2 5.3-1.2 1.9 0 3.9 1 5.3 2.8-4.6 2.5-3.8 9 .9 11.3z"/></svg><strong>Pay</strong></span>
+              <span class="irisx-payment-logo irisx-payment-logo--google-pay" aria-label="Google Pay"><span class="irisx-google-g">G</span><strong>Pay</strong></span>
+              <span class="irisx-payment-logo irisx-payment-logo--klarna" aria-label="Klarna"><strong>Klarna.</strong></span>
+              <span class="irisx-payment-logo irisx-payment-logo--satispay" aria-label="Satispay"><strong>Satispay</strong></span>
+              <span class="irisx-payment-logo irisx-payment-logo--wechat" aria-label="WeChat Pay"><span class="irisx-wechat-mark" aria-hidden="true"></span><strong>WeChat Pay</strong></span>
+              <span class="irisx-payment-logo irisx-payment-logo--visa" aria-label="Visa"><strong>VISA</strong></span>
+              <span class="irisx-payment-logo irisx-payment-logo--mastercard" aria-label="Mastercard"><span class="irisx-mastercard-mark" aria-hidden="true"><i></i><i></i></span><strong>mastercard</strong></span>
             </div>
           </div>
         </div>

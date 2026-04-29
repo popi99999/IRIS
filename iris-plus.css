@@ -18668,3 +18668,273 @@ body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-protection span 
     justify-self: start !important;
   }
 }
+
+/* Final alignment pass: favorites consistency, offer amount, store badges, payment marks */
+body.irisx-luxury .offer-shell--amount:not(.offer-shell--review) .offer-amount-shell,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount:not(.offer-shell--review) .offer-amount-shell {
+  grid-template-columns: 52px minmax(220px, 1fr) 52px !important;
+  width: min(100%, 520px) !important;
+  max-width: 520px !important;
+  gap: 0.72rem !important;
+  padding: 0.55rem !important;
+  border: 1px solid rgba(241, 50, 79, 0.18) !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  box-shadow: 0 22px 50px rgba(31, 12, 24, 0.08) !important;
+}
+
+body.irisx-luxury .offer-shell--amount:not(.offer-shell--review) .offer-stepper,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount:not(.offer-shell--review) .offer-stepper {
+  width: 52px !important;
+  height: 52px !important;
+  border-color: rgba(17, 24, 39, 0.14) !important;
+  color: #111827 !important;
+  font-size: 1.45rem !important;
+  line-height: 1 !important;
+}
+
+body.irisx-luxury .offer-shell--amount:not(.offer-shell--review) .offer-amount-field,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount:not(.offer-shell--review) .offer-amount-field {
+  display: grid !important;
+  grid-template-columns: auto minmax(3ch, auto) !important;
+  justify-content: center !important;
+  align-items: baseline !important;
+  gap: 0.52rem !important;
+  min-height: 62px !important;
+  padding: 0 1.2rem !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #fff9fa !important;
+}
+
+body.irisx-luxury .offer-shell--amount:not(.offer-shell--review) .offer-amount-currency,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount:not(.offer-shell--review) .offer-amount-currency {
+  color: #111827 !important;
+  font-family: "Outfit", system-ui, sans-serif !important;
+  font-size: 2.15rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+}
+
+body.irisx-luxury .offer-shell--amount:not(.offer-shell--review) .offer-input,
+body.irisx-luxury.irisx-white-theme .offer-shell--amount:not(.offer-shell--review) .offer-input {
+  width: 4.3ch !important;
+  flex: 0 0 auto !important;
+  color: #111827 !important;
+  font-family: "Outfit", system-ui, sans-serif !important;
+  font-size: 2.45rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badges {
+  grid-template-columns: repeat(2, 208px) !important;
+  gap: 0.92rem !important;
+  max-width: 432px !important;
+  align-items: center !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge {
+  width: 208px !important;
+  min-height: 58px !important;
+  height: 58px !important;
+  display: grid !important;
+  grid-template-columns: 32px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 0.62rem !important;
+  overflow: hidden !important;
+  padding: 0.52rem 0.8rem !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.64) !important;
+  border-radius: 11px !important;
+  background: #050505 !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.78), 0 14px 32px rgba(17, 8, 14, 0.12) !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-icon,
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon svg,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-icon svg {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 0.05rem !important;
+  color: #ffffff !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text span,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text span {
+  color: rgba(255, 255, 255, 0.88) !important;
+  font-family: "Outfit", system-ui, sans-serif !important;
+  font-size: 0.6rem !important;
+  font-weight: 650 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  text-transform: none !important;
+  white-space: nowrap !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text strong,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text strong {
+  overflow: visible !important;
+  color: #ffffff !important;
+  font-family: "Outfit", system-ui, sans-serif !important;
+  font-size: 1.34rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.02 !important;
+  text-transform: none !important;
+  white-space: nowrap !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge--google .irisx-store-text strong,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge--google .irisx-store-text strong {
+  font-size: 1.08rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payment-grid,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payment-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.62rem !important;
+  max-width: 384px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo {
+  min-height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.4rem !important;
+  padding: 0.48rem 0.72rem !important;
+  border-radius: 9px !important;
+  border: 1px solid rgba(17, 24, 39, 0.13) !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  box-shadow: 0 10px 22px rgba(24, 23, 25, 0.04) !important;
+  font-family: "Outfit", system-ui, sans-serif !important;
+  font-size: 0.92rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo strong,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo strong {
+  font: inherit !important;
+  color: inherit !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo svg,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo svg {
+  width: 20px !important;
+  height: 20px !important;
+  fill: currentColor !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--paypal strong { color: #003087 !important; font-weight: 900 !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--apple-pay { color: #050505 !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--google-pay .irisx-google-g { color: #4285f4 !important; font-weight: 950 !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--klarna { background: #ffb3c7 !important; border-color: rgba(17, 24, 39, 0.1) !important; color: #111111 !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--satispay { color: #e31c23 !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--wechat { color: #111827 !important; }
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--visa { color: #1434cb !important; font-style: italic !important; }
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-wechat-mark,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-wechat-mark {
+  position: relative !important;
+  width: 22px !important;
+  height: 17px !important;
+  border-radius: 999px !important;
+  background: #07c160 !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-wechat-mark::after,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-wechat-mark::after {
+  content: "" !important;
+  position: absolute !important;
+  right: -4px !important;
+  bottom: -3px !important;
+  width: 14px !important;
+  height: 11px !important;
+  border: 2px solid #ffffff !important;
+  border-radius: 999px !important;
+  background: #10b981 !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-mastercard-mark,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-mastercard-mark {
+  position: relative !important;
+  width: 30px !important;
+  height: 19px !important;
+  display: inline-block !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-mastercard-mark i,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-mastercard-mark i {
+  position: absolute !important;
+  top: 0 !important;
+  width: 19px !important;
+  height: 19px !important;
+  border-radius: 999px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-mastercard-mark i:first-child,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-mastercard-mark i:first-child {
+  left: 0 !important;
+  background: #eb001b !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-mastercard-mark i:last-child,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-mastercard-mark i:last-child {
+  right: 0 !important;
+  background: #f79e1b !important;
+  mix-blend-mode: multiply !important;
+}
+
+@media (max-width: 680px) {
+  body.irisx-luxury .offer-shell--amount:not(.offer-shell--review) .offer-amount-shell,
+  body.irisx-luxury.irisx-white-theme .offer-shell--amount:not(.offer-shell--review) .offer-amount-shell {
+    grid-template-columns: 46px minmax(0, 1fr) 46px !important;
+    width: 100% !important;
+    gap: 0.48rem !important;
+  }
+
+  body.irisx-luxury .offer-shell--amount:not(.offer-shell--review) .offer-stepper,
+  body.irisx-luxury.irisx-white-theme .offer-shell--amount:not(.offer-shell--review) .offer-stepper {
+    width: 46px !important;
+    height: 46px !important;
+  }
+
+  body.irisx-luxury .offer-shell--amount:not(.offer-shell--review) .offer-input,
+  body.irisx-luxury.irisx-white-theme .offer-shell--amount:not(.offer-shell--review) .offer-input {
+    width: 3.8ch !important;
+    font-size: 2rem !important;
+  }
+
+  body.irisx-luxury .offer-shell--amount:not(.offer-shell--review) .offer-amount-currency,
+  body.irisx-luxury.irisx-white-theme .offer-shell--amount:not(.offer-shell--review) .offer-amount-currency {
+    font-size: 1.82rem !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+  body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badges,
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payment-grid,
+  body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payment-grid {
+    grid-template-columns: 1fr !important;
+    max-width: 208px !important;
+  }
+}

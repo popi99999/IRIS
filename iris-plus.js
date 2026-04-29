@@ -10665,9 +10665,9 @@
     function getOfferPaymentOptions() {
       return [{
         id: "stripe-offer-authorization",
-        kind: "Stripe",
+        kind: "Stripe Checkout",
         label: langText("Carta o wallet in checkout sicuro", "Card or wallet in secure checkout"),
-        meta: langText("Pre-autorizzazione protetta · nessun addebito finale ora", "Protected pre-authorization · no final capture yet"),
+        meta: langText("Pre-autorizzazione protetta: addebito finale solo se il seller accetta.", "Protected pre-authorization: final capture only if the seller accepts."),
         snapshot: {
           id: "stripe-offer-authorization",
           label: langText("Autorizzazione sicura con Stripe", "Secure authorization with Stripe")
@@ -10881,6 +10881,7 @@
         : state.offerStatus && state.offerStep === "success"
           ? `<div class="offer-success">${escapeHtml(langText("Offerta vincolante registrata. Nessun addebito finale ora.", "Binding offer recorded. No final charge yet."))}</div>`
           : "";
+      box.classList.toggle("offer-box--review", state.offerStep === "authorization");
 
       if (state.offerStep === "success" && state.offerStatus) {
         box.innerHTML = `
@@ -10913,7 +10914,7 @@
 
       if (state.offerStep === "authorization") {
       box.innerHTML = `
-        <div class="offer-shell offer-shell--amount">
+        <div class="offer-shell offer-shell--amount offer-shell--review">
           <div class="offer-shell__header">
             <button class="offer-shell__icon offer-shell__icon--back" onclick="backOfferStep()" aria-label="${escapeHtml(langText("Indietro", "Back"))}">←</button>
             <div class="offer-step-indicator">${escapeHtml(stepLabel)}</div>

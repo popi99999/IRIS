@@ -18141,3 +18141,530 @@ body.irisx-luxury.irisx-white-theme .ac-entry--brand .ac-entry-main {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Offer review: clearer hierarchy and compact authorization method */
+body.irisx-luxury .offer-modal .offer-box.offer-box--review,
+body.irisx-luxury.irisx-white-theme .offer-modal .offer-box.offer-box--review {
+  width: min(1180px, calc(100vw - 32px)) !important;
+  max-width: min(1180px, calc(100vw - 32px)) !important;
+  max-height: calc(100svh - 32px) !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  overflow: auto !important;
+}
+
+body.irisx-luxury .offer-shell--review,
+body.irisx-luxury.irisx-white-theme .offer-shell--review {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  min-height: 0 !important;
+  background: #ffffff !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-shell__header,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-shell__header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 4 !important;
+  min-height: 62px !important;
+  display: grid !important;
+  grid-template-columns: 48px minmax(0, 1fr) 48px !important;
+  align-items: center !important;
+  padding: 0.55rem 1rem !important;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08) !important;
+  background: rgba(255, 255, 255, 0.97) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-step-indicator,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-step-indicator {
+  color: #111827 !important;
+  font-size: 1.1rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-shell__icon,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-shell__icon {
+  width: 42px !important;
+  height: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 999px !important;
+  color: #111827 !important;
+  font-size: 1.25rem !important;
+  font-weight: 850 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-grid,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 0.95fr) minmax(380px, 0.75fr) !important;
+  gap: 24px !important;
+  align-items: start !important;
+  padding: 26px !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-main,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-main {
+  display: grid !important;
+  gap: 16px !important;
+  min-width: 0 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-intro,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-intro {
+  display: grid !important;
+  gap: 0.55rem !important;
+  max-width: 620px !important;
+  padding: 0.2rem 0 0.6rem !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-panel-kicker,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-panel-kicker {
+  justify-self: start !important;
+  margin: 0 !important;
+  color: #f1324f !important;
+  font-size: 0.78rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.2 !important;
+  text-align: left !important;
+  text-transform: uppercase !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-intro h3,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-intro h3 {
+  margin: 0 !important;
+  color: #111827 !important;
+  font-size: 1.9rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.08 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-intro p,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-intro p {
+  max-width: 56ch !important;
+  margin: 0 !important;
+  color: #4c4554 !important;
+  font-size: 1rem !important;
+  line-height: 1.55 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-contact-grid,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-contact-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-section,
+body.irisx-luxury .offer-shell--review .offer-review-card,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-section,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-card {
+  min-width: 0 !important;
+  padding: 18px !important;
+  border: 1px solid rgba(241, 50, 79, 0.13) !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  box-shadow: 0 18px 44px rgba(31, 12, 24, 0.045) !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-section.is-missing,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-section.is-missing {
+  border-color: rgba(241, 50, 79, 0.28) !important;
+  background: #fff9fa !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-section__head,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-section__head {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  margin: 0 0 12px !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-section h3,
+body.irisx-luxury .offer-shell--review .offer-review-card h3,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-section h3,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-card h3 {
+  margin: 0 !important;
+  color: #111827 !important;
+  font-size: 1.02rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.25 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-inline-link,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-inline-link {
+  color: #f1324f !important;
+  font-size: 0.9rem !important;
+  font-weight: 750 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-detail-card,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-detail-card {
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-detail-card strong,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-detail-card strong {
+  color: #151324 !important;
+  font-size: 0.96rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.35 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-detail-card span,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-detail-card span {
+  margin-top: 0.25rem !important;
+  color: #5f5663 !important;
+  font-size: 0.9rem !important;
+  line-height: 1.45 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-side,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-side {
+  position: sticky !important;
+  top: 82px !important;
+  display: grid !important;
+  gap: 14px !important;
+  min-width: 0 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-card--product,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-card--product {
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: #fff8f9 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-card--product .offer-product-strip,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-card--product .offer-product-strip {
+  display: grid !important;
+  grid-template-columns: 72px minmax(0, 1fr) auto !important;
+  gap: 1rem !important;
+  align-items: center !important;
+  padding: 18px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-card--product .offer-product-thumb,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-card--product .offer-product-thumb {
+  width: 72px !important;
+  height: 72px !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-product-strip__info strong,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-product-strip__info strong {
+  color: #111827 !important;
+  font-size: 1.06rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.2 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-product-strip__name,
+body.irisx-luxury .offer-shell--review .offer-product-strip__meta,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-product-strip__name,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-product-strip__meta {
+  color: #5b5362 !important;
+  font-size: 0.92rem !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-product-strip__price,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-product-strip__price {
+  color: #111827 !important;
+  font-size: 2rem !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-summary-row,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-summary-row {
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  padding: 0.78rem 0 !important;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.07) !important;
+  color: #5b5362 !important;
+  font-size: 0.96rem !important;
+  line-height: 1.35 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-summary-row strong,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-summary-row strong {
+  color: #111827 !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-summary-row--total,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-summary-row--total {
+  margin-top: 0.4rem !important;
+  padding-top: 1rem !important;
+  border-bottom: 0 !important;
+  color: #111827 !important;
+  font-size: 1.08rem !important;
+  font-weight: 850 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-payment-grid,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-payment-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 0.7rem !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-payment-choice,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-payment-choice {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto !important;
+  grid-template-areas: "title kind" "meta kind" !important;
+  align-items: center !important;
+  gap: 0.2rem 1rem !important;
+  min-height: 72px !important;
+  padding: 16px 18px 16px 54px !important;
+  border: 1px solid rgba(17, 24, 39, 0.1) !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-payment-choice::before,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-payment-choice::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 18px !important;
+  top: 50% !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 999px !important;
+  border: 2px solid rgba(241, 50, 79, 0.24) !important;
+  transform: translateY(-50%) !important;
+  background: #ffffff !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-payment-choice.on,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-payment-choice.on {
+  border-color: rgba(241, 50, 79, 0.38) !important;
+  background: #fff8f9 !important;
+  box-shadow: 0 0 0 1px rgba(241, 50, 79, 0.08) !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-payment-choice.on::before,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-payment-choice.on::before {
+  border-color: #f1324f !important;
+  box-shadow: inset 0 0 0 5px #ffffff !important;
+  background: #f1324f !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-payment-choice strong,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-payment-choice strong {
+  grid-area: title !important;
+  color: #111827 !important;
+  font-size: 1rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.25 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-payment-choice em,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-payment-choice em {
+  grid-area: meta !important;
+  color: #5f5663 !important;
+  font-size: 0.88rem !important;
+  font-style: normal !important;
+  line-height: 1.35 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-payment-choice__kind,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-payment-choice__kind {
+  grid-area: kind !important;
+  align-self: center !important;
+  justify-self: end !important;
+  padding: 0.38rem 0.58rem !important;
+  border-radius: 999px !important;
+  background: #111827 !important;
+  color: #ffffff !important;
+  font-size: 0.74rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  text-transform: none !important;
+  white-space: nowrap !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-card--commitment,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-card--commitment {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-terms,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-terms {
+  color: #111827 !important;
+  font-size: 0.98rem !important;
+  font-weight: 750 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.45 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-terms input,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-terms input {
+  width: 22px !important;
+  height: 22px !important;
+  flex: 0 0 22px !important;
+  accent-color: #f1324f !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-review-error,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-error {
+  padding: 0.85rem 0.95rem !important;
+  border: 1px solid rgba(241, 50, 79, 0.22) !important;
+  border-radius: 8px !important;
+  background: #fff4f6 !important;
+  color: #bd273f !important;
+  font-size: 0.92rem !important;
+  line-height: 1.45 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-send,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-send {
+  min-height: 58px !important;
+  border-radius: 8px !important;
+  background: #f1324f !important;
+  color: #ffffff !important;
+  font-size: 0.95rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  text-transform: uppercase !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-send[disabled],
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-send[disabled] {
+  background: #f6d7dd !important;
+  border-color: #f6d7dd !important;
+  color: #ffffff !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-protection,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-protection {
+  display: grid !important;
+  gap: 0.35rem !important;
+  padding: 0.95rem 1rem !important;
+  border: 1px solid rgba(17, 24, 39, 0.08) !important;
+  border-radius: 8px !important;
+  background: #fafafa !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-protection strong,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-protection strong {
+  color: #111827 !important;
+  font-size: 0.94rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+}
+
+body.irisx-luxury .offer-shell--review .offer-protection span,
+body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-protection span {
+  color: #5f5663 !important;
+  font-size: 0.86rem !important;
+  line-height: 1.45 !important;
+}
+
+@media (max-width: 980px) {
+  body.irisx-luxury .offer-shell--review .offer-review-grid,
+  body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-grid {
+    grid-template-columns: 1fr !important;
+    padding: 18px !important;
+  }
+
+  body.irisx-luxury .offer-shell--review .offer-review-side,
+  body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-side {
+    position: static !important;
+  }
+}
+
+@media (max-width: 680px) {
+  body.irisx-luxury .offer-modal .offer-box.offer-box--review,
+  body.irisx-luxury.irisx-white-theme .offer-modal .offer-box.offer-box--review {
+    width: calc(100vw - 20px) !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100svh - 20px) !important;
+  }
+
+  body.irisx-luxury .offer-shell--review .offer-shell__header,
+  body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-shell__header {
+    min-height: 56px !important;
+    grid-template-columns: 42px minmax(0, 1fr) 42px !important;
+    padding: 0.45rem 0.65rem !important;
+  }
+
+  body.irisx-luxury .offer-shell--review .offer-step-indicator,
+  body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-step-indicator {
+    font-size: 0.98rem !important;
+  }
+
+  body.irisx-luxury .offer-shell--review .offer-review-contact-grid,
+  body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-contact-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.irisx-luxury .offer-shell--review .offer-review-intro h3,
+  body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-intro h3 {
+    font-size: 1.48rem !important;
+  }
+
+  body.irisx-luxury .offer-shell--review .offer-review-card--product .offer-product-strip,
+  body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-card--product .offer-product-strip {
+    grid-template-columns: 58px minmax(0, 1fr) !important;
+  }
+
+  body.irisx-luxury .offer-shell--review .offer-review-card--product .offer-product-thumb,
+  body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-card--product .offer-product-thumb {
+    width: 58px !important;
+    height: 58px !important;
+  }
+
+  body.irisx-luxury .offer-shell--review .offer-product-strip__price,
+  body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-product-strip__price {
+    grid-column: 1 / -1 !important;
+    justify-self: start !important;
+    font-size: 1.35rem !important;
+  }
+
+  body.irisx-luxury .offer-shell--review .offer-payment-choice,
+  body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-payment-choice {
+    grid-template-columns: 1fr !important;
+    grid-template-areas: "kind" "title" "meta" !important;
+    padding: 16px 16px 16px 50px !important;
+  }
+
+  body.irisx-luxury .offer-shell--review .offer-payment-choice__kind,
+  body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-payment-choice__kind {
+    justify-self: start !important;
+  }
+}

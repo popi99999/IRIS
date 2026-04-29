@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iris-v143';
+const CACHE_NAME = 'iris-v144';
 const APP_SHELL_URL = new URL('./index.html', self.location.href).toString();
 const MANIFEST_URL = new URL('./manifest.json', self.location.href).toString();
 const PLUS_CSS_URL = new URL('./iris-plus.css', self.location.href).toString();

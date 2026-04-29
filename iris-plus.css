@@ -20008,3 +20008,65 @@ html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .iri
     justify-content: flex-start !important;
   }
 }
+
+/* IRIS — keep compact shop dropdowns visible outside the filter rail */
+html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact,
+html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact,
+html body.irisx-luxury #shop-view .irisx-fdrop-bar--compact,
+html body.irisx-luxury.irisx-white-theme #shop-view .irisx-fdrop-bar--compact {
+  overflow: visible !important;
+}
+
+html body.irisx-luxury #shop-view .irisx-fdrop-bar--compact,
+html body.irisx-luxury.irisx-white-theme #shop-view .irisx-fdrop-bar--compact {
+  flex-wrap: wrap !important;
+  row-gap: 12px !important;
+  padding-bottom: 16px !important;
+}
+
+html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop,
+html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop {
+  position: relative !important;
+  z-index: 2 !important;
+  overflow: visible !important;
+}
+
+html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop[open],
+html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop[open] {
+  z-index: 10020 !important;
+}
+
+html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__panel,
+html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__panel {
+  top: calc(100% + 10px) !important;
+  z-index: 10030 !important;
+  max-height: min(380px, calc(100vh - 230px)) !important;
+}
+
+@media (max-width: 640px) {
+  html body.irisx-luxury #shop-view .irisx-fdrop-bar--compact,
+  html body.irisx-luxury.irisx-white-theme #shop-view .irisx-fdrop-bar--compact {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop,
+  html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop,
+  html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__btn,
+  html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__btn {
+    width: 100% !important;
+  }
+
+  html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__btn,
+  html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__btn {
+    justify-content: space-between !important;
+  }
+
+  html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__panel,
+  html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__panel {
+    left: 0 !important;
+    right: auto !important;
+    width: min(100%, calc(100vw - 32px)) !important;
+    min-width: min(100%, calc(100vw - 32px)) !important;
+  }
+}

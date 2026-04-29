@@ -16741,6 +16741,420 @@ body.irisx-luxury.irisx-white-theme .irisx-chat-action-btn--primary {
   border-color: #f1324f !important;
 }
 
+/* IRIS — footer containment must be the real final CSS layer */
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-grid,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-grid {
+  grid-template-columns: minmax(0, 300px) repeat(4, minmax(150px, 1fr)) !important;
+  column-gap: clamp(1.6rem, 2.6vw, 3.4rem) !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-brand-block,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-brand-block,
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badges,
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payments,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payments,
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payment-grid,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payment-grid {
+  width: 100% !important;
+  max-width: 300px !important;
+  min-width: 0 !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badges {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.58rem !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  grid-template-columns: 24px minmax(0, 1fr) !important;
+  gap: 0.46rem !important;
+  padding: 0.42rem 0.56rem !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-icon,
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon svg,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-icon svg {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text strong,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text strong {
+  overflow: hidden !important;
+  font-size: 0.88rem !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge--google .irisx-store-text strong,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge--google .irisx-store-text strong {
+  font-size: 0.74rem !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payment-grid,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payment-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.46rem !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo {
+  min-width: 0 !important;
+  min-height: 34px !important;
+  padding: 0.35rem 0.42rem !important;
+  gap: 0.28rem !important;
+  font-size: 0.74rem !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo strong,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo strong {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* IRIS — final footer containment: keep badges out of link columns */
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-grid,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-grid {
+  grid-template-columns: minmax(0, 300px) repeat(4, minmax(150px, 1fr)) !important;
+  column-gap: clamp(1.6rem, 2.6vw, 3.4rem) !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-brand-block,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-brand-block {
+  width: 100% !important;
+  max-width: 300px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badges {
+  width: 100% !important;
+  max-width: 300px !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.58rem !important;
+  align-items: stretch !important;
+  margin-top: 1.25rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  grid-template-columns: 24px minmax(0, 1fr) !important;
+  gap: 0.46rem !important;
+  padding: 0.42rem 0.56rem !important;
+  border-radius: 10px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-icon,
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon svg,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-icon svg {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text span,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text span {
+  font-size: 0.5rem !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text strong,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text strong {
+  overflow: hidden !important;
+  text-overflow: clip !important;
+  font-size: 0.88rem !important;
+  letter-spacing: 0 !important;
+  line-height: 1.02 !important;
+  white-space: nowrap !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge--google .irisx-store-text strong,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge--google .irisx-store-text strong {
+  font-size: 0.74rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payments,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payments {
+  width: 100% !important;
+  max-width: 300px !important;
+  margin-top: 1rem !important;
+  padding-top: 0.85rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payment-grid,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payment-grid {
+  width: 100% !important;
+  max-width: 300px !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.46rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo {
+  min-width: 0 !important;
+  min-height: 34px !important;
+  padding: 0.35rem 0.42rem !important;
+  gap: 0.28rem !important;
+  border-radius: 8px !important;
+  font-size: 0.74rem !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo strong,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo strong {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo svg,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo svg {
+  flex: 0 0 auto !important;
+  width: 15px !important;
+  height: 15px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-google-g,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-google-g {
+  flex: 0 0 auto !important;
+  font-size: 0.95em !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-wechat-mark,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-wechat-mark {
+  flex: 0 0 auto !important;
+  width: 17px !important;
+  height: 13px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-wechat-mark::after,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-wechat-mark::after {
+  width: 10px !important;
+  height: 8px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-mastercard-mark,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-mastercard-mark {
+  flex: 0 0 auto !important;
+  width: 23px !important;
+  height: 15px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-mastercard-mark i,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-mastercard-mark i {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+@media (max-width: 1180px) {
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-grid,
+  body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-grid {
+    grid-template-columns: minmax(0, 1fr) repeat(2, minmax(148px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-grid,
+  body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-brand-block,
+  body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-brand-block,
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+  body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badges,
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payments,
+  body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payments,
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payment-grid,
+  body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payment-grid {
+    max-width: none !important;
+  }
+}
+
+/* IRIS — footer badge containment and payment mark repair */
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-grid,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-grid {
+  grid-template-columns: minmax(260px, 320px) repeat(4, minmax(136px, 1fr)) !important;
+  gap: clamp(2rem, 3vw, 4.25rem) !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-brand-block,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-brand-block {
+  max-width: 320px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badges {
+  width: 100% !important;
+  max-width: 320px !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.64rem !important;
+  margin-top: 1.35rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge {
+  width: auto !important;
+  min-width: 0 !important;
+  height: 50px !important;
+  min-height: 50px !important;
+  grid-template-columns: 26px minmax(0, 1fr) !important;
+  gap: 0.5rem !important;
+  padding: 0.48rem 0.62rem !important;
+  border-radius: 10px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.54) !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.82), 0 10px 22px rgba(17, 8, 14, 0.1) !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-icon,
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon svg,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-icon svg {
+  width: 26px !important;
+  height: 26px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text span,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text span {
+  font-size: 0.52rem !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text strong,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text strong {
+  font-size: 0.9rem !important;
+  line-height: 1.02 !important;
+  white-space: nowrap !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge--google .irisx-store-text strong,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge--google .irisx-store-text strong {
+  font-size: 0.8rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payments,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payments {
+  max-width: 320px !important;
+  margin-top: 1.08rem !important;
+  padding-top: 0.88rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payment-grid,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payment-grid {
+  width: 100% !important;
+  max-width: 320px !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.48rem !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo {
+  min-width: 0 !important;
+  min-height: 34px !important;
+  padding: 0.34rem 0.45rem !important;
+  gap: 0.28rem !important;
+  border-radius: 8px !important;
+  font-size: 0.76rem !important;
+  line-height: 1 !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo strong,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo strong {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo svg,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo svg {
+  flex: 0 0 auto !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-google-g,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-google-g {
+  flex: 0 0 auto !important;
+  color: #4285f4 !important;
+  font-weight: 950 !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-wechat-mark,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-wechat-mark {
+  flex: 0 0 auto !important;
+  width: 18px !important;
+  height: 14px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-wechat-mark::after,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-wechat-mark::after {
+  width: 11px !important;
+  height: 9px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-mastercard-mark,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-mastercard-mark {
+  flex: 0 0 auto !important;
+  width: 24px !important;
+  height: 15px !important;
+}
+
+body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-mastercard-mark i,
+body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-mastercard-mark i {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+@media (max-width: 1180px) {
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-grid,
+  body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-grid {
+    grid-template-columns: minmax(0, 1fr) repeat(2, minmax(150px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-grid,
+  body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-brand-block,
+  body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-brand-block {
+    max-width: none !important;
+  }
+}
+
 body.irisx-luxury .irisx-chat-action-btn--danger,
 body.irisx-luxury.irisx-white-theme .irisx-chat-action-btn--danger {
   color: #111827 !important;
@@ -19367,4 +19781,85 @@ body.irisx-luxury.irisx-white-theme .irisx-chat-action-btn--primary {
   background: #f1324f !important;
   color: #ffffff !important;
   border-color: #f1324f !important;
+}
+
+/* IRIS — absolute final footer layer */
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-grid,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-grid {
+  grid-template-columns: minmax(0, 300px) repeat(4, minmax(150px, 1fr)) !important;
+  column-gap: clamp(1.6rem, 2.6vw, 3.4rem) !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-brand-block,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-brand-block,
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badges,
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payments,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payments,
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payment-grid,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payment-grid {
+  width: 100% !important;
+  max-width: 300px !important;
+  min-width: 0 !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badges {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.58rem !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  grid-template-columns: 24px minmax(0, 1fr) !important;
+  gap: 0.46rem !important;
+  padding: 0.42rem 0.56rem !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-icon,
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-icon svg,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-icon svg {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text strong,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge .irisx-store-text strong {
+  overflow: hidden !important;
+  font-size: 0.88rem !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge--google .irisx-store-text strong,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge--google .irisx-store-text strong {
+  font-size: 0.74rem !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payment-grid,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payment-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.46rem !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo {
+  min-width: 0 !important;
+  min-height: 34px !important;
+  padding: 0.35rem 0.42rem !important;
+  gap: 0.28rem !important;
+  font-size: 0.74rem !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo strong,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo strong {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }

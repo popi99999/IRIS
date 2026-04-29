@@ -5430,8 +5430,7 @@
         brand,
         count ? langText(count + " articoli", count + " items") : langText("Brand", "Brand"),
         {
-          classes: ["ac-entry--brand"],
-          iconMarkup: `<span class="ac-entry-monogram">${escapeHtml(getBrandMonogram(brand))}</span>`
+          classes: ["ac-entry--brand"]
         }
       );
     }) : fallbackBrandEntries.map(function (entry) {
@@ -5441,8 +5440,7 @@
         entry.brand,
         langText(entry.count + " articoli", entry.count + " items"),
         {
-          classes: ["ac-entry--brand"],
-          iconMarkup: `<span class="ac-entry-monogram">${escapeHtml(getBrandMonogram(entry.brand))}</span>`
+          classes: ["ac-entry--brand"]
         }
       );
     })).join("");

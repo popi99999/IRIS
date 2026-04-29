@@ -20569,14 +20569,14 @@
           <div class="irisx-footer-payments" aria-label="${escapeHtml(langText("Metodi di pagamento sicuri", "Secure payment methods"))}">
             <div class="irisx-footer-payments-title">${langText("Pagamenti sicuri", "Secure payments")}</div>
             <div class="irisx-footer-payment-grid">
-              <span class="irisx-payment-logo irisx-payment-logo--paypal" aria-label="PayPal"><strong>PayPal</strong></span>
-              <span class="irisx-payment-logo irisx-payment-logo--apple-pay" aria-label="Apple Pay"><svg viewBox="0 0 32 32" focusable="false" aria-hidden="true"><path d="M21.4 3.2c.1 1.6-.5 3.1-1.7 4.3-1.2 1.2-2.6 1.9-4.1 1.8-.2-1.5.5-3 1.6-4.1 1.1-1.2 2.8-2 4.2-2zM26.6 23.5c-.7 1.6-1 2.3-1.9 3.7-1.2 1.8-2.8 4-4.9 4-1.8 0-2.3-1.2-4.8-1.1-2.5 0-3 1.1-4.8 1.1-2.1 0-3.7-2-4.9-3.8-3.4-5.2-3.7-11.2-1.6-14.4 1.5-2.3 3.8-3.6 6-3.6 2.2 0 3.6 1.2 5.4 1.2 1.7 0 2.8-1.2 5.3-1.2 1.9 0 3.9 1 5.3 2.8-4.6 2.5-3.8 9 .9 11.3z"/></svg><strong>Apple Pay</strong></span>
-              <span class="irisx-payment-logo irisx-payment-logo--google-pay" aria-label="Google Pay"><span class="irisx-google-g">G</span><strong>Google Pay</strong></span>
-              <span class="irisx-payment-logo irisx-payment-logo--klarna" aria-label="Klarna"><strong>Klarna.</strong></span>
-              <span class="irisx-payment-logo irisx-payment-logo--satispay" aria-label="Satispay"><strong>Satispay</strong></span>
-              <span class="irisx-payment-logo irisx-payment-logo--wechat" aria-label="WeChat Pay"><span class="irisx-wechat-mark" aria-hidden="true"></span><strong>WeChat Pay</strong></span>
-              <span class="irisx-payment-logo irisx-payment-logo--visa" aria-label="Visa"><strong>VISA</strong></span>
-              <span class="irisx-payment-logo irisx-payment-logo--mastercard" aria-label="Mastercard"><span class="irisx-mastercard-mark" aria-hidden="true"><i></i><i></i></span><strong>mastercard</strong></span>
+              <span class="irisx-payment-logo irisx-payment-logo--paypal" aria-label="PayPal"><img class="irisx-payment-logo-img" alt="" loading="eager" decoding="async" src="https://cdn.worldvectorlogo.com/logos/paypal-3.svg"></span>
+              <span class="irisx-payment-logo irisx-payment-logo--apple-pay" aria-label="Apple Pay"><img class="irisx-payment-logo-img" alt="" loading="eager" decoding="async" src="https://cdn.worldvectorlogo.com/logos/apple-pay-2.svg"></span>
+              <span class="irisx-payment-logo irisx-payment-logo--google-pay" aria-label="Google Pay"><img class="irisx-payment-logo-img" alt="" loading="eager" decoding="async" src="https://cdn.worldvectorlogo.com/logos/google-pay-2.svg"></span>
+              <span class="irisx-payment-logo irisx-payment-logo--klarna" aria-label="Klarna"><img class="irisx-payment-logo-img" alt="" loading="eager" decoding="async" src="https://cdn.worldvectorlogo.com/logos/klarna.svg"></span>
+              <span class="irisx-payment-logo irisx-payment-logo--satispay" aria-label="Satispay"><img class="irisx-payment-logo-img" alt="" loading="eager" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Logo_di_Satispay.svg"></span>
+              <span class="irisx-payment-logo irisx-payment-logo--wechat" aria-label="WeChat Pay"><img class="irisx-payment-logo-img" alt="" loading="eager" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/7/7a/WeChat_Pay.png"></span>
+              <span class="irisx-payment-logo irisx-payment-logo--visa" aria-label="Visa"><img class="irisx-payment-logo-img" alt="" loading="eager" decoding="async" src="https://cdn.worldvectorlogo.com/logos/visa-10.svg"></span>
+              <span class="irisx-payment-logo irisx-payment-logo--mastercard" aria-label="Mastercard"><img class="irisx-payment-logo-img" alt="" loading="eager" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Mastercard_2019_logo.svg"></span>
             </div>
           </div>
         </div>

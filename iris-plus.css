@@ -19863,3 +19863,148 @@ html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .iri
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
+
+/* IRIS — absolute final real payment logos */
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 38px !important;
+  padding: 0.38rem 0.64rem !important;
+  background: #ffffff !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo-img,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo-img {
+  display: block !important;
+  width: auto !important;
+  max-width: 104px !important;
+  height: auto !important;
+  max-height: 22px !important;
+  object-fit: contain !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo-img--symbol,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo-img--symbol {
+  max-width: 46px !important;
+  max-height: 24px !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--paypal .irisx-payment-logo-img,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo--paypal .irisx-payment-logo-img {
+  max-width: 96px !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--apple-pay .irisx-payment-logo-img,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo--apple-pay .irisx-payment-logo-img {
+  max-width: 90px !important;
+  max-height: 24px !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--google-pay .irisx-payment-logo-img,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo--google-pay .irisx-payment-logo-img {
+  max-width: 102px !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--klarna .irisx-payment-logo-img,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo--klarna .irisx-payment-logo-img {
+  max-width: 90px !important;
+  max-height: 24px !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--satispay .irisx-payment-logo-img,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo--satispay .irisx-payment-logo-img {
+  max-width: 98px !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--wechat .irisx-payment-logo-img,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo--wechat .irisx-payment-logo-img {
+  max-width: 112px !important;
+  max-height: 22px !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--visa .irisx-payment-logo-img,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo--visa .irisx-payment-logo-img {
+  max-width: 66px !important;
+  max-height: 20px !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo--mastercard .irisx-payment-logo-img,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo--mastercard .irisx-payment-logo-img {
+  max-width: 58px !important;
+  max-height: 24px !important;
+}
+
+@media (max-width: 760px) {
+  html body.irisx-luxury .site-footer.irisx-footer-redesign,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign {
+    margin-top: 3rem !important;
+    padding: 3.25rem 0 calc(7.5rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-grid,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-grid {
+    grid-template-columns: 1fr !important;
+    row-gap: 2.15rem !important;
+    column-gap: 0 !important;
+    max-width: calc(100vw - 36px) !important;
+  }
+
+  html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-brand-block,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-brand-block,
+  html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badges,
+  html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payments,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payments,
+  html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payment-grid,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payment-grid {
+    max-width: none !important;
+  }
+
+  html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badges,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badges,
+  html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-payment-grid,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-payment-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body.irisx-luxury .site-footer.irisx-footer-redesign .footer-col-title,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .footer-col-title {
+    margin-bottom: 0.85rem !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.34em !important;
+  }
+
+  html body.irisx-luxury .site-footer.irisx-footer-redesign .footer-links,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .footer-links {
+    gap: 0.72rem !important;
+  }
+
+  html body.irisx-luxury .site-footer.irisx-footer-redesign .footer-links a,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .footer-links a {
+    display: inline-block !important;
+    font-size: 0.98rem !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+  }
+
+  html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-footer-disclaimers,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-footer-disclaimers {
+    grid-template-columns: 1fr !important;
+    max-width: calc(100vw - 36px) !important;
+    gap: 1rem !important;
+  }
+
+  html body.irisx-luxury .site-footer.irisx-footer-redesign .footer-bottom,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .footer-bottom {
+    display: grid !important;
+    max-width: calc(100vw - 36px) !important;
+    gap: 1rem !important;
+  }
+
+  html body.irisx-luxury .site-footer.irisx-footer-redesign .footer-legal,
+  html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .footer-legal {
+    justify-content: flex-start !important;
+  }
+}

@@ -20169,3 +20169,302 @@ html body.irisx-luxury.irisx-white-theme .irisx-mobile-app-nav.is-visible {
     pointer-events: auto !important;
   }
 }
+
+/* IRIS — 2026-04-30 bugfix cap: dropdowns, cached visual regressions, offer/chat alignment */
+html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact,
+html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact,
+html body.irisx-luxury #shop-view .irisx-fdrop-bar--compact,
+html body.irisx-luxury.irisx-white-theme #shop-view .irisx-fdrop-bar--compact {
+  overflow: visible !important;
+}
+
+html body.irisx-luxury #shop-view .irisx-fdrop-bar--compact,
+html body.irisx-luxury.irisx-white-theme #shop-view .irisx-fdrop-bar--compact {
+  align-items: flex-start !important;
+  flex-wrap: wrap !important;
+  row-gap: 10px !important;
+  padding-bottom: 14px !important;
+}
+
+html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop[open] > .irisx-fdrop__panel,
+html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop[open] > .irisx-fdrop__panel {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__panel,
+html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__panel {
+  min-width: 230px !important;
+  max-width: min(360px, calc(100vw - 32px)) !important;
+  border-color: rgba(17, 24, 39, 0.16) !important;
+  box-shadow: 0 24px 48px rgba(17, 24, 39, 0.13) !important;
+}
+
+html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__item,
+html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__item {
+  color: #141827 !important;
+  font-size: 0.94rem !important;
+  line-height: 1.2 !important;
+}
+
+html body.irisx-luxury #grid .pi-tags,
+html body.irisx-luxury #favGrid .pi-tags,
+html body.irisx-luxury .irisx-home-grid .pi-tags,
+html body.irisx-luxury .irisx-favorites-grid .pi-tags,
+html body.irisx-luxury .irisx-seller-listings .pi-tags,
+html body.irisx-luxury .det-similar-grid .pi-tags,
+html body.irisx-luxury.irisx-white-theme #grid .pi-tags,
+html body.irisx-luxury.irisx-white-theme #favGrid .pi-tags,
+html body.irisx-luxury.irisx-white-theme .irisx-home-grid .pi-tags,
+html body.irisx-luxury.irisx-white-theme .irisx-favorites-grid .pi-tags,
+html body.irisx-luxury.irisx-white-theme .irisx-seller-listings .pi-tags,
+html body.irisx-luxury.irisx-white-theme .det-similar-grid .pi-tags {
+  display: none !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-store-badge-img,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-store-badge-img {
+  display: block !important;
+  width: 100% !important;
+  max-width: 182px !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo {
+  min-height: 42px !important;
+  padding: 0.45rem 0.7rem !important;
+  border: 1px solid rgba(17, 24, 39, 0.14) !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+}
+
+html body.irisx-luxury .site-footer.irisx-footer-redesign .irisx-payment-logo-img,
+html body.irisx-luxury.irisx-white-theme .site-footer.irisx-footer-redesign .irisx-payment-logo-img {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: 116px !important;
+  max-height: 25px !important;
+  object-fit: contain !important;
+}
+
+html body.irisx-luxury .offer-shell--amount .offer-amount-shell,
+html body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-amount-shell {
+  display: grid !important;
+  grid-template-columns: 62px minmax(220px, 520px) 62px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 18px !important;
+  width: 100% !important;
+  max-width: 720px !important;
+  margin-inline: auto !important;
+}
+
+html body.irisx-luxury .offer-shell--amount .offer-amount-field,
+html body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-amount-field {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  min-height: 82px !important;
+  padding-inline: 28px !important;
+  border-radius: 999px !important;
+  background: #fff8f9 !important;
+}
+
+html body.irisx-luxury .offer-shell--amount .offer-amount-currency,
+html body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-amount-currency {
+  width: auto !important;
+  flex: 0 0 auto !important;
+  font-size: clamp(2rem, 4vw, 3rem) !important;
+  line-height: 1 !important;
+}
+
+html body.irisx-luxury .offer-shell--amount .offer-input,
+html body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-input {
+  width: min(7ch, 100%) !important;
+  min-width: 1ch !important;
+  text-align: left !important;
+  font-size: clamp(2rem, 4vw, 3rem) !important;
+  line-height: 1 !important;
+}
+
+html body.irisx-luxury .offer-shell--review .offer-review-layout,
+html body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-layout {
+  display: grid !important;
+  grid-template-columns: minmax(0, 0.92fr) minmax(340px, 0.8fr) !important;
+  align-items: start !important;
+  gap: clamp(24px, 4vw, 56px) !important;
+}
+
+html body.irisx-luxury .offer-shell--review .offer-review-card,
+html body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-card,
+html body.irisx-luxury .offer-shell--review .offer-review-summary,
+html body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-summary {
+  min-height: 0 !important;
+}
+
+html body.irisx-luxury .cm-input,
+html body.irisx-luxury.irisx-white-theme .cm-input {
+  grid-template-columns: minmax(0, 1fr) 142px !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 14px 28px calc(14px + env(safe-area-inset-bottom)) !important;
+}
+
+html body.irisx-luxury .cm-input .irisx-chat-composer-note,
+html body.irisx-luxury.irisx-white-theme .cm-input .irisx-chat-composer-note {
+  grid-column: 1 / -1 !important;
+  max-width: none !important;
+  padding-top: 2px !important;
+  font-size: 0.88rem !important;
+}
+
+html body.irisx-luxury .cm-input input,
+html body.irisx-luxury.irisx-white-theme .cm-input input,
+html body.irisx-luxury .cm-input .cm-send,
+html body.irisx-luxury.irisx-white-theme .cm-input .cm-send {
+  height: 56px !important;
+  min-height: 56px !important;
+}
+
+html body.irisx-luxury #detail-view .det-back,
+html body.irisx-luxury.irisx-white-theme #detail-view .det-back {
+  display: none !important;
+}
+
+html body.irisx-luxury #detail-view .irisx-back-control,
+html body.irisx-luxury.irisx-white-theme #detail-view .irisx-back-control,
+html body.irisx-luxury .irisx-page-back,
+html body.irisx-luxury.irisx-white-theme .irisx-page-back {
+  display: inline-flex !important;
+}
+
+html body.irisx-luxury #detail-view.active .irisx-detail-topline,
+html body.irisx-luxury.irisx-white-theme #detail-view.active .irisx-detail-topline {
+  padding-left: 76px !important;
+}
+
+@media (max-width: 760px) {
+  html body.irisx-luxury #detail-view.active .irisx-detail-topline,
+  html body.irisx-luxury.irisx-white-theme #detail-view.active .irisx-detail-topline {
+    padding-left: 56px !important;
+  }
+}
+
+html body.irisx-luxury #fav-view,
+html body.irisx-luxury.irisx-white-theme #fav-view {
+  background: #ffffff !important;
+  color: #151324 !important;
+}
+
+html body.irisx-luxury #fav-view .container,
+html body.irisx-luxury.irisx-white-theme #fav-view .container {
+  width: min(100% - 96px, 1500px) !important;
+  max-width: 1500px !important;
+  margin-inline: auto !important;
+  padding-top: clamp(42px, 5vw, 86px) !important;
+}
+
+html body.irisx-luxury #fav-view .fav-header,
+html body.irisx-luxury.irisx-white-theme #fav-view .fav-header {
+  padding: 0 0 clamp(24px, 3vw, 42px) !important;
+}
+
+html body.irisx-luxury #fav-view .fav-title,
+html body.irisx-luxury.irisx-white-theme #fav-view .fav-title {
+  color: #151324 !important;
+  font-size: clamp(2.2rem, 4vw, 4rem) !important;
+  font-weight: 420 !important;
+  line-height: 1.04 !important;
+  letter-spacing: 0 !important;
+}
+
+html body.irisx-luxury #fav-view .fav-count,
+html body.irisx-luxury.irisx-white-theme #fav-view .fav-count {
+  color: #827989 !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  margin-top: 0.65rem !important;
+}
+
+@media (max-width: 760px) {
+  html body.irisx-luxury #shop-view .irisx-fdrop-bar--compact,
+  html body.irisx-luxury.irisx-white-theme #shop-view .irisx-fdrop-bar--compact {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+
+  html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop,
+  html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop,
+  html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__btn,
+  html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__btn {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__btn,
+  html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__btn {
+    min-height: 44px !important;
+    padding-inline: 10px !important;
+    font-size: 0.82rem !important;
+  }
+
+  html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop[open],
+  html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop[open] {
+    grid-column: 1 / -1 !important;
+  }
+
+  html body.irisx-luxury #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__panel,
+  html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--compact .irisx-fdrop__panel {
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    max-height: 260px !important;
+    margin-top: 8px !important;
+  }
+
+  html body.irisx-luxury .offer-shell--amount .offer-amount-shell,
+  html body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-amount-shell {
+    grid-template-columns: 52px minmax(0, 1fr) 52px !important;
+    gap: 8px !important;
+  }
+
+  html body.irisx-luxury .offer-shell--amount .offer-amount-field,
+  html body.irisx-luxury.irisx-white-theme .offer-shell--amount .offer-amount-field {
+    min-height: 66px !important;
+    padding-inline: 16px !important;
+  }
+
+  html body.irisx-luxury .offer-shell--review .offer-review-layout,
+  html body.irisx-luxury.irisx-white-theme .offer-shell--review .offer-review-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body.irisx-luxury .cm-input,
+  html body.irisx-luxury.irisx-white-theme .cm-input {
+    grid-template-columns: minmax(0, 1fr) 112px !important;
+    padding-inline: 12px !important;
+  }
+}

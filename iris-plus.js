@@ -783,7 +783,7 @@
   }
 
   window.updateFavBadge = function updateFavBadgeOverride() {
-    const count = getFavoriteProductItems().length;
+    const count = getFavoriteProductItems({ requirePurchasable: true }).length;
     [document.getElementById("fav-badge"), document.getElementById("fav-top-badge")]
       .filter(Boolean)
       .forEach(function (badge) {
@@ -2212,7 +2212,9 @@
     })();
     const currentAppUrl = window.location.origin + window.location.pathname;
     const fallbackUrl = configuredSiteUrl || canonicalHref || currentAppUrl;
-    const preferredUrl = localHostPattern.test(window.location.hostname) ? currentAppUrl : fallbackUrl;
+    const preferredUrl = localHostPattern.test(window.location.hostname)
+      ? (configuredSiteUrl || canonicalHref || currentAppUrl)
+      : fallbackUrl;
     try {
       const url = new URL(preferredUrl);
       url.hash = "";
@@ -3473,12 +3475,14 @@
 
   async function fetchSupabaseFavorites() {
     const client = getSupabaseClient();
-    if (!client || !getCurrentSupabaseUserId()) {
+    const userId = getCurrentSupabaseUserId();
+    if (!client || !userId) {
       return [];
     }
     const response = await client
       .from("favorites")
       .select("*")
+      .eq("user_id", userId)
       .order("created_at_ms", { ascending: false });
     if (response.error) {
       throw response.error;
@@ -3510,20 +3514,8 @@
       return;
     }
     const remoteFavorites = await fetchSupabaseFavorites();
-    const localFavoriteIds = normalizeFavoriteCollection(favorites);
-    const mergedFavorites = Array.from(new Set(remoteFavorites.concat(localFavoriteIds)));
-    favorites = new Set(normalizeFavoriteCollection(mergedFavorites));
+    favorites = new Set(normalizeFavoriteCollection(remoteFavorites));
     saveJson(STORAGE_KEYS.favorites, Array.from(favorites));
-    const remoteIds = new Set(remoteFavorites.map(String));
-    const localOnly = localFavoriteIds.filter(function (productId) { return !remoteIds.has(String(productId)); });
-    if (localOnly.length) {
-      Promise.all(localOnly.map(function (productId) {
-        return saveFavoriteToSupabase(productId, true).catch(function (error) {
-          console.warn("[IRIS] Unable to backfill local favorite to Supabase", error);
-          return null;
-        });
-      }));
-    }
     updateFavBadge();
     if (typeof render === "function") {
       render();
@@ -7691,7 +7683,7 @@
   function updateIrisBackButton(view) {
     const button = ensureIrisBackButton();
     const activeView = view || getActiveIrisViewForBack();
-    const shouldShow = activeView && activeView !== "home";
+    const shouldShow = activeView && activeView !== "home" && activeView !== "shop";
     if (!button) {
       return;
     }
@@ -8339,7 +8331,7 @@
   }
 
   function validateSellForm() {
-    const requiredFields = ["fileIn", "sf-cat", "sf-brand", "sf-name", "sf-subcat", "sf-condition", "sf-desc", "sf-price"];
+    const requiredFields = ["fileIn", "sf-cat", "sf-brand", "sf-name", "sf-subcat", "sf-color", "sf-condition", "sf-desc", "sf-price"];
     const baseValid = requiredFields.reduce(function (isValid, fieldId) {
       return validateSellField(fieldId) && isValid;
     }, true);
@@ -10744,12 +10736,12 @@
     function getOfferPaymentOptions() {
       return [{
         id: "stripe-offer-authorization",
-        kind: "Stripe Checkout",
-        label: langText("Carta o wallet in checkout sicuro", "Card or wallet in secure checkout"),
+        kind: langText("Stripe sicuro", "Secure Stripe"),
+        label: langText("Carta, Apple Pay o Google Pay", "Card, Apple Pay or Google Pay"),
         meta: langText("Pre-autorizzazione protetta: addebito finale solo se il seller accetta.", "Protected pre-authorization: final capture only if the seller accepts."),
         snapshot: {
           id: "stripe-offer-authorization",
-          label: langText("Autorizzazione sicura con Stripe", "Secure authorization with Stripe")
+          label: langText("Autorizzazione sicura tramite Stripe", "Secure authorization through Stripe")
         }
       }];
     }
@@ -12464,9 +12456,11 @@
     };
 
     renderFavorites = function () {
-      const items = getFavoriteProductItems();
+      const items = getFavoriteProductItems({ requirePurchasable: true });
       qs("#favCountText").textContent =
-        items.length + " " + (items.length === 1 ? t("cart_items").replace(/s$/, "") : t("items_saved"));
+        items.length + " " + (items.length === 1
+          ? langText("articolo salvato", "saved item")
+          : langText("articoli salvati", "saved items"));
 
       const grid = qs("#favGrid");
       const empty = qs("#favEmpty");
@@ -12477,29 +12471,7 @@
       }
 
       empty.style.display = "none";
-      grid.innerHTML = items
-        .map((product) => {
-          const productIdExpr = inlineJsValue(product.id);
-          const safeName = escapeHtml(product.name);
-          const safeBrand = escapeHtml(product.brand);
-          return (
-            "<div class=\"pc\" onclick=\"showDetail(" +
-            productIdExpr +
-            ")\">" +
-            "<button class=\"pc-heart liked\" onclick=\"event.stopPropagation();toggleFav(" +
-            productIdExpr +
-            ",this);renderFavorites()\">♥</button>" +
-            productVisualMarkup(product) +
-            "<div class=\"pinfo\"><div class=\"p-brand\">" +
-            safeBrand +
-            "</div><div class=\"p-name\">" +
-            safeName +
-            "</div><div class=\"p-footer\"><span class=\"p-price\">" +
-            formatCurrency(product.price) +
-            "</span></div></div></div>"
-          );
-        })
-        .join("");
+      grid.innerHTML = items.map((product) => productCardMarkup(product)).join("");
       enhanceInteractiveSurfaces(grid);
     };
 
@@ -13215,7 +13187,14 @@
     if (normalized.includes("redirect") && normalized.includes("not allowed")) {
       return langText("Il link di ritorno non è configurato correttamente. Contatta il supporto IRIS.", "The return URL is not configured correctly. Contact IRIS support.");
     }
-    if (normalized.includes("rate limit") || normalized.includes("too many requests") || normalized.includes("429")) {
+    if (
+      normalized.includes("rate limit") ||
+      normalized.includes("rate_limit") ||
+      normalized.includes("too many requests") ||
+      normalized.includes("email rate limit") ||
+      normalized.includes("over_email_send_rate_limit") ||
+      normalized.includes("429")
+    ) {
       return langText("Hai fatto troppi tentativi in poco tempo. Aspetta un attimo e riprova.", "Too many attempts in a short time. Wait a moment and try again.");
     }
     return rawMessage;
@@ -13536,6 +13515,7 @@
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
+        setInlineStatus(status, langText("Controllo dati in corso...", "Checking details..."), false);
         if (isRecovery) {
           const updateResponse = await supabase.auth.updateUser({
             password: password
@@ -14305,8 +14285,10 @@
     const offerPolicy = getListingOfferPolicyFromForm();
     const offerValidation = validateListingOfferPolicy(offerPolicy, price);
 
-    if (!brand || !name || !condition || !description || !price || !state.sellPhotos.length) {
+    if (!brand || !name || !color || !condition || !description || !price || !state.sellPhotos.length) {
       updateSellStatus(t("publish_error"), true);
+      validateSellForm();
+      focusFirstSellError();
       return;
     }
     if (conditionRequiresDefects(condition) && !conditionNotes) {
@@ -15459,6 +15441,55 @@
     );
     renderChats();
   }
+
+  function getListingSellerBlockIdentity(product) {
+    const seller = buildListingSeller(product || {});
+    const email = normalizeEmail((product && product.ownerEmail) || seller.email || "");
+    const id = String(seller.id || email || "");
+    return {
+      key: email ? "email:" + email : (id ? "id:" + id : ""),
+      name: seller.name || langText("venditore", "seller")
+    };
+  }
+
+  function isListingSellerBlocked(product) {
+    const identity = getListingSellerBlockIdentity(product);
+    return Boolean(identity.key && Array.isArray(state.sellerBlocks) && state.sellerBlocks.indexOf(identity.key) > -1);
+  }
+
+  function toggleSellerBlockFromListing(productId) {
+    const product = getListingById(productId);
+    if (!product) {
+      showToast(langText("Annuncio non disponibile.", "Listing unavailable."));
+      return;
+    }
+    const identity = getListingSellerBlockIdentity(product);
+    if (!identity.key) {
+      showToast(langText("Venditore non identificabile.", "Seller cannot be identified."));
+      return;
+    }
+    state.sellerBlocks = Array.isArray(state.sellerBlocks) ? state.sellerBlocks : [];
+    const index = state.sellerBlocks.indexOf(identity.key);
+    const blocked = index === -1;
+    if (blocked) {
+      state.sellerBlocks.push(identity.key);
+    } else {
+      state.sellerBlocks.splice(index, 1);
+    }
+    persistSellerBlocks();
+    showToast(blocked
+      ? langText("Venditore bloccato.", "Seller blocked.")
+      : langText("Venditore sbloccato.", "Seller unblocked.")
+    );
+    if (state.activeDetailListingId && sameEntityId(state.activeDetailListingId, productId)) {
+      showDetail(productId);
+    }
+    if (qs("#chat-view.active")) {
+      renderChats();
+    }
+  }
+
+  window.toggleSellerBlockFromListing = toggleSellerBlockFromListing;
 
   function getOffersForConversation(conversation) {
     if (!conversation) {
@@ -20349,6 +20380,7 @@
     const relatedOrder = getRelevantOrderForListing(product);
     const favoriteLabel = liked ? t("saved_fav") : t("add_fav");
     const favoriteIcon = liked ? "♥" : "♡";
+    const sellerBlocked = !ownListing && isListingSellerBlocked(product);
     const minimumOfferLine = product.minimumOfferAmount !== null && product.minimumOfferAmount !== undefined
       ? `${langText("Offerta minima", "Minimum offer")}: ${formatCurrency(product.minimumOfferAmount)}`
       : langText("Offerte attive su questo annuncio.", "Offers are active on this listing.");
@@ -20390,7 +20422,9 @@
       </div>
       <div class="irisx-detail-utility-actions irisx-detail-utility-actions--balanced">
         <button class="det-fav irisx-detail-fav-pill" onclick="toggleFav(${productIdExpr},null)"><span>${favoriteIcon}</span><span>${favoriteLabel}</span></button>
-        <button class="irisx-secondary" onclick="openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>
+        ${sellerBlocked
+          ? `<button class="irisx-secondary" onclick="toggleSellerBlockFromListing(${productIdExpr})">${langText("Sblocca venditore", "Unblock seller")}</button>`
+          : `<button class="irisx-secondary" onclick="openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>`}
       </div>
     </div>`;
   };
@@ -20427,9 +20461,12 @@
     const relatedOrder = getRelevantOrderForListing(product);
     const sellerIdExpr = inlineJsValue(seller.id);
     const productIdExpr = inlineJsValue(product.id);
+    const sellerBlocked = !viewerOwnsListing && isListingSellerBlocked(product);
     const sellerPrimaryAction = viewerOwnsListing
       ? `<button class="seller-chat" onclick="event.stopPropagation();loadDraftIntoSellForm(${productIdExpr})">${langText("Modifica", "Edit")}</button>`
-      : `<button class="seller-chat" onclick="event.stopPropagation();openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>`;
+      : sellerBlocked
+        ? `<button class="seller-chat seller-chat--muted" onclick="event.stopPropagation();toggleSellerBlockFromListing(${productIdExpr})">${langText("Sblocca", "Unblock")}</button>`
+        : `<button class="seller-chat" onclick="event.stopPropagation();openChat(${sellerIdExpr},${productIdExpr})">${t("chat")}</button>`;
     const sellerCardClick = viewerOwnsListing
       ? `showBuyView('profile');setProfileArea('seller','active')`
       : `showSeller('${escapeHtml(seller.id)}')`;
@@ -20437,7 +20474,8 @@
       ? `<button class="irisx-secondary" onclick="event.stopPropagation();showBuyView('profile');setProfileArea('seller','active')">${langText("Area vendite", "Seller area")}</button>`
       : `<button class="irisx-secondary" onclick="event.stopPropagation();showSeller('${escapeHtml(seller.id)}')">${langText("Vedi profilo", "View profile")}</button>`;
     const sellerReportAction = !viewerOwnsListing
-      ? `<button class="irisx-link-btn irisx-link-btn--quiet" onclick="event.stopPropagation();reportListing(${productIdExpr})">${langText("Segnala annuncio", "Report listing")}</button>`
+      ? `<button class="irisx-link-btn irisx-link-btn--quiet" onclick="event.stopPropagation();reportListing(${productIdExpr})">${langText("Segnala annuncio", "Report listing")}</button>
+        <button class="irisx-link-btn irisx-link-btn--quiet" onclick="event.stopPropagation();toggleSellerBlockFromListing(${productIdExpr})">${sellerBlocked ? langText("Sblocca venditore", "Unblock seller") : langText("Blocca venditore", "Block seller")}</button>`
       : "";
     const sellerTrustBadges = [
       isVerifiedSellerProfile(seller) ? langText("Seller verificato", "Verified seller") : "",
@@ -20510,10 +20548,14 @@
     detailView.style.display = "block";
     detailView.classList.add("active");
     syncDetailImageFit(product);
+    setActiveNav("shop");
     syncTopnavChrome("detail");
     window.scrollTo(0, 0);
     updateMeta("IRIS - " + product.brand + " " + product.name, product.desc.substring(0, 160));
   };
+
+  window.showDetail = showDetail;
+  window.closeDetail = closeDetail;
 
   function irisFooterShop(mode) {
     showPage("buy");
@@ -20563,8 +20605,8 @@
           <div class="footer-brand">IRIS</div>
           <div class="footer-desc">${langText("Il marketplace italiano per la moda di lusso. Compra e vendi pezzi firmati con autenticazione e protezione IRIS.", "The Italian marketplace for luxury fashion. Buy and sell designer pieces with IRIS authentication and protection.")}</div>
           <div class="irisx-store-badges" aria-label="${escapeHtml(langText("Scarica l'app IRIS", "Download the IRIS app"))}">
-            <a class="irisx-store-badge irisx-store-badge--google" href="#" onclick="event.preventDefault()" aria-label="${escapeHtml(langText("Disponibile su Google Play", "Get it on Google Play"))}"><span class="irisx-store-icon" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path class="gp-a" d="M5 3.8v24.4l13-12.2z"/><path class="gp-b" d="M18 16 22.1 12 7.1 3.5z"/><path class="gp-c" d="M18 16 7.1 28.5 22.1 20z"/><path class="gp-d" d="M22.1 12 28 15.3c.6.4.6 1 0 1.4L22.1 20 18 16z"/></svg></span><span class="irisx-store-text"><span>${langText("Disponibile su", "Get it on")}</span><strong>Google Play</strong></span></a>
-            <a class="irisx-store-badge irisx-store-badge--apple" href="#" onclick="event.preventDefault()" aria-label="${escapeHtml(langText("Scarica su App Store", "Download on the App Store"))}"><span class="irisx-store-icon" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path d="M21.4 3.2c.1 1.6-.5 3.1-1.7 4.3-1.2 1.2-2.6 1.9-4.1 1.8-.2-1.5.5-3 1.6-4.1 1.1-1.2 2.8-2 4.2-2zM26.6 23.5c-.7 1.6-1 2.3-1.9 3.7-1.2 1.8-2.8 4-4.9 4-1.8 0-2.3-1.2-4.8-1.1-2.5 0-3 1.1-4.8 1.1-2.1 0-3.7-2-4.9-3.8-3.4-5.2-3.7-11.2-1.6-14.4 1.5-2.3 3.8-3.6 6-3.6 2.2 0 3.6 1.2 5.4 1.2 1.7 0 2.8-1.2 5.3-1.2 1.9 0 3.9 1 5.3 2.8-4.6 2.5-3.8 9 .9 11.3z"/></svg></span><span class="irisx-store-text"><span>${langText("Scarica su", "Download on")}</span><strong>App Store</strong></span></a>
+            <a class="irisx-store-badge irisx-store-badge--google" href="#" onclick="event.preventDefault()" aria-label="${escapeHtml(langText("Disponibile su Google Play", "Get it on Google Play"))}"><img class="irisx-store-badge-img" alt="${escapeHtml(langText("Disponibile su Google Play", "Get it on Google Play"))}" loading="eager" decoding="async" src="https://play.google.com/intl/en_us/badges/static/images/badges/it_badge_web_generic.png"></a>
+            <a class="irisx-store-badge irisx-store-badge--apple" href="#" onclick="event.preventDefault()" aria-label="${escapeHtml(langText("Scarica su App Store", "Download on the App Store"))}"><img class="irisx-store-badge-img" alt="${escapeHtml(langText("Scarica su App Store", "Download on the App Store"))}" loading="eager" decoding="async" src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/it-it?size=250x83"></a>
           </div>
           <div class="irisx-footer-payments" aria-label="${escapeHtml(langText("Metodi di pagamento sicuri", "Secure payment methods"))}">
             <div class="irisx-footer-payments-title">${langText("Pagamenti sicuri", "Secure payments")}</div>

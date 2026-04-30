@@ -7600,6 +7600,12 @@
     document.body.insertAdjacentHTML("beforeend", buildMobileAppNavMarkup());
   }
 
+  function shouldUseMobileAppNav() {
+    const compactViewport = window.innerWidth <= 900;
+    const touchPrimary = window.matchMedia && window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    return compactViewport && touchPrimary;
+  }
+
   function showMobileTabView(view) {
     closeMobileNav();
     closeProfileMenu();
@@ -7617,10 +7623,9 @@
       return;
     }
     const activeView = view || getCurrentReturnView();
-    const isMobile = window.innerWidth <= 900;
     const pageIsSell = !!qs("#page-sell.active");
     const visibleViews = ["home", "shop", "fav", "chat", "profile"];
-    const shouldShow = isMobile && !pageIsSell && visibleViews.includes(activeView);
+    const shouldShow = shouldUseMobileAppNav() && !pageIsSell && visibleViews.includes(activeView);
     nav.classList.toggle("is-visible", shouldShow);
     nav.setAttribute("aria-hidden", shouldShow ? "false" : "true");
   }
@@ -10651,13 +10656,7 @@
 
     function getOfferCurrencySymbol() {
       const locale = getLocaleConfig();
-      const parts = new Intl.NumberFormat(locale.locale, {
-        style: "currency",
-        currency: locale.currency,
-        maximumFractionDigits: locale.currency === "JPY" ? 0 : 2
-      }).formatToParts(0);
-      const currencyPart = parts.find(function (part) { return part.type === "currency"; });
-      return currencyPart ? currencyPart.value : "€";
+      return getLocaleCurrencySymbol(locale) || locale.currency || "€";
     }
 
     function getOfferDraftAmountValue() {
@@ -19343,7 +19342,8 @@
       }
       name.textContent = scopeCopy.title;
       if (productLabel) {
-        productLabel.textContent = scopeCopy.subtitle;
+        productLabel.textContent = "";
+        productLabel.setAttribute("aria-hidden", "true");
       }
       syncChatBadge();
       return;
@@ -19400,7 +19400,8 @@
       name.textContent = conversation.with && conversation.with.name ? conversation.with.name : langText("Conversation", "Conversation");
     }
     if (productLabel) {
-      productLabel.textContent = conversation.product ? `${conversation.product.brand} · ${conversation.product.name}` : langText("Linked listing", "Linked listing");
+      productLabel.textContent = "";
+      productLabel.setAttribute("aria-hidden", "true");
     }
     if (roleMeta) {
       roleMeta.textContent = "";
@@ -20463,7 +20464,6 @@
     detailView.innerHTML = `<div class="irisx-detail-page view-enter">
       <div class="irisx-detail-topline">
         <div class="irisx-detail-breadcrumb"><button type="button" onclick="closeDetail()">${langText("Home", "Home")}</button><span>/</span><button type="button" onclick="showBuyView('shop')">${langText("Shop", "Shop")}</button><span>/</span><strong>${escapeHtml(product.brand)}</strong></div>
-        <button type="button" class="det-back" onclick="closeDetail()">${t("back_shop")}</button>
       </div>
       <section class="det-layout det-layout--hero">
         <div class="det-imgs">${detailMediaMarkup(product)}</div>

@@ -8905,7 +8905,7 @@ body.irisx-luxury .irisx-mobile-app-nav {
 }
 
 body.irisx-luxury .irisx-mobile-app-nav.is-visible {
-  display: flex;
+  display: none;
 }
 
 body.irisx-luxury .irisx-mobile-app-tab {
@@ -8960,6 +8960,13 @@ body.irisx-luxury.irisx-white-theme .irisx-mobile-app-tab.active {
 
 body.irisx-luxury.irisx-white-theme .irisx-mobile-app-tab:hover {
   color: #F1324F;
+}
+
+@media (max-width: 900px) and (hover: none) and (pointer: coarse) {
+  body.irisx-luxury .irisx-mobile-app-nav.is-visible,
+  body.irisx-luxury.irisx-white-theme .irisx-mobile-app-nav.is-visible {
+    display: flex;
+  }
 }
 
 @media (max-width: 900px) {
@@ -20068,5 +20075,97 @@ html body.irisx-luxury.irisx-white-theme #shop-view .irisx-shop-discovery-deck--
     right: auto !important;
     width: min(100%, calc(100vw - 32px)) !important;
     min-width: min(100%, calc(100vw - 32px)) !important;
+  }
+}
+
+/* IRIS — final chat/detail control cleanup */
+html body.irisx-luxury .cm-prod,
+html body.irisx-luxury.irisx-white-theme .cm-prod,
+html body.irisx-luxury .irisx-detail-topline .det-back,
+html body.irisx-luxury.irisx-white-theme .irisx-detail-topline .det-back {
+  display: none !important;
+}
+
+html body.irisx-luxury .cm-head,
+html body.irisx-luxury.irisx-white-theme .cm-head {
+  justify-content: flex-start !important;
+}
+
+html body.irisx-luxury .cm-input,
+html body.irisx-luxury.irisx-white-theme .cm-input {
+  display: grid !important;
+  grid-template-columns: minmax(260px, 520px) 180px minmax(260px, 1fr) !important;
+  align-items: center !important;
+  gap: 18px !important;
+  min-height: 88px !important;
+  padding: 18px 32px calc(18px + env(safe-area-inset-bottom)) !important;
+}
+
+html body.irisx-luxury .cm-input input,
+html body.irisx-luxury.irisx-white-theme .cm-input input,
+html body.irisx-luxury .cm-input .cm-send,
+html body.irisx-luxury.irisx-white-theme .cm-input .cm-send {
+  align-self: center !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  margin: 0 !important;
+}
+
+html body.irisx-luxury .cm-input .cm-send,
+html body.irisx-luxury.irisx-white-theme .cm-input .cm-send {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 180px !important;
+  white-space: nowrap !important;
+}
+
+html body.irisx-luxury .cm-input .irisx-chat-composer-note,
+html body.irisx-luxury.irisx-white-theme .cm-input .irisx-chat-composer-note {
+  grid-column: auto !important;
+  align-self: center !important;
+  margin: 0 !important;
+  max-width: 760px !important;
+  color: #b42318 !important;
+  font-size: 0.9rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.35 !important;
+}
+
+html body.irisx-luxury .cm-input .irisx-chat-composer-note:not(.is-blocked),
+html body.irisx-luxury.irisx-white-theme .cm-input .irisx-chat-composer-note:not(.is-blocked) {
+  display: none !important;
+}
+
+@media (max-width: 980px) {
+  html body.irisx-luxury .cm-input,
+  html body.irisx-luxury.irisx-white-theme .cm-input {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 12px !important;
+    padding-inline: 16px !important;
+  }
+
+  html body.irisx-luxury .cm-input .irisx-chat-composer-note,
+  html body.irisx-luxury.irisx-white-theme .cm-input .irisx-chat-composer-note {
+    grid-column: 1 / -1 !important;
+    max-width: none !important;
+  }
+}
+
+/* IRIS — desktop guard for the mobile app tabbar */
+html body.irisx-luxury .irisx-mobile-app-nav,
+html body.irisx-luxury.irisx-white-theme .irisx-mobile-app-nav,
+html body.irisx-luxury .irisx-mobile-app-nav.is-visible,
+html body.irisx-luxury.irisx-white-theme .irisx-mobile-app-nav.is-visible {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 900px) and (hover: none) and (pointer: coarse) {
+  html body.irisx-luxury .irisx-mobile-app-nav.is-visible,
+  html body.irisx-luxury.irisx-white-theme .irisx-mobile-app-nav.is-visible {
+    display: flex !important;
+    pointer-events: auto !important;
   }
 }

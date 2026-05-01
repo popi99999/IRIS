@@ -8,8 +8,10 @@ import {
   detectColumnMappings,
   detectDuplicate,
   generateIrisTemplateCsv,
+  getProfessionalSellerMenuEntry,
   isAllowedFeedUrl,
   isPublicSafeUrl,
+  normalizeProfessionalSellerMenuStatus,
   normalizeProductData,
   parseCsv,
   roleFromSellerStatus,
@@ -154,15 +156,34 @@ test("detects existing products by priority keys and does not create duplicates"
 
 test("enforces professional seller role access rules", () => {
   const pending = roleFromSellerStatus("pending_verification");
+  const pendingReview = roleFromSellerStatus("pending_review");
+  const moreInfo = roleFromSellerStatus("more_info_required");
   const approved = roleFromSellerStatus("approved");
+  const rejected = roleFromSellerStatus("rejected");
   const suspended = roleFromSellerStatus("suspended");
 
   assert.equal(canAccessProfessionalSellerTool(pending, "dashboard"), false);
+  assert.equal(canAccessProfessionalSellerTool(pendingReview, "bulk_upload", "import"), false);
+  assert.equal(canAccessProfessionalSellerTool(moreInfo, "live_sync", "sync"), false);
   assert.equal(canAccessProfessionalSellerTool(pending, "application_status"), true);
   assert.equal(canAccessProfessionalSellerTool(approved, "inventory_hub"), true);
+  assert.equal(canAccessProfessionalSellerTool(rejected, "reports"), false);
   assert.equal(canAccessProfessionalSellerTool(suspended, "bulk_upload", "publish"), false);
   assert.equal(canAccessProfessionalSellerTool(roleFromSellerStatus("", true), "admin_review"), true);
   assert.throws(() => assertProfessionalAccess(pending, "bulk_upload", "import"), /permission denied/i);
+});
+
+test("maps IRIS Pro profile menu statuses to badges and targets", () => {
+  assert.equal(getProfessionalSellerMenuEntry(null).label, "IRIS Pro");
+  assert.equal(getProfessionalSellerMenuEntry(null).badge, "Richiedi accesso");
+  assert.equal(getProfessionalSellerMenuEntry("draft_application").badge, "Completa richiesta");
+  assert.equal(getProfessionalSellerMenuEntry("pending_verification").badge, "In revisione");
+  assert.equal(getProfessionalSellerMenuEntry({ status: "pending_verification", requestedInfo: "Upload VAT certificate" }).badge, "Serve integrazione");
+  assert.equal(getProfessionalSellerMenuEntry("approved").badge, "Dashboard Pro");
+  assert.equal(getProfessionalSellerMenuEntry("approved").target, "dashboard");
+  assert.equal(getProfessionalSellerMenuEntry("rejected").target, "application_status");
+  assert.equal(getProfessionalSellerMenuEntry("suspended").badge, "Sospeso");
+  assert.equal(normalizeProfessionalSellerMenuStatus("unknown_status"), "not_requested");
 });
 
 test("generates the official IRIS inventory template columns", () => {

@@ -1,9 +1,22 @@
 export const PROFESSIONAL_SELLER_STATUSES = Object.freeze([
+  "draft_application",
   "pending_verification",
+  "pending_review",
+  "more_info_required",
   "approved",
   "rejected",
   "suspended"
 ]);
+
+export const PROFESSIONAL_SELLER_MENU_BADGES = Object.freeze({
+  not_requested: "Richiedi accesso",
+  draft_application: "Completa richiesta",
+  pending_review: "In revisione",
+  more_info_required: "Serve integrazione",
+  approved: "Dashboard Pro",
+  rejected: "Non approvato",
+  suspended: "Sospeso"
+});
 
 export const PROFESSIONAL_ROLES = Object.freeze({
   normal: "normal_user",
@@ -707,8 +720,37 @@ export function roleFromSellerStatus(status, isAdmin = false) {
   if (status === "approved") return PROFESSIONAL_ROLES.approved;
   if (status === "rejected") return PROFESSIONAL_ROLES.rejected;
   if (status === "suspended") return PROFESSIONAL_ROLES.suspended;
-  if (status === "pending_verification") return PROFESSIONAL_ROLES.pending;
+  if (["draft_application", "pending_verification", "pending_review", "more_info_required"].includes(status)) {
+    return PROFESSIONAL_ROLES.pending;
+  }
   return PROFESSIONAL_ROLES.normal;
+}
+
+export function normalizeProfessionalSellerMenuStatus(statusOrSeller, options = {}) {
+  const rawStatus = statusOrSeller && typeof statusOrSeller === "object"
+    ? statusOrSeller.status
+    : statusOrSeller;
+  const hasRequestedInfo = Boolean(
+    options.moreInfoRequired ||
+    (statusOrSeller && typeof statusOrSeller === "object" && (statusOrSeller.requestedInfo || statusOrSeller.moreInfoRequired))
+  );
+
+  if (!rawStatus) return "not_requested";
+  if (rawStatus === "approved" || rawStatus === "rejected" || rawStatus === "suspended") return rawStatus;
+  if (hasRequestedInfo || rawStatus === "more_info_required") return "more_info_required";
+  if (rawStatus === "draft_application") return "draft_application";
+  if (rawStatus === "pending_verification" || rawStatus === "pending_review") return "pending_review";
+  return "not_requested";
+}
+
+export function getProfessionalSellerMenuEntry(statusOrSeller, options = {}) {
+  const status = normalizeProfessionalSellerMenuStatus(statusOrSeller, options);
+  return {
+    label: "IRIS Pro",
+    badge: PROFESSIONAL_SELLER_MENU_BADGES[status],
+    status,
+    target: status === "approved" ? "dashboard" : "application_status"
+  };
 }
 
 export function canAccessProfessionalSellerTool(role, tool, action = "view") {

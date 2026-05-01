@@ -2415,6 +2415,9 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
 	        <button class="tn-menu-link" id="tnMenuSalesBtn" onclick="closeProfileMenu();showBuyView('profile');setProfileArea('seller','dashboard')" aria-label="Apri area vendite">
 	          <span><strong>Vendite</strong><small>Annunci, vendite, tracking e payout.</small></span>
 	        </button>
+	        <button class="tn-menu-link tn-menu-link--pro" id="tnMenuIrisProBtn" data-menu-section="area-vendite" onclick="openIrisProMenuEntry()" aria-label="Apri IRIS Pro">
+	          <span><strong>IRIS Pro</strong><small>Accesso seller professionale con verifica manuale IRIS.</small></span><em>Richiedi accesso</em>
+	        </button>
 	        <button class="tn-menu-link" id="tnMenuMessagesBtn" onclick="closeProfileMenu();showBuyView('chat')" aria-label="Apri messaggi">
 	          <span><strong>Messaggi</strong><small>Chat di acquisto, vendita e supporto.</small></span>
 	        </button>
@@ -2449,6 +2452,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
           <button class="tn-mobile-link" id="tnMobileChatBtn" onclick="closeMobileNav();showBuyView('chat')" aria-label="Apri messaggi">Messaggi</button>
           <button class="tn-mobile-link" id="tnMobileCartBtn" onclick="closeMobileNav();openCart()">Carrello</button>
           <button class="tn-mobile-link tn-mobile-link--primary" id="tnMobileSellBtn" onclick="closeMobileNav();showPage('sell')">Vendi</button>
+          <button class="tn-mobile-link tn-mobile-link--pro" id="tnMobileIrisProBtn" onclick="openIrisProMenuEntry()" aria-label="Apri IRIS Pro"><span><strong>IRIS Pro</strong><small>Richiedi accesso</small></span></button>
           <button class="tn-mobile-link" id="tnMobileThemeBtn" onclick="toggleDarkLight()" aria-label="Cambia tema">Tema</button>
           <button class="tn-mobile-link" id="tnMobileLangBtn" onclick="switchLang()" aria-label="Cambia lingua">Lingua</button>
           <button class="tn-mobile-link" id="tnMobileAuthBtn" onclick="handleAuthButtonClick()">Accedi / Esci</button>

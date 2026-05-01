@@ -21237,6 +21237,18 @@ html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-link em {
   font-size: 0.72rem !important;
 }
 
+html body.irisx-luxury .tn-profile-menu .tn-menu-link--pro,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-link--pro {
+  background: linear-gradient(135deg, rgba(255, 246, 248, 0.94), rgba(255, 255, 255, 0.96)) !important;
+  border-color: rgba(241, 50, 79, 0.24) !important;
+}
+
+html body.irisx-luxury .tn-profile-menu .tn-menu-link--pro em,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-link--pro em {
+  max-width: 150px !important;
+  white-space: nowrap !important;
+}
+
 html body.irisx-luxury .tn-profile-menu .tn-menu-link.active,
 html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-link.active {
   border-color: rgba(241, 50, 79, 0.35) !important;
@@ -21252,6 +21264,36 @@ html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-link.active s
 html body.irisx-luxury .tn-profile-menu .tn-menu-divider,
 html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-divider {
   margin: 14px 0 !important;
+}
+
+html body.irisx-luxury .tn-mobile-link--pro,
+html body.irisx-luxury.irisx-white-theme .tn-mobile-link--pro {
+  justify-content: flex-start !important;
+  text-align: left !important;
+  background: rgba(241, 50, 79, 0.06) !important;
+  border-color: rgba(241, 50, 79, 0.22) !important;
+}
+
+html body.irisx-luxury .tn-mobile-link--pro span,
+html body.irisx-luxury.irisx-white-theme .tn-mobile-link--pro span {
+  display: grid !important;
+  gap: 4px !important;
+}
+
+html body.irisx-luxury .tn-mobile-link--pro strong,
+html body.irisx-luxury.irisx-white-theme .tn-mobile-link--pro strong {
+  color: #111827 !important;
+  font-size: 1rem !important;
+  letter-spacing: 0 !important;
+}
+
+html body.irisx-luxury .tn-mobile-link--pro small,
+html body.irisx-luxury.irisx-white-theme .tn-mobile-link--pro small {
+  color: #f1324f !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
 }
 
 @media (max-width: 1100px) {

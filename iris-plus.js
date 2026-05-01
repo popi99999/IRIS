@@ -8336,6 +8336,7 @@
     setNodeText("#tnMobileChatBtn", langText("Messaggi", "Messages"));
     setNodeText("#tnMobileCartBtn", langText("Carrello", "Cart"));
     setNodeText("#tnMobileSellBtn", langText("Vendi", "Sell"));
+    syncIrisProMenuEntry();
     setNodeText("#irisMobileTabHomeLabel", langText("Home", "Home"));
     setNodeText("#irisMobileTabShopLabel", langText("Shop", "Shop"));
     setNodeText("#irisMobileTabFavLabel", langText("Preferiti", "Favorites"));
@@ -8369,6 +8370,7 @@
       ["#tnMenuAccountBtn", currentView === "profile" && state.profileArea === "account" && !String(accountSection).startsWith("help_")],
       ["#tnMenuOrdersBtn", currentView === "profile" && state.profileArea === "buyer"],
       ["#tnMenuSalesBtn", currentView === "profile" && state.profileArea === "seller"],
+      ["#tnMenuIrisProBtn", currentView === "profile" && state.profileArea === "seller" && String(state.sellerSection || "").startsWith("professional")],
       ["#tnMenuMessagesBtn", currentView === "chat"],
       ["#tnMenuSupportBtn", currentView === "profile" && state.profileArea === "account" && String(accountSection).startsWith("help_")],
       ["#opsBtn", currentView === "ops"]
@@ -8394,6 +8396,7 @@
       return;
     }
     closeMobileNav();
+    syncIrisProMenuEntry();
     syncProfileMenuState(!menu.classList.contains("open"));
   }
 
@@ -14385,6 +14388,7 @@
 
     cleanupNavbar();
     syncHeaderActionVisibility();
+    syncIrisProMenuEntry();
     updateSearchSaveButton();
     if (state.currentUser && isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       refreshChatModerationState();
@@ -15204,6 +15208,7 @@
     if (!container) {
       return;
     }
+    syncIrisProMenuEntry();
 
     const favoritesItems = prods.filter(function (product) {
       return hasFavoriteProduct(product.id);
@@ -19330,7 +19335,7 @@
   }
 
   function normalizeProfessionalSellerRecord(record) {
-    const status = ["pending_verification", "approved", "rejected", "suspended"].includes(record && record.status)
+    const status = ["draft_application", "pending_verification", "pending_review", "more_info_required", "approved", "rejected", "suspended"].includes(record && record.status)
       ? record.status
       : "pending_verification";
     return Object.assign({
@@ -19378,6 +19383,92 @@
     return state.professionalSellers.find(function (seller) {
       return (userId && String(seller.userId || "") === userId) || normalizeEmail(seller.userEmail || "") === userEmail;
     }) || null;
+  }
+
+  function getIrisProMenuStatus(seller) {
+    if (!state.currentUser) {
+      return "not_requested";
+    }
+    if (!seller) {
+      return "not_requested";
+    }
+    if (seller.status === "approved" || seller.status === "rejected" || seller.status === "suspended") {
+      return seller.status;
+    }
+    if (seller.requestedInfo || seller.moreInfoRequired || seller.status === "more_info_required") {
+      return "more_info_required";
+    }
+    if (seller.status === "draft_application") {
+      return "draft_application";
+    }
+    if (seller.status === "pending_review" || seller.status === "pending_verification") {
+      return "pending_review";
+    }
+    return "not_requested";
+  }
+
+  function getIrisProMenuBadge(status) {
+    const labels = {
+      not_requested: langText("Richiedi accesso", "Request access"),
+      draft_application: langText("Completa richiesta", "Complete request"),
+      pending_review: langText("In revisione", "In review"),
+      more_info_required: langText("Serve integrazione", "More info needed"),
+      approved: langText("Dashboard Pro", "Pro Dashboard"),
+      rejected: langText("Non approvato", "Not approved"),
+      suspended: langText("Sospeso", "Suspended")
+    };
+    return labels[status] || labels.not_requested;
+  }
+
+  function getIrisProMenuMeta() {
+    const seller = getCurrentProfessionalSeller();
+    const status = getIrisProMenuStatus(seller);
+    const approved = status === "approved";
+    return {
+      status: status,
+      label: "IRIS Pro",
+      badge: getIrisProMenuBadge(status),
+      targetSection: approved ? "professional_dashboard" : "professional",
+      description: approved
+        ? langText("Dashboard, import, sync e documenti seller.", "Dashboard, imports, sync, and seller documents.")
+        : langText("Accesso manuale per seller professionali verificati.", "Manual access for verified professional sellers.")
+    };
+  }
+
+  function syncIrisProMenuEntry() {
+    const meta = getIrisProMenuMeta();
+    const desktopButton = qs("#tnMenuIrisProBtn");
+    if (desktopButton) {
+      desktopButton.dataset.proStatus = meta.status;
+      desktopButton.setAttribute("aria-label", `${langText("Apri IRIS Pro", "Open IRIS Pro")} · ${meta.badge}`);
+      desktopButton.innerHTML = `<span><strong>IRIS Pro</strong><small>${escapeHtml(meta.description)}</small></span><em>${escapeHtml(meta.badge)}</em>`;
+    }
+
+    const mobileButton = qs("#tnMobileIrisProBtn");
+    if (mobileButton) {
+      mobileButton.dataset.proStatus = meta.status;
+      mobileButton.setAttribute("aria-label", `${langText("Apri IRIS Pro", "Open IRIS Pro")} · ${meta.badge}`);
+      mobileButton.innerHTML = `<span><strong>IRIS Pro</strong><small>${escapeHtml(meta.badge)}</small></span>`;
+    }
+  }
+
+  function openIrisProMenuEntry() {
+    const openTarget = function () {
+      const meta = getIrisProMenuMeta();
+      closeProfileMenu();
+      closeMobileNav();
+      showBuyView("profile");
+      setProfileArea("seller", meta.targetSection);
+    };
+
+    if (!state.currentUser) {
+      closeProfileMenu();
+      closeMobileNav();
+      requireAuth(openTarget);
+      return;
+    }
+
+    openTarget();
   }
 
   function getProfessionalSellerRole(seller) {
@@ -20789,9 +20880,7 @@
     const payoutReadyCount = context.sellerOrders.filter(function (order) {
       return order.payment && order.payment.payoutStatus === "ready";
     }).length;
-    const proSeller = getCurrentProfessionalSeller();
-    const proStatus = proSeller ? proSeller.status : "non attivo";
-    const proListings = proSeller ? getProfessionalListings(proSeller).length : 0;
+    const irisProMeta = getIrisProMenuMeta();
     return [
       {
         title: langText("Gestione vendite", "Sales management"),
@@ -20808,17 +20897,8 @@
           { id: "messages", label: langText("Chat vendo", "Selling chat"), description: langText("Messaggi sugli articoli che stai vendendo.", "Messages for the items you are selling."), badge: String(getChatScopeUnreadCount("selling")) },
           { id: "shipping", label: langText("Spedizioni", "Shipping"), description: langText("Ordini da preparare e spedire.", "Orders to prepare and ship."), badge: String(context.sellerOrders.filter(function (order) { return ["paid", "awaiting_shipment"].includes(order.status); }).length) },
           { id: "payouts", label: langText("Pagamenti", "Payouts"), description: langText("Pagamenti in uscita e stato saldo.", "Outgoing payouts and balance status."), badge: String(payoutReadyCount) },
-          { id: "history", label: langText("Storico vendite", "Sales history"), description: langText("Ordini seller conclusi.", "Completed seller orders."), badge: "" }
-        ]
-      },
-      {
-        title: langText("Seller professionale", "Professional seller"),
-        entries: [
-          { id: "professional", label: langText("Candidatura PRO", "PRO application"), description: langText("Stato verifica e dati aziendali.", "Verification status and business details."), badge: proStatus },
-          { id: "professional_dashboard", label: langText("Dashboard PRO", "PRO dashboard"), description: langText("Ricavi, payout e inventario avanzato.", "Revenue, payouts, and advanced inventory."), badge: proSeller && proSeller.status === "approved" ? String(proListings) : "" },
-          { id: "professional_inventory", label: langText("Inventory Hub", "Inventory Hub"), description: langText("Import CSV/XLSX e sync live.", "CSV/XLSX import and live sync."), badge: "" },
-          { id: "professional_reports", label: langText("Documenti e report", "Documents and reports"), description: langText("Vendite, commissioni e payout CSV.", "Sales, commission, and payout CSVs."), badge: "" },
-          { id: "professional_sync_history", label: langText("Storico sync", "Sync history"), description: langText("Log import e aggiornamenti inventario.", "Import and inventory update logs."), badge: "" }
+          { id: "history", label: langText("Storico vendite", "Sales history"), description: langText("Ordini seller conclusi.", "Completed seller orders."), badge: "" },
+          { id: irisProMeta.targetSection, label: "IRIS Pro", description: irisProMeta.description, badge: irisProMeta.badge }
         ]
       }
     ];
@@ -23062,6 +23142,7 @@
   window.setProfileArea = setProfileArea;
   window.setBuyerSection = setBuyerSection;
   window.setSellerSection = setSellerSection;
+  window.openIrisProMenuEntry = openIrisProMenuEntry;
   window.showSeller = showSeller;
   window.showSellerTab = showSellerTab;
   window.stepDetailImage = stepDetailImage;

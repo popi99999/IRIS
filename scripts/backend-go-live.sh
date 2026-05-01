@@ -11,6 +11,7 @@ if [[ ! -f "$ENV_FILE" ]]; then
 fi
 
 echo "Using env file: $ENV_FILE"
+"$ROOT_DIR/scripts/supabase-push-migrations.sh" "$ENV_FILE"
 "$ROOT_DIR/scripts/supabase-set-secrets.sh" "$ENV_FILE"
 "$ROOT_DIR/scripts/supabase-deploy-functions.sh"
 

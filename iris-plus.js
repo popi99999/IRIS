@@ -18,7 +18,14 @@
     chats: "iris-chats",
     reviews: "iris-reviews",
     sellerBlocks: "iris-seller-blocks",
-    chatModeration: "iris-chat-moderation"
+    chatModeration: "iris-chat-moderation",
+    professionalSellers: "iris-professional-sellers",
+    sellerDocuments: "iris-seller-documents",
+    inventorySources: "iris-inventory-sources",
+    importJobs: "iris-import-jobs",
+    importRows: "iris-import-rows",
+    syncLogs: "iris-sync-logs",
+    sellerReports: "iris-seller-reports"
   };
   const COOKIE_CONSENT_KEY = "iris-cookie-consent";
   const ESSENTIAL_STORAGE_KEYS = new Set([
@@ -35,7 +42,14 @@
     STORAGE_KEYS.auditLog,
     STORAGE_KEYS.chats,
     STORAGE_KEYS.reviews,
-    STORAGE_KEYS.sellerBlocks
+    STORAGE_KEYS.sellerBlocks,
+    STORAGE_KEYS.professionalSellers,
+    STORAGE_KEYS.sellerDocuments,
+    STORAGE_KEYS.inventorySources,
+    STORAGE_KEYS.importJobs,
+    STORAGE_KEYS.importRows,
+    STORAGE_KEYS.syncLogs,
+    STORAGE_KEYS.sellerReports
   ]);
   const PLACEHOLDER_IMAGES = {
     borse: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400&h=500&fit=crop",
@@ -76,7 +90,8 @@
     en: { label: "UK", countryLabel: "Regno Unito", nativeLabel: "English", locale: "en-GB", currency: "GBP", rate: 0.86, dir: "ltr" }
   };
   const SUPABASE_STORAGE_BUCKETS = {
-    listingImages: "listing-images"
+    listingImages: "listing-images",
+    sellerDocuments: "seller-documents"
   };
   const SUPABASE_PUBLIC_CONFIG = window.IRIS_SUPABASE_CONFIG || null;
   const HOME_COPY = window.IRIS_HOME_COPY || {};
@@ -95,8 +110,10 @@
   let supabaseReviewsInitialized = false;
   let supabaseMeasurementRequestsInitialized = false;
   let supabaseNotificationsInitialized = false;
+  let supabaseProfessionalSellersInitialized = false;
   let chatModerationModulePromise = null;
   let chatModerationSyncPromise = null;
+  let professionalSellerCorePromise = null;
   let lastChatModerationUserKey = "";
   const SELL_TAXONOMY = {
     clothing: {
@@ -708,6 +725,15 @@
     chatModeration: loadJson(STORAGE_KEYS.chatModeration, null),
     reviews: loadJson(STORAGE_KEYS.reviews, []),
     sellerBlocks: loadJson(STORAGE_KEYS.sellerBlocks, []),
+    professionalSellers: loadJson(STORAGE_KEYS.professionalSellers, []),
+    sellerDocuments: loadJson(STORAGE_KEYS.sellerDocuments, []),
+    inventorySources: loadJson(STORAGE_KEYS.inventorySources, []),
+    importJobs: loadJson(STORAGE_KEYS.importJobs, []),
+    importRows: loadJson(STORAGE_KEYS.importRows, []),
+    syncLogs: loadJson(STORAGE_KEYS.syncLogs, []),
+    sellerReports: loadJson(STORAGE_KEYS.sellerReports, []),
+    activeProfessionalImportId: null,
+    professionalInventoryTab: "upload",
     pendingAction: null,
     authMode: "login",
     authReturnView: "home",
@@ -850,6 +876,7 @@
   initializeSupabaseReviews();
   initializeSupabaseMeasurementRequests();
   initializeSupabaseNotifications();
+  initializeSupabaseProfessionalSellers();
   ensureOpsShell();
   syncCurrentUserSeller();
   overrideMarketplaceFunctions();
@@ -2782,6 +2809,15 @@
       relist_source_purchased_at: normalized.relistSourcePurchasedAt || null,
       relist_source_certified: Boolean(normalized.relistSourceCertified),
       relist_source_platform: normalized.relistSourcePlatform || "",
+      professional_seller_id: normalizeSupabaseUuid(normalized.professionalSellerId || normalized.professional_seller_id),
+      external_id: normalized.externalId || normalized.external_id || "",
+      sku: normalized.sku || "",
+      source_id: normalizeSupabaseUuid(normalized.sourceId || normalized.source_id),
+      source_item_id: normalized.sourceItemId || normalized.source_item_id || "",
+      import_job_id: normalizeSupabaseUuid(normalized.importJobId || normalized.import_job_id),
+      validation_status: normalized.validationStatus || normalized.validation_status || "ready",
+      validation_errors: Array.isArray(normalized.validationErrors) ? normalized.validationErrors : (Array.isArray(normalized.validation_errors) ? normalized.validation_errors : []),
+      sync_fingerprint: normalized.syncFingerprint || normalized.sync_fingerprint || "",
       date_created_ms: Number(normalized.date || Date.now())
     };
   }
@@ -2841,6 +2877,19 @@
       relistSourcePurchasedAt: row.relist_source_purchased_at || null,
       relistSourceCertified: Boolean(row.relist_source_certified),
       relistSourcePlatform: row.relist_source_platform || "",
+      professionalSellerId: row.professional_seller_id || "",
+      externalId: row.external_id || "",
+      external_id: row.external_id || "",
+      sku: row.sku || "",
+      sourceId: row.source_id || "",
+      source_id: row.source_id || "",
+      sourceItemId: row.source_item_id || "",
+      source_item_id: row.source_item_id || "",
+      importJobId: row.import_job_id || "",
+      import_job_id: row.import_job_id || "",
+      validationStatus: row.validation_status || "ready",
+      validationErrors: row.validation_errors || [],
+      syncFingerprint: row.sync_fingerprint || "",
       date: Number(row.date_created_ms || Date.now())
     });
   }
@@ -4044,6 +4093,347 @@
     } catch (error) {
       console.warn("[IRIS] Unable to load notifications from Supabase", error);
     }
+  }
+
+  function createSupabaseFriendlyId(prefix) {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return window.crypto.randomUUID();
+    }
+    return createId(prefix || "id");
+  }
+
+  function isoFromMs(value) {
+    const timestamp = Number(value || 0);
+    return Number.isFinite(timestamp) && timestamp > 0 ? new Date(timestamp).toISOString() : null;
+  }
+
+  function msFromIso(value) {
+    if (!value) {
+      return null;
+    }
+    const timestamp = Date.parse(value);
+    return Number.isFinite(timestamp) ? timestamp : null;
+  }
+
+  function buildProfessionalSellerFromSupabaseRow(row) {
+    if (!row) {
+      return null;
+    }
+    return normalizeProfessionalSellerRecord({
+      id: row.id,
+      userId: row.user_id || "",
+      userEmail: normalizeEmail(row.user_email || ""),
+      legalName: row.legal_name || "",
+      vatNumber: row.vat_number || "",
+      country: row.country || "",
+      businessAddress: row.business_address || "",
+      contactName: row.contact_name || "",
+      contactPhone: row.contact_phone || "",
+      websiteUrl: row.website_url || "",
+      businessDescription: row.business_description || "",
+      status: row.status || "pending_verification",
+      createdAt: msFromIso(row.created_at) || Date.now(),
+      updatedAt: msFromIso(row.updated_at) || Date.now(),
+      approvedAt: msFromIso(row.approved_at),
+      rejectedAt: msFromIso(row.rejected_at),
+      suspendedAt: msFromIso(row.suspended_at)
+    });
+  }
+
+  function buildSupabaseProfessionalSellerPayload(seller) {
+    const normalized = normalizeProfessionalSellerRecord(seller);
+    return {
+      user_id: normalizeSupabaseUuid(normalized.userId || (state.currentUser && state.currentUser.id)),
+      user_email: normalizeEmail(normalized.userEmail || (state.currentUser && state.currentUser.email)),
+      legal_name: normalized.legalName || "",
+      vat_number: normalized.vatNumber || "",
+      country: normalized.country || "",
+      business_address: normalized.businessAddress || "",
+      contact_name: normalized.contactName || "",
+      contact_phone: normalized.contactPhone || "",
+      website_url: normalized.websiteUrl || null,
+      business_description: normalized.businessDescription || "",
+      status: normalized.status || "pending_verification",
+      approved_at: isoFromMs(normalized.approvedAt),
+      rejected_at: isoFromMs(normalized.rejectedAt),
+      suspended_at: isoFromMs(normalized.suspendedAt)
+    };
+  }
+
+  function buildSellerDocumentFromSupabaseRow(row) {
+    if (!row) {
+      return null;
+    }
+    return {
+      id: row.id,
+      sellerId: row.seller_id || "",
+      documentType: row.document_type || "business_proof",
+      fileUrl: row.file_url || "",
+      fileName: row.file_name || "",
+      storagePath: row.storage_path || "",
+      verificationStatus: row.verification_status || "pending",
+      uploadedAt: msFromIso(row.uploaded_at) || Date.now()
+    };
+  }
+
+  function buildProfessionalStoragePath(sellerId, file) {
+    const safeName = String(file && file.name || "business-proof")
+      .toLowerCase()
+      .replace(/[^a-z0-9.]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80) || "business-proof";
+    return `${sellerId}/${Date.now()}-${safeName}`;
+  }
+
+  async function fetchSupabaseProfessionalSellerState() {
+    const client = getSupabaseClient();
+    if (!client || !getCurrentSupabaseUserId()) {
+      return { sellers: [], documents: [], sources: [], jobs: [], rows: [], logs: [], reports: [] };
+    }
+    const sellersResponse = await client
+      .from("professional_sellers")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (sellersResponse.error) {
+      throw sellersResponse.error;
+    }
+    const documentsResponse = await client
+      .from("seller_documents")
+      .select("*")
+      .order("uploaded_at", { ascending: false });
+    if (documentsResponse.error) {
+      throw documentsResponse.error;
+    }
+    const sourcesResponse = await client
+      .from("inventory_sources")
+      .select("*")
+      .order("created_at", { ascending: false });
+    const logsResponse = await client
+      .from("sync_logs")
+      .select("*")
+      .order("started_at", { ascending: false })
+      .limit(100);
+    return {
+      sellers: (sellersResponse.data || []).map(buildProfessionalSellerFromSupabaseRow).filter(Boolean),
+      documents: (documentsResponse.data || []).map(buildSellerDocumentFromSupabaseRow).filter(Boolean),
+      sources: sourcesResponse.error ? [] : (sourcesResponse.data || []).map(function (row) {
+        return {
+          id: row.id,
+          sellerId: row.seller_id || "",
+          sourceType: row.source_type || "csv_feed",
+          sourceUrl: row.source_url || "",
+          mappingConfig: row.mapping_config || {},
+          syncFrequency: row.sync_frequency || "manual",
+          missingProductBehavior: row.missing_product_behavior || "disable",
+          status: row.status || "draft",
+          lastSyncAt: msFromIso(row.last_sync_at),
+          lastSuccessfulSyncAt: msFromIso(row.last_successful_sync_at),
+          lastError: row.last_error || "",
+          errorCount: Number(row.error_count || 0),
+          createdAt: msFromIso(row.created_at) || Date.now(),
+          updatedAt: msFromIso(row.updated_at) || Date.now()
+        };
+      }),
+      jobs: [],
+      rows: [],
+      logs: logsResponse.error ? [] : (logsResponse.data || []).map(function (row) {
+        return {
+          id: row.id,
+          sellerId: row.seller_id || "",
+          inventorySourceId: row.inventory_source_id || null,
+          syncType: row.sync_type || "manual_sync",
+          status: row.status || "success",
+          totalRows: Number(row.total_rows || 0),
+          createdCount: Number(row.created_count || 0),
+          updatedCount: Number(row.updated_count || 0),
+          disabledCount: Number(row.disabled_count || 0),
+          skippedCount: Number(row.skipped_count || 0),
+          errorCount: Number(row.error_count || 0),
+          warnings: row.warnings || [],
+          errorDetails: row.error_details || [],
+          fileName: row.file_name || "",
+          sourceUrl: row.source_url || "",
+          triggeredBy: row.triggered_by || "",
+          startedAt: msFromIso(row.started_at) || Date.now(),
+          finishedAt: msFromIso(row.finished_at),
+          createdAt: msFromIso(row.created_at) || Date.now()
+        };
+      }),
+      reports: []
+    };
+  }
+
+  async function refreshSupabaseProfessionalSellers() {
+    const remote = await fetchSupabaseProfessionalSellerState();
+    const remoteSellerIds = new Set(remote.sellers.map(function (seller) { return String(seller.id); }));
+    const localOnlySellers = state.professionalSellers.filter(function (seller) {
+      return !remoteSellerIds.has(String(seller.id)) && !normalizeSupabaseUuid(seller.id);
+    });
+    state.professionalSellers = remote.sellers.concat(localOnlySellers.map(normalizeProfessionalSellerRecord));
+    state.sellerDocuments = remote.documents.concat(state.sellerDocuments.filter(function (doc) {
+      return !remote.documents.some(function (remoteDoc) { return String(remoteDoc.id) === String(doc.id); });
+    }));
+    state.inventorySources = remote.sources.concat(state.inventorySources.filter(function (source) {
+      return !remote.sources.some(function (remoteSource) { return String(remoteSource.id) === String(source.id); });
+    }));
+    state.syncLogs = remote.logs.concat(state.syncLogs.filter(function (log) {
+      return !remote.logs.some(function (remoteLog) { return String(remoteLog.id) === String(log.id); });
+    }));
+    persistProfessionalSellerState();
+    renderProfilePanel();
+    renderOpsView();
+  }
+
+  async function initializeSupabaseProfessionalSellers() {
+    if (supabaseProfessionalSellersInitialized) {
+      return;
+    }
+    if (!isSupabaseEnabled() || !getCurrentSupabaseUserId()) {
+      return;
+    }
+    supabaseProfessionalSellersInitialized = true;
+    try {
+      await refreshSupabaseProfessionalSellers();
+    } catch (error) {
+      console.warn("[IRIS PRO] Unable to load professional seller state from Supabase", error);
+    }
+  }
+
+  async function saveProfessionalSellerApplicationToSupabase(seller, file) {
+    const client = getSupabaseClient();
+    if (!client || !getCurrentSupabaseUserId()) {
+      return { seller: normalizeProfessionalSellerRecord(seller), document: null };
+    }
+    const payload = buildSupabaseProfessionalSellerPayload(seller);
+    if (!payload.user_id) {
+      return { seller: normalizeProfessionalSellerRecord(seller), document: null };
+    }
+    const response = await client
+      .from("professional_sellers")
+      .upsert(payload, { onConflict: "user_id" })
+      .select("*")
+      .single();
+    if (response.error) {
+      throw response.error;
+    }
+    const savedSeller = buildProfessionalSellerFromSupabaseRow(response.data);
+    let savedDocument = null;
+    if (file && savedSeller) {
+      const storagePath = buildProfessionalStoragePath(savedSeller.id, file);
+      const uploadResponse = await client.storage.from(SUPABASE_STORAGE_BUCKETS.sellerDocuments).upload(storagePath, file, {
+        contentType: file.type || "application/octet-stream",
+        upsert: true
+      });
+      if (uploadResponse.error) {
+        throw uploadResponse.error;
+      }
+      const documentResponse = await client
+        .from("seller_documents")
+        .insert({
+          seller_id: savedSeller.id,
+          document_type: "business_proof",
+          file_url: storagePath,
+          file_name: file.name || "business-proof",
+          storage_path: storagePath,
+          verification_status: "pending"
+        })
+        .select("*")
+        .single();
+      if (documentResponse.error) {
+        throw documentResponse.error;
+      }
+      savedDocument = buildSellerDocumentFromSupabaseRow(documentResponse.data);
+    }
+    return { seller: savedSeller, document: savedDocument };
+  }
+
+  async function saveProfessionalSellerStatusToSupabase(seller, nextStatus) {
+    const client = getSupabaseClient();
+    if (!client || !getCurrentSupabaseUserId() || !seller || !normalizeSupabaseUuid(seller.id)) {
+      return normalizeProfessionalSellerRecord(Object.assign({}, seller, { status: nextStatus }));
+    }
+    const now = new Date().toISOString();
+    const payload = { status: nextStatus };
+    if (nextStatus === "approved") payload.approved_at = now;
+    if (nextStatus === "rejected") payload.rejected_at = now;
+    if (nextStatus === "suspended") payload.suspended_at = now;
+    const response = await client
+      .from("professional_sellers")
+      .update(payload)
+      .eq("id", seller.id)
+      .select("*")
+      .single();
+    if (response.error) {
+      throw response.error;
+    }
+    return buildProfessionalSellerFromSupabaseRow(response.data);
+  }
+
+  async function saveProfessionalInventorySourceToSupabase(source) {
+    const client = getSupabaseClient();
+    if (!client || !getCurrentSupabaseUserId() || !source || !normalizeSupabaseUuid(source.sellerId)) {
+      return source;
+    }
+    const payload = {
+      id: normalizeSupabaseUuid(source.id) || createSupabaseFriendlyId("src"),
+      seller_id: source.sellerId,
+      source_type: source.sourceType || "csv_feed",
+      source_url: source.sourceUrl || "",
+      mapping_config: source.mappingConfig || {},
+      sync_frequency: source.syncFrequency || "manual",
+      missing_product_behavior: source.missingProductBehavior || "disable",
+      status: source.status || "draft",
+      last_sync_at: isoFromMs(source.lastSyncAt),
+      last_successful_sync_at: isoFromMs(source.lastSuccessfulSyncAt),
+      last_error: source.lastError || null,
+      error_count: Number(source.errorCount || 0)
+    };
+    const response = await client
+      .from("inventory_sources")
+      .upsert(payload, { onConflict: "id" })
+      .select("*")
+      .single();
+    if (response.error) {
+      throw response.error;
+    }
+    return Object.assign({}, source, {
+      id: response.data.id,
+      status: response.data.status || source.status,
+      updatedAt: msFromIso(response.data.updated_at) || source.updatedAt
+    });
+  }
+
+  async function saveProfessionalSyncLogToSupabase(log) {
+    const client = getSupabaseClient();
+    if (!client || !getCurrentSupabaseUserId() || !log || !normalizeSupabaseUuid(log.sellerId)) {
+      return log;
+    }
+    const payload = {
+      id: normalizeSupabaseUuid(log.id) || createSupabaseFriendlyId("sync"),
+      seller_id: log.sellerId,
+      inventory_source_id: normalizeSupabaseUuid(log.inventorySourceId),
+      sync_type: log.syncType || "manual_sync",
+      started_at: isoFromMs(log.startedAt) || new Date().toISOString(),
+      finished_at: isoFromMs(log.finishedAt),
+      status: log.status || "success",
+      total_rows: Number(log.totalRows || 0),
+      created_count: Number(log.createdCount || 0),
+      updated_count: Number(log.updatedCount || 0),
+      disabled_count: Number(log.disabledCount || 0),
+      skipped_count: Number(log.skippedCount || 0),
+      error_count: Number(log.errorCount || 0),
+      warnings: log.warnings || [],
+      error_details: log.errorDetails || [],
+      file_name: log.fileName || "",
+      source_url: log.sourceUrl || "",
+      triggered_by: normalizeSupabaseUuid(log.triggeredBy || (state.currentUser && state.currentUser.id)),
+      triggered_by_role: isCurrentUserAdmin() ? "admin" : "seller"
+    };
+    const response = await client.from("sync_logs").upsert(payload, { onConflict: "id" });
+    if (response.error) {
+      throw response.error;
+    }
+    return Object.assign({}, log, { id: payload.id });
   }
 
   async function refreshSupabaseSupportTickets() {
@@ -6435,7 +6825,21 @@
         relistSourcePurchasedAt: null,
         relistSourceCertified: false,
         relistSourcePlatform: "",
-        conditionNotes: conditionNotes
+        conditionNotes: conditionNotes,
+        professionalSellerId: "",
+        externalId: "",
+        external_id: "",
+        sku: "",
+        sourceId: "",
+        source_id: "",
+        sourceItemId: "",
+        source_item_id: "",
+        importJobId: "",
+        import_job_id: "",
+        validationStatus: "ready",
+        validationErrors: [],
+        syncFingerprint: "",
+        sync_fingerprint: ""
       },
       listing,
       {
@@ -6466,7 +6870,23 @@
         measurements: measurements,
         image: getListingImageSources(listing)[0] || "",
         images: getListingImageSources(listing),
-        seller: seller
+        seller: seller,
+        professionalSellerId: (listing && (listing.professionalSellerId || listing.professional_seller_id)) || "",
+        externalId: (listing && (listing.externalId || listing.external_id)) || "",
+        external_id: (listing && (listing.external_id || listing.externalId)) || "",
+        sku: (listing && listing.sku) || "",
+        sourceId: (listing && (listing.sourceId || listing.source_id)) || "",
+        source_id: (listing && (listing.source_id || listing.sourceId)) || "",
+        sourceItemId: (listing && (listing.sourceItemId || listing.source_item_id)) || "",
+        source_item_id: (listing && (listing.source_item_id || listing.sourceItemId)) || "",
+        importJobId: (listing && (listing.importJobId || listing.import_job_id)) || "",
+        import_job_id: (listing && (listing.import_job_id || listing.importJobId)) || "",
+        validationStatus: (listing && (listing.validationStatus || listing.validation_status)) || "ready",
+        validationErrors: listing && Array.isArray(listing.validationErrors)
+          ? listing.validationErrors
+          : (listing && Array.isArray(listing.validation_errors) ? listing.validation_errors : []),
+        syncFingerprint: (listing && (listing.syncFingerprint || listing.sync_fingerprint)) || "",
+        sync_fingerprint: (listing && (listing.sync_fingerprint || listing.syncFingerprint)) || ""
       }
     );
   }
@@ -8567,6 +8987,16 @@
     saveJson(STORAGE_KEYS.auditLog, state.auditLog);
   }
 
+  function persistProfessionalSellerState() {
+    saveJson(STORAGE_KEYS.professionalSellers, state.professionalSellers);
+    saveJson(STORAGE_KEYS.sellerDocuments, state.sellerDocuments);
+    saveJson(STORAGE_KEYS.inventorySources, state.inventorySources);
+    saveJson(STORAGE_KEYS.importJobs, state.importJobs);
+    saveJson(STORAGE_KEYS.importRows, state.importRows);
+    saveJson(STORAGE_KEYS.syncLogs, state.syncLogs);
+    saveJson(STORAGE_KEYS.sellerReports, state.sellerReports);
+  }
+
   function getBanEntry(type, value) {
     const normalizedValue = type === "phone" ? normalizePhoneNumber(value) : normalizeEmail(value);
     if (!normalizedValue) {
@@ -9098,7 +9528,13 @@
     if (!listing) {
       return false;
     }
-    return isCurrentUserAdmin() || isCurrentUserListingOwner(listing);
+    if (isCurrentUserAdmin()) {
+      return true;
+    }
+    if (isCurrentProfessionalSellerSuspended()) {
+      return false;
+    }
+    return isCurrentUserListingOwner(listing);
   }
 
   function getSellerOrdersForCurrentUser() {
@@ -14270,6 +14706,14 @@
   }
 
   async function publishListing() {
+    if (isCurrentProfessionalSellerSuspended()) {
+      updateSellStatus(langText("Account Professional Seller sospeso: non puoi creare o pubblicare prodotti.", "Professional Seller account suspended: you cannot create or publish products."), true);
+      recordAuditEvent("professional_seller_publish_blocked", "sell_form", {
+        sellerStatus: "suspended",
+        userEmail: state.currentUser && state.currentUser.email
+      });
+      return;
+    }
     const taxonomy = collectSellTaxonomySelection();
     const measurements = collectSellMeasurements();
     const brand = readSellField("#sf-brand");
@@ -17515,6 +17959,14 @@
   }
 
   async function saveListingDraftInternal() {
+    if (isCurrentProfessionalSellerSuspended()) {
+      showToast(langText("Account Professional Seller sospeso: bozze e modifiche sono bloccate.", "Professional Seller account suspended: drafts and edits are blocked."));
+      recordAuditEvent("professional_seller_draft_blocked", "sell_form", {
+        sellerStatus: "suspended",
+        userEmail: state.currentUser && state.currentUser.email
+      });
+      return;
+    }
     const seller = getCurrentUserSeller();
     if (!seller) {
       showToast(langText("Accedi per salvare una bozza.", "Sign in to save a draft."));
@@ -18575,7 +19027,1216 @@
           ${["paid", "awaiting_shipment"].includes(order.status) ? `<button class="irisx-secondary" onclick="openShipmentModal('${order.id}')">${langText("Inserisci tracking", "Add tracking")}</button>` : ""}
         </div>
       </div>
-    </article>`;
+      </article>`;
+  }
+
+  function getProfessionalSellerCore() {
+    if (!professionalSellerCorePromise) {
+      professionalSellerCorePromise = import("./professional-seller-core.mjs");
+    }
+    return professionalSellerCorePromise;
+  }
+
+  function normalizeProfessionalSellerRecord(record) {
+    const status = ["pending_verification", "approved", "rejected", "suspended"].includes(record && record.status)
+      ? record.status
+      : "pending_verification";
+    return Object.assign({
+      id: createId("proseller"),
+      userId: "",
+      userEmail: "",
+      legalName: "",
+      vatNumber: "",
+      country: "",
+      businessAddress: "",
+      contactName: "",
+      contactPhone: "",
+      websiteUrl: "",
+      businessDescription: "",
+      status: "pending_verification",
+      internalNotes: [],
+      requestedInfo: "",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      approvedAt: null,
+      rejectedAt: null,
+      suspendedAt: null
+    }, record || {}, { status: status });
+  }
+
+  function normalizeProfessionalSellerCollection() {
+    state.professionalSellers = Array.isArray(state.professionalSellers)
+      ? state.professionalSellers.map(normalizeProfessionalSellerRecord)
+      : [];
+    state.sellerDocuments = Array.isArray(state.sellerDocuments) ? state.sellerDocuments : [];
+    state.inventorySources = Array.isArray(state.inventorySources) ? state.inventorySources : [];
+    state.importJobs = Array.isArray(state.importJobs) ? state.importJobs : [];
+    state.importRows = Array.isArray(state.importRows) ? state.importRows : [];
+    state.syncLogs = Array.isArray(state.syncLogs) ? state.syncLogs : [];
+    state.sellerReports = Array.isArray(state.sellerReports) ? state.sellerReports : [];
+  }
+
+  function getCurrentProfessionalSeller() {
+    normalizeProfessionalSellerCollection();
+    if (!state.currentUser) {
+      return null;
+    }
+    const userId = String(state.currentUser.id || "");
+    const userEmail = normalizeEmail(state.currentUser.email || "");
+    return state.professionalSellers.find(function (seller) {
+      return (userId && String(seller.userId || "") === userId) || normalizeEmail(seller.userEmail || "") === userEmail;
+    }) || null;
+  }
+
+  function getProfessionalSellerRole(seller) {
+    if (isCurrentUserAdmin()) {
+      return "admin";
+    }
+    if (!seller) {
+      return "normal_user";
+    }
+    if (seller.status === "approved") {
+      return "professional_seller_approved";
+    }
+    if (seller.status === "rejected") {
+      return "professional_seller_rejected";
+    }
+    if (seller.status === "suspended") {
+      return "professional_seller_suspended";
+    }
+    return "professional_seller_pending";
+  }
+
+  function isCurrentProfessionalSellerSuspended() {
+    const seller = getCurrentProfessionalSeller();
+    return Boolean(seller && seller.status === "suspended" && !isCurrentUserAdmin());
+  }
+
+  function canUseProfessionalSellerTool(tool, action) {
+    const seller = getCurrentProfessionalSeller();
+    const role = getProfessionalSellerRole(seller);
+    if (role === "admin") {
+      return true;
+    }
+    if (tool === "application_status") {
+      return Boolean(seller);
+    }
+    if (role !== "professional_seller_approved") {
+      return false;
+    }
+    if (action && ["import", "sync", "publish", "update"].includes(action)) {
+      return seller.status === "approved";
+    }
+    return ["dashboard", "inventory_hub", "bulk_upload", "live_sync", "orders", "revenue", "documents", "reports", "sync_history"].includes(tool);
+  }
+
+  function requireProfessionalSellerTool(tool, action) {
+    if (!canUseProfessionalSellerTool(tool, action)) {
+      recordAuditEvent("professional_seller_access_denied", tool, {
+        action: action || "view",
+        userEmail: state.currentUser && state.currentUser.email,
+        sellerStatus: (getCurrentProfessionalSeller() || {}).status || "none"
+      });
+      showToast(langText("Strumenti PRO bloccati: serve approvazione IRIS.", "PRO tools are locked until IRIS approval."));
+      return false;
+    }
+    return true;
+  }
+
+  function getProfessionalSellerStatusCopy(seller) {
+    const status = (seller && seller.status) || "none";
+    const copy = {
+      pending_verification: {
+        title: langText("Domanda in verifica", "Application under review"),
+        body: langText("Il team IRIS sta controllando Partita IVA, dati aziendali e documento caricato. Gli strumenti PRO si sbloccano appena approviamo.", "The IRIS team is checking business details and documents. PRO tools unlock after approval.")
+      },
+      approved: {
+        title: langText("Account professionale approvato", "Professional account approved"),
+        body: langText("Puoi usare dashboard, import massivo, sync inventario, report e documenti seller.", "You can use dashboard, bulk import, live sync, reports, and seller documents.")
+      },
+      rejected: {
+        title: langText("Domanda non approvata", "Application not approved"),
+        body: langText("Puoi inviare una nuova richiesta con documenti e dati corretti o contattare il supporto.", "You can submit updated information or contact support.")
+      },
+      suspended: {
+        title: langText("Account professionale sospeso", "Professional account suspended"),
+        body: langText("Import, sync e pubblicazione sono bloccati. Le aree restano visibili solo per consultazione.", "Import, sync, and publishing are blocked. Areas remain visible for review only.")
+      },
+      none: {
+        title: langText("Diventa Professional Seller", "Become a Professional Seller"),
+        body: langText("Per cataloghi grandi, import guidati, sync live e report professionali.", "For large catalogues, guided imports, live sync, and professional reporting.")
+      }
+    };
+    return copy[status] || copy.none;
+  }
+
+  function renderProfessionalSellerOnboarding() {
+    return `<div class="irisx-pro-shell">
+      <section class="irisx-pro-hero">
+        <div>
+          <div class="irisx-kicker">IRIS PRO</div>
+          <h3>${langText("Become a Professional Seller", "Become a Professional Seller")}</h3>
+          <p>${langText("Un sistema operativo seller per chi gestisce inventari importanti: upload guidati, sync, report, payout e strumenti di controllo.", "A seller operating system for serious inventory: guided uploads, sync, reports, payouts, and control tools.")}</p>
+        </div>
+        <div class="irisx-pro-benefits">
+          <span>${langText("Bulk inventory upload", "Bulk inventory upload")}</span>
+          <span>${langText("Live inventory sync", "Live inventory sync")}</span>
+          <span>${langText("Sales reports", "Sales reports")}</span>
+          <span>${langText("Payout tracking", "Payout tracking")}</span>
+        </div>
+      </section>
+      <form class="irisx-pro-form" onsubmit="event.preventDefault();submitProfessionalSellerApplication(this)">
+        <div class="irisx-form-grid irisx-form-grid--two">
+          <div class="irisx-field"><label>Email *</label><input name="email" type="email" required value="${escapeHtml(state.currentUser && state.currentUser.email || "")}"></div>
+          <div class="irisx-field"><label>Password *</label><input name="password" type="password" required autocomplete="new-password" placeholder="••••••••"></div>
+          <div class="irisx-field"><label>${langText("Ragione sociale", "Legal company name")} *</label><input name="legalName" required></div>
+          <div class="irisx-field"><label>${langText("Partita IVA / VAT", "VAT number")} *</label><input name="vatNumber" required></div>
+          <div class="irisx-field"><label>${langText("Paese", "Country")} *</label><input name="country" required value="${langText("Italia", "Italy")}"></div>
+          <div class="irisx-field"><label>${langText("Telefono contatto", "Contact phone")} *</label><input name="contactPhone" required></div>
+          <div class="irisx-field"><label>${langText("Nome contatto", "Contact name")} *</label><input name="contactName" required value="${escapeHtml(state.currentUser && state.currentUser.name || "")}"></div>
+          <div class="irisx-field"><label>${langText("Sito / store esistente", "Website or store URL")}</label><input name="websiteUrl" type="url" placeholder="https://"></div>
+        </div>
+        <div class="irisx-field"><label>${langText("Indirizzo aziendale", "Business address")} *</label><textarea name="businessAddress" required rows="3"></textarea></div>
+        <div class="irisx-field"><label>${langText("Descrizione breve attività", "Short business description")} *</label><textarea name="businessDescription" required rows="4" maxlength="800"></textarea></div>
+        <div class="irisx-pro-document">
+          <div><strong>${langText("Documento aziendale", "Business proof")}</strong><span>${langText("Carica visura, certificato VAT o prova registrazione aziendale. PDF/JPG/PNG, max 10MB.", "Upload VAT certificate, company proof or registration document. PDF/JPG/PNG, max 10MB.")}</span></div>
+          <input id="proSellerDoc" name="document" type="file" accept=".pdf,.jpg,.jpeg,.png" required>
+        </div>
+        <div class="irisx-toggle-grid irisx-pro-consents">
+          <label><input name="isProfessional" type="checkbox" required> ${langText("Opero come seller professionale.", "I operate as a professional seller.")}</label>
+          <label><input name="accurate" type="checkbox" required> ${langText("Confermo che le informazioni inserite sono corrette.", "I confirm that the information provided is accurate.")}</label>
+          <label><input name="terms" type="checkbox" required> ${langText("Accetto i Termini IRIS Professional Seller.", "I accept the IRIS Professional Seller Terms.")}</label>
+        </div>
+        <div class="irisx-actions"><button class="irisx-primary" type="submit">${langText("Invia richiesta", "Submit application")}</button></div>
+      </form>
+    </div>`;
+  }
+
+  function renderProfessionalSellerStatus(seller) {
+    const copy = getProfessionalSellerStatusCopy(seller);
+    const docs = state.sellerDocuments.filter(function (doc) { return seller && doc.sellerId === seller.id; });
+    const events = state.auditLog.filter(function (entry) {
+      return entry.meta && seller && entry.meta.professionalSellerId === seller.id;
+    }).slice(0, 6);
+    return `<div class="irisx-pro-shell">
+      <section class="irisx-pro-status irisx-pro-status--${escapeHtml((seller && seller.status) || "none")}">
+        <div>
+          <div class="irisx-kicker">IRIS PRO</div>
+          <h3>${escapeHtml(copy.title)}</h3>
+          <p>${escapeHtml(copy.body)}</p>
+        </div>
+        <span>${escapeHtml((seller && seller.status) || "not_started")}</span>
+      </section>
+      ${seller ? `<div class="irisx-pro-status-grid">
+        <div class="irisx-workspace-card"><div class="irisx-section-head"><h3>${langText("Dati aziendali", "Business details")}</h3></div>
+          <div class="irisx-pro-kv"><span>${langText("Ragione sociale", "Legal name")}</span><strong>${escapeHtml(seller.legalName)}</strong></div>
+          <div class="irisx-pro-kv"><span>${langText("Partita IVA", "VAT")}</span><strong>${escapeHtml(seller.vatNumber)}</strong></div>
+          <div class="irisx-pro-kv"><span>${langText("Paese", "Country")}</span><strong>${escapeHtml(seller.country)}</strong></div>
+        </div>
+        <div class="irisx-workspace-card"><div class="irisx-section-head"><h3>${langText("Documenti", "Documents")}</h3></div>
+          ${docs.length ? docs.map(function (doc) { return `<div class="irisx-inline-card"><div><strong>${escapeHtml(doc.fileName)}</strong><span>${escapeHtml(doc.documentType || "business_proof")} · ${escapeHtml(doc.verificationStatus || "pending")}</span></div></div>`; }).join("") : `<div class="irisx-empty-state">${langText("Nessun documento registrato.", "No document recorded.")}</div>`}
+        </div>
+      </div>
+      <div class="irisx-workspace-card"><div class="irisx-section-head"><h3>${langText("Cronologia verifica", "Verification history")}</h3></div>
+        ${events.length ? events.map(function (entry) { return `<div class="irisx-inline-card"><div><strong>${escapeHtml(entry.summary || entry.type)}</strong><span>${escapeHtml(formatRelativeTime(entry.at))}</span></div></div>`; }).join("") : `<div class="irisx-empty-state">${langText("Nessuna nota ancora.", "No notes yet.")}</div>`}
+      </div>` : ""}
+    </div>`;
+  }
+
+  function getProfessionalListings(seller) {
+    const userEmail = normalizeEmail(state.currentUser && state.currentUser.email || "");
+    return getMyListings().filter(function (listing) {
+      return !seller || listing.professionalSellerId === seller.id || normalizeEmail(listing.ownerEmail) === userEmail;
+    });
+  }
+
+  function getProfessionalMetrics(seller, listings, sellerOrders) {
+    const active = listings.filter(function (listing) { return listing.listingStatus === "published" && listing.inventoryStatus === "active"; });
+    const drafts = listings.filter(function (listing) { return listing.listingStatus === "draft" || listing.inventoryStatus === "draft"; });
+    const soldListings = listings.filter(function (listing) { return listing.inventoryStatus === "sold" || listing.listingStatus === "sold"; });
+    const revenue = sellerOrders.reduce(function (sum, order) {
+      return sum + order.items
+        .filter(function (item) { return normalizeEmail(item.sellerEmail) === normalizeEmail(state.currentUser.email); })
+        .reduce(function (itemSum, item) { return itemSum + Number(item.price || 0) * Number(item.qty || 1); }, 0);
+    }, 0);
+    const last30 = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const revenue30 = sellerOrders.filter(function (order) { return Number(order.createdAt || 0) >= last30; }).reduce(function (sum, order) {
+      return sum + Number(order.subtotal || 0);
+    }, 0);
+    const pendingPayouts = sellerOrders.reduce(function (sum, order) {
+      if (order.payment && ["ready", "pending_shipment", "pending"].includes(order.payment.payoutStatus || "pending")) {
+        return sum + Number(order.payment.sellerNet || 0);
+      }
+      return sum;
+    }, 0);
+    const lastPayoutOrder = sellerOrders.find(function (order) { return order.payment && order.payment.payoutStatus === "paid"; });
+    const attention = listings.filter(function (listing) {
+      return listing.validationStatus === "error" || listing.inventoryStatus === "disabled" || !listing.image || Number(listing.price || 0) <= 0;
+    });
+    return {
+      totalRevenue: revenue,
+      revenue30: revenue30,
+      itemsSold: sellerOrders.length,
+      activeListings: active.length,
+      draftListings: drafts.length,
+      soldListings: soldListings.length,
+      conversionRate: listings.length ? Math.round((sellerOrders.length / listings.length) * 100) : 0,
+      averageSellingPrice: sellerOrders.length ? revenue / sellerOrders.length : 0,
+      pendingPayouts: pendingPayouts,
+      lastPayout: lastPayoutOrder ? formatDateTime(lastPayoutOrder.createdAt) : langText("Nessuno", "None"),
+      needingAttention: attention.length
+    };
+  }
+
+  function renderProfessionalSellerDashboard(seller, listings, sellerOrders) {
+    if (!requireProfessionalSellerTool("dashboard")) {
+      return renderProfessionalSellerStatus(seller);
+    }
+    const metrics = getProfessionalMetrics(seller, listings, sellerOrders);
+    const cards = [
+      [formatCurrency(metrics.totalRevenue), langText("Ricavi totali", "Total revenue")],
+      [formatCurrency(metrics.revenue30), langText("Ultimi 30 giorni", "Last 30 days")],
+      [String(metrics.itemsSold), langText("Articoli venduti", "Items sold")],
+      [String(metrics.activeListings), langText("Annunci attivi", "Active listings")],
+      [String(metrics.draftListings), langText("Bozze", "Draft listings")],
+      [String(metrics.soldListings), langText("Sold listings", "Sold listings")],
+      [metrics.conversionRate + "%", langText("Conversione", "Conversion rate")],
+      [formatCurrency(metrics.averageSellingPrice), langText("Prezzo medio", "Average selling price")],
+      [formatCurrency(metrics.pendingPayouts), langText("Payout pending", "Pending payouts")],
+      [metrics.lastPayout, langText("Ultimo payout", "Last payout")],
+      [String(metrics.needingAttention), langText("Da controllare", "Needs attention")]
+    ];
+    return `<div class="irisx-pro-shell">
+      <section class="irisx-pro-hero irisx-pro-hero--approved">
+        <div><div class="irisx-kicker">SELLER DASHBOARD</div><h3>${langText("Seller Dashboard", "Seller Dashboard")}</h3><p>${langText("Ricavi, inventario, ordini, payout e documenti in un unico cockpit professionale.", "Revenue, inventory, orders, payouts, and documents in one professional cockpit.")}</p></div>
+        <div class="irisx-actions"><button class="irisx-primary" onclick="setSellerSection('professional_inventory')">${langText("Inventory Hub", "Inventory Hub")}</button><button class="irisx-secondary" onclick="setSellerSection('professional_reports')">${langText("Report", "Reports")}</button></div>
+      </section>
+      <div class="irisx-pro-metric-grid">${cards.map(function (card) {
+        return `<div class="irisx-pro-metric"><strong>${escapeHtml(String(card[0]))}</strong><span>${escapeHtml(card[1])}</span></div>`;
+      }).join("")}</div>
+      <div class="irisx-overview-grid">
+        <section class="irisx-workspace-card">
+          <div class="irisx-section-head"><h3>${langText("Orders & Revenue", "Orders & Revenue")}</h3><span>${langText("Ordini recenti, commissione, netto seller e payout.", "Recent orders, commission, net revenue, and payout.")}</span></div>
+          ${sellerOrders.length ? sellerOrders.slice(0, 5).map(function (order) {
+            return `<div class="irisx-inline-card"><div><strong>${escapeHtml(order.number)}</strong><span>${escapeHtml(getOrderStatusLabel(order))} · ${escapeHtml(order.payment && order.payment.payoutStatus || "pending")}</span></div><em>${escapeHtml(formatCurrency(order.payment && order.payment.sellerNet || order.subtotal || 0))}</em></div>`;
+          }).join("") : `<div class="irisx-empty-state">${langText("Nessun ordine ancora.", "No orders yet.")}</div>`}
+        </section>
+        <section class="irisx-workspace-card">
+          <div class="irisx-section-head"><h3>${langText("Inventory", "Inventory")}</h3><span>${langText("Attivi, bozze, sold, disabilitati ed errori.", "Active, draft, sold, disabled and errored items.")}</span></div>
+          <div class="irisx-pro-mini-grid">
+            <span>${metrics.activeListings}<em>${langText("Attivi", "Active")}</em></span>
+            <span>${metrics.draftListings}<em>${langText("Bozze", "Drafts")}</em></span>
+            <span>${metrics.soldListings}<em>${langText("Venduti", "Sold")}</em></span>
+            <span>${metrics.needingAttention}<em>${langText("Errori", "Errors")}</em></span>
+          </div>
+        </section>
+      </div>
+      <section class="irisx-workspace-card">
+        <div class="irisx-section-head"><h3>${langText("Benefits for Professional Sellers", "Benefits for Professional Sellers")}</h3></div>
+        <div class="irisx-pro-benefit-grid">
+          ${["Bulk inventory upload","Live inventory sync","Seller analytics","Sales reports","Invoice summaries","Payout tracking","Faster listing workflow","Professional inventory management"].map(function (item) {
+            return `<span>${escapeHtml(item)}</span>`;
+          }).join("")}
+        </div>
+      </section>
+    </div>`;
+  }
+
+  function getActiveProfessionalImportJob() {
+    return state.importJobs.find(function (job) { return job.id === state.activeProfessionalImportId; }) || null;
+  }
+
+  function getImportRowsForJob(jobId) {
+    return state.importRows.filter(function (row) { return row.importJobId === jobId; });
+  }
+
+  function renderProfessionalMappingPanel(job) {
+    if (!job || !job.headers) {
+      return "";
+    }
+    const headers = job.headers || [];
+    const fields = ["title", "brand", "category", "condition", "price", "currency", "image_urls", "sku", "external_id", "subcategory", "size", "colour", "description", "material", "measurements", "quantity", "shipping_origin", "authentication_required", "status"];
+    return `<section class="irisx-workspace-card irisx-pro-mapping">
+      <div class="irisx-section-head"><h3>${langText("Match your file columns", "Match your file columns")}</h3><span>${langText("Abbiamo proposto una corrispondenza. Conferma o correggi prima della preview.", "We matched your columns. Please confirm or correct before preview.")}</span></div>
+      <div class="irisx-pro-map-grid">${fields.map(function (field) {
+        const mapping = (job.mappingConfig && job.mappingConfig[field]) || {};
+        return `<label class="irisx-pro-map-row">
+          <span><strong>${escapeHtml(field)}</strong>${mapping.required ? "<em>required</em>" : ""}</span>
+          <select data-pro-map-field="${escapeHtml(field)}">
+            <option value="">${langText("Non mappare", "Do not map")}</option>
+            ${headers.map(function (header) {
+              const selected = mapping.sourceColumn === header ? "selected" : "";
+              return `<option value="${escapeHtml(header)}" ${selected}>${escapeHtml(header)}</option>`;
+            }).join("")}
+          </select>
+          <small>${Math.round(Number(mapping.confidence || 0) * 100)}% ${mapping.needsConfirmation ? langText("da confermare", "needs confirmation") : langText("ok", "ok")}</small>
+        </label>`;
+      }).join("")}</div>
+      <div class="irisx-actions"><button class="irisx-primary" onclick="confirmProfessionalColumnMapping()">${langText("Crea preview", "Create preview")}</button></div>
+    </section>`;
+  }
+
+  function renderProfessionalPreviewPanel(job) {
+    if (!job || !["preview_ready", "partial_success", "published", "saved_as_draft"].includes(job.status)) {
+      return "";
+    }
+    const rows = getImportRowsForJob(job.id);
+    return `<section class="irisx-workspace-card irisx-pro-preview">
+      <div class="irisx-section-head"><h3>${langText("Review Import", "Review Import")}</h3><span>${langText("Niente viene pubblicato finché non confermi.", "Nothing is published until you confirm.")}</span></div>
+      <div class="irisx-pro-preview-summary">
+        <span><strong>${job.totalRows || rows.length}</strong>${langText("righe", "rows")}</span>
+        <span><strong>${job.validRows || 0}</strong>${langText("pronte", "ready")}</span>
+        <span><strong>${job.warningRows || 0}</strong>${langText("warning", "warnings")}</span>
+        <span><strong>${job.errorRows || 0}</strong>${langText("errori", "errors")}</span>
+        <span><strong>${job.duplicateCount || 0}</strong>${langText("duplicati", "duplicates")}</span>
+      </div>
+      <div class="irisx-pro-row-list">${rows.slice(0, 80).map(function (row) {
+        const data = row.normalizedData || {};
+        const messages = (row.validationErrors || []).concat(row.validationWarnings || []);
+        return `<article class="irisx-pro-row irisx-pro-row--${escapeHtml(row.status)}">
+          <div><strong>${escapeHtml(data.brand || "-")} · ${escapeHtml(data.title || "-")}</strong><span>${escapeHtml(data.category || "-")} · ${escapeHtml(formatCurrency(Number(data.price || 0)))} · ${escapeHtml(data.currency || "")}</span></div>
+          <em>${escapeHtml(row.status)}</em>
+          ${messages.length ? `<small>${escapeHtml(messages.join(" · "))}</small>` : ""}
+        </article>`;
+      }).join("")}</div>
+      <div class="irisx-actions">
+        <button class="irisx-primary" onclick="publishProfessionalImport('published')">${langText("Pubblica prodotti validi", "Publish valid products")}</button>
+        <button class="irisx-secondary" onclick="publishProfessionalImport('draft')">${langText("Salva validi come bozze", "Save valid as drafts")}</button>
+        <button class="irisx-secondary" onclick="cancelProfessionalImport()">${langText("Annulla import", "Cancel import")}</button>
+      </div>
+    </section>`;
+  }
+
+  function renderProfessionalInventoryHub(seller, listings) {
+    if (!requireProfessionalSellerTool("inventory_hub")) {
+      return renderProfessionalSellerStatus(seller);
+    }
+    const job = getActiveProfessionalImportJob();
+    const sellerSources = state.inventorySources.filter(function (source) { return source.sellerId === seller.id; });
+    const sellerLogs = state.syncLogs.filter(function (log) { return log.sellerId === seller.id; }).slice(0, 10);
+    return `<div class="irisx-pro-shell">
+      <section class="irisx-pro-hero irisx-pro-hero--compact">
+        <div><div class="irisx-kicker">INVENTORY HUB</div><h3>${langText("Inventory Hub", "Inventory Hub")}</h3><p>${langText("Carica molti prodotti insieme o collega una fonte live. Ogni import passa sempre da mapping e preview.", "Upload many products at once or connect a live source. Every import always goes through mapping and preview.")}</p></div>
+        <div class="irisx-actions"><button class="irisx-secondary" onclick="downloadIrisInventoryTemplate()">${langText("Scarica template IRIS", "Download IRIS template")}</button></div>
+      </section>
+      <div class="irisx-pro-hub-grid">
+        <section class="irisx-workspace-card">
+          <div class="irisx-section-head"><h3>${langText("Bulk Upload", "Bulk Upload")}</h3><span>${langText("CSV o Excel. Max 10MB e 10.000 righe.", "CSV or Excel. Max 10MB and 10,000 rows.")}</span></div>
+          <div class="irisx-pro-upload-zone">
+            <input type="file" accept=".csv,.xlsx" onchange="handleProfessionalInventoryFile(this)">
+            <strong>${langText("Carica file inventario", "Upload inventory file")}</strong>
+            <span>${langText("Il sistema rileva colonne, normalizza dati e blocca righe non valide.", "The system detects columns, normalizes data and blocks invalid rows.")}</span>
+          </div>
+        </section>
+        <section class="irisx-workspace-card">
+          <div class="irisx-section-head"><h3>${langText("Live Inventory Sync", "Live Inventory Sync")}</h3><span>${langText("Prima versione: Google Sheets pubblico o feed CSV HTTPS.", "First version: public Google Sheet or HTTPS CSV feed.")}</span></div>
+          <div class="irisx-form-grid">
+            <div class="irisx-field"><label>${langText("Tipo fonte", "Source type")}</label><select id="proSourceType"><option value="google_sheets">Google Sheets</option><option value="csv_feed">CSV feed URL</option></select></div>
+            <div class="irisx-field"><label>${langText("URL fonte", "Source URL")}</label><input id="proSourceUrl" placeholder="https://"></div>
+            <div class="irisx-field"><label>${langText("Prodotti mancanti", "Missing products")}</label><select id="proMissingBehavior"><option value="disable">${langText("Disabilita", "Disable")}</option><option value="draft">${langText("Metti in bozza", "Mark as draft")}</option><option value="sold_out">${langText("Sold out", "Sold out")}</option><option value="archive">${langText("Archivia", "Archive")}</option><option value="do_nothing">${langText("Non fare nulla", "Do nothing")}</option></select></div>
+            <div class="irisx-actions"><button class="irisx-primary" onclick="saveProfessionalInventorySource()">${langText("Salva fonte", "Save source")}</button></div>
+          </div>
+        </section>
+      </div>
+      ${renderProfessionalMappingPanel(job)}
+      ${renderProfessionalPreviewPanel(job)}
+      <section class="irisx-workspace-card">
+        <div class="irisx-section-head"><h3>${langText("Fonti collegate", "Connected sources")}</h3><span>${listings.length} ${langText("prodotti nel tuo inventario IRIS.", "products in your IRIS inventory.")}</span></div>
+        ${sellerSources.length ? sellerSources.map(function (source) {
+          return `<div class="irisx-inline-card"><div><strong>${escapeHtml(source.sourceType)}</strong><span>${escapeHtml(source.sourceUrl || "manual")} · ${escapeHtml(source.status || "draft")} · ${escapeHtml(source.missingProductBehavior || "disable")}</span></div><div class="irisx-actions"><button class="irisx-secondary" onclick="runProfessionalInventorySync('${escapeHtml(source.id)}')">${langText("Run sync now", "Run sync now")}</button></div></div>`;
+        }).join("") : `<div class="irisx-empty-state">${langText("Nessuna fonte live collegata.", "No live source connected.")}</div>`}
+      </section>
+      <section class="irisx-workspace-card">
+        <div class="irisx-section-head"><h3>${langText("Sync History", "Sync History")}</h3></div>
+        ${sellerLogs.length ? sellerLogs.map(function (log) {
+          return `<div class="irisx-inline-card"><div><strong>${escapeHtml(log.status)}</strong><span>${log.totalRows || 0} rows · ${log.createdCount || 0} created · ${log.updatedCount || 0} updated · ${log.errorCount || 0} errors</span></div><em>${escapeHtml(formatRelativeTime(log.startedAt || log.createdAt))}</em></div>`;
+        }).join("") : `<div class="irisx-empty-state">${langText("Nessun sync ancora.", "No sync yet.")}</div>`}
+      </section>
+    </div>`;
+  }
+
+  function renderProfessionalReports(seller, sellerOrders) {
+    if (!requireProfessionalSellerTool("reports")) {
+      return renderProfessionalSellerStatus(seller);
+    }
+    const gross = sellerOrders.reduce(function (sum, order) { return sum + Number(order.subtotal || 0); }, 0);
+    const commission = sellerOrders.reduce(function (sum, order) { return sum + Number(order.payment && order.payment.platformFee || 0); }, 0);
+    const net = Math.max(0, gross - commission);
+    return `<div class="irisx-pro-shell">
+      <section class="irisx-pro-hero irisx-pro-hero--compact">
+        <div><div class="irisx-kicker">DOCUMENTS</div><h3>${langText("Documents & Reports", "Documents & Reports")}</h3><p>${langText("Report vendite, riepilogo commissioni e payout. Non sono fatture fiscali legali.", "Sales reports, commission breakdowns and payout statements. These are not legally valid tax invoices.")}</p></div>
+      </section>
+      <div class="irisx-pro-metric-grid">
+        <div class="irisx-pro-metric"><strong>${escapeHtml(formatCurrency(gross))}</strong><span>${langText("Sales report", "Sales report")}</span></div>
+        <div class="irisx-pro-metric"><strong>${escapeHtml(formatCurrency(commission))}</strong><span>${langText("Commission breakdown", "Commission breakdown")}</span></div>
+        <div class="irisx-pro-metric"><strong>${escapeHtml(formatCurrency(net))}</strong><span>${langText("Payout statement", "Payout statement")}</span></div>
+      </div>
+      <section class="irisx-workspace-card">
+        <div class="irisx-section-head"><h3>${langText("Esporta", "Export")}</h3></div>
+        <div class="irisx-actions"><button class="irisx-primary" onclick="exportProfessionalSellerReport('sales')">CSV · ${langText("Sales report", "Sales report")}</button><button class="irisx-secondary" onclick="exportProfessionalSellerReport('commission')">CSV · ${langText("Commission breakdown", "Commission breakdown")}</button><button class="irisx-secondary" onclick="exportProfessionalSellerReport('payout')">CSV · ${langText("Payout statement", "Payout statement")}</button></div>
+      </section>
+    </div>`;
+  }
+
+  function renderProfessionalSellerWorkspace(section, listings, sellerOrders) {
+    const seller = getCurrentProfessionalSeller();
+    if (!seller) {
+      return renderProfessionalSellerOnboarding();
+    }
+    if (seller.status !== "approved") {
+      return renderProfessionalSellerStatus(seller);
+    }
+    if (section === "professional_inventory") {
+      return renderProfessionalInventoryHub(seller, listings);
+    }
+    if (section === "professional_reports") {
+      return renderProfessionalReports(seller, sellerOrders);
+    }
+    if (section === "professional_sync_history") {
+      return renderProfessionalInventoryHub(seller, listings);
+    }
+    return renderProfessionalSellerDashboard(seller, listings, sellerOrders);
+  }
+
+  async function submitProfessionalSellerApplication(form) {
+    if (!state.currentUser) {
+      openAuthModal("register");
+      return;
+    }
+    const file = form && form.document && form.document.files ? form.document.files[0] : null;
+    if (!file) {
+      showToast(langText("Carica un documento aziendale.", "Upload a business document."));
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showToast(langText("Documento troppo grande. Max 10MB.", "Document too large. Max 10MB."));
+      return;
+    }
+    const allowedDoc = /\.(pdf|png|jpe?g)$/i.test(file.name || "");
+    if (!allowedDoc) {
+      showToast(langText("Formato documento non supportato.", "Unsupported document format."));
+      return;
+    }
+    const existing = getCurrentProfessionalSeller();
+    const now = Date.now();
+    let seller = normalizeProfessionalSellerRecord({
+      id: existing ? existing.id : createId("proseller"),
+      userId: state.currentUser.id || "",
+      userEmail: normalizeEmail(form.email.value || state.currentUser.email),
+      legalName: form.legalName.value.trim(),
+      vatNumber: form.vatNumber.value.trim(),
+      country: form.country.value.trim(),
+      businessAddress: form.businessAddress.value.trim(),
+      contactName: form.contactName.value.trim(),
+      contactPhone: form.contactPhone.value.trim(),
+      websiteUrl: form.websiteUrl.value.trim(),
+      businessDescription: form.businessDescription.value.trim(),
+      status: "pending_verification",
+      createdAt: existing ? existing.createdAt : now,
+      updatedAt: now
+    });
+    let sellerDocument = {
+      id: createId("prodoc"),
+      sellerId: seller.id,
+      documentType: "business_proof",
+      fileName: file.name,
+      fileSize: file.size,
+      fileUrl: "",
+      verificationStatus: "pending",
+      uploadedAt: now
+    };
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
+      try {
+        const saved = await saveProfessionalSellerApplicationToSupabase(seller, file);
+        seller = saved.seller || seller;
+        sellerDocument = Object.assign({}, sellerDocument, saved.document || {}, { sellerId: seller.id });
+      } catch (error) {
+        console.warn("[IRIS PRO] unable to save professional seller application to Supabase", error);
+      }
+    }
+    if (existing) {
+      state.professionalSellers = state.professionalSellers.map(function (item) {
+        return item.id === existing.id || item.userId === seller.userId ? seller : item;
+      });
+    } else {
+      state.professionalSellers.unshift(seller);
+    }
+    state.sellerDocuments.unshift(sellerDocument);
+    persistProfessionalSellerState();
+    recordAuditEvent("professional_seller_application_submitted", seller.legalName, {
+      professionalSellerId: seller.id,
+      vatNumber: seller.vatNumber,
+      userEmail: seller.userEmail
+    });
+    createNotification({
+      audience: "admin",
+      kind: "professional_seller",
+      title: langText("Nuovo Professional Seller", "New Professional Seller"),
+      body: seller.legalName + " · " + seller.vatNumber,
+      recipientEmail: PLATFORM_CONFIG.ownerEmail
+    });
+    showToast(langText("Richiesta inviata. Stato: pending verification.", "Application submitted. Status: pending verification."));
+    renderProfilePanel();
+  }
+
+  async function parseProfessionalFile(file) {
+    const core = await getProfessionalSellerCore();
+    if (!file) {
+      throw new Error("No file selected");
+    }
+    if (file.size > core.MAX_IMPORT_BYTES) {
+      throw new Error("File too large");
+    }
+    const extension = (file.name.split(".").pop() || "").toLowerCase();
+    if (extension === "csv") {
+      const text = await file.text();
+      return core.parseCsv(text, { maxRows: core.MAX_IMPORT_ROWS });
+    }
+    if (extension === "xlsx") {
+      const XLSX = await import("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm");
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: "", raw: false });
+      const headers = rows.length ? Object.keys(rows[0]) : [];
+      if (!headers.length) {
+        return { headers: [], rows: [], errors: ["File has no headers"] };
+      }
+      return {
+        headers: headers,
+        rows: rows.slice(0, core.MAX_IMPORT_ROWS).map(function (row, index) { return Object.assign({ __rowNumber: index + 2 }, row); }),
+        errors: rows.length > core.MAX_IMPORT_ROWS ? [`File has more than ${core.MAX_IMPORT_ROWS} rows`] : []
+      };
+    }
+    return { headers: [], rows: [], errors: ["Unsupported file format"] };
+  }
+
+  async function handleProfessionalInventoryFile(input) {
+    if (!requireProfessionalSellerTool("bulk_upload", "import")) {
+      return;
+    }
+    const seller = getCurrentProfessionalSeller();
+    const file = input && input.files ? input.files[0] : null;
+    try {
+      const core = await getProfessionalSellerCore();
+      const parsed = await parseProfessionalFile(file);
+      if (parsed.errors && parsed.errors.length) {
+        showToast(parsed.errors.join(" · "));
+        return;
+      }
+      if (!parsed.rows.length) {
+        showToast(langText("File vuoto.", "Empty file."));
+        return;
+      }
+      const job = {
+        id: createSupabaseFriendlyId("imp"),
+        sellerId: seller.id,
+        sourceType: "manual_upload",
+        fileName: file.name,
+        fileSizeBytes: file.size,
+        status: "mapping_required",
+        headers: parsed.headers,
+        rawRows: parsed.rows,
+        mappingConfig: core.detectColumnMappings(parsed.headers),
+        totalRows: parsed.rows.length,
+        validRows: 0,
+        errorRows: 0,
+        warningRows: 0,
+        duplicateCount: 0,
+        createdAt: Date.now(),
+        completedAt: null
+      };
+      state.importJobs.unshift(job);
+      state.activeProfessionalImportId = job.id;
+      persistProfessionalSellerState();
+      recordAuditEvent("professional_import_uploaded", file.name, { professionalSellerId: seller.id, importJobId: job.id, rows: parsed.rows.length });
+      renderProfilePanel();
+    } catch (error) {
+      console.error("[IRIS PRO] import parse failed", error);
+      showToast(langText("Non siamo riusciti a leggere il file.", "We could not read the file."));
+      const failedLog = {
+        id: createSupabaseFriendlyId("sync"),
+        sellerId: seller && seller.id,
+        syncType: "manual_upload",
+        status: "failed",
+        totalRows: 0,
+        errorCount: 1,
+        errorDetails: [error.message],
+        fileName: file && file.name,
+        startedAt: Date.now(),
+        finishedAt: Date.now()
+      };
+      state.syncLogs.unshift(failedLog);
+      saveProfessionalSyncLogToSupabase(failedLog).catch(function (syncError) {
+        console.warn("[IRIS PRO] import failure log Supabase save skipped", syncError);
+      });
+      persistProfessionalSellerState();
+    }
+  }
+
+  async function confirmProfessionalColumnMapping() {
+    if (!requireProfessionalSellerTool("bulk_upload", "import")) {
+      return;
+    }
+    const job = getActiveProfessionalImportJob();
+    const seller = getCurrentProfessionalSeller();
+    if (!job || !seller) {
+      return;
+    }
+    const core = await getProfessionalSellerCore();
+    const mappingObject = {};
+    qsa("[data-pro-map-field]").forEach(function (select) {
+      mappingObject[select.getAttribute("data-pro-map-field")] = select.value;
+    });
+    const mapping = core.buildManualMappingFromObject(mappingObject);
+    const existingProducts = getProfessionalExistingProducts(seller);
+    const preview = core.buildImportPreview(job.rawRows || [], mapping, existingProducts, { sellerId: seller.id });
+    job.mappingConfig = mapping;
+    job.status = "preview_ready";
+    job.totalRows = preview.totalRows;
+    job.validRows = preview.readyToPublish;
+    job.warningRows = preview.withWarnings;
+    job.errorRows = preview.withBlockingErrors;
+    job.duplicateCount = preview.duplicateProducts;
+    state.importRows = state.importRows.filter(function (row) { return row.importJobId !== job.id; }).concat(preview.rows.map(function (row) {
+      return {
+        id: createSupabaseFriendlyId("improw"),
+        importJobId: job.id,
+        sellerId: seller.id,
+        rowNumber: row.rowNumber,
+        rawData: row.rawData,
+        mappedData: row.mappedData,
+        normalizedData: row.normalizedData,
+        validationErrors: row.validationErrors,
+        validationWarnings: row.validationWarnings,
+        duplicate: row.duplicate,
+        status: row.status,
+        productId: row.duplicate && row.duplicate.product ? row.duplicate.product.id : ""
+      };
+    }));
+    persistProfessionalSellerState();
+    recordAuditEvent("professional_import_mapping_confirmed", job.fileName, { professionalSellerId: seller.id, importJobId: job.id });
+    renderProfilePanel();
+  }
+
+  function getProfessionalExistingProducts(seller) {
+    return getMyListings().map(function (listing) {
+      return {
+        id: listing.id,
+        seller_id: seller.id,
+        external_id: listing.external_id || listing.externalId || "",
+        sku: listing.sku || "",
+        source_id: listing.source_id || listing.sourceId || "",
+        source_item_id: listing.source_item_id || listing.sourceItemId || "",
+        title: listing.name,
+        brand: listing.brand,
+        price: listing.price,
+        image_urls: listing.images || []
+      };
+    });
+  }
+
+  async function upsertProfessionalRows(job, rows, mode, source) {
+    const seller = getCurrentProfessionalSeller();
+    if (!seller || seller.status !== "approved") {
+      throw new Error("Professional seller not approved");
+    }
+    const sellerSnapshot = Object.assign({}, getCurrentUserSeller(), {
+      professional: true,
+      verified: true,
+      verifiedSeller: true,
+      name: state.currentUser.name || seller.legalName
+    });
+    let createdCount = 0;
+    let updatedCount = 0;
+    for (const row of rows) {
+      const data = row.normalizedData || {};
+      const duplicateProduct = row.duplicate && row.duplicate.duplicate && !row.duplicate.reviewRequired ? row.duplicate.product : null;
+      const existing = duplicateProduct ? state.listings.find(function (listing) { return String(listing.id) === String(duplicateProduct.id); }) : null;
+      const now = Date.now();
+      const listingStatus = mode === "published" && data.status === "active" ? "published" : mode === "published" ? "published" : "draft";
+      const inventoryStatus = mode === "draft" ? "draft" : data.status === "active" ? "active" : data.status || "draft";
+      const listing = normalizeListingRecord(Object.assign({}, existing || {}, {
+        id: existing ? existing.id : createId("prolisting"),
+        ownerId: state.currentUser.id || "",
+        ownerEmail: normalizeEmail(state.currentUser.email),
+        professionalSellerId: seller.id,
+        externalId: data.external_id || "",
+        external_id: data.external_id || "",
+        sku: data.sku || "",
+        sourceId: (source && source.id) || "",
+        source_id: (source && source.id) || "",
+        sourceItemId: data.external_id || data.sku || "",
+        source_item_id: data.external_id || data.sku || "",
+        importJobId: job && job.id || "",
+        import_job_id: job && job.id || "",
+        name: data.title,
+        brand: data.brand,
+        cat: data.category,
+        categoryKey: slugify(data.category),
+        subcategory: data.subcategory,
+        subcategoryKey: slugify(data.subcategory),
+        sz: data.size,
+        color: data.colour,
+        cond: data.condition,
+        price: Number(data.price || 0),
+        material: data.material,
+        dims: data.measurements,
+        measurements: data.measurements ? { imported: data.measurements } : {},
+        desc: data.description,
+        image: (data.image_urls || [])[0] || "",
+        images: data.image_urls || [],
+        quantity: Number(data.quantity || 1),
+        inventoryStatus: inventoryStatus,
+        listingStatus: listingStatus,
+        verifiedSeller: true,
+        irisGuaranteed: Boolean(data.authentication_required),
+        seller: sellerSnapshot,
+        validationStatus: row.status === "error" ? "error" : "ready",
+        validationErrors: row.validationErrors || [],
+        date: existing ? existing.date : now
+      }));
+      syncListingIntoCatalog(listing);
+      if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
+        try {
+          await saveListingToSupabase(listing);
+        } catch (error) {
+          console.warn("[IRIS PRO] listing sync skipped", error);
+        }
+      }
+      row.status = mode === "published" ? "published" : "draft";
+      row.productId = listing.id;
+      if (existing) {
+        updatedCount += 1;
+      } else {
+        createdCount += 1;
+      }
+    }
+    return { createdCount, updatedCount };
+  }
+
+  async function publishProfessionalImport(mode) {
+    if (!requireProfessionalSellerTool("bulk_upload", mode === "published" ? "publish" : "import")) {
+      return;
+    }
+    const job = getActiveProfessionalImportJob();
+    const seller = getCurrentProfessionalSeller();
+    if (!job || !seller) {
+      return;
+    }
+    const rows = getImportRowsForJob(job.id).filter(function (row) { return row.status !== "error"; });
+    if (!rows.length) {
+      showToast(langText("Nessun prodotto valido da salvare.", "No valid products to save."));
+      return;
+    }
+    const result = await upsertProfessionalRows(job, rows, mode, null);
+    job.status = mode === "published" ? "published" : "saved_as_draft";
+    job.createdCount = result.createdCount;
+    job.updatedCount = result.updatedCount;
+    job.completedAt = Date.now();
+    const importLog = {
+      id: createSupabaseFriendlyId("sync"),
+      sellerId: seller.id,
+      inventorySourceId: null,
+      syncType: "manual_upload",
+      status: job.errorRows ? "partial_success" : "success",
+      totalRows: job.totalRows,
+      createdCount: result.createdCount,
+      updatedCount: result.updatedCount,
+      disabledCount: 0,
+      skippedCount: job.errorRows || 0,
+      errorCount: job.errorRows || 0,
+      warnings: [],
+      errorDetails: [],
+      fileName: job.fileName,
+      sourceUrl: "",
+      triggeredBy: state.currentUser.id || "",
+      startedAt: job.createdAt,
+      finishedAt: Date.now(),
+      createdAt: Date.now()
+    };
+    state.syncLogs.unshift(importLog);
+    saveProfessionalSyncLogToSupabase(importLog).catch(function (syncError) {
+      console.warn("[IRIS PRO] manual import log Supabase save skipped", syncError);
+    });
+    persistProfessionalSellerState();
+    recordAuditEvent(mode === "published" ? "professional_import_published" : "professional_import_saved_as_draft", job.fileName, {
+      professionalSellerId: seller.id,
+      importJobId: job.id,
+      created: result.createdCount,
+      updated: result.updatedCount
+    });
+    showToast(mode === "published" ? langText("Prodotti validi pubblicati.", "Valid products published.") : langText("Prodotti validi salvati in bozza.", "Valid products saved as draft."));
+    render();
+    renderProfilePanel();
+  }
+
+  function cancelProfessionalImport() {
+    state.activeProfessionalImportId = null;
+    renderProfilePanel();
+  }
+
+  async function downloadIrisInventoryTemplate() {
+    const core = await getProfessionalSellerCore();
+    downloadTextFile("iris-inventory-template.csv", core.generateIrisTemplateCsv(), "text/csv;charset=utf-8");
+  }
+
+  function downloadTextFile(fileName, content, mimeType) {
+    const blob = new Blob([content], { type: mimeType || "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function toGoogleSheetsCsvUrl(sourceUrl) {
+    const raw = String(sourceUrl || "").trim();
+    const match = raw.match(/docs\.google\.com\/spreadsheets\/d\/([^/]+)/i);
+    if (!match) {
+      return raw;
+    }
+    const gidMatch = raw.match(/[?&]gid=([0-9]+)/);
+    return "https://docs.google.com/spreadsheets/d/" + match[1] + "/export?format=csv" + (gidMatch ? "&gid=" + gidMatch[1] : "");
+  }
+
+  async function saveProfessionalInventorySource() {
+    if (!requireProfessionalSellerTool("live_sync", "sync")) {
+      return;
+    }
+    const seller = getCurrentProfessionalSeller();
+    const type = qs("#proSourceType") ? qs("#proSourceType").value : "csv_feed";
+    const url = qs("#proSourceUrl") ? qs("#proSourceUrl").value.trim() : "";
+    const behavior = qs("#proMissingBehavior") ? qs("#proMissingBehavior").value : "disable";
+    const core = await getProfessionalSellerCore();
+    const resolvedUrl = type === "google_sheets" ? toGoogleSheetsCsvUrl(url) : url;
+    if (!core.isAllowedFeedUrl(resolvedUrl)) {
+      showToast(langText("URL feed non valido o non sicuro.", "Feed URL is invalid or unsafe."));
+      return;
+    }
+    const source = {
+      id: createSupabaseFriendlyId("src"),
+      sellerId: seller.id,
+      sourceType: type,
+      sourceUrl: resolvedUrl,
+      mappingConfig: {},
+      syncFrequency: "manual",
+      missingProductBehavior: behavior,
+      status: "active",
+      errorCount: 0,
+      lastError: "",
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+    let savedSource = source;
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
+      try {
+        savedSource = await saveProfessionalInventorySourceToSupabase(source);
+      } catch (error) {
+        console.warn("[IRIS PRO] inventory source Supabase save skipped", error);
+      }
+    }
+    state.inventorySources.unshift(savedSource);
+    persistProfessionalSellerState();
+    recordAuditEvent("professional_inventory_source_created", type, { professionalSellerId: seller.id, inventorySourceId: savedSource.id });
+    showToast(langText("Fonte salvata. Puoi eseguire il primo sync.", "Source saved. You can run the first sync."));
+    renderProfilePanel();
+  }
+
+  async function runProfessionalInventorySync(sourceId) {
+    if (!requireProfessionalSellerTool("live_sync", "sync")) {
+      return;
+    }
+    const seller = getCurrentProfessionalSeller();
+    const source = state.inventorySources.find(function (item) { return item.id === sourceId && item.sellerId === seller.id; });
+    if (!source) {
+      showToast(langText("Fonte non disponibile.", "Source unavailable."));
+      return;
+    }
+    const startedAt = Date.now();
+    try {
+      const core = await getProfessionalSellerCore();
+      if (!core.isAllowedFeedUrl(source.sourceUrl)) {
+        throw new Error("Unsafe feed URL");
+      }
+      const response = await fetch(source.sourceUrl, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error("CSV feed returned " + response.status);
+      }
+      const parsed = core.parseCsv(await response.text(), { maxRows: core.MAX_IMPORT_ROWS });
+      if (parsed.errors && parsed.errors.length) {
+        throw new Error(parsed.errors.join(" · "));
+      }
+      const mapping = Object.keys(source.mappingConfig || {}).length ? source.mappingConfig : core.detectColumnMappings(parsed.headers);
+      const job = {
+        id: createSupabaseFriendlyId("syncjob"),
+        sellerId: seller.id,
+        inventorySourceId: source.id,
+        sourceType: source.sourceType,
+        fileName: source.sourceUrl,
+        status: "preview_ready",
+        headers: parsed.headers,
+        rawRows: parsed.rows,
+        mappingConfig: mapping,
+        totalRows: parsed.rows.length,
+        createdAt: startedAt
+      };
+      const preview = core.buildImportPreview(parsed.rows, mapping, getProfessionalExistingProducts(seller), { sellerId: seller.id });
+      const rows = preview.rows.map(function (row) {
+        return {
+          id: createSupabaseFriendlyId("syncrow"),
+          importJobId: job.id,
+          sellerId: seller.id,
+          rowNumber: row.rowNumber,
+          rawData: row.rawData,
+          mappedData: row.mappedData,
+          normalizedData: row.normalizedData,
+          validationErrors: row.validationErrors,
+          validationWarnings: row.validationWarnings,
+          duplicate: row.duplicate,
+          status: row.status,
+          productId: row.duplicate && row.duplicate.product ? row.duplicate.product.id : ""
+        };
+      });
+      state.importJobs.unshift(job);
+      state.importRows = state.importRows.concat(rows);
+      const validRows = rows.filter(function (row) { return row.status !== "error"; });
+      const result = await upsertProfessionalRows(job, validRows, "published", source);
+      source.lastSyncAt = Date.now();
+      source.lastSuccessfulSyncAt = Date.now();
+      source.status = "active";
+      source.lastError = "";
+      source.errorCount = 0;
+      const successLog = {
+        id: createSupabaseFriendlyId("sync"),
+        sellerId: seller.id,
+        inventorySourceId: source.id,
+        syncType: "manual_sync",
+        status: preview.withBlockingErrors ? "partial_success" : "success",
+        totalRows: preview.totalRows,
+        createdCount: result.createdCount,
+        updatedCount: result.updatedCount,
+        disabledCount: 0,
+        skippedCount: preview.withBlockingErrors,
+        errorCount: preview.withBlockingErrors,
+        warnings: [],
+        errorDetails: rows.filter(function (row) { return row.status === "error"; }).map(function (row) { return { rowNumber: row.rowNumber, errors: row.validationErrors }; }),
+        sourceUrl: source.sourceUrl,
+        triggeredBy: state.currentUser.id || "",
+        startedAt: startedAt,
+        finishedAt: Date.now(),
+        createdAt: Date.now()
+      };
+      state.syncLogs.unshift(successLog);
+      saveProfessionalSyncLogToSupabase(successLog).catch(function (syncError) {
+        console.warn("[IRIS PRO] sync log Supabase save skipped", syncError);
+      });
+      saveProfessionalInventorySourceToSupabase(source).catch(function (syncError) {
+        console.warn("[IRIS PRO] source state Supabase save skipped", syncError);
+      });
+      persistProfessionalSellerState();
+      showToast(langText("Sync completato.", "Sync completed."));
+      render();
+      renderProfilePanel();
+    } catch (error) {
+      source.lastSyncAt = Date.now();
+      source.lastError = error.message;
+      source.errorCount = Number(source.errorCount || 0) + 1;
+      source.status = "error";
+      const errorLog = {
+        id: createSupabaseFriendlyId("sync"),
+        sellerId: seller.id,
+        inventorySourceId: source.id,
+        syncType: "manual_sync",
+        status: "failed",
+        totalRows: 0,
+        createdCount: 0,
+        updatedCount: 0,
+        disabledCount: 0,
+        skippedCount: 0,
+        errorCount: 1,
+        warnings: [],
+        errorDetails: [error.message],
+        sourceUrl: source.sourceUrl,
+        triggeredBy: state.currentUser.id || "",
+        startedAt: startedAt,
+        finishedAt: Date.now(),
+        createdAt: Date.now()
+      };
+      state.syncLogs.unshift(errorLog);
+      saveProfessionalSyncLogToSupabase(errorLog).catch(function (syncError) {
+        console.warn("[IRIS PRO] failed sync log Supabase save skipped", syncError);
+      });
+      saveProfessionalInventorySourceToSupabase(source).catch(function (syncError) {
+        console.warn("[IRIS PRO] source error state Supabase save skipped", syncError);
+      });
+      persistProfessionalSellerState();
+      recordAuditEvent("professional_sync_failed", source.sourceUrl, { professionalSellerId: seller.id, error: error.message });
+      showToast(langText("Non siamo riusciti ad aggiornare l'inventario.", "We could not update your inventory."));
+      renderProfilePanel();
+    }
+  }
+
+  async function exportProfessionalSellerReport(type) {
+    const core = await getProfessionalSellerCore();
+    const seller = getCurrentProfessionalSeller();
+    if (!requireProfessionalSellerTool("reports") || !seller) {
+      return;
+    }
+    const orders = getSellerOrdersForCurrentUser();
+    const headers = ["Order ID", "Product title", "Sale date", "Sale price", "Currency", "IRIS commission", "Net seller revenue", "Payout status", "Payout date", "Seller country"];
+    const lines = [headers.join(",")].concat(orders.flatMap(function (order) {
+      return order.items.filter(function (item) { return normalizeEmail(item.sellerEmail) === normalizeEmail(state.currentUser.email); }).map(function (item) {
+        const salePrice = Number(item.price || 0) * Number(item.qty || 1);
+        const commission = salePrice * PLATFORM_CONFIG.selfServeFeeRate;
+        const row = [
+          order.number || order.id,
+          item.brand + " " + item.name,
+          formatDateTime(order.createdAt),
+          salePrice.toFixed(2),
+          getLocaleConfig().currency,
+          commission.toFixed(2),
+          Math.max(0, salePrice - commission).toFixed(2),
+          order.payment && order.payment.payoutStatus || "pending",
+          order.payment && order.payment.paidAt ? formatDateTime(order.payment.paidAt) : "",
+          seller.country
+        ];
+        return row.map(function (cell) {
+          const safe = core.sanitizeCsvCellForExport(cell);
+          return /[",\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+        }).join(",");
+      });
+    }));
+    downloadTextFile("iris-" + type + "-report.csv", lines.join("\n"), "text/csv;charset=utf-8");
+    recordAuditEvent("professional_report_exported", type, { professionalSellerId: seller.id });
+  }
+
+  function renderProfessionalSellerAdminReview() {
+    if (!isCurrentUserAdmin()) {
+      return `<div class="irisx-empty-state">${langText("Accesso admin richiesto.", "Admin access required.")}</div>`;
+    }
+    normalizeProfessionalSellerCollection();
+    const sellersList = state.professionalSellers.slice().sort(function (left, right) { return Number(right.createdAt || 0) - Number(left.createdAt || 0); });
+    if (!sellersList.length) {
+      return `<div class="irisx-empty-state">${langText("Nessuna domanda Professional Seller.", "No Professional Seller applications.")}</div>`;
+    }
+    return `<div class="irisx-card-stack">${sellersList.map(function (seller) {
+      const docs = state.sellerDocuments.filter(function (doc) { return doc.sellerId === seller.id; });
+      const notes = Array.isArray(seller.internalNotes) ? seller.internalNotes : [];
+      return `<article class="irisx-workspace-card irisx-admin-pro-card">
+        <div class="irisx-section-head"><div><h3>${escapeHtml(seller.legalName)}</h3><span>${escapeHtml(seller.userEmail)} · ${escapeHtml(seller.vatNumber)} · ${escapeHtml(seller.country)}</span></div><span class="irisx-badge">${escapeHtml(seller.status)}</span></div>
+        <div class="irisx-pro-admin-grid">
+          <div><strong>${langText("Indirizzo", "Address")}</strong><span>${escapeHtml(seller.businessAddress)}</span></div>
+          <div><strong>${langText("Contatto", "Contact")}</strong><span>${escapeHtml(seller.contactName)} · ${escapeHtml(seller.contactPhone)}</span></div>
+          <div><strong>${langText("Descrizione", "Description")}</strong><span>${escapeHtml(seller.businessDescription)}</span></div>
+          <div><strong>${langText("Documenti", "Documents")}</strong><span>${docs.map(function (doc) { return doc.fileName; }).join(", ") || "-"}</span></div>
+        </div>
+        <div class="irisx-actions">
+          <button class="irisx-primary" onclick="adminSetProfessionalSellerStatus('${seller.id}','approved')">${langText("Approva", "Approve")}</button>
+          <button class="irisx-secondary" onclick="adminSetProfessionalSellerStatus('${seller.id}','rejected')">${langText("Rifiuta", "Reject")}</button>
+          <button class="irisx-secondary" onclick="adminRequestProfessionalSellerInfo('${seller.id}')">${langText("Richiedi info", "Request info")}</button>
+          <button class="irisx-danger" onclick="adminSetProfessionalSellerStatus('${seller.id}','suspended')">${langText("Sospendi", "Suspend")}</button>
+        </div>
+        <div class="irisx-pro-admin-note">
+          <textarea id="adminProNote-${escapeHtml(seller.id)}" placeholder="${langText("Nota interna admin", "Internal admin note")}"></textarea>
+          <button class="irisx-secondary" onclick="adminAddProfessionalSellerNote('${seller.id}')">${langText("Aggiungi nota", "Add note")}</button>
+        </div>
+        ${notes.length ? `<div class="irisx-pro-note-list">${notes.slice(0, 5).map(function (note) { return `<span>${escapeHtml(note.body)} · ${escapeHtml(formatRelativeTime(note.createdAt))}</span>`; }).join("")}</div>` : ""}
+      </article>`;
+    }).join("")}</div>`;
+  }
+
+  async function adminSetProfessionalSellerStatus(sellerId, nextStatus) {
+    if (!isCurrentUserAdmin()) {
+      recordAuditEvent("professional_seller_admin_denied", sellerId, { nextStatus: nextStatus });
+      showToast(langText("Solo admin.", "Admins only."));
+      return;
+    }
+    const allowed = ["pending_verification", "approved", "rejected", "suspended"];
+    if (!allowed.includes(nextStatus)) {
+      return;
+    }
+    let updated = null;
+    state.professionalSellers = state.professionalSellers.map(function (seller) {
+      if (seller.id !== sellerId) {
+        return seller;
+      }
+      const now = Date.now();
+      updated = normalizeProfessionalSellerRecord(Object.assign({}, seller, {
+        status: nextStatus,
+        approvedAt: nextStatus === "approved" ? now : seller.approvedAt,
+        rejectedAt: nextStatus === "rejected" ? now : seller.rejectedAt,
+        suspendedAt: nextStatus === "suspended" ? now : seller.suspendedAt,
+        updatedAt: now
+      }));
+      return updated;
+    });
+    if (!updated) {
+      return;
+    }
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
+      try {
+        updated = await saveProfessionalSellerStatusToSupabase(updated, nextStatus);
+        state.professionalSellers = state.professionalSellers.map(function (seller) {
+          return seller.id === sellerId || seller.userId === updated.userId ? updated : seller;
+        });
+      } catch (error) {
+        console.warn("[IRIS PRO] unable to update professional seller status in Supabase", error);
+      }
+    }
+    persistProfessionalSellerState();
+    recordAuditEvent("professional_seller_" + nextStatus, updated.legalName, {
+      professionalSellerId: updated.id,
+      adminEmail: state.currentUser && state.currentUser.email
+    });
+    createNotification({
+      audience: "user",
+      kind: "professional_seller",
+      title: getProfessionalSellerStatusCopy(updated).title,
+      body: getProfessionalSellerStatusCopy(updated).body,
+      recipientEmail: updated.userEmail
+    });
+    renderOpsView();
+    renderProfilePanel();
+  }
+
+  function adminRequestProfessionalSellerInfo(sellerId) {
+    adminSetProfessionalSellerStatus(sellerId, "pending_verification");
+    const seller = state.professionalSellers.find(function (item) { return item.id === sellerId; });
+    if (seller) {
+      createNotification({
+        audience: "user",
+        kind: "professional_seller",
+        title: langText("IRIS richiede più informazioni", "IRIS requests more information"),
+        body: langText("Aggiorna documenti o dati della domanda Professional Seller.", "Update documents or details for your Professional Seller application."),
+        recipientEmail: seller.userEmail
+      });
+    }
+  }
+
+  function adminAddProfessionalSellerNote(sellerId) {
+    if (!isCurrentUserAdmin()) {
+      return;
+    }
+    const field = qs("#adminProNote-" + sellerId);
+    const body = field ? field.value.trim() : "";
+    if (!body) {
+      return;
+    }
+    state.professionalSellers = state.professionalSellers.map(function (seller) {
+      if (seller.id !== sellerId) {
+        return seller;
+      }
+      const notes = Array.isArray(seller.internalNotes) ? seller.internalNotes.slice() : [];
+      notes.unshift({ id: createId("note"), body: body, adminEmail: state.currentUser.email, createdAt: Date.now() });
+      return normalizeProfessionalSellerRecord(Object.assign({}, seller, { internalNotes: notes, updatedAt: Date.now() }));
+    });
+    persistProfessionalSellerState();
+    recordAuditEvent("professional_seller_admin_note_added", sellerId, { note: body });
+    renderOpsView();
   }
 
   function renderSellerSalesListMarkup(orders, emptyLabel, surface) {
@@ -18589,6 +20250,9 @@
 
   function renderSellerArea(listings, sellerOrders) {
     const section = state.sellerSection || "dashboard";
+    if (["professional", "professional_dashboard", "professional_inventory", "professional_reports", "professional_sync_history"].includes(section)) {
+      return renderProfessionalSellerWorkspace(section, getProfessionalListings(getCurrentProfessionalSeller()), sellerOrders);
+    }
     const published = listings.filter(function (listing) { return listing.listingStatus === "published" && listing.inventoryStatus === "active"; });
     const drafts = listings.filter(function (listing) { return listing.listingStatus === "draft" || listing.inventoryStatus === "draft"; });
     const sold = listings.filter(function (listing) { return listing.inventoryStatus === "sold" || listing.listingStatus === "sold"; });
@@ -18732,7 +20396,12 @@
       { id: "shipping", label: langText("Coda spedizioni", "Shipping queue") },
       { id: "payouts", label: langText("Panoramica pagamenti", "Payout overview") },
       { id: "history", label: langText("Storico vendite", "Sales history") },
-      { id: "stats", label: langText("Statistiche annunci", "Listing stats") }
+      { id: "stats", label: langText("Statistiche annunci", "Listing stats") },
+      { id: "professional", label: langText("Professional Seller", "Professional Seller") },
+      { id: "professional_dashboard", label: langText("Dashboard PRO", "PRO dashboard") },
+      { id: "professional_inventory", label: langText("Inventory Hub", "Inventory Hub") },
+      { id: "professional_reports", label: langText("Documenti e report", "Documents and reports") },
+      { id: "professional_sync_history", label: langText("Storico sync", "Sync history") }
     ];
   }
 
@@ -18828,6 +20497,9 @@
     const payoutReadyCount = context.sellerOrders.filter(function (order) {
       return order.payment && order.payment.payoutStatus === "ready";
     }).length;
+    const proSeller = getCurrentProfessionalSeller();
+    const proStatus = proSeller ? proSeller.status : "non attivo";
+    const proListings = proSeller ? getProfessionalListings(proSeller).length : 0;
     return [
       {
         title: langText("Gestione vendite", "Sales management"),
@@ -18845,6 +20517,16 @@
           { id: "shipping", label: langText("Spedizioni", "Shipping"), description: langText("Ordini da preparare e spedire.", "Orders to prepare and ship."), badge: String(context.sellerOrders.filter(function (order) { return ["paid", "awaiting_shipment"].includes(order.status); }).length) },
           { id: "payouts", label: langText("Pagamenti", "Payouts"), description: langText("Pagamenti in uscita e stato saldo.", "Outgoing payouts and balance status."), badge: String(payoutReadyCount) },
           { id: "history", label: langText("Storico vendite", "Sales history"), description: langText("Ordini seller conclusi.", "Completed seller orders."), badge: "" }
+        ]
+      },
+      {
+        title: langText("Seller professionale", "Professional seller"),
+        entries: [
+          { id: "professional", label: langText("Candidatura PRO", "PRO application"), description: langText("Stato verifica e dati aziendali.", "Verification status and business details."), badge: proStatus },
+          { id: "professional_dashboard", label: langText("Dashboard PRO", "PRO dashboard"), description: langText("Ricavi, payout e inventario avanzato.", "Revenue, payouts, and advanced inventory."), badge: proSeller && proSeller.status === "approved" ? String(proListings) : "" },
+          { id: "professional_inventory", label: langText("Inventory Hub", "Inventory Hub"), description: langText("Import CSV/XLSX e sync live.", "CSV/XLSX import and live sync."), badge: "" },
+          { id: "professional_reports", label: langText("Documenti e report", "Documents and reports"), description: langText("Vendite, commissioni e payout CSV.", "Sales, commission, and payout CSVs."), badge: "" },
+          { id: "professional_sync_history", label: langText("Storico sync", "Sync history"), description: langText("Log import e aggiornamenti inventario.", "Import and inventory update logs."), badge: "" }
         ]
       }
     ];
@@ -19140,6 +20822,7 @@
       { id: "support", label: langText("Dispute / supporto", "Disputes / support") },
       { id: "reviews", label: langText("Recensioni", "Reviews") },
       { id: "payouts", label: langText("Pagamenti", "Payouts") },
+      { id: "professional_sellers", label: langText("Seller PRO", "Pro sellers") },
       { id: "taxonomy", label: langText("Categorie / brand", "Categories / brands") },
       { id: "content", label: langText("Contenuti / policy", "Content / policies") },
       { id: "settings", label: langText("Impostazioni", "Settings") }
@@ -19171,6 +20854,8 @@
       content = orders.length ? `<div class="irisx-card-stack">${orders.map(function (order) {
         return `<div class="irisx-inline-card"><div><strong>${escapeHtml(order.number)}</strong><span>${langText("Netto seller", "Seller net")}: ${escapeHtml(formatCurrency(order.payment.sellerNet || 0))}</span></div><div class="irisx-actions"><span class="irisx-badge">${escapeHtml(order.payment.payoutStatus || "pending")}</span>${order.payment.payoutStatus === "ready" ? `<button class="irisx-secondary" onclick="markOrderPayoutPaid('${order.id}')">${langText("Segna pagato", "Mark paid")}</button>` : ""}</div></div>`;
       }).join("")}</div>` : `<div class="irisx-empty-state">${langText("Nessun payout.", "No payouts.")}</div>`;
+    } else if (state.adminSection === "professional_sellers") {
+      content = renderProfessionalSellerAdminReview();
     } else if (state.adminSection === "taxonomy") {
       content = `<div class="irisx-summary-grid">${getAvailableCategories().map(function (category) {
         return `<div class="irisx-summary-card"><strong>${escapeHtml(category)}</strong><span>${getVisibleCatalogProducts().filter(function (product) { return normalizeCategoryValue(product.cat) === category; }).length} ${langText("articoli", "items")}</span></div>`;
@@ -21117,6 +22802,18 @@
   window.openChatReportModal = openChatReportModal;
   window.reportListing = reportListing;
   window.submitStaticSupportForm = submitStaticSupportForm;
+  window.submitProfessionalSellerApplication = submitProfessionalSellerApplication;
+  window.handleProfessionalInventoryFile = handleProfessionalInventoryFile;
+  window.downloadIrisInventoryTemplate = downloadIrisInventoryTemplate;
+  window.confirmProfessionalColumnMapping = confirmProfessionalColumnMapping;
+  window.publishProfessionalImport = publishProfessionalImport;
+  window.cancelProfessionalImport = cancelProfessionalImport;
+  window.saveProfessionalInventorySource = saveProfessionalInventorySource;
+  window.runProfessionalInventorySync = runProfessionalInventorySync;
+  window.exportProfessionalSellerReport = exportProfessionalSellerReport;
+  window.adminSetProfessionalSellerStatus = adminSetProfessionalSellerStatus;
+  window.adminRequestProfessionalSellerInfo = adminRequestProfessionalSellerInfo;
+  window.adminAddProfessionalSellerNote = adminAddProfessionalSellerNote;
   window.toggleProfileMenu = toggleProfileMenu;
   window.closeProfileMenu = closeProfileMenu;
   window.toggleLocaleMenu = toggleLocaleMenu;

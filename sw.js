@@ -1,8 +1,9 @@
-const CACHE_NAME = 'iris-v154';
+const CACHE_NAME = 'iris-v155';
 const APP_SHELL_URL = new URL('./index.html', self.location.href).toString();
 const MANIFEST_URL = new URL('./manifest.json', self.location.href).toString();
 const PLUS_CSS_URL = new URL('./iris-plus.css', self.location.href).toString();
 const PLUS_JS_URL = new URL('./iris-plus.js', self.location.href).toString();
+const PROFESSIONAL_CORE_URL = new URL('./professional-seller-core.mjs', self.location.href).toString();
 const I18N_URL = new URL('./iris-i18n-config.js', self.location.href).toString();
 const SUPABASE_CONFIG_URL = new URL('./supabase-config.js', self.location.href).toString();
 const MEASUREMENT_GUIDE_URLS = [
@@ -24,6 +25,7 @@ const ASSETS = [
   MANIFEST_URL,
   PLUS_CSS_URL,
   PLUS_JS_URL,
+  PROFESSIONAL_CORE_URL,
   I18N_URL,
   SUPABASE_CONFIG_URL,
   ...MEASUREMENT_GUIDE_URLS,

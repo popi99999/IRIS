@@ -22,7 +22,11 @@ jobs:
       - name: Frontend syntax
         run: |
           node --check iris-plus.js
+          node --check professional-seller-core.mjs
           node --check sw.js
+
+      - name: Professional seller tests
+        run: node --test tests/professional-seller-core.test.mjs
 
       - name: Script syntax
         run: |

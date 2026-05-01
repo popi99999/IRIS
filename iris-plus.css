@@ -21100,6 +21100,98 @@ html body.irisx-luxury.irisx-white-theme #profile-view .irisx-area-btn {
   min-height: 60px !important;
 }
 
+/* Profile dropdown: only the main doors, deeper options live inside Profile */
+html body.irisx-luxury .tn-profile-menu,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu {
+  width: min(430px, calc(100vw - 28px)) !important;
+  max-height: min(78vh, 720px) !important;
+  padding: 20px !important;
+}
+
+html body.irisx-luxury .tn-profile-menu .tn-menu-head,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-head {
+  gap: 9px !important;
+  padding: 2px 2px 16px !important;
+}
+
+html body.irisx-luxury .tn-profile-menu .tn-menu-copy,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-copy {
+  max-width: 34ch !important;
+  color: #6f6674 !important;
+}
+
+html body.irisx-luxury .tn-profile-menu .tn-menu-section--primary,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-section--primary {
+  gap: 10px !important;
+}
+
+html body.irisx-luxury .tn-profile-menu .tn-menu-section--actions,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-section--actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+html body.irisx-luxury .tn-profile-menu .tn-menu-link,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-link {
+  align-items: center !important;
+  min-height: 74px !important;
+  padding: 15px 16px !important;
+  border-color: rgba(17, 24, 39, 0.1) !important;
+  border-radius: 8px !important;
+  color: #111827 !important;
+}
+
+html body.irisx-luxury .tn-profile-menu .tn-menu-link span,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-link span {
+  display: grid !important;
+  gap: 5px !important;
+}
+
+html body.irisx-luxury .tn-profile-menu .tn-menu-link strong,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-link strong {
+  color: #111827 !important;
+  font-size: 1rem !important;
+  line-height: 1.1 !important;
+  letter-spacing: 0 !important;
+}
+
+html body.irisx-luxury .tn-profile-menu .tn-menu-link small,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-link small {
+  max-width: 28ch !important;
+  color: #776f7c !important;
+  font-size: 0.82rem !important;
+  font-weight: 520 !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0 !important;
+}
+
+html body.irisx-luxury .tn-profile-menu .tn-menu-link em,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-link em {
+  align-self: center !important;
+  padding: 7px 10px !important;
+  border: 1px solid rgba(241, 50, 79, 0.2) !important;
+  border-radius: 999px !important;
+  background: rgba(241, 50, 79, 0.08) !important;
+  font-size: 0.72rem !important;
+}
+
+html body.irisx-luxury .tn-profile-menu .tn-menu-link.active,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-link.active {
+  border-color: rgba(241, 50, 79, 0.35) !important;
+  background: rgba(241, 50, 79, 0.08) !important;
+  color: #f1324f !important;
+}
+
+html body.irisx-luxury .tn-profile-menu .tn-menu-link.active strong,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-link.active strong {
+  color: #f1324f !important;
+}
+
+html body.irisx-luxury .tn-profile-menu .tn-menu-divider,
+html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-divider {
+  margin: 14px 0 !important;
+}
+
 @media (max-width: 1100px) {
   html body.irisx-luxury #profile-view,
   html body.irisx-luxury.irisx-white-theme #profile-view {
@@ -21130,5 +21222,23 @@ html body.irisx-luxury.irisx-white-theme #profile-view .irisx-area-btn {
     height: auto !important;
     max-height: none !important;
     overflow: visible !important;
+  }
+}
+
+@media (max-width: 640px) {
+  html body.irisx-luxury .tn-profile-menu,
+  html body.irisx-luxury.irisx-white-theme .tn-profile-menu {
+    width: calc(100vw - 24px) !important;
+    padding: 16px !important;
+  }
+
+  html body.irisx-luxury .tn-profile-menu .tn-menu-section--actions,
+  html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-section--actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body.irisx-luxury .tn-profile-menu .tn-menu-link,
+  html body.irisx-luxury.irisx-white-theme .tn-profile-menu .tn-menu-link {
+    min-height: 68px !important;
   }
 }

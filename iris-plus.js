@@ -8356,13 +8356,11 @@
     }
 
     [
-      ["#tnMenuAccountBtn", currentView === "profile" && state.profileArea === "account" && accountSection === "overview"],
+      ["#tnMenuAccountBtn", currentView === "profile" && state.profileArea === "account" && !String(accountSection).startsWith("help_")],
       ["#tnMenuOrdersBtn", currentView === "profile" && state.profileArea === "buyer"],
       ["#tnMenuSalesBtn", currentView === "profile" && state.profileArea === "seller"],
-      ["#tnMenuBillingBtn", currentView === "profile" && state.profileArea === "account" && ["settings_account", "settings_payment"].includes(accountSection)],
-      ["#tnMenuSavedSearchBtn", currentView === "profile" && state.profileArea === "account" && accountSection === "shopping_saved_searches"],
-      ["#tnMenuSettingsBtn", currentView === "profile" && state.profileArea === "account" && ["settings_profile", "settings_privacy", "settings_notifications", "settings_security"].includes(accountSection)],
-      ["#tnMenuSupportBtn", currentView === "profile" && state.profileArea === "account" && accountSection === "help_contact"],
+      ["#tnMenuMessagesBtn", currentView === "chat"],
+      ["#tnMenuSupportBtn", currentView === "profile" && state.profileArea === "account" && String(accountSection).startsWith("help_")],
       ["#opsBtn", currentView === "ops"]
     ].forEach(function (entry) {
       const button = qs(entry[0]);

@@ -178,6 +178,8 @@ export function buildOrderPayload(args: {
       name: normalizeString(args.shipping?.name ?? args.shipping?.shipping_name ?? ""),
       address: normalizeString(args.shipping?.address ?? args.shipping?.shipping_address ?? ""),
       city: normalizeString(args.shipping?.city ?? args.shipping?.shipping_city ?? ""),
+      zip: normalizeString(args.shipping?.zip ?? args.shipping?.postcode ?? args.shipping?.postalCode ?? args.shipping?.shipping_zip ?? ""),
+      province: normalizeString(args.shipping?.province ?? args.shipping?.state ?? args.shipping?.county ?? args.shipping?.shipping_province ?? ""),
       country: normalizeString(args.shipping?.country ?? args.shipping?.shipping_country ?? ""),
       phone: normalizeString(args.shipping?.phone ?? args.shipping?.shipping_phone ?? ""),
       note: normalizeString(args.shipping?.note ?? args.shipping?.shipping_note ?? ""),

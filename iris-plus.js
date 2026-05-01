@@ -2249,6 +2249,14 @@
 
   function normalizeCheckoutDraftState(draft) {
     const nextDraft = Object.assign({}, draft || {});
+    nextDraft.name = String(nextDraft.name || "").trim();
+    nextDraft.address = String(nextDraft.address || "").trim();
+    nextDraft.city = String(nextDraft.city || "").trim();
+    nextDraft.zip = String(nextDraft.zip || nextDraft.postalCode || "").trim();
+    nextDraft.province = String(nextDraft.province || "").trim();
+    nextDraft.country = String(nextDraft.country || getWorkspaceDefaultCountry()).trim();
+    nextDraft.phone = normalizePhoneNumber(nextDraft.phone || "");
+    nextDraft.note = String(nextDraft.note || "").trim();
     nextDraft.shippingMethod = resolveCheckoutShippingMethod(nextDraft.shippingMethod);
     nextDraft.shippingFee = getCheckoutShippingFee(nextDraft.shippingMethod);
     return nextDraft;
@@ -6130,8 +6138,10 @@
         name: user.name || langText("Cliente IRIS", "IRIS customer"),
         address: "",
         city: user.city || "",
+        zip: user.zip || "",
+        province: user.province || "",
         country: user.country || getWorkspaceDefaultCountry(),
-        phone: "",
+        phone: user.phone || "",
         isDefault: false
       },
       address || {}
@@ -10337,6 +10347,8 @@
         name: shipping.name,
         address: shipping.address,
         city: shipping.city,
+        zip: shipping.zip || "",
+        province: shipping.province || "",
         country: shipping.country,
         phone: buyerPhone,
         note: shipping.note,
@@ -11346,10 +11358,10 @@
           missingAmount: true
         };
       }
-      if (!shipping.address || !shipping.city || !shipping.country) {
+      if (!shipping.address || !shipping.city || !shipping.zip || !shipping.country) {
         return {
           ok: false,
-          error: langText("Completa il tuo indirizzo di spedizione nel profilo prima di inviare l'offerta.", "Complete your shipping address in your profile before submitting the offer."),
+          error: langText("Completa indirizzo, città, CAP e paese nel profilo prima di inviare l'offerta.", "Complete address, city, postal code, and country in your profile before submitting the offer."),
           shipping: shipping,
           payment: payment,
           phone: phone,
@@ -11586,7 +11598,7 @@
                     <div>
                       <strong>${escapeHtml(shippingSnapshot.name || langText("Cliente IRIS", "IRIS customer"))}</strong>
                       <span>${escapeHtml(shippingSnapshot.address || langText("Aggiungi via e numero civico", "Add street and number"))}</span>
-                      <span>${escapeHtml([shippingSnapshot.city || langText("Citta da completare", "City missing"), shippingSnapshot.country || ""].filter(Boolean).join(" · "))}</span>
+                      <span>${escapeHtml([[shippingSnapshot.zip, shippingSnapshot.city || langText("Citta da completare", "City missing")].filter(Boolean).join(" "), shippingSnapshot.province || "", shippingSnapshot.country || ""].filter(Boolean).join(" · "))}</span>
                     </div>
                   </div>
                 </section>
@@ -15152,7 +15164,7 @@
             "</div><div>" +
             escapeHtml(sellerItems.map(function (item) { return item.brand + " " + item.name; }).join(", ")) +
             "</div><div>" +
-            escapeHtml(order.shipping.address + ", " + order.shipping.city + ", " + order.shipping.country) +
+            escapeHtml([order.shipping.address, [order.shipping.zip, order.shipping.city].filter(Boolean).join(" "), order.shipping.country].filter(Boolean).join(", ")) +
             "</div></div>" +
             renderOrderTimeline(order) +
             (actions.length ? "<div class=\"irisx-actions\">" + actions.join("") + "</div>" : "") +
@@ -16743,6 +16755,8 @@
             name: defaultAddress.name || buyer.name || "",
             address: defaultAddress.address || buyer.address || "",
             city: defaultAddress.city || buyer.city || "",
+            zip: defaultAddress.zip || buyer.zip || "",
+            province: defaultAddress.province || buyer.province || "",
             country: defaultAddress.country || buyer.country || getWorkspaceDefaultCountry(),
             phone: defaultAddress.phone || buyer.phone || ""
           }
@@ -16750,6 +16764,8 @@
             name: buyer.name || "",
             address: buyer.address || "",
             city: buyer.city || "",
+            zip: buyer.zip || "",
+            province: buyer.province || "",
             country: buyer.country || getWorkspaceDefaultCountry(),
             phone: buyer.phone || ""
           },
@@ -17544,7 +17560,7 @@
           <div class="irisx-order-panel-title">${langText("Shipping", "Shipping")}</div>
           <div class="irisx-order-items">
             <div>${escapeHtml(order.shipping.name || order.buyerName)}</div>
-            <div>${escapeHtml(order.shipping.address)}, ${escapeHtml(order.shipping.city)}, ${escapeHtml(order.shipping.country)}</div>
+            <div>${escapeHtml([order.shipping.address, [order.shipping.zip, order.shipping.city].filter(Boolean).join(" "), order.shipping.country].filter(Boolean).join(", "))}</div>
             <div>${langText("Telefono", "Phone")}: ${escapeHtml(order.shipping.phone || langText("Da profilo buyer", "From buyer profile"))}</div>
             <div>${escapeHtml(order.shipping.method || langText("Spedizione assicurata", "Insured shipping"))}</div>
             <div>${escapeHtml(order.shipping.carrier || langText("Carrier pending", "Carrier pending"))} ${order.shipping.trackingNumber ? "· " + escapeHtml(order.shipping.trackingNumber) : ""}</div>
@@ -17743,53 +17759,93 @@
   }
 
 
-  // ─── Nominatim address autocomplete ─────────────────────────────
+  // ─── OpenStreetMap address autocomplete ─────────────────────────
   var _irisAddrTimer = null;
-  function irisAddressAutocomplete(val) {
+  function getAddressAutocompleteConfig(target) {
+    return target === "checkout"
+      ? {
+          dropId: "checkoutAddressDrop",
+          lineId: "checkoutAddress",
+          cityId: "checkoutCity",
+          zipId: "checkoutZip",
+          provinceId: "checkoutProvince",
+          countryId: "checkoutCountry"
+        }
+      : {
+          dropId: "irisAddressDrop",
+          lineId: "accountAddressLine",
+          cityId: "accountAddressCity",
+          zipId: "accountAddressZip",
+          provinceId: "accountAddressProvince",
+          countryId: "accountAddressCountry"
+        };
+  }
+
+  function irisAddressAutocomplete(val, target) {
     clearTimeout(_irisAddrTimer);
-    const drop = document.getElementById("irisAddressDrop");
+    const config = getAddressAutocompleteConfig(target);
+    const drop = document.getElementById(config.dropId);
     if (!drop) return;
     if (!val || val.length < 4) { drop.innerHTML = ""; drop.style.display = "none"; return; }
+    drop.innerHTML = `<div class="irisx-addr-loading">${escapeHtml(langText("Cerco indirizzi reali...", "Searching real addresses..."))}</div>`;
+    drop.style.display = "block";
     _irisAddrTimer = setTimeout(function() {
-      const url = "https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(val) +
-        "&format=json&addressdetails=1&limit=6&countrycodes=it,de,fr,es,gb,ch,at,be,nl,us&accept-language=it";
-      fetch(url, { headers: { "Accept-Language": "it" } })
+      const url = "https://photon.komoot.io/api/?q=" + encodeURIComponent(val) + "&limit=6";
+      fetch(url)
         .then(function(r) { return r.json(); })
         .then(function(results) {
-          if (!results || !results.length) { drop.innerHTML = ""; drop.style.display = "none"; return; }
-          drop.innerHTML = results.map(function(r) {
-            const addr = r.address || {};
-            const road = [addr.road, addr.house_number].filter(Boolean).join(" ");
-            const city = addr.city || addr.town || addr.village || addr.municipality || "";
+          const items = results && Array.isArray(results.features) ? results.features : (Array.isArray(results) ? results : []);
+          if (!items.length) { drop.innerHTML = ""; drop.style.display = "none"; return; }
+          const suggestionHtml = items.map(function(r) {
+            const props = r.properties || {};
+            const addr = r.address || props || {};
+            const roadName = addr.road || addr.street || addr.pedestrian || addr.footway || addr.path || "";
+            const houseNumber = addr.house_number || addr.housenumber || "";
+            const road = [roadName, houseNumber].filter(Boolean).join(" ");
+            const city = addr.city || addr.town || addr.village || addr.municipality || addr.locality || addr.district || "";
             const zip = addr.postcode || "";
             const province = addr.county || addr.state_district || addr.state || "";
             const country = addr.country || "";
-            const label = [road || r.display_name.split(",")[0], city, zip].filter(Boolean).join(", ");
-            return '<div class="irisx-addr-item" onclick="irisAddressSelect(' +
-              JSON.stringify(JSON.stringify({road:road||r.display_name.split(",")[0], city:city, zip:zip, province:province, country:country})) +
-              ')">' + escapeHtml(label) + '</div>';
-          }).join("");
+            const displayName = r.display_name || [addr.name, roadName, city, province, country].filter(Boolean).join(", ");
+            const main = road || addr.name || displayName.split(",")[0] || "";
+            if (!main) return "";
+            const meta = [[zip, city].filter(Boolean).join(" "), province, country].filter(Boolean).join(" · ");
+            const payload = encodeURIComponent(JSON.stringify({road: main, city: city, zip: zip, province: province, country: country}));
+            return "<button type=\"button\" class=\"irisx-addr-item\" onclick='irisAddressSelect(decodeURIComponent(" +
+              JSON.stringify(payload) +
+              "), " + JSON.stringify(target || "account") +
+              ")'><strong>" + escapeHtml(main) + "</strong><span>" + escapeHtml(meta) + "</span></button>";
+          }).filter(Boolean).join("");
+          if (!suggestionHtml) { drop.innerHTML = ""; drop.style.display = "none"; return; }
+          drop.innerHTML = suggestionHtml;
           drop.style.display = "block";
         })
-        .catch(function() { drop.innerHTML = ""; drop.style.display = "none"; });
+        .catch(function() {
+          drop.innerHTML = `<div class="irisx-addr-loading">${escapeHtml(langText("Suggerimenti non disponibili. Puoi compilare manualmente.", "Suggestions unavailable. You can fill it manually."))}</div>`;
+          drop.style.display = "block";
+        });
     }, 350);
   }
 
-  function irisAddressSelect(jsonStr) {
+  function irisAddressSelect(jsonStr, target) {
     try {
       const d = JSON.parse(jsonStr);
-      const lineEl = document.getElementById("accountAddressLine");
-      const cityEl = document.getElementById("accountAddressCity");
-      const zipEl = document.getElementById("accountAddressZip");
-      const provEl = document.getElementById("accountAddressProvince");
-      const countryEl = document.getElementById("accountAddressCountry");
-      const drop = document.getElementById("irisAddressDrop");
+      const config = getAddressAutocompleteConfig(target);
+      const lineEl = document.getElementById(config.lineId);
+      const cityEl = document.getElementById(config.cityId);
+      const zipEl = document.getElementById(config.zipId);
+      const provEl = document.getElementById(config.provinceId);
+      const countryEl = document.getElementById(config.countryId);
+      const drop = document.getElementById(config.dropId);
       if (lineEl) lineEl.value = d.road || "";
       if (cityEl) cityEl.value = d.city || "";
       if (zipEl) zipEl.value = d.zip || "";
       if (provEl) provEl.value = d.province || "";
       if (countryEl && d.country) countryEl.value = d.country;
       if (drop) { drop.innerHTML = ""; drop.style.display = "none"; }
+      if (target === "checkout") {
+        saveCheckoutDraftFromFields();
+      }
     } catch(e) {}
   }
   // ──────────────────────────────────────────────────────────────────
@@ -17805,12 +17861,17 @@
     const zip = readProfileField("#accountAddressZip") || "";
     const province = readProfileField("#accountAddressProvince") || "";
     const country = readProfileField("#accountAddressCountry") || getWorkspaceDefaultCountry();
+    const phone = normalizePhoneNumber(readProfileField("#accountAddressPhone") || state.currentUser.phone || "");
     if (!address || !city) {
       showToast(langText("Completa via e città.", "Complete street and city."));
       return;
     }
     if (!zip) {
       showToast(langText("Inserisci il CAP.", "Enter postal code."));
+      return;
+    }
+    if (phone && !isValidPhoneNumber(phone)) {
+      showToast(langText("Inserisci un numero di telefono valido.", "Enter a valid phone number."));
       return;
     }
     const nextAddresses = state.currentUser.addresses.slice();
@@ -17823,6 +17884,7 @@
       zip: zip,
       province: province,
       country: country,
+      phone: phone,
       isDefault: nextAddresses.length === 0
     }, state.currentUser));
     syncCurrentUserWorkspace({
@@ -17831,6 +17893,7 @@
       zip: zip,
       province: province,
       country: country,
+      phone: phone || state.currentUser.phone || "",
       addresses: nextAddresses
     });
     renderProfilePanel();
@@ -18823,7 +18886,7 @@
           <div class="irisx-section-head"><h3>${langText("Indirizzi", "Addresses")}</h3><span>${langText("Rubrica indirizzi di spedizione dell'acquirente.", "Buyer shipping address book.")}</span></div>
           <div class="irisx-card-stack">${user.addresses.map(function (address) {
             return `<div class="irisx-inline-card">
-              <div><strong>${escapeHtml(address.label)}</strong><span>${escapeHtml(address.name || user.name || "")} · ${escapeHtml(address.address || "")}, ${escapeHtml(address.city || "")}, ${escapeHtml(address.country || "")}</span></div>
+              <div><strong>${escapeHtml(address.label)}</strong><span>${escapeHtml([address.name || user.name || "", address.address || "", [address.zip || "", address.city || ""].filter(Boolean).join(" "), address.country || "", address.phone || ""].filter(Boolean).join(" · "))}</span></div>
               <div class="irisx-actions">${address.isDefault ? `<span class="irisx-badge">${langText("Default", "Default")}</span>` : `<button class="irisx-secondary" onclick="setDefaultAddress('${address.id}')">${langText("Imposta default", "Set default")}</button>`}</div>
             </div>`;
           }).join("")}</div>
@@ -18845,6 +18908,7 @@
               <div class="irisx-field"><label for="accountAddressProvince">${langText("Provincia", "Province")}</label><input id="accountAddressProvince" type="text" placeholder="${langText("Es: Treviso", "E.g. Treviso")}"></div>
               <div class="irisx-field"><label for="accountAddressCountry">${langText("Paese", "Country")}</label><input id="accountAddressCountry" type="text" value="${escapeHtml(user.country || getWorkspaceDefaultCountry())}"></div>
             </div>
+            <div class="irisx-field"><label for="accountAddressPhone">${langText("Telefono per il corriere", "Courier phone number")}</label><input id="accountAddressPhone" type="tel" inputmode="tel" value="${escapeHtml(user.phone || "")}" placeholder="${langText("+39 333 123 4567", "+39 333 123 4567")}"></div>
             <div class="irisx-actions"><button class="irisx-primary" onclick="saveAddressBook()">${langText("Salva indirizzo", "Save address")}</button></div>
           </div>
         </div>
@@ -21499,7 +21563,10 @@
       name: defaultAddress.name || user.name || "",
       address: defaultAddress.address || user.address || "",
       city: defaultAddress.city || user.city || "",
+      zip: defaultAddress.zip || user.zip || "",
+      province: defaultAddress.province || user.province || "",
       country: defaultAddress.country || user.country || getWorkspaceDefaultCountry(),
+      phone: defaultAddress.phone || user.phone || "",
       note: "",
       shippingMethod: resolveCheckoutShippingMethod(),
       shippingFee: SHIPPING_COST,
@@ -21509,16 +21576,31 @@
   }
 
   function saveCheckoutDraftFromFields() {
-    const nextDraft = Object.assign({}, state.checkoutDraft || {}, {
-      name: qs("#checkoutName") ? qs("#checkoutName").value.trim() : state.checkoutDraft.name,
-      address: qs("#checkoutAddress") ? qs("#checkoutAddress").value.trim() : state.checkoutDraft.address,
-      city: qs("#checkoutCity") ? qs("#checkoutCity").value.trim() : state.checkoutDraft.city,
-      country: qs("#checkoutCountry") ? qs("#checkoutCountry").value.trim() : state.checkoutDraft.country,
-      note: qs("#checkoutNote") ? qs("#checkoutNote").value.trim() : state.checkoutDraft.note,
-      shippingMethod: qs("#checkoutShippingMethod") ? qs("#checkoutShippingMethod").value : state.checkoutDraft.shippingMethod,
-      paymentLabel: qs("#checkoutPaymentLabel") ? qs("#checkoutPaymentLabel").value.trim() : state.checkoutDraft.paymentLabel
+    const currentDraft = state.checkoutDraft || {};
+    const nextDraft = Object.assign({}, currentDraft, {
+      name: qs("#checkoutName") ? qs("#checkoutName").value.trim() : currentDraft.name,
+      address: qs("#checkoutAddress") ? qs("#checkoutAddress").value.trim() : currentDraft.address,
+      city: qs("#checkoutCity") ? qs("#checkoutCity").value.trim() : currentDraft.city,
+      zip: qs("#checkoutZip") ? qs("#checkoutZip").value.trim() : currentDraft.zip,
+      province: qs("#checkoutProvince") ? qs("#checkoutProvince").value.trim() : currentDraft.province,
+      country: qs("#checkoutCountry") ? qs("#checkoutCountry").value.trim() : currentDraft.country,
+      phone: qs("#checkoutPhone") ? qs("#checkoutPhone").value.trim() : currentDraft.phone,
+      note: qs("#checkoutNote") ? qs("#checkoutNote").value.trim() : currentDraft.note,
+      shippingMethod: qs("#checkoutShippingMethod") ? qs("#checkoutShippingMethod").value : currentDraft.shippingMethod,
+      paymentLabel: qs("#checkoutPaymentLabel") ? qs("#checkoutPaymentLabel").value.trim() : currentDraft.paymentLabel
     });
     state.checkoutDraft = normalizeCheckoutDraftState(nextDraft);
+  }
+
+  function getCheckoutAddressError(draft) {
+    const normalized = normalizeCheckoutDraftState(draft || {});
+    if (!normalized.name || !normalized.address || !normalized.city || !normalized.zip || !normalized.country) {
+      return langText("Completa nome, indirizzo, città, CAP e paese.", "Complete name, address, city, postal code, and country.");
+    }
+    if (!normalized.phone || !isValidPhoneNumber(normalized.phone)) {
+      return langText("Inserisci un numero di telefono valido per il corriere.", "Enter a valid phone number for the courier.");
+    }
+    return "";
   }
 
   function setCheckoutStep(step) {
@@ -21531,8 +21613,9 @@
     saveCheckoutDraftFromFields();
     const currentIndex = CHECKOUT_STEPS.indexOf(state.checkoutStep);
     if (currentIndex === 0) {
-      if (!state.checkoutDraft.name || !state.checkoutDraft.address || !state.checkoutDraft.city || !state.checkoutDraft.country) {
-        showToast(langText("Completa i dati di spedizione.", "Complete shipping data."));
+      const addressError = getCheckoutAddressError(state.checkoutDraft);
+      if (addressError) {
+        showToast(addressError);
         return;
       }
     }
@@ -21572,8 +21655,10 @@
         name: draft.name || "",
         address: draft.address || "",
         city: draft.city || "",
+        zip: draft.zip || "",
+        province: draft.province || "",
         country: draft.country || "",
-        phone: normalizePhoneNumber((state.currentUser && state.currentUser.phone) || ""),
+        phone: normalizePhoneNumber(draft.phone || (state.currentUser && state.currentUser.phone) || ""),
         note: draft.note || "",
         method: draft.shippingMethod || langText("Spedizione assicurata", "Insured shipping")
       },
@@ -21584,8 +21669,9 @@
 
   async function beginStripeCheckout() {
     saveCheckoutDraftFromFields();
-    if (!state.checkoutDraft.name || !state.checkoutDraft.address || !state.checkoutDraft.city || !state.checkoutDraft.country) {
-      showToast(langText("Completa i dati di spedizione prima di continuare.", "Complete your shipping details before continuing."));
+    const addressError = getCheckoutAddressError(state.checkoutDraft);
+    if (addressError) {
+      showToast(addressError);
       state.checkoutStep = "address";
       renderCheckoutModal();
       return;
@@ -21625,13 +21711,19 @@
       name: state.checkoutDraft.name,
       address: state.checkoutDraft.address,
       city: state.checkoutDraft.city,
+      zip: state.checkoutDraft.zip,
+      province: state.checkoutDraft.province,
+      phone: state.checkoutDraft.phone,
       country: state.checkoutDraft.country
     });
     const order = createOrderFromCheckout(state.checkoutItems, {
       name: state.checkoutDraft.name,
       address: state.checkoutDraft.address,
       city: state.checkoutDraft.city,
+      zip: state.checkoutDraft.zip,
+      province: state.checkoutDraft.province,
       country: state.checkoutDraft.country,
+      phone: state.checkoutDraft.phone,
       note: state.checkoutDraft.note
     });
     order.shipping.method = state.checkoutDraft.shippingMethod || order.shipping.method;
@@ -21753,11 +21845,21 @@
     } else if (state.checkoutStep === "address") {
       body = `<div class="irisx-form-grid">
         <div class="irisx-field"><label for="checkoutName">${t("shipping_name")}</label><input id="checkoutName" type="text" value="${escapeHtml(draft.name || "")}"></div>
-        <div class="irisx-field"><label for="checkoutAddress">${t("shipping_address")}</label><input id="checkoutAddress" type="text" value="${escapeHtml(draft.address || "")}"></div>
+        <div class="irisx-field irisx-field--address" style="position:relative">
+          <label for="checkoutAddress">${t("shipping_address")}</label>
+          <input id="checkoutAddress" type="text" autocomplete="off" placeholder="${escapeHtml(langText("Inizia a scrivere via e numero civico", "Start typing street and number"))}" value="${escapeHtml(draft.address || "")}" oninput="irisAddressAutocomplete(this.value,'checkout')" onfocus="irisAddressAutocomplete(this.value,'checkout')">
+          <div id="checkoutAddressDrop" class="irisx-addr-drop"></div>
+          <small class="irisx-field-help">${escapeHtml(langText("Scegli un suggerimento reale: città, CAP e paese si compilano automaticamente.", "Choose a real suggestion: city, postal code, and country fill automatically."))}</small>
+        </div>
         <div class="irisx-account-row">
           <div class="irisx-field"><label for="checkoutCity">${t("shipping_city")}</label><input id="checkoutCity" type="text" value="${escapeHtml(draft.city || "")}"></div>
+          <div class="irisx-field"><label for="checkoutZip">${langText("CAP", "Postal code")}</label><input id="checkoutZip" type="text" inputmode="numeric" autocomplete="postal-code" value="${escapeHtml(draft.zip || "")}" placeholder="${escapeHtml(langText("es. 31031", "e.g. 31031"))}"></div>
+        </div>
+        <div class="irisx-account-row">
+          <div class="irisx-field"><label for="checkoutProvince">${langText("Provincia", "Province")}</label><input id="checkoutProvince" type="text" value="${escapeHtml(draft.province || "")}" placeholder="${escapeHtml(langText("es. Treviso", "e.g. Treviso"))}"></div>
           <div class="irisx-field"><label for="checkoutCountry">${t("shipping_country")}</label><input id="checkoutCountry" type="text" value="${escapeHtml(draft.country || "")}"></div>
         </div>
+        <div class="irisx-field"><label for="checkoutPhone">${langText("Telefono per il corriere", "Courier phone number")}</label><input id="checkoutPhone" type="tel" inputmode="tel" autocomplete="tel" value="${escapeHtml(draft.phone || "")}" placeholder="${escapeHtml(langText("+39 333 123 4567", "+39 333 123 4567"))}"></div>
         <div class="irisx-field"><label for="checkoutNote">${t("shipping_note")}</label><textarea id="checkoutNote">${escapeHtml(draft.note || "")}</textarea></div>
       </div>`;
     } else if (state.checkoutStep === "shipping") {
@@ -21780,7 +21882,8 @@
       body = `<div class="irisx-checkout-review">
         <div class="irisx-kicker">${langText("Dettagli acquisto", "Purchase details")}</div>
         <div class="irisx-card-stack">
-          <div class="irisx-inline-card"><div><strong>${langText("Indirizzo di spedizione", "Shipping address")}</strong><span>${escapeHtml([draft.name, draft.address, draft.city, draft.country].filter(Boolean).join(" · ")) || escapeHtml(langText("Da completare", "To complete"))}</span></div></div>
+          <div class="irisx-inline-card"><div><strong>${langText("Indirizzo di spedizione", "Shipping address")}</strong><span>${escapeHtml([draft.name, draft.address, [draft.zip, draft.city].filter(Boolean).join(" "), draft.province, draft.country].filter(Boolean).join(" · ")) || escapeHtml(langText("Da completare", "To complete"))}</span></div></div>
+          <div class="irisx-inline-card"><div><strong>${langText("Telefono", "Phone")}</strong><span>${escapeHtml(draft.phone || langText("Da completare", "To complete"))}</span></div></div>
           <div class="irisx-inline-card"><div><strong>${langText("METODO DI SPEDIZIONE", "SHIPPING METHOD")}</strong><span>${escapeHtml(draft.shippingMethod || langText("Da selezionare", "To select"))}</span></div><em>${escapeHtml(formatCurrency(shippingFee))}</em></div>
           <div class="irisx-inline-card"><div><strong>${langText("METODO DI PAGAMENTO", "PAYMENT METHOD")}</strong><span>${escapeHtml(draft.paymentLabel || langText("Da selezionare", "To select"))}</span></div></div>
         </div>

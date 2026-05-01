@@ -107,6 +107,8 @@ function buildShippingFromSession(session: any, fallback: Record<string, unknown
       shippingAddress.line2,
     ].filter(Boolean).join(", ") || fallback.address || ""),
     city: normalizeString(shippingAddress.city ?? fallback.city ?? ""),
+    zip: normalizeString(shippingAddress.postal_code ?? fallback.zip ?? fallback.postcode ?? fallback.postalCode ?? fallback.shipping_zip ?? ""),
+    province: normalizeString(shippingAddress.state ?? fallback.province ?? fallback.state ?? fallback.county ?? fallback.shipping_province ?? ""),
     country: normalizeString(shippingAddress.country ?? fallback.country ?? ""),
     phone: normalizeString(session.customer_details?.phone ?? fallback.phone ?? ""),
     note: normalizeString(fallback.note ?? ""),

@@ -13,6 +13,8 @@ const files = [
   "supabase/functions/confirm-order-delivery/index.ts",
   "supabase/functions/mark-order-shipped/index.ts",
   "supabase/functions/release-payout/index.ts",
+  "supabase/functions/tracking-webhook/index.ts",
+  "supabase/functions/report-order-issue/index.ts",
   "supabase/functions/respond-to-offer/index.ts",
   "supabase/functions/send-chat-message/index.ts",
   "supabase/functions/create-checkout-session/index.ts",

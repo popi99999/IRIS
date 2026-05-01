@@ -172,7 +172,7 @@ Deno.serve(async (request) => {
     const { data: payoutOrders, error: payoutError } = await admin
       .from("orders")
       .select("*")
-      .in("status", ["delivered", "completed", "buyer_confirmed_delivery", "paid"]);
+      .in("status", ["buyer_confirmed_ok", "payout_pending"]);
     if (payoutError) {
       throw new HttpError("Unable to load payout candidates", 500, payoutError.message);
     }
@@ -203,7 +203,11 @@ Deno.serve(async (request) => {
         continue;
       }
       try {
-        const payout = await releaseStripePayoutForOrder(order);
+        const payout = await releaseStripePayoutForOrder(order, undefined, {
+          triggeredBy: null,
+          triggeredByRole: "system",
+          releaseReason: "buyer_confirmed_ok",
+        });
         releasedPayoutOrderIds.push(String(payout.order.id ?? order.id));
       } catch (error) {
         console.warn("[run-marketplace-maintenance] unable to release payout", order.id, error);

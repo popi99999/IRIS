@@ -27,6 +27,8 @@ functions=(
   release-payout
   mark-order-shipped
   confirm-order-delivery
+  tracking-webhook
+  report-order-issue
   send-chat-message
   run-marketplace-maintenance
 )

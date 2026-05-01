@@ -74,15 +74,42 @@
   const ORDER_STATUS_META = {
     pending: { it: "In attesa", en: "Pending" },
     paid: { it: "Pagato", en: "Paid" },
+    order_paid: { it: "Pagato", en: "Paid" },
     awaiting_shipment: { it: "In preparazione", en: "Awaiting shipment" },
-    shipped: { it: "Spedito al centro", en: "Shipped" },
+    seller_to_ship: { it: "Da spedire", en: "Seller to ship" },
+    shipping_label_created: { it: "Label creata", en: "Label created" },
+    shipped: { it: "Spedito", en: "Shipped" },
+    in_transit: { it: "In transito", en: "In transit" },
+    out_for_delivery: { it: "In consegna", en: "Out for delivery" },
     in_authentication: { it: "In autenticazione", en: "In authentication" },
     dispatched_to_buyer: { it: "In consegna al buyer", en: "Dispatched to buyer" },
     delivered: { it: "Consegnato", en: "Delivered" },
+    awaiting_buyer_confirmation: { it: "In attesa conferma buyer", en: "Waiting for buyer confirmation" },
+    buyer_confirmed_ok: { it: "Confermato dal buyer", en: "Buyer confirmed OK" },
+    issue_reported: { it: "Problema segnalato", en: "Problem reported" },
+    dispute_open: { it: "Disputa aperta", en: "Dispute open" },
+    payout_pending: { it: "Payout in lavorazione", en: "Payout processing" },
+    payout_released: { it: "Payout rilasciato", en: "Payout released" },
+    payout_paid: { it: "Payout pagato", en: "Payout paid" },
     completed: { it: "Completato", en: "Completed" },
     cancelled: { it: "Annullato", en: "Cancelled" },
     refund_requested: { it: "Rimborso richiesto", en: "Refund requested" },
-    refunded: { it: "Rimborsato", en: "Refunded" }
+    refunded: { it: "Rimborsato", en: "Refunded" },
+    returned: { it: "Reso", en: "Returned" },
+    shipping_exception: { it: "Problema spedizione", en: "Shipping exception" }
+  };
+
+  const TRACKING_CARRIERS = {
+    brt: { label: "BRT", aliases: ["brt", "bartolini"], url: "https://vas.brt.it/vas/sped_numspe_par.htm?lang=it&spediz={tracking}" },
+    dhl: { label: "DHL", aliases: ["dhl", "dhl express"], url: "https://www.dhl.com/it-it/home/tracking/tracking-express.html?submit=1&tracking-id={tracking}" },
+    ups: { label: "UPS", aliases: ["ups"], url: "https://www.ups.com/track?tracknum={tracking}" },
+    fedex: { label: "FedEx", aliases: ["fedex", "fed ex"], url: "https://www.fedex.com/fedextrack/?trknbr={tracking}" },
+    poste_italiane: { label: "Poste Italiane", aliases: ["poste", "poste italiane"], url: "https://www.poste.it/cerca/index.html#/risultati-spedizioni/{tracking}" },
+    sda: { label: "SDA", aliases: ["sda"], url: "https://www.sda.it/wps/portal/Servizi_online/dettaglio-spedizione?tracing.letteraVettura={tracking}" },
+    gls: { label: "GLS", aliases: ["gls", "gls italy", "gls italia"], url: "https://www.gls-italy.com/it/servizi-online/ricerca-spedizioni?match={tracking}" },
+    dpd: { label: "DPD", aliases: ["dpd"], url: "https://www.dpd.com/it/it/receiving/parcel-tracking/?parcelNumber={tracking}" },
+    royal_mail: { label: "Royal Mail", aliases: ["royal mail", "royalmail"], url: "https://www.royalmail.com/track-your-item#/tracking-results/{tracking}" },
+    colissimo: { label: "Colissimo", aliases: ["colissimo", "la poste"], url: "https://www.laposte.fr/outils/suivre-vos-envois?code={tracking}" }
   };
 
   const LOCALE_SETTINGS = window.IRIS_LOCALE_SETTINGS || {
@@ -3026,6 +3053,11 @@
       transferGroup: row.transfer_group || "",
       shippedAt: row.shipped_at || null,
       deliveredAt: row.delivered_at || null,
+      buyerConfirmedAt: row.buyer_confirmed_at || null,
+      issueStatus: row.issue_status || "",
+      authenticationStatus: row.authentication_status || "",
+      lastTrackingStatus: row.last_tracking_status || "",
+      estimatedDeliveryAt: row.estimated_delivery_at || null,
       paymentCapturedAt: row.payment_captured_at || null
     });
   }
@@ -6729,17 +6761,24 @@
 
   function inferOrderTimeline(createdAt, status) {
     const sequence = [
-      { type: "order_created", label: langText("Ordine creato", "Order created"), states: ["pending", "paid", "awaiting_shipment", "shipped", "in_authentication", "dispatched_to_buyer", "delivered", "completed", "cancelled", "refund_requested", "refunded"] },
-      { type: "payment_captured", label: langText("Pagamento confermato", "Payment confirmed"), states: ["paid", "awaiting_shipment", "shipped", "in_authentication", "dispatched_to_buyer", "delivered", "completed", "refund_requested", "refunded"] },
-      { type: "awaiting_shipment", label: langText("Ordine pronto per la spedizione", "Order ready for shipment"), states: ["awaiting_shipment", "shipped", "in_authentication", "dispatched_to_buyer", "delivered", "completed", "refund_requested", "refunded"] },
-      { type: "order_shipped", label: langText("Spedito al centro IRIS", "Shipped to IRIS hub"), states: ["shipped", "in_authentication", "dispatched_to_buyer", "delivered", "completed", "refund_requested", "refunded"] },
+      { type: "order_created", label: langText("Ordine creato", "Order created"), states: ["pending", "paid", "order_paid", "awaiting_shipment", "seller_to_ship", "shipping_label_created", "shipped", "in_transit", "out_for_delivery", "in_authentication", "dispatched_to_buyer", "delivered", "awaiting_buyer_confirmation", "buyer_confirmed_ok", "payout_pending", "payout_released", "payout_paid", "completed", "cancelled", "refund_requested", "refunded", "issue_reported", "dispute_open", "returned"] },
+      { type: "payment_captured", label: langText("Pagamento confermato", "Payment confirmed"), states: ["paid", "order_paid", "awaiting_shipment", "seller_to_ship", "shipping_label_created", "shipped", "in_transit", "out_for_delivery", "in_authentication", "dispatched_to_buyer", "delivered", "awaiting_buyer_confirmation", "buyer_confirmed_ok", "payout_pending", "payout_released", "payout_paid", "completed", "refund_requested", "refunded", "issue_reported", "dispute_open", "returned"] },
+      { type: "awaiting_shipment", label: langText("Il seller prepara la spedizione", "Seller preparing shipment"), states: ["awaiting_shipment", "seller_to_ship", "shipping_label_created", "shipped", "in_transit", "out_for_delivery", "in_authentication", "dispatched_to_buyer", "delivered", "awaiting_buyer_confirmation", "buyer_confirmed_ok", "payout_pending", "payout_released", "payout_paid", "completed", "refund_requested", "refunded", "issue_reported", "dispute_open", "returned"] },
+      { type: "label_created", label: langText("Label creata", "Label created"), states: ["shipping_label_created", "shipped", "in_transit", "out_for_delivery", "delivered", "awaiting_buyer_confirmation", "buyer_confirmed_ok", "payout_pending", "payout_released", "payout_paid", "completed"] },
+      { type: "order_shipped", label: langText("Spedito", "Shipped"), states: ["shipped", "in_transit", "out_for_delivery", "in_authentication", "dispatched_to_buyer", "delivered", "awaiting_buyer_confirmation", "buyer_confirmed_ok", "payout_pending", "payout_released", "payout_paid", "completed", "refund_requested", "refunded", "issue_reported", "dispute_open", "returned"] },
+      { type: "in_transit", label: langText("In transito", "In transit"), states: ["in_transit", "out_for_delivery", "delivered", "awaiting_buyer_confirmation", "buyer_confirmed_ok", "payout_pending", "payout_released", "payout_paid", "completed", "issue_reported", "dispute_open"] },
+      { type: "out_for_delivery", label: langText("In consegna", "Out for delivery"), states: ["out_for_delivery", "delivered", "awaiting_buyer_confirmation", "buyer_confirmed_ok", "payout_pending", "payout_released", "payout_paid", "completed", "issue_reported", "dispute_open"] },
       { type: "order_authenticated", label: langText("In autenticazione", "In authentication"), states: ["in_authentication", "dispatched_to_buyer", "delivered", "completed", "refund_requested", "refunded"] },
       { type: "order_dispatched", label: langText("Spedito al buyer", "Dispatched to buyer"), states: ["dispatched_to_buyer", "delivered", "completed", "refund_requested", "refunded"] },
-      { type: "order_delivered", label: langText("Ordine consegnato", "Order delivered"), states: ["delivered", "completed", "refund_requested", "refunded"] },
+      { type: "order_delivered", label: langText("Consegnato", "Delivered"), states: ["delivered", "awaiting_buyer_confirmation", "buyer_confirmed_ok", "payout_pending", "payout_released", "payout_paid", "completed", "refund_requested", "refunded", "issue_reported", "dispute_open"] },
+      { type: "buyer_confirmed_ok", label: langText("Buyer ha confermato OK", "Buyer confirmed OK"), states: ["buyer_confirmed_ok", "payout_pending", "payout_released", "payout_paid", "completed"] },
+      { type: "payout_released", label: langText("Payout rilasciato", "Payout released"), states: ["payout_released", "payout_paid", "completed"] },
+      { type: "payout_paid", label: langText("Payout pagato", "Payout paid"), states: ["payout_paid", "completed"] },
       { type: "order_completed", label: langText("Ordine completato", "Order completed"), states: ["completed"] },
       { type: "order_cancelled", label: langText("Ordine annullato", "Order cancelled"), states: ["cancelled"] },
       { type: "refund_requested", label: langText("Rimborso richiesto", "Refund requested"), states: ["refund_requested", "refunded"] },
-      { type: "order_refunded", label: langText("Rimborso completato", "Refund completed"), states: ["refunded"] }
+      { type: "order_refunded", label: langText("Rimborso completato", "Refund completed"), states: ["refunded"] },
+      { type: "issue_reported", label: langText("Problema segnalato", "Problem reported"), states: ["issue_reported", "dispute_open"] }
     ];
 
     return sequence
@@ -6752,6 +6791,43 @@
           label: step.label
         };
       });
+  }
+
+  function normalizeTrackingCarrierClient(value) {
+    const needle = String(value || "").trim().toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
+    if (!needle) {
+      return null;
+    }
+    return Object.keys(TRACKING_CARRIERS).map(function (key) {
+      return Object.assign({ key: key }, TRACKING_CARRIERS[key]);
+    }).find(function (carrier) {
+      return carrier.key.replace(/_/g, " ") === needle ||
+        carrier.label.toLowerCase() === needle ||
+        carrier.aliases.some(function (alias) { return alias.toLowerCase() === needle; });
+    }) || null;
+  }
+
+  function sanitizeTrackingNumberClient(value) {
+    const compact = String(value || "").trim().replace(/\s+/g, "");
+    if (compact.length < 4 || compact.length > 80) {
+      return "";
+    }
+    if (/https?:|javascript:|data:|<|>|\(|\)|;|\\/.test(compact.toLowerCase())) {
+      return "";
+    }
+    if (!/^[a-z0-9._-]+$/i.test(compact)) {
+      return "";
+    }
+    return compact.toUpperCase();
+  }
+
+  function generateTrackingUrlClient(carrierValue, trackingNumber) {
+    const carrier = normalizeTrackingCarrierClient(carrierValue);
+    const safeTracking = sanitizeTrackingNumberClient(trackingNumber);
+    if (!carrier || !safeTracking) {
+      return "";
+    }
+    return carrier.url.replace("{tracking}", encodeURIComponent(safeTracking));
   }
 
   function isListingVerified(listing) {
@@ -6895,8 +6971,10 @@
     const createdAt = Number(order.createdAt || Date.now());
     const statusAliases = {
       created: "pending",
+      order_paid: "paid",
+      seller_to_ship: "awaiting_shipment",
       auth: "in_authentication",
-      out_for_delivery: "dispatched_to_buyer"
+      buyer_confirmed_delivery: "buyer_confirmed_ok"
     };
     const normalizedStatus = statusAliases[order.status] || order.status || "paid";
     const items = Array.isArray(order.items)
@@ -6955,11 +7033,12 @@
           note: "",
           carrier: "",
           trackingNumber: "",
+          trackingUrl: "",
           method: langText("Spedizione assicurata", "Insured shipping"),
           labelStatus: "pending",
           shipmentStatus: normalizedStatus,
-          shippedAt: null,
-          deliveredAt: null
+          shippedAt: order.shippedAt || null,
+          deliveredAt: order.deliveredAt || null
         },
         order.shipping || {}
       ),
@@ -6973,7 +7052,13 @@
           platformFee: getPlatformFee(subtotal),
           sellerNet: Math.max(0, subtotal - getPlatformFee(subtotal)),
           refundStatus: "none",
-          payoutStatus: normalizedStatus === "completed" || normalizedStatus === "delivered" ? "ready" : "pending_shipment"
+          payoutStatus: ["payout_released", "payout_paid", "completed"].includes(normalizedStatus)
+            ? "released"
+            : normalizedStatus === "buyer_confirmed_ok" || normalizedStatus === "payout_pending"
+              ? "release_requested"
+              : normalizedStatus === "delivered" || normalizedStatus === "awaiting_buyer_confirmation"
+                ? "awaiting_buyer_confirmation"
+                : "pending_shipment"
         },
         order.payment || {}
       ),
@@ -10529,10 +10614,11 @@
     const carrierField = qs("#opsCarrier");
     const trackingField = qs("#opsTracking");
     const carrier = carrierField ? carrierField.value.trim() : "";
-    const trackingNumber = trackingField ? trackingField.value.trim() : "";
+    const trackingNumber = sanitizeTrackingNumberClient(trackingField ? trackingField.value.trim() : "");
+    const trackingUrl = generateTrackingUrlClient(carrier, trackingNumber);
 
-    if (!carrier || !trackingNumber) {
-      showToast(langText("Inserisci corriere e tracking.", "Please add carrier and tracking."));
+    if (!carrier || !trackingNumber || !trackingUrl) {
+      showToast(langText("Inserisci un corriere supportato e un tracking valido.", "Please add a supported carrier and a valid tracking number."));
       return;
     }
 
@@ -10547,7 +10633,7 @@
           applyRemoteOrderUpdate(orderId, response.order);
         }
         closeOpsModal();
-        showToast(langText("Spedizione aggiornata.", "Shipment updated."));
+        showToast(langText("Tracking reale collegato all'ordine.", "Real tracking linked to the order."));
         return;
       } catch (error) {
         console.warn("[IRIS] Unable to sync shipment with backend", error);
@@ -10560,12 +10646,13 @@
       orderId,
       "shipped",
       "order_shipped",
-      langText("Spedito al centro IRIS", "Shipped to IRIS hub"),
+      langText("Spedito al buyer", "Shipped to buyer"),
       {
         carrier: carrier,
         trackingNumber: trackingNumber,
+        trackingUrl: trackingUrl,
         shippedAt: Date.now(),
-        labelStatus: "generated",
+        labelStatus: "linked",
         payoutStatus: "pending_delivery",
         allowedScopes: ["seller"]
       }
@@ -10651,23 +10738,34 @@
 
   async function confirmOrderDelivered(orderId) {
     const order = getAccessibleOrderById(orderId, "buyer");
-    if (!order && !isCurrentUserAdmin()) {
+    if (!order) {
       showToast(langText("Non puoi confermare questo ordine.", "You cannot confirm this order."));
+      return;
+    }
+    if (!["delivered", "awaiting_buyer_confirmation"].includes(order.status) && String(order.shipping.shipmentStatus || "").toLowerCase() !== "delivered") {
+      showToast(langText("Potrai confermare quando il corriere segna l'ordine come consegnato.", "You can confirm once the courier marks the order as delivered."));
+      return;
+    }
+    const confirmed = window.confirm(langText(
+      "Confermando accetti l'articolo e il payout del seller verrà rilasciato.",
+      "By confirming, you accept the item and the seller payout will be released."
+    ));
+    if (!confirmed) {
       return;
     }
     if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
       try {
         const response = await invokeSupabaseFunction("confirm-order-delivery", {
           orderId: orderId,
-          autoReleasePayout: true
+          confirm: true
         });
         if (response && response.order) {
           applyRemoteOrderUpdate(orderId, response.order);
         }
         showToast(
           response && response.payoutReleased
-            ? langText("Consegna confermata e payout avviato.", "Delivery confirmed and payout started.")
-            : langText("Consegna confermata.", "Delivery confirmed.")
+            ? langText("Conferma inviata. Payout rilasciato al seller.", "Confirmed. Seller payout released.")
+            : langText("Conferma inviata. Il payout è in elaborazione.", "Confirmed. Payout is being processed.")
         );
         return;
       } catch (error) {
@@ -10679,12 +10777,12 @@
 
     const updated = setOrderStatus(
       orderId,
-      "delivered",
-      "order_delivered",
-      langText("Ordine consegnato", "Order delivered"),
+      "buyer_confirmed_ok",
+      "buyer_confirmed_ok",
+      langText("Buyer ha confermato OK", "Buyer confirmed OK"),
       {
-        deliveredAt: Date.now(),
-        payoutStatus: "ready",
+        buyerConfirmedAt: Date.now(),
+        payoutStatus: "release_requested",
         allowedScopes: ["buyer"]
       }
     );
@@ -10696,22 +10794,67 @@
     createNotification({
       audience: "user",
       kind: "delivery",
-      title: langText("Ordine consegnato", "Order delivered"),
+      title: langText("Conferma ricevuta", "Confirmation received"),
       body: updated.number,
       recipientEmail: updated.buyerEmail
     });
     updated.items.forEach(function (item) {
       createNotification({
-        audience: "user",
-        kind: "delivery",
-        title: langText("Consegna confermata", "Delivery confirmed"),
-        body: updated.number,
-        recipientEmail: item.sellerEmail
+      audience: "user",
+      kind: "delivery",
+      title: langText("Buyer ha confermato OK", "Buyer confirmed OK"),
+      body: updated.number,
+      recipientEmail: item.sellerEmail
       });
     });
-    recordAuditEvent("order_delivered", updated.number);
+    recordAuditEvent("buyer_confirmed_ok", updated.number);
     renderProfilePanel();
     renderOpsView();
+  }
+
+  async function reportOrderProblem(orderId, issueType, message) {
+    const order = getAccessibleOrderById(orderId, "buyer");
+    if (!order) {
+      showToast(langText("Non puoi segnalare questo ordine.", "You cannot report this order."));
+      return;
+    }
+    const selectedIssue = issueType || window.prompt(langText(
+      "Che problema vuoi segnalare? Scrivi: item_not_received, item_damaged, item_not_as_described, wrong_item, authentication_concern oppure other.",
+      "What problem do you want to report? Type: item_not_received, item_damaged, item_not_as_described, wrong_item, authentication_concern, or other."
+    ), "item_not_as_described");
+    if (!selectedIssue) {
+      return;
+    }
+    const details = message || window.prompt(langText("Descrivi il problema per il team IRIS.", "Describe the problem for the IRIS team."), "");
+    if (details === null) {
+      return;
+    }
+    if (isSupabaseEnabled() && getCurrentSupabaseUserId()) {
+      try {
+        const response = await invokeSupabaseFunction("report-order-issue", {
+          orderId: orderId,
+          issueType: selectedIssue,
+          message: details || ""
+        });
+        if (response && response.order) {
+          applyRemoteOrderUpdate(orderId, response.order);
+        }
+        showToast(langText("Problema segnalato. Il payout resta bloccato.", "Problem reported. The payout stays blocked."));
+        return;
+      } catch (error) {
+        console.warn("[IRIS] Unable to report order issue", error);
+        showToast(error && error.message ? error.message : langText("Impossibile inviare la segnalazione.", "Unable to submit the report."));
+        return;
+      }
+    }
+    const updated = setOrderStatus(orderId, "issue_reported", "issue_reported", langText("Problema segnalato", "Problem reported"), {
+      payoutStatus: "blocked",
+      refundStatus: "requested",
+      allowedScopes: ["buyer"]
+    });
+    if (updated) {
+      openSupportModal(orderId, { role: "buyer", issueSeverity: "dispute", issueType: selectedIssue, initialMessage: details || "" });
+    }
   }
 
   function completeOrderLifecycle(orderId) {
@@ -11733,6 +11876,7 @@
     window.openShipmentModal = openShipmentModal;
     window.openSupportModal = openSupportModal;
     window.confirmOrderDelivered = confirmOrderDelivered;
+    window.reportOrderProblem = reportOrderProblem;
     window.resolveSupportTicket = resolveSupportTicket;
     window.markOrderPayoutPaid = markOrderPayoutPaid;
     window.openReviewModal = openReviewModal;
@@ -14947,12 +15091,12 @@
       orders
         .map(function (order) {
           const actions = [];
-          if (order.status === "shipped") {
-            actions.push("<button class=\"irisx-secondary\" onclick=\"confirmOrderDelivered('" + order.id + "')\">" + langText("Conferma consegna", "Confirm delivery") + "</button>");
+          if (["delivered", "awaiting_buyer_confirmation"].includes(order.status) || String(order.shipping.shipmentStatus || "").toLowerCase() === "delivered") {
+            actions.push("<button class=\"irisx-primary\" onclick=\"confirmOrderDelivered('" + order.id + "')\">" + langText("Tutto OK", "Everything is OK") + "</button>");
+            actions.push("<button class=\"irisx-secondary\" onclick=\"reportOrderProblem('" + order.id + "')\">" + langText("Ho un problema", "I have a problem") + "</button>");
           }
           actions.push("<button class=\"irisx-secondary\" onclick=\"openSupportModal('" + order.id + "')\">" + langText("Supporto", "Support") + "</button>");
-          actions.push("<button class=\"irisx-secondary\" onclick=\"openSupportModal('" + order.id + "', { issueSeverity: 'dispute', role: 'buyer', issueType: 'item_not_as_described' })\">" + langText("Segnala problema", "Report problem") + "</button>");
-          if (order.status === "delivered" && order.reviewStatus !== "submitted") {
+          if (["buyer_confirmed_ok", "payout_released", "payout_paid", "completed"].includes(order.status) && order.reviewStatus !== "submitted") {
             actions.push("<button class=\"irisx-secondary\" onclick=\"openReviewModal('" + order.id + "')\">" + langText("Lascia recensione", "Leave review") + "</button>");
           }
 
@@ -17095,27 +17239,28 @@
       actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('detail')" : "openOrderDetail('" + order.id + "','buyer')"}">${langText("Dettaglio", "Detail")}</button>`);
       actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('tracking')" : "setBuyerSection('tracking','" + order.id + "')"}">${langText("Tracking", "Tracking")}</button>`);
       actions.push(`<button class="irisx-secondary" onclick="openSupportModal('${order.id}')">${langText("Supporto", "Support")}</button>`);
-      if (order.status === "dispatched_to_buyer") {
-        actions.push(`<button class="irisx-primary" onclick="confirmOrderDelivered('${order.id}')">${langText("Conferma consegna", "Confirm delivery")}</button>`);
+      if (["delivered", "awaiting_buyer_confirmation"].includes(order.status) || String(order.shipping.shipmentStatus || "").toLowerCase() === "delivered") {
+        actions.push(`<button class="irisx-primary" onclick="confirmOrderDelivered('${order.id}')">${langText("Tutto OK", "Everything is OK")}</button>`);
+        actions.push(`<button class="irisx-secondary" onclick="reportOrderProblem('${order.id}')">${langText("Ho un problema", "I have a problem")}</button>`);
       }
-      if ((order.status === "delivered" || order.status === "completed") && order.reviewStatus !== "submitted") {
+      if ((["buyer_confirmed_ok", "payout_released", "payout_paid", "completed"].includes(order.status)) && order.reviewStatus !== "submitted") {
         actions.push(`<button class="irisx-secondary" onclick="openReviewModal('${order.id}')">${langText("Lascia recensione", "Leave review")}</button>`);
       }
       if (["paid", "awaiting_shipment"].includes(order.status)) {
         actions.push(`<button class="irisx-secondary" onclick="cancelOrder('${order.id}')">${langText("Annulla", "Cancel")}</button>`);
       }
-      if (["delivered", "completed"].includes(order.status) && order.payment.refundStatus === "none") {
-        actions.push(`<button class="irisx-secondary" onclick="requestRefund('${order.id}')">${langText("Richiedi rimborso", "Request refund")}</button>`);
+      if (["issue_reported", "dispute_open"].includes(order.status)) {
+        actions.push(`<button class="irisx-secondary" onclick="openSupportModal('${order.id}', { issueSeverity: 'dispute', role: 'buyer' })">${langText("Vedi segnalazione", "View report")}</button>`);
       }
       return actions;
     }
     if (scope === "seller") {
       actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('detail')" : "openOrderDetail('" + order.id + "','seller')"}">${langText("Dettaglio", "Detail")}</button>`);
       actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('tracking')" : "openOrderDetail('" + order.id + "','seller');setOrderModalTab('tracking')"}">${langText("Tracking", "Tracking")}</button>`);
-      if (order.status === "paid") {
+      if (["paid", "order_paid"].includes(order.status)) {
         actions.push(`<button class="irisx-secondary" onclick="prepareOrderShipment('${order.id}')">${langText("Pronto da spedire", "Ready to ship")}</button>`);
       }
-      if (order.status === "awaiting_shipment") {
+      if (["awaiting_shipment", "seller_to_ship", "shipping_label_created"].includes(order.status)) {
         actions.push(`<button class="irisx-secondary" onclick="generateShippingLabel('${order.id}')">${langText("Genera label", "Generate label")}</button>`);
         actions.push(`<button class="irisx-primary" onclick="openShipmentModal('${order.id}')">${langText("Inserisci tracking", "Add tracking")}</button>`);
       }
@@ -17123,10 +17268,10 @@
     }
     actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('detail')" : "openOrderDetail('" + order.id + "','admin')"}">${langText("Dettaglio", "Detail")}</button>`);
     actions.push(`<button class="irisx-secondary" onclick="${inModal ? "setOrderModalTab('tracking')" : "openOrderDetail('" + order.id + "','admin');setOrderModalTab('tracking')"}">${langText("Tracking", "Tracking")}</button>`);
-    if (order.status === "paid") {
+    if (["paid", "order_paid"].includes(order.status)) {
       actions.push(`<button class="irisx-secondary" onclick="prepareOrderShipment('${order.id}')">${langText("Queue shipping", "Queue shipping")}</button>`);
     }
-    if (order.status === "awaiting_shipment") {
+    if (["awaiting_shipment", "seller_to_ship", "shipping_label_created"].includes(order.status)) {
       actions.push(`<button class="irisx-secondary" onclick="generateShippingLabel('${order.id}')">${langText("Genera label", "Generate label")}</button>`);
       actions.push(`<button class="irisx-primary" onclick="openShipmentModal('${order.id}')">${langText("Tracking", "Tracking")}</button>`);
     }
@@ -17136,10 +17281,7 @@
     if (order.status === "in_authentication") {
       actions.push(`<button class="irisx-secondary" onclick="dispatchOrderToBuyer('${order.id}')">${langText("Dispatch to buyer", "Dispatch to buyer")}</button>`);
     }
-    if (order.status === "dispatched_to_buyer") {
-      actions.push(`<button class="irisx-secondary" onclick="confirmOrderDelivered('${order.id}')">${langText("Mark delivered", "Mark delivered")}</button>`);
-    }
-    if (order.status === "delivered") {
+    if (["buyer_confirmed_ok", "payout_pending"].includes(order.status)) {
       actions.push(`<button class="irisx-secondary" onclick="completeOrderLifecycle('${order.id}')">${langText("Completa ordine", "Complete order")}</button>`);
     }
     if (order.status === "refund_requested") {
@@ -17441,6 +17583,102 @@
     </div>`;
   }
 
+  function getOrderTrackingSnapshot(order) {
+    const shipping = order && order.shipping ? order.shipping : {};
+    const carrier = shipping.carrier || shipping.carrierKey || "";
+    const trackingNumber = shipping.trackingNumber || shipping.tracking_number || "";
+    const trackingUrl = shipping.trackingUrl || shipping.tracking_url || generateTrackingUrlClient(carrier, trackingNumber);
+    const status = shipping.shipmentStatus || shipping.status || order.lastTrackingStatus || order.status || "";
+    return {
+      carrier: carrier,
+      trackingNumber: trackingNumber,
+      trackingUrl: trackingUrl,
+      status: status,
+      estimatedDeliveryAt: order.estimatedDeliveryAt || shipping.estimatedDeliveryAt || shipping.estimated_delivery_at || null,
+      deliveredAt: order.deliveredAt || shipping.deliveredAt || shipping.delivered_at || null,
+      shippedAt: order.shippedAt || shipping.shippedAt || shipping.shipped_at || null
+    };
+  }
+
+  function renderOrderTrackingTimeline(order) {
+    const events = Array.isArray(order.timeline) ? order.timeline.slice() : [];
+    if (!events.length) {
+      return `<div class="irisx-empty-state">${langText("Il tracking apparirà appena il corriere invia aggiornamenti.", "Tracking will appear as soon as the courier sends updates.")}</div>`;
+    }
+    return `<div class="irisx-tracking-timeline">${events.slice(0, 8).map(function (event) {
+      return `<div class="irisx-tracking-event">
+        <span></span>
+        <div><strong>${escapeHtml(event.label || event.type || "")}</strong><em>${escapeHtml(formatDateTime(event.at || event.occurredAt || event.createdAt))}</em></div>
+      </div>`;
+    }).join("")}</div>`;
+  }
+
+  function renderShipmentStatusCard(order, scope) {
+    const snapshot = getOrderTrackingSnapshot(order);
+    const courierLink = snapshot.trackingUrl
+      ? `<a class="irisx-courier-link" href="${escapeHtml(snapshot.trackingUrl)}" target="_blank" rel="noopener noreferrer">${langText("Traccia sul sito del corriere", "Track on courier website")}</a>`
+      : `<span class="irisx-muted">${langText("Link corriere disponibile dopo il tracking.", "Courier link available after tracking.")}</span>`;
+    return `<div class="irisx-order-panel irisx-shipment-card">
+      <div class="irisx-order-panel-title">${langText("Spedizione", "Shipment")}</div>
+      <div class="irisx-shipment-status">
+        <strong>${escapeHtml(getOrderStatusLabel(order))}</strong>
+        <span>${escapeHtml(snapshot.status || langText("In attesa tracking", "Waiting for tracking"))}</span>
+      </div>
+      <dl class="irisx-definition-list">
+        <div><dt>${langText("Corriere", "Courier")}</dt><dd>${escapeHtml(snapshot.carrier || "—")}</dd></div>
+        <div><dt>${langText("Tracking", "Tracking")}</dt><dd>${escapeHtml(snapshot.trackingNumber || "—")}</dd></div>
+        <div><dt>${langText("Consegna stimata", "Estimated delivery")}</dt><dd>${escapeHtml(snapshot.estimatedDeliveryAt ? formatDateTime(snapshot.estimatedDeliveryAt) : "—")}</dd></div>
+        <div><dt>${langText("Consegnato", "Delivered")}</dt><dd>${escapeHtml(snapshot.deliveredAt ? formatDateTime(snapshot.deliveredAt) : "—")}</dd></div>
+      </dl>
+      ${courierLink}
+    </div>`;
+  }
+
+  function renderSellerPayoutCard(order) {
+    const payment = order.payment || {};
+    return `<div class="irisx-order-panel irisx-payout-card">
+      <div class="irisx-order-panel-title">${langText("Payout seller", "Seller payout")}</div>
+      <div class="irisx-payout-amount">${escapeHtml(formatCurrency(payment.sellerNet || Math.max(0, order.subtotal - (payment.platformFee || 0))))}</div>
+      <span>${escapeHtml(getSellerPayoutStatusLabel(order))}</span>
+      <p>${escapeHtml(langText("Il payout si sblocca solo dopo la conferma del buyer o una risoluzione admin.", "Payout unlocks only after buyer confirmation or an admin resolution."))}</p>
+    </div>`;
+  }
+
+  function renderBuyerConfirmationCard(order) {
+    const canConfirm = ["delivered", "awaiting_buyer_confirmation"].includes(order.status) || String(order.shipping.shipmentStatus || "").toLowerCase() === "delivered";
+    if (!canConfirm) {
+      return "";
+    }
+    return `<div class="irisx-order-panel irisx-buyer-confirm-card">
+      <div>
+        <div class="irisx-order-panel-title">${langText("Conferma ricezione", "Buyer confirmation")}</div>
+        <strong>${langText("Hai ricevuto l'articolo?", "Did you receive the item?")}</strong>
+        <span>${langText("Conferma solo se è tutto corretto. In caso contrario apri una segnalazione.", "Confirm only if everything is correct. Otherwise report a problem.")}</span>
+      </div>
+      <div class="irisx-actions">
+        <button class="irisx-primary" onclick="confirmOrderDelivered('${order.id}')">${langText("Tutto OK", "Everything is OK")}</button>
+        <button class="irisx-secondary" onclick="reportOrderProblem('${order.id}')">${langText("Ho un problema", "I have a problem")}</button>
+      </div>
+    </div>`;
+  }
+
+  function renderAdminOrderTrackingPanel(order) {
+    if (!isCurrentUserAdmin()) {
+      return "";
+    }
+    return `<div class="irisx-order-panel irisx-admin-tracking-card">
+      <div class="irisx-order-panel-title">${langText("Admin tracking", "Admin tracking")}</div>
+      <div class="irisx-order-items">
+        <div>${langText("Status ordine", "Order status")}: ${escapeHtml(order.status)}</div>
+        <div>${langText("Payout", "Payout")}: ${escapeHtml(getSellerPayoutStatusLabel(order))}</div>
+        <div>${langText("Issue", "Issue")}: ${escapeHtml(order.issueStatus || order.issue_status || "—")}</div>
+      </div>
+      <div class="irisx-actions">
+        <button class="irisx-secondary" onclick="openSupportModal('${order.id}', { role: 'admin', issueSeverity: 'dispute' })">${langText("Gestisci issue", "Manage issue")}</button>
+      </div>
+    </div>`;
+  }
+
   function renderOrderTrackingPanel(order, scope, surface) {
     if (!order) {
       return `<div class="irisx-empty-state">${langText("Nessun tracking disponibile.", "No tracking available.")}</div>`;
@@ -17451,19 +17689,14 @@
         <span class="irisx-badge">${escapeHtml(getOrderStatusLabel(order))}</span>
       </div>
       <div class="irisx-tracking-grid">
-        <div class="irisx-order-panel">
-          <div class="irisx-order-panel-title">${langText("Shipment status", "Shipment status")}</div>
-          <div class="irisx-order-items">
-            <div>${langText("Metodo", "Method")}: ${escapeHtml(order.shipping.method || "—")}</div>
-            <div>${langText("Carrier", "Carrier")}: ${escapeHtml(order.shipping.carrier || langText("Pending assignment", "Pending assignment"))}</div>
-            <div>${langText("Tracking", "Tracking")}: ${escapeHtml(order.shipping.trackingNumber || langText("Comparirà dopo la consegna al corriere", "Will appear after seller handoff"))}</div>
-            <div>${langText("Label", "Label")}: ${escapeHtml(order.shipping.labelStatus || "pending")}</div>
-          </div>
-        </div>
+        ${renderShipmentStatusCard(order, scope)}
         <div class="irisx-order-panel">
           <div class="irisx-order-panel-title">${langText("Timeline", "Timeline")}</div>
-          ${renderOrderTimeline(order) || `<div class="irisx-empty-state">${langText("Timeline vuota.", "Timeline empty.")}</div>`}
+          ${renderOrderTrackingTimeline(order)}
         </div>
+        ${scope === "seller" ? renderSellerPayoutCard(order) : ""}
+        ${scope === "buyer" ? renderBuyerConfirmationCard(order) : ""}
+        ${scope === "admin" ? renderAdminOrderTrackingPanel(order) : ""}
       </div>
       <div class="irisx-order-panel irisx-order-panel--journey">
         <div class="irisx-order-panel-title">${langText("Percorso articolo", "Item journey")}</div>
@@ -17474,19 +17707,16 @@
   }
 
   function generateShippingLabel(orderId) {
-    const updated = setOrderStatus(
-      orderId,
-      getOrderById(orderId).status,
-      "label_generated",
-      langText("Label placeholder generata", "Placeholder label generated"),
-      {
-        carrier: getOrderById(orderId).shipping.carrier || "DHL",
-        trackingNumber: getOrderById(orderId).shipping.trackingNumber || ("IRIS-LABEL-" + String(Date.now()).slice(-6)),
-        labelStatus: "generated"
-      }
-    );
+    const order = getOrderById(orderId);
+    if (!order) {
+      return;
+    }
+    const updated = setOrderStatus(orderId, "shipping_label_created", "label_created", langText("Label creata", "Label created"), {
+      labelStatus: "created",
+      payoutStatus: "pending_shipment"
+    });
     if (updated) {
-      showToast(langText("Label placeholder pronta.", "Placeholder label ready."));
+      showToast(langText("Label pronta. Inserisci il tracking reale appena consegni il pacco al corriere.", "Label ready. Add real tracking once you hand the parcel to the courier."));
     }
   }
 

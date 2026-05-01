@@ -1,7 +1,8 @@
 import { normalizeEmail, normalizeString, readJsonBody } from "../_shared/env.ts";
 import { handleOptions, errorResponse, HttpError, jsonResponse } from "../_shared/http.ts";
-import { fetchOrderById, getRequestUser, isUserAdmin, tryUpsertIntoTable, upsertNotification } from "../_shared/supabase.ts";
+import { fetchOrderById, getRequestUser, isUserAdmin, tryInsertIntoTable, tryUpsertIntoTable, upsertNotification } from "../_shared/supabase.ts";
 import { sendTransactionalEmail } from "../_shared/email.ts";
+import { generateTrackingUrl, normalizeCarrier, sanitizeTrackingNumber } from "../_shared/tracking.ts";
 
 type Body = {
   orderId?: string;
@@ -17,8 +18,10 @@ Deno.serve(async (request) => {
     const user = await getRequestUser(request);
     const body = await readJsonBody<Body>(request);
     const orderId = String(body.orderId ?? "").trim();
-    const carrier = normalizeString(body.carrier ?? "");
-    const trackingNumber = normalizeString(body.trackingNumber ?? "");
+    const carrierConfig = normalizeCarrier(body.carrier ?? "");
+    const carrier = carrierConfig?.label ?? "";
+    const carrierKey = carrierConfig?.key ?? "";
+    const trackingNumber = sanitizeTrackingNumber(body.trackingNumber ?? "");
     if (!orderId || !carrier || !trackingNumber) {
       throw new HttpError("Missing order shipping details", 400);
     }
@@ -34,11 +37,17 @@ Deno.serve(async (request) => {
     if (!isAdmin && !sellerEmails.includes(currentUserEmail)) {
       throw new HttpError("You cannot update this shipment", 403);
     }
+    if (!isAdmin && ["delivered", "awaiting_buyer_confirmation", "buyer_confirmed_ok", "payout_pending", "payout_released", "payout_paid", "completed"].includes(String(order.status ?? ""))) {
+      throw new HttpError("Tracking cannot be changed after delivery", 409);
+    }
 
+    const now = new Date().toISOString();
+    const trackingUrl = generateTrackingUrl(carrierKey, trackingNumber);
     const updatedOrder = {
       ...order,
       status: "shipped",
-      shipped_at: new Date().toISOString(),
+      shipped_at: order.shipped_at ?? now,
+      last_tracking_status: "shipped",
       payment: {
         ...(order.payment ?? {}),
         payoutStatus: "pending_delivery",
@@ -46,13 +55,72 @@ Deno.serve(async (request) => {
       shipping: {
         ...(order.shipping ?? {}),
         carrier,
+        carrierKey,
         tracking_number: trackingNumber,
         trackingNumber,
+        trackingUrl,
         shipmentStatus: "shipped",
-        shippedAt: new Date().toISOString(),
+        shippedAt: order.shipped_at ?? now,
       },
     };
     await tryUpsertIntoTable("orders", updatedOrder, "id");
+    await tryUpsertIntoTable("shipments", {
+      order_id: order.id,
+      seller_id: isAdmin ? null : user.id,
+      buyer_id: order.buyer_id ?? null,
+      carrier: carrierKey,
+      carrier_service: normalizeString(body.carrier ?? ""),
+      tracking_number: trackingNumber,
+      tracking_url: trackingUrl,
+      provider: "manual",
+      shipping_flow: "direct_to_buyer",
+      status: "shipped",
+      raw_status: "shipped",
+      shipped_at: order.shipped_at ?? now,
+      last_event_at: now,
+      raw_carrier_payload: { enteredBy: isAdmin ? "admin" : "seller" },
+    }, "order_id,carrier,tracking_number");
+    await tryInsertIntoTable("tracking_events", {
+      order_id: order.id,
+      carrier: carrierKey,
+      tracking_number: trackingNumber,
+      normalized_status: "shipped",
+      raw_status: "shipped",
+      description: "Tracking added by seller",
+      location: "",
+      occurred_at: now,
+      received_at: now,
+      raw_payload: {},
+      source: "seller",
+    });
+    await tryInsertIntoTable("order_status_events", {
+      order_id: order.id,
+      actor_id: user.id,
+      actor_role: isAdmin ? "admin" : "seller",
+      previous_status: String(order.status ?? ""),
+      new_status: "shipped",
+      message: "Tracking added",
+      metadata: { carrier: carrierKey, trackingNumber, trackingUrl },
+    });
+    await tryInsertIntoTable("audit_logs", {
+      actor_id: user.id,
+      actor_role: isAdmin ? "admin" : "seller",
+      actor_email: currentUserEmail,
+      seller_id: null,
+      entity_type: "order",
+      entity_id: String(order.id ?? ""),
+      action: "tracking_added",
+      before_value: { status: order.status ?? "" },
+      after_value: { status: "shipped", carrier: carrierKey, trackingNumber },
+      metadata: { trackingUrl },
+    });
+    await tryUpsertIntoTable("order_shipments", {
+      order_id: order.id,
+      carrier: carrierKey,
+      tracking_number: trackingNumber,
+      status: "in_transit",
+      shipped_at: order.shipped_at ?? now,
+    }, "order_id");
 
     await upsertNotification({
       recipient_id: order.buyer_id ?? null,
@@ -77,6 +145,7 @@ Deno.serve(async (request) => {
     return jsonResponse({
       ok: true,
       order: updatedOrder,
+      trackingUrl,
     });
   } catch (error) {
     if (error instanceof HttpError) {

@@ -2148,6 +2148,112 @@ body.light-mode .irisx-home-strip span {
   gap: 0.65rem;
 }
 
+.irisx-shipment-status,
+.irisx-payout-amount {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.irisx-shipment-status strong,
+.irisx-payout-amount {
+  color: #101522;
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+.irisx-shipment-status span,
+.irisx-muted,
+.irisx-payout-card p,
+.irisx-buyer-confirm-card span {
+  color: rgba(16, 21, 34, 0.64);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.irisx-definition-list {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.irisx-definition-list div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(255, 169, 181, 0.22);
+  padding-bottom: 0.45rem;
+}
+
+.irisx-definition-list dt,
+.irisx-definition-list dd {
+  margin: 0;
+}
+
+.irisx-definition-list dt {
+  color: rgba(16, 21, 34, 0.48);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.irisx-definition-list dd {
+  color: #101522;
+  font-weight: 600;
+  text-align: right;
+}
+
+.irisx-courier-link {
+  color: #f42b57;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.irisx-tracking-timeline {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.irisx-tracking-event {
+  display: grid;
+  grid-template-columns: 0.7rem 1fr;
+  gap: 0.65rem;
+  align-items: flex-start;
+}
+
+.irisx-tracking-event > span {
+  width: 0.62rem;
+  height: 0.62rem;
+  border-radius: 999px;
+  background: #f42b57;
+  box-shadow: 0 0 0 4px rgba(244, 43, 87, 0.12);
+  margin-top: 0.24rem;
+}
+
+.irisx-tracking-event strong,
+.irisx-buyer-confirm-card strong {
+  display: block;
+  color: #101522;
+  font-size: 0.98rem;
+  line-height: 1.35;
+}
+
+.irisx-tracking-event em {
+  display: block;
+  color: rgba(16, 21, 34, 0.52);
+  font-size: 0.78rem;
+  font-style: normal;
+  margin-top: 0.1rem;
+}
+
+.irisx-buyer-confirm-card {
+  align-content: start;
+}
+
 .irisx-relist-block {
   display: grid;
   gap: 0.8rem;

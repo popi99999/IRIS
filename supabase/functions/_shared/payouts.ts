@@ -16,9 +16,9 @@ export function readConnectAccountId(profile: Record<string, unknown> | null | u
 }
 
 export function isEligibleForPayout(status: string) {
-  // "paid" intentionally excluded: payout requires delivery confirmation, not just payment.
-  // PAYOUT_HOLD_DAYS is enforced in the maintenance loop on top of this status check.
-  return ["delivered", "completed", "buyer_confirmed_delivery", "payout_pending"].includes(String(status || ""));
+  // A delivered tracking event is not enough. Money can move only after buyer OK
+  // or an explicit admin resolution.
+  return ["buyer_confirmed_ok", "payout_pending"].includes(String(status || ""));
 }
 
 export function computePayoutAmount(order: Record<string, unknown>): number {
@@ -130,7 +130,134 @@ async function markPayoutReleaseStatus(orderId: string, patch: Record<string, un
   }
 }
 
-export async function releaseStripePayoutForOrder(order: Record<string, unknown>, sellerEmail?: string) {
+export type PayoutReleaseContext = {
+  triggeredBy?: string | null;
+  triggeredByRole?: "buyer" | "admin" | "system" | "seller";
+  releaseReason?: string;
+  adminReason?: string;
+  afterAdminResolution?: boolean;
+};
+
+async function findBlockingPayoutReason(order: Record<string, unknown>, context: PayoutReleaseContext) {
+  const orderId = String(order.id ?? "");
+  const status = String(order.status ?? "");
+  const payment = (order.payment ?? {}) as Record<string, unknown>;
+  const actorRole = context.triggeredByRole ?? "system";
+  if (actorRole === "seller") {
+    return "seller_cannot_release_own_payout";
+  }
+  if (actorRole === "buyer" && !["buyer_confirmed_ok", "payout_pending"].includes(status)) {
+    return "buyer_confirmation_required";
+  }
+  if (actorRole === "admin" && !normalizeString(context.adminReason ?? context.releaseReason ?? "")) {
+    return "admin_reason_required";
+  }
+  if (!context.afterAdminResolution && !isEligibleForPayout(status)) {
+    return "order_not_ready_for_payout";
+  }
+  if (["released", "paid"].includes(String(payment.payoutStatus ?? order.payout_status ?? ""))) {
+    return "payout_already_released";
+  }
+  if (["processing", "refunded", "refund_requested"].includes(String(payment.refundStatus ?? "")) || ["refunded", "refund_requested"].includes(status)) {
+    return "refund_blocks_payout";
+  }
+  if (["open", "needs_response", "under_review"].includes(String(payment.chargebackStatus ?? ""))) {
+    return "chargeback_blocks_payout";
+  }
+  if (String(order.authentication_status ?? order.authenticationStatus ?? "") === "failed") {
+    return "authentication_failure_blocks_payout";
+  }
+
+  const admin = getSupabaseAdmin();
+  const { data: activeDisputes, error: disputeError } = await admin
+    .from("disputes")
+    .select("id")
+    .eq("order_id", orderId)
+    .not("status", "in", '("resolved","closed")')
+    .limit(1);
+  if (!disputeError && activeDisputes && activeDisputes.length > 0 && !context.afterAdminResolution) {
+    return "active_dispute_blocks_payout";
+  }
+
+  const { data: activeIssues, error: issueError } = await admin
+    .from("order_issues")
+    .select("id")
+    .eq("order_id", orderId)
+    .eq("payout_blocked", true)
+    .not("status", "in", '("resolved","closed")')
+    .limit(1);
+  if (!issueError && activeIssues && activeIssues.length > 0 && !context.afterAdminResolution) {
+    return "active_issue_blocks_payout";
+  }
+
+  const { data: activeChargebacks, error: chargebackError } = await admin
+    .from("chargebacks")
+    .select("id")
+    .eq("order_id", orderId)
+    .not("status", "in", '("won","lost","closed")')
+    .limit(1);
+  if (!chargebackError && activeChargebacks && activeChargebacks.length > 0) {
+    return "chargeback_blocks_payout";
+  }
+
+  return "";
+}
+
+async function logPayoutAudit(order: Record<string, unknown>, action: string, context: PayoutReleaseContext, metadata: Record<string, unknown> = {}) {
+  await tryInsertIntoTable("audit_logs", {
+    actor_id: context.triggeredBy ?? null,
+    actor_role: context.triggeredByRole ?? "system",
+    actor_email: "",
+    seller_id: null,
+    entity_type: "order",
+    entity_id: String(order.id ?? ""),
+    action,
+    before_value: null,
+    after_value: null,
+    metadata,
+  });
+  await tryInsertIntoTable("order_status_events", {
+    order_id: String(order.id ?? ""),
+    actor_id: context.triggeredBy ?? null,
+    actor_role: context.triggeredByRole ?? "system",
+    previous_status: String(order.status ?? ""),
+    new_status: action,
+    message: normalizeString(metadata.message ?? action),
+    metadata,
+  });
+}
+
+export async function releaseStripePayoutForOrder(order: Record<string, unknown>, sellerEmail?: string, context: PayoutReleaseContext = {}) {
+  const releaseContext = {
+    triggeredBy: context.triggeredBy ?? null,
+    triggeredByRole: context.triggeredByRole ?? "system",
+    releaseReason: context.releaseReason ?? "buyer_confirmed_ok",
+    adminReason: context.adminReason ?? "",
+    afterAdminResolution: context.afterAdminResolution ?? false,
+  } satisfies PayoutReleaseContext;
+
+  const blockingReason = await findBlockingPayoutReason(order, releaseContext);
+  if (blockingReason === "payout_already_released") {
+    const existing = await fetchPayoutRelease(String(order.id ?? ""));
+    return {
+      order,
+      transfer: existing?.stripe_transfer_id ? await getStripe().transfers.retrieve(String(existing.stripe_transfer_id)) : null,
+      sellerEmail: normalizeEmail(sellerEmail ?? ""),
+      payoutAmount: computePayoutAmount(order),
+      currency: String(((order.payment ?? {}) as Record<string, unknown>).currency ?? order.currency ?? "EUR").toUpperCase(),
+      idempotent: true,
+    };
+  }
+  if (blockingReason) {
+    await markPayoutReleaseStatus(String(order.id ?? ""), {
+      status: "blocked",
+      blocked_reason: blockingReason,
+      last_error: blockingReason,
+    }).catch(() => null);
+    await logPayoutAudit(order, "payout_release_blocked", releaseContext, { reason: blockingReason });
+    throw new HttpError(`Payout cannot be released: ${blockingReason}`, 409);
+  }
+
   const normalizedSellerEmail = normalizeEmail(
     sellerEmail ??
     (Array.isArray(order.seller_emails) ? order.seller_emails[0] : "") ??
@@ -159,6 +286,16 @@ export async function releaseStripePayoutForOrder(order: Record<string, unknown>
   const currency = String(payment.currency ?? order.currency ?? "EUR").toUpperCase();
   const transferGroup = String(payment.transferGroup ?? `iris_${order.id}`);
   const payoutClaim = await claimPayoutRelease(order, normalizedSellerEmail, accountId, payoutAmount, currency, transferGroup);
+  await markPayoutReleaseStatus(String(order.id ?? ""), {
+    seller_id: sellerProfile.id ?? null,
+    buyer_id: order.buyer_id ?? null,
+    provider_payment_id: String(payment.paymentIntentId ?? payment.payment_intent_id ?? order.payment_intent_id ?? ""),
+    amount: payoutAmount,
+    release_reason: releaseContext.releaseReason ?? "buyer_confirmed_ok",
+    triggered_by: releaseContext.triggeredBy ?? null,
+    triggered_by_role: releaseContext.triggeredByRole ?? "system",
+    release_attempt_count: Number(payoutClaim.release.release_attempt_count ?? 0) + 1,
+  }).catch(() => null);
 
   let transfer;
   if (!payoutClaim.claimed) {
@@ -199,16 +336,25 @@ export async function releaseStripePayoutForOrder(order: Record<string, unknown>
     ...order,
     payment: updatedPayment,
     payout_status: "released",
-    status: String(order.status || "") === "completed" ? "completed" : "completed",
-    delivered_at: order.delivered_at ?? new Date().toISOString(),
+    status: "payout_released",
+    delivered_at: order.delivered_at ?? null,
   };
 
   await markPayoutReleaseStatus(String(order.id ?? ""), {
     status: "released",
     stripe_transfer_id: transfer.id,
+    provider_payout_id: transfer.id,
+    released_at: new Date().toISOString(),
     last_error: "",
+    failure_reason: "",
+    blocked_reason: "",
   });
   await tryUpsertIntoTable("orders", updatedOrder, "id");
+  await logPayoutAudit(order, "payout_released", releaseContext, {
+    transferId: transfer.id,
+    amount: payoutAmount,
+    currency,
+  });
   await tryInsertIntoTable("notifications", {
     id: `ntf_${crypto.randomUUID()}`,
     recipient_id: sellerProfile.id ?? null,

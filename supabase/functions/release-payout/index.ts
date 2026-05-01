@@ -11,6 +11,8 @@ type Body = {
   orderId?: string;
   sellerEmail?: string;
   force?: boolean;
+  reason?: string;
+  afterAdminResolution?: boolean;
 };
 
 Deno.serve(async (request) => {
@@ -32,20 +34,25 @@ Deno.serve(async (request) => {
 
     const orderSellerEmails = Array.isArray(order.seller_emails) ? order.seller_emails.map((email) => normalizeEmail(email)) : [];
     const targetSellerEmail = normalizeEmail(body.sellerEmail ?? orderSellerEmails[0] ?? "");
-    const currentUserEmail = normalizeEmail(user.email);
     const isAdmin = await isUserAdmin(user);
-    if (body.force && !isAdmin) {
-      throw new HttpError("Only admins can force payout release", 403);
+    if (!isAdmin) {
+      throw new HttpError("Only IRIS admins can release payouts manually", 403);
     }
-    if (!isAdmin && currentUserEmail !== targetSellerEmail && !orderSellerEmails.includes(currentUserEmail)) {
-      throw new HttpError("Not allowed to release this payout", 403);
+    if (!targetSellerEmail || !orderSellerEmails.includes(targetSellerEmail)) {
+      throw new HttpError("Seller not found for this order", 400);
     }
 
     if ((!body.force || !isAdmin) && !isEligibleForPayout(String(order.status ?? ""))) {
       throw new HttpError("Order is not ready for payout", 409);
     }
 
-    const payoutResult = await releaseStripePayoutForOrder(order, targetSellerEmail);
+    const payoutResult = await releaseStripePayoutForOrder(order, targetSellerEmail, {
+      triggeredBy: user.id,
+      triggeredByRole: "admin",
+      releaseReason: body.reason || "admin_manual_release",
+      adminReason: body.reason || "Admin payout release",
+      afterAdminResolution: Boolean(body.afterAdminResolution || body.force),
+    });
 
     return jsonResponse({
       ok: true,

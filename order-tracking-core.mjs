@@ -308,6 +308,29 @@ export function isOrderPaid(order) {
     ["paid", "authorized", "captured", "succeeded"].includes(String(payment.status ?? payment.paymentStatus ?? ""));
 }
 
+export function canSellerAddTracking(order, actor) {
+  const status = String(order?.status ?? "");
+  const payment = order?.payment ?? {};
+  const actorRole = String(actor?.role ?? "");
+  if (actorRole === "admin") return { ok: true };
+  if (actorRole !== "seller") return { ok: false, reason: "not_seller" };
+  if (!canAccessOrder(order, actor, "add_tracking")) return { ok: false, reason: "not_order_seller" };
+  if (!isOrderPaid(order)) return { ok: false, reason: "order_not_paid" };
+  if (["cancelled", "refunded", "returned", "issue_reported", "dispute_open"].includes(status)) {
+    return { ok: false, reason: "invalid_order_status" };
+  }
+  if (["delivered", "awaiting_buyer_confirmation", "buyer_confirmed_ok", "payout_pending", "payout_released", "payout_paid", "completed"].includes(status)) {
+    return { ok: false, reason: "tracking_locked_after_delivery" };
+  }
+  if (["processing", "refunded", "refund_requested"].includes(String(payment.refundStatus ?? ""))) {
+    return { ok: false, reason: "refund_blocks_tracking" };
+  }
+  if (["open", "needs_response", "under_review"].includes(String(payment.chargebackStatus ?? ""))) {
+    return { ok: false, reason: "chargeback_blocks_tracking" };
+  }
+  return { ok: true };
+}
+
 export function hasBlockingOrderIssue(order) {
   const payment = order?.payment ?? {};
   return Boolean(
@@ -441,4 +464,3 @@ export function dedupeWebhookEvent(seenIds, eventId) {
   seenIds.add(id);
   return { ok: true };
 }
-

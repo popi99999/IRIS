@@ -10,6 +10,40 @@ type Body = {
   trackingNumber?: string;
 };
 
+function canSellerUpdateManualTracking(order: Record<string, unknown>) {
+  const status = String(order.status ?? "");
+  const payment = (order.payment ?? {}) as Record<string, unknown>;
+  const paymentStatus = String(payment.status ?? payment.paymentStatus ?? "").toLowerCase();
+  const paidOrShippingStatus = new Set([
+    "paid",
+    "order_paid",
+    "seller_to_ship",
+    "shipping_label_created",
+    "shipped",
+    "in_transit",
+    "out_for_delivery",
+  ]);
+  const blockedStatus = new Set([
+    "cancelled",
+    "refunded",
+    "returned",
+    "delivered",
+    "awaiting_buyer_confirmation",
+    "buyer_confirmed_ok",
+    "issue_reported",
+    "dispute_open",
+    "payout_pending",
+    "payout_released",
+    "payout_paid",
+    "completed",
+  ]);
+
+  if (blockedStatus.has(status)) return false;
+  if (["processing", "refunded", "refund_requested"].includes(String(payment.refundStatus ?? "").toLowerCase())) return false;
+  if (["open", "needs_response", "under_review"].includes(String(payment.chargebackStatus ?? "").toLowerCase())) return false;
+  return paidOrShippingStatus.has(status) || ["paid", "authorized", "captured", "succeeded"].includes(paymentStatus);
+}
+
 Deno.serve(async (request) => {
   const preflight = handleOptions(request);
   if (preflight) return preflight;
@@ -36,6 +70,9 @@ Deno.serve(async (request) => {
     const isAdmin = await isUserAdmin(user);
     if (!isAdmin && !sellerEmails.includes(currentUserEmail)) {
       throw new HttpError("You cannot update this shipment", 403);
+    }
+    if (!isAdmin && !canSellerUpdateManualTracking(order)) {
+      throw new HttpError("Tracking can only be added to paid orders that are still eligible for shipping", 409);
     }
     if (!isAdmin && ["delivered", "awaiting_buyer_confirmation", "buyer_confirmed_ok", "payout_pending", "payout_released", "payout_paid", "completed"].includes(String(order.status ?? ""))) {
       throw new HttpError("Tracking cannot be changed after delivery", 409);

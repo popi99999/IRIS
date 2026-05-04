@@ -2443,6 +2443,7 @@ body.irisx-luxury .irisx-reveal-section.is-visible{
             <input id="irisMobileSearchInput" type="search" placeholder="Cerca brand o articolo" aria-label="Cerca prodotti" oninput="syncMobileSearchDraft(this.value)">
             <button type="submit" aria-label="Cerca">Cerca</button>
           </form>
+          <div class="tn-mobile-search-suggestions" id="irisMobileSearchSuggestions" aria-live="polite"></div>
           <button class="tn-mobile-link" id="tnMobileHomeBtn" onclick="closeMobileNav();showBuyView('home')">Home</button>
           <button class="tn-mobile-link" id="tnMobileShopBtn" onclick="closeMobileNav();showBuyView('shop')">Shop</button>
           <button class="tn-mobile-link" id="tnMobileAboutBtn" onclick="closeMobileNav();showBuyView('home');setTimeout(function(){var manifesto=document.getElementById('irisManifesto');if(manifesto){manifesto.scrollIntoView({behavior:'smooth',block:'start'});}},120)">Chi siamo</button>
@@ -2999,12 +3000,13 @@ function showPage(type){document.getElementById('choice').classList.remove('show
 }
 function backToChoice(){showChoiceScreen()}
 function showBuyView(v){
-  ['shop-view','detail-view','fav-view','chat-view','profile-view'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('active');if(id!=='detail-view')el.style.display='';}});
-  document.getElementById('detail-view').style.display='none';
-  if(v==='shop'){document.getElementById('shop-view').classList.add('active');window.scrollTo(0,0)}
-  else if(v==='fav'){document.getElementById('fav-view').classList.add('active');renderFavorites();window.scrollTo(0,0)}
-  else if(v==='chat'){document.getElementById('chat-view').classList.add('active');renderChats()}
-  else if(v==='profile'){document.getElementById('profile-view').classList.add('active');window.scrollTo(0,0)}
+  ['home-view','shop-view','detail-view','fav-view','chat-view','profile-view'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('active');if(id!=='detail-view')el.style.display='';}});
+  const detail=document.getElementById('detail-view');if(detail)detail.style.display='none';
+  if(v==='home'){const el=document.getElementById('home-view');if(el)el.classList.add('active');window.scrollTo(0,0)}
+  else if(v==='shop'){const el=document.getElementById('shop-view');if(el)el.classList.add('active');initFilters();render();window.scrollTo(0,0)}
+  else if(v==='fav'){const el=document.getElementById('fav-view');if(el)el.classList.add('active');renderFavorites();window.scrollTo(0,0)}
+  else if(v==='chat'){const el=document.getElementById('chat-view');if(el)el.classList.add('active');renderChats()}
+  else if(v==='profile'){const el=document.getElementById('profile-view');if(el)el.classList.add('active');window.scrollTo(0,0)}
 }
 
 /* ═══════ FILTERS ═══════ */

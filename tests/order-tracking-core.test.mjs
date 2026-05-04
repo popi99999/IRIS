@@ -5,6 +5,7 @@ import {
   calculateSellerPayout,
   canAccessOrder,
   canBuyerConfirmOk,
+  canSellerAddTracking,
   canReleaseSellerPayout,
   dedupeWebhookEvent,
   generateTrackingUrl,
@@ -142,6 +143,22 @@ describe("permissions, audit, bad data and calculations", () => {
     assert.equal(canReleaseSellerPayout(deliveredOrder, { id: "buyer_1", role: "buyer" }).reason, "buyer_confirmation_required");
   });
 
+  it("blocks manual seller tracking on unpaid, final or disputed orders", () => {
+    const base = {
+      status: "seller_to_ship",
+      seller_id: "seller_1",
+      seller_emails: ["seller@iris.test"],
+      payment: { status: "paid" },
+    };
+    const seller = { id: "seller_1", role: "seller", email: "seller@iris.test" };
+    assert.equal(canSellerAddTracking(base, seller).ok, true);
+    assert.equal(canSellerAddTracking({ ...base, status: "created", payment: { status: "requires_payment_method" } }, seller).reason, "order_not_paid");
+    assert.equal(canSellerAddTracking({ ...base, status: "delivered" }, seller).reason, "tracking_locked_after_delivery");
+    assert.equal(canSellerAddTracking({ ...base, status: "cancelled" }, seller).reason, "invalid_order_status");
+    assert.equal(canSellerAddTracking({ ...base, payment: { status: "paid", chargebackStatus: "open" } }, seller).reason, "chargeback_blocks_tracking");
+    assert.equal(canSellerAddTracking(base, { id: "seller_2", role: "seller", email: "other@iris.test" }).reason, "not_order_seller");
+  });
+
   it("sanitizes tracking descriptions and builds audit logs", () => {
     assert.equal(sanitizeText("<script>alert(1)</script> Delivered\u0000"), "scriptalert(1)/script Delivered");
     const audit = buildAuditLog({
@@ -163,4 +180,3 @@ describe("permissions, audit, bad data and calculations", () => {
     assert.equal(calculateSellerPayout({ salePrice: -1, commissionRate: 0.07 }), 0);
   });
 });
-

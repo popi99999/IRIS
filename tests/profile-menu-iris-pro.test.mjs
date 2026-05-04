@@ -40,6 +40,15 @@ test("mobile account menu includes the same IRIS Pro entry", () => {
   assert.match(mobileMenu, /openIrisProMenuEntry\(\)/);
 });
 
+test("mobile search has real suggestions wired to the shared search engine", () => {
+  const mobileMenu = html.slice(html.indexOf('id="tnMobileMenu"'));
+  assert.match(mobileMenu, /id="irisMobileSearchSuggestions"/);
+  assert.match(js, /function renderMobileSearchSuggestions\(query\)/);
+  assert.match(js, /getQuerySuggestionPhrases\(query, products, brands, categories\)/);
+  assert.match(js, /function applyMobileSearchSuggestion\(type, value\)/);
+  assert.match(js, /window\.applyMobileSearchSuggestion = applyMobileSearchSuggestion/);
+});
+
 test("profile menu uses status badges and correct routing targets", () => {
   [
     "Richiedi accesso",
@@ -63,4 +72,38 @@ test("professional seller tools remain protected behind approved status checks",
   assert.match(js, /requireProfessionalSellerTool\("inventory_hub"\)/);
   assert.match(js, /requireProfessionalSellerTool\("reports"\)/);
   assert.match(js, /role !== "professional_seller_approved"/);
+});
+
+test("local fallback sessions cannot elevate themselves to admin", () => {
+  assert.match(js, /state\.currentUser\.authProvider === "supabase"/);
+  assert.match(js, /!isLocalOnlySessionUser\(state\.currentUser\)/);
+  assert.match(js, /platformRole:\s*""/);
+  assert.match(js, /sessionScope:\s*"local_fallback"/);
+  assert.equal(/payload\.role\s*=/.test(js), false, "profile updates must not write role from client state");
+});
+
+test("non-admin users cannot activate the ops view directly", () => {
+  assert.match(js, /targetView === "ops" && !isCurrentUserAdmin\(\)/);
+  assert.match(js, /Area riservata agli admin IRIS/);
+  assert.match(js, /targetView = state\.currentUser \? "profile" : "home"/);
+});
+
+test("favorites render keeps the header badge aligned with saved items", () => {
+  const renderFavoritesStart = js.indexOf("renderFavorites = function ()");
+  const showDetailStart = js.indexOf("showDetail = function", renderFavoritesStart);
+  const renderFavoritesBody = js.slice(renderFavoritesStart, showDetailStart);
+
+  assert.ok(renderFavoritesStart > -1, "favorites renderer exists");
+  assert.match(renderFavoritesBody, /getFavoriteProductItems\(\{\s*requirePurchasable:\s*true\s*\}\)/);
+  assert.match(renderFavoritesBody, /updateFavBadge\(\)/);
+});
+
+test("product image URLs are sanitized and escaped before rendering", () => {
+  assert.match(js, /function sanitizeImageSource\(src\)/);
+  assert.match(js, /\^\(javascript\|vbscript\|file\):/);
+  assert.match(js, /isPrivateOrLocalImageHost\(parsed\.hostname\)/);
+  assert.ok(js.includes("data:image\\/(?:png|jpe?g|webp|gif);base64"));
+  assert.match(js, /sources\.push\(safeSrc\)/);
+  assert.match(js, /escapeHtml\(primaryImage\)/);
+  assert.match(js, /escapeHtml\(images\[activeIndex\]\)/);
 });

@@ -29,6 +29,7 @@
   };
   const COOKIE_CONSENT_KEY = "iris-cookie-consent";
   const ESSENTIAL_STORAGE_KEYS = new Set([
+    STORAGE_KEYS.users,
     STORAGE_KEYS.session,
     STORAGE_KEYS.cart,
     STORAGE_KEYS.favorites,
@@ -781,6 +782,8 @@
     stripeReturn: null,
     offerSubmitting: false,
     connectReturn: null,
+    appReady: false,
+    queuedBuyView: null,
     homeRenderSignature: null,
     detailImageOptimizations: {},
     searchDebounceTimer: null,
@@ -927,6 +930,16 @@
   setTimeout(cleanupNavbar, 300);
   setTimeout(cleanupNavbar, 800);
   setTimeout(cleanupNavbar, 2000);
+  state.appReady = true;
+  if (state.queuedBuyView) {
+    const queuedBuyView = state.queuedBuyView;
+    state.queuedBuyView = null;
+    setTimeout(function () {
+      if (typeof showBuyView === "function") {
+        showBuyView(queuedBuyView);
+      }
+    }, 0);
+  }
 
   function qs(selector, root) {
     return (root || document).querySelector(selector);
@@ -2100,17 +2113,64 @@
     return PLACEHOLDER_IMAGES.borse;
   }
 
+  function isPrivateOrLocalImageHost(hostname) {
+    const host = String(hostname || "").trim().toLowerCase().replace(/^\[|\]$/g, "");
+    if (!host) return true;
+    if (host === "localhost" || host === "0.0.0.0" || host === "::1") return true;
+    if (/^127(?:\.\d{1,3}){3}$/.test(host)) return true;
+    if (/^10(?:\.\d{1,3}){3}$/.test(host)) return true;
+    if (/^192\.168(?:\.\d{1,3}){2}$/.test(host)) return true;
+    if (/^169\.254(?:\.\d{1,3}){2}$/.test(host)) return true;
+    const private172 = host.match(/^172\.(\d{1,3})(?:\.\d{1,3}){2}$/);
+    if (private172) {
+      const secondOctet = Number(private172[1]);
+      if (secondOctet >= 16 && secondOctet <= 31) return true;
+    }
+    if (/^(fc|fd|fe80):/i.test(host)) return true;
+    return false;
+  }
+
+  function sanitizeImageSource(src) {
+    const value = String(src || "").trim();
+    if (!value || /[\u0000-\u001f\u007f<>"'`]/.test(value)) {
+      return "";
+    }
+    const lower = value.toLowerCase();
+    if (/^(javascript|vbscript|file):/.test(lower)) {
+      return "";
+    }
+    if (lower.startsWith("data:")) {
+      return /^data:image\/(?:png|jpe?g|webp|gif);base64,[a-z0-9+/=\s]+$/i.test(value)
+        ? value.replace(/\s+/g, "")
+        : "";
+    }
+    try {
+      const parsed = new URL(value, window.location.origin);
+      if (!["https:", "http:", "blob:"].includes(parsed.protocol)) {
+        return "";
+      }
+      if ((parsed.protocol === "http:" || parsed.protocol === "https:") && isPrivateOrLocalImageHost(parsed.hostname)) {
+        return "";
+      }
+      return parsed.href;
+    } catch (error) {
+      return "";
+    }
+  }
+
   function getListingImageSources(listing) {
     const sources = [];
     if (Array.isArray(listing && listing.images)) {
       listing.images.filter(Boolean).forEach(function (src) {
-        if (sources.indexOf(src) === -1) {
-          sources.push(src);
+        const safeSrc = sanitizeImageSource(src);
+        if (safeSrc && sources.indexOf(safeSrc) === -1) {
+          sources.push(safeSrc);
         }
       });
     }
-    if (listing && listing.image && sources.indexOf(listing.image) === -1) {
-      sources.push(listing.image);
+    const safePrimaryImage = sanitizeImageSource(listing && listing.image);
+    if (safePrimaryImage && sources.indexOf(safePrimaryImage) === -1) {
+      sources.push(safePrimaryImage);
     }
     return sources;
   }
@@ -2699,7 +2759,6 @@
       id: (authUser && authUser.id) || (user && user.id) || ""
     }));
     const normalizedEmail = normalizeEmail((authUser && authUser.email) || normalizedUser.email);
-    const normalizedRole = normalizeString(normalizedUser.platformRole || normalizedUser.role).toLowerCase();
     const payload = {
       id: (authUser && authUser.id) || normalizedUser.id,
       email: normalizedEmail,
@@ -2727,9 +2786,6 @@
       ban_reason: normalizedUser.banReason || "",
       banned_at: normalizedUser.bannedAt || null
     };
-    if (normalizedRole) {
-      payload.role = normalizedRole === "admin" ? "admin" : normalizedRole;
-    }
     return payload;
   }
 
@@ -2771,7 +2827,8 @@
       accountStatus: rawProfile.account_status || "active",
       banReason: rawProfile.ban_reason || "",
       bannedAt: rawProfile.banned_at || null,
-      authProvider: (authUser && authUser.app_metadata && authUser.app_metadata.provider) || "supabase"
+      authProvider: "supabase",
+      sessionScope: "supabase"
     });
   }
 
@@ -4720,9 +4777,106 @@
     }) || null;
   }
 
+  function isLocalDevelopmentHost() {
+    if (typeof window === "undefined" || !window.location) {
+      return false;
+    }
+    return (
+      window.location.protocol === "file:" ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname === "::1"
+    );
+  }
+
+  function canUseLocalAuthFallback() {
+    if (typeof window === "undefined") {
+      return false;
+    }
+    if (window.IRIS_DISABLE_LOCAL_AUTH_FALLBACK === true) {
+      return false;
+    }
+    return isLocalDevelopmentHost() || window.IRIS_ENABLE_LOCAL_AUTH_FALLBACK === true;
+  }
+
+  async function createLocalAuthVerifier(email, password) {
+    const raw = "iris-local-auth:v1:" + normalizeEmail(email) + ":" + String(password || "");
+    if (window.crypto && window.crypto.subtle && typeof TextEncoder !== "undefined") {
+      const digest = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+      return "sha256:" + Array.from(new Uint8Array(digest)).map(function (byte) {
+        return byte.toString(16).padStart(2, "0");
+      }).join("");
+    }
+    return "";
+  }
+
+  async function authenticateWithLocalFallback(payload) {
+    if (!canUseLocalAuthFallback() || !payload || payload.isRecovery) {
+      return { handled: false };
+    }
+    const email = normalizeEmail(payload.email || "");
+    const password = String(payload.password || "");
+    if (!email || !password) {
+      return { handled: false };
+    }
+    const existing = getCachedUserByEmail(email);
+    const verifier = await createLocalAuthVerifier(email, password);
+
+    if (payload.isLogin) {
+      if (!existing || !isLocalOnlySessionUser(existing)) {
+        return { handled: false };
+      }
+      if (existing.localAuthVerifier && verifier && existing.localAuthVerifier !== verifier) {
+        return {
+          handled: true,
+          error: langText("Email o password non corretti.", "Incorrect email or password.")
+        };
+      }
+      return {
+        handled: true,
+        user: applyAuthenticatedUser(Object.assign({}, existing, {
+          platformRole: "",
+          role: "",
+          authProvider: existing.authProvider || "local",
+          sessionScope: "local_fallback"
+        }), { verified: true })
+      };
+    }
+
+    const localUser = normalizeUserWorkspace(Object.assign({}, existing || {}, {
+      id: (existing && existing.id) || createId("local-user"),
+      name: normalizeString(payload.name || (existing && existing.name) || email.split("@")[0] || "IRIS user"),
+      email: email,
+      phone: normalizePhoneNumber(payload.phone || (existing && existing.phone) || ""),
+      platformRole: "",
+      role: "",
+      city: (existing && existing.city) || "",
+      country: (existing && existing.country) || getWorkspaceDefaultCountry(),
+      bio: (existing && existing.bio) || "",
+      memberSince: (existing && existing.memberSince) || String(new Date().getFullYear()),
+      avatar: (existing && existing.avatar) || "",
+      accountStatus: "active",
+      authProvider: "local",
+      sessionScope: "local_fallback",
+      localAuthVerifier: verifier,
+      verification: Object.assign({}, existing && existing.verification ? existing.verification : {}, {
+        emailVerified: false,
+        phoneVerified: false
+      })
+    }));
+    const applied = applyAuthenticatedUser(localUser, { verified: true });
+    if (!existing) {
+      notifyNewUser(applied);
+    }
+    return { handled: true, user: applied };
+  }
+
   function isLocalOnlySessionUser(user) {
     if (!user || !user.email) {
       return false;
+    }
+    if ((user.authProvider && user.authProvider !== "supabase") || user.sessionScope === "local_fallback") {
+      return true;
     }
     const cachedUser = getCachedUserByEmail(user.email);
     return Boolean(cachedUser && cachedUser.authProvider && cachedUser.authProvider !== "supabase");
@@ -6043,6 +6197,7 @@
       searchInput.value = query;
     }
     filters.search = query.trim();
+    renderMobileSearchSuggestions(query);
     updateSearchSaveButton();
   }
 
@@ -6057,7 +6212,75 @@
     showPage("buy");
     showBuyView("shop");
     handleSearch(query);
-    renderAutocompleteSuggestions(query);
+    renderMobileSearchSuggestions("");
+    renderAutocompleteSuggestions(query, { forceOpen: window.innerWidth > 700 });
+  }
+
+  function renderMobileSearchSuggestions(query) {
+    const host = qs("#irisMobileSearchSuggestions");
+    if (!host) {
+      return;
+    }
+    const normalized = normalizeSearchText(query);
+    if (!normalized) {
+      host.innerHTML = "";
+      host.classList.remove("open");
+      return;
+    }
+
+    const products = getVisibleCatalogProducts().filter(function (product) {
+      return getProductSearchIndex(product).includes(normalized);
+    }).slice(0, 3);
+    const brands = getAvailableBrands().filter(function (brand) {
+      return fuzzySearchMatch(brand, normalized);
+    }).slice(0, 4);
+    const categories = getAvailableCategories().filter(function (category) {
+      return fuzzySearchMatch(category + " " + getFacetLabel("cats", category), normalized);
+    }).slice(0, 3);
+    const suggestions = getQuerySuggestionPhrases(query, products, brands, categories).slice(0, 2);
+
+    function mobileSearchButton(type, value, label, meta) {
+      return `<button type="button" class="tn-mobile-search-suggestion" onclick="applyMobileSearchSuggestion(${inlineJsValue(type)}, ${inlineJsValue(value)})"><strong>${escapeHtml(label)}</strong>${meta ? `<span>${escapeHtml(meta)}</span>` : ""}</button>`;
+    }
+
+    const suggestionMarkup = suggestions.map(function (entry) {
+      const isExact = normalizeSearchText(entry) === normalized;
+      return mobileSearchButton(
+        "search",
+        entry,
+        entry,
+        isExact ? langText("Cerca esattamente", "Search exactly") : langText("Suggerimento", "Suggestion")
+      );
+    }).join("");
+    const brandMarkup = brands.map(function (brand) {
+      const count = getVisibleCatalogProducts().filter(function (product) {
+        return normalizeSearchText(product.brand) === normalizeSearchText(brand);
+      }).length;
+      return mobileSearchButton("brand", brand, brand, count ? count + " " + langText("articoli", "items") : langText("Brand", "Brand"));
+    }).join("");
+    const productMarkup = products.map(function (product) {
+      return mobileSearchButton(
+        "product",
+        product.id,
+        product.brand + " - " + product.name,
+        formatCurrency(product.price)
+      );
+    }).join("");
+
+    const html = [
+      suggestionMarkup ? `<div class="tn-mobile-search-suggestion-group"><span>${escapeHtml(langText("Suggerimenti", "Suggestions"))}</span>${suggestionMarkup}</div>` : "",
+      brandMarkup ? `<div class="tn-mobile-search-suggestion-group"><span>${escapeHtml(langText("Brand", "Brand"))}</span>${brandMarkup}</div>` : "",
+      productMarkup ? `<div class="tn-mobile-search-suggestion-group"><span>${escapeHtml(langText("Articoli", "Items"))}</span>${productMarkup}</div>` : ""
+    ].filter(Boolean).join("");
+
+    host.innerHTML = html;
+    host.classList.toggle("open", Boolean(html));
+  }
+
+  function applyMobileSearchSuggestion(type, value) {
+    renderMobileSearchSuggestions("");
+    closeMobileNav();
+    applyAutocompleteSelection(type, value);
   }
 
   function getMyListings() {
@@ -6618,7 +6841,13 @@
   }
 
   function isCurrentUserAdmin() {
-    return Boolean(state.sessionVerified && isAdminUser(state.currentUser));
+    return Boolean(
+      state.sessionVerified &&
+      state.currentUser &&
+      state.currentUser.authProvider === "supabase" &&
+      !isLocalOnlySessionUser(state.currentUser) &&
+      isAdminUser(state.currentUser)
+    );
   }
 
   function ensureSellerEmail(seller) {
@@ -7911,6 +8140,24 @@
     });
   }
 
+  function requestIrisBuyView(view) {
+    const targetView = view || "home";
+    if (targetView !== "home") {
+      state.queuedBuyView = targetView;
+      setTimeout(function () {
+        if (state.queuedBuyView === targetView) {
+          state.queuedBuyView = null;
+        }
+      }, 5000);
+    } else {
+      state.queuedBuyView = null;
+    }
+    if (typeof showBuyView === "function") {
+      showBuyView(targetView);
+    }
+  }
+  window.requestIrisBuyView = requestIrisBuyView;
+
   function renderHomeView(options) {
     const container = qs("#home-view");
     if (!container) {
@@ -7957,7 +8204,7 @@
             ${copy.kicker ? `<div class="irisx-home-kicker">${escapeHtml(copy.kicker)}</div><div class="irisx-home-rule"></div>` : ""}
             <h1 class="irisx-home-title">${escapeHtml(copy.title).replace(/\n/g, "<br>")}</h1>
             <div class="irisx-home-actions">
-              <button class="irisx-home-action primary" onclick="showBuyView('shop')">${escapeHtml(copy.primaryCta)}</button>
+              <button class="irisx-home-action primary" onclick="requestIrisBuyView('shop')">${escapeHtml(copy.primaryCta)}</button>
             </div>
           </div>
           <button class="irisx-home-scroll" aria-label="${escapeHtml(langText("Scorri", "Scroll"))}" onclick="document.getElementById('irisTrustBar') && document.getElementById('irisTrustBar').scrollIntoView({behavior:'smooth',block:'start'})"></button>
@@ -8526,10 +8773,20 @@
         introDiv.style.display = "none";
       }
       document.body.style.overflow = "";
+      const activeBuyView = typeof getActiveIrisViewForBack === "function" ? getActiveIrisViewForBack() : "";
+      if (qs("#page-buy.active") && activeBuyView && activeBuyView !== "home") {
+        syncTopnavChrome(activeBuyView);
+        return;
+      }
       showPage("buy");
     };
 
     showChoiceScreen = function () {
+      const activeBuyView = typeof getActiveIrisViewForBack === "function" ? getActiveIrisViewForBack() : "";
+      if (qs("#page-buy.active") && activeBuyView && activeBuyView !== "home") {
+        syncTopnavChrome(activeBuyView);
+        return;
+      }
       showPage("buy");
     };
 
@@ -8567,9 +8824,15 @@
       buyPage.classList.add("active");
       topnav.classList.add("show");
       sellTopbar.classList.remove("show");
-      syncMobileAppShell("home");
-      updateIrisBackButton("home");
+      const queuedBuyView = state.queuedBuyView;
+      const nextBuyView = queuedBuyView && queuedBuyView !== "home" ? queuedBuyView : "home";
+      syncMobileAppShell(nextBuyView);
+      updateIrisBackButton(nextBuyView);
       showBuyView("home");
+      if (nextBuyView !== "home") {
+        state.queuedBuyView = null;
+        showBuyView(nextBuyView);
+      }
     };
 
     showPage("buy");
@@ -12873,7 +13136,14 @@
     };
 
     showBuyView = function (view) {
-      const targetView = view || "home";
+      let targetView = view || "home";
+      if (targetView === "ops" && !isCurrentUserAdmin()) {
+        showToast(langText("Area riservata agli admin IRIS.", "IRIS admin area only."));
+        targetView = state.currentUser ? "profile" : "home";
+      }
+      if (!state.appReady && targetView !== "home") {
+        state.queuedBuyView = targetView;
+      }
       const currentView = getActiveIrisViewForBack();
       if (currentView && currentView !== "detail" && currentView !== "sell" && currentView !== targetView) {
         state.irisPreviousView = currentView;
@@ -13050,6 +13320,7 @@
 
     renderFavorites = function () {
       const items = getFavoriteProductItems({ requirePurchasable: true });
+      updateFavBadge();
       qs("#favCountText").textContent =
         items.length + " " + (items.length === 1
           ? langText("articolo salvato", "saved item")
@@ -13252,7 +13523,7 @@
     const statusTags = !compact && soldTag ? "<div class=\"pi-tags pi-tags--status\">" + soldTag + "</div>" : "";
     const media = primaryImage
       ? "<div class=\"pi\"><div class=\"pi-bg irisx-media\"><img class=\"irisx-card-image\" src=\"" +
-        primaryImage +
+        escapeHtml(primaryImage) +
         "\" loading=\"lazy\" alt=\"" +
         escapeHtml(product.brand + " - " + product.name) +
         "\" onerror=\"this.style.display='none';this.parentNode.classList.remove('irisx-media');this.parentNode.innerHTML='<div class=&quot;pi-emoji&quot;>" + escapeHtml(product.emoji || "👜") + "</div>'\"></div>" +
@@ -13384,7 +13655,7 @@
           "\" onclick=\"setDetailImage(" +
           index +
           ")\"><img src=\"" +
-          src +
+          escapeHtml(src) +
           "\" alt=\"" +
           escapeHtml(product.name) +
           " " +
@@ -13400,7 +13671,7 @@
       ">" +
       navControls +
       "<img class=\"irisx-detail-image\" id=\"detailMainImage\" crossorigin=\"anonymous\" src=\"" +
-      images[activeIndex] +
+      escapeHtml(images[activeIndex]) +
       "\" alt=\"" +
       escapeHtml(product.name) +
       "\" data-image-index=\"" + activeIndex + "\" data-original-src=\"" + escapeHtml(images[activeIndex]) + "\"></div>" +
@@ -14105,6 +14376,25 @@
       }
     }
 
+    if (!isRecovery && isLocalDevelopmentHost() && canUseLocalAuthFallback()) {
+      const localAuth = await authenticateWithLocalFallback({
+        isLogin: isLogin,
+        email: email,
+        password: password,
+        name: name,
+        phone: phone
+      });
+      if (localAuth.handled) {
+        if (localAuth.error) {
+          setInlineStatus(status, localAuth.error, true);
+          return;
+        }
+        showToast(isLogin ? t("login_success") : t("register_success"));
+        finalizeAuthSuccess(state.authReturnView);
+        return;
+      }
+    }
+
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
@@ -14223,6 +14513,24 @@
           rlFail.count = (rlFail.count || 0) + 1;
           sessionStorage.setItem(rlKeyFail, JSON.stringify(rlFail));
         }
+        if (!isRecovery && canUseLocalAuthFallback()) {
+          const localAuth = await authenticateWithLocalFallback({
+            isLogin: isLogin,
+            email: email,
+            password: password,
+            name: name,
+            phone: phone
+          });
+          if (localAuth.handled) {
+            if (localAuth.error) {
+              setInlineStatus(status, localAuth.error, true);
+              return;
+            }
+            showToast(isLogin ? t("login_success") : t("register_success"));
+            finalizeAuthSuccess(state.authReturnView);
+            return;
+          }
+        }
         setInlineStatus(
           status,
           getReadableAuthErrorMessage(error, "Autenticazione non disponibile.", "Authentication is currently unavailable."),
@@ -14232,7 +14540,25 @@
       }
     }
 
-    // Supabase auth is required — no local fallback allowed
+    if (!isRecovery && canUseLocalAuthFallback()) {
+      const localAuth = await authenticateWithLocalFallback({
+        isLogin: isLogin,
+        email: email,
+        password: password,
+        name: name,
+        phone: phone
+      });
+      if (localAuth.handled) {
+        if (localAuth.error) {
+          setInlineStatus(status, localAuth.error, true);
+          return;
+        }
+        showToast(isLogin ? t("login_success") : t("register_success"));
+        finalizeAuthSuccess(state.authReturnView);
+        return;
+      }
+    }
+
     setInlineStatus(
       status,
       langText(
@@ -23234,6 +23560,7 @@
   window.closeMobileNav = closeMobileNav;
   window.syncMobileSearchDraft = syncMobileSearchDraft;
   window.syncMobileSearch = syncMobileSearch;
+  window.applyMobileSearchSuggestion = applyMobileSearchSuggestion;
   window.handleAuthButtonClick = handleAuthButtonClick;
   window.acceptCookies = acceptCookies;
   window.checkCookieConsent = checkCookieConsent;
